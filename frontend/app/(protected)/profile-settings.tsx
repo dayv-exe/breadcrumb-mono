@@ -198,17 +198,19 @@ export default function ProfileSettingsScreen() {
         onClose={() => setRenderSheet(false)}
         backdropComponent={renderBackdrop}
       >
-        <BottomSheetView style={{marginHorizontal: 20}}>
+        <BottomSheetView style={{ marginHorizontal: 20 }}>
           <View style={[styles.header, {
             marginTop: insets.top,
           }]}>
-          <CustomButton handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel" />
-          <CustomLabel adaptToTheme bold textAlign="center" labelText={
-            bottomSheetChild === EditMode.USERNAME ? "Edit username" : ""
-          } />
-          <CustomButton type="text" labelText="Cancel" />
+            <CustomButton handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel" customStyle={{
+              position: "absolute",
+              left: 0
+            }} />
+            <CustomLabel adaptToTheme width={"auto"} bold textAlign="center" labelText={
+              bottomSheetChild === EditMode.USERNAME ? "Edit username" : ""
+            } />
           </View>
-          <Spacer />
+          <Spacer  />
           {renderSheet && bottomSheetChild === EditMode.USERNAME &&
             <EditUsername oldUsername={nickname} />
           }
@@ -220,10 +222,11 @@ export default function ProfileSettingsScreen() {
 
 const styles = StyleSheet.create({
   header: {
+    position: "relative",
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   container: {
     flex: 1,

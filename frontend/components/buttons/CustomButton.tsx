@@ -3,7 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useState } from "react";
-import { ActivityIndicator, AnimatableNumericValue, DimensionValue, Image, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { ActivityIndicator, AnimatableNumericValue, DimensionValue, Image, StyleProp, StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 import Spacer from "../Spacer";
 
 type bProps = {
@@ -24,9 +24,10 @@ type bProps = {
   paddingHorizontal?: DimensionValue
   handleClick?: () => void
   debounceTime?: number
+  customStyle?: StyleProp<ViewStyle>
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize = 21, paddingHorizontal, fontSize }: bProps) {
+export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize = 21, paddingHorizontal, fontSize, customStyle }: bProps) {
   const theme = useThemeColor
   const mode = useColorScheme()
   const [clicked, setClicked] = useState(false)
@@ -90,7 +91,8 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-      }
+      },
+      customStyle
     ]}>
       {isPending &&
         <>

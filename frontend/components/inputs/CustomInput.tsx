@@ -61,7 +61,9 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
               inputMode === "warn" ? "red" :
                 "green",
 
-            backgroundColor: adaptToTheme ? fadedBackgroundColor: Colors.dark.fadedBackground
+            backgroundColor: adaptToTheme ? fadedBackgroundColor: Colors.dark.fadedBackground,
+
+            color: textColor
           }
         ]}
           value={value}
