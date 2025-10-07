@@ -1,0 +1,1 @@
+export type inputMode = "normal" | "warn" | "success" // when set to warn the input will have a red border and when set to success the input will have a green border
