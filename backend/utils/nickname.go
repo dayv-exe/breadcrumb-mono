@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"breadcrumb-backend-go/constants"
+	"backend/constants"
 	"regexp"
 	"strings"
 )

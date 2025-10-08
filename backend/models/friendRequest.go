@@ -1,11 +1,9 @@
 package models
 
 import (
-	"breadcrumb-backend-go/utils"
-	"log"
+	"backend/utils"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -44,36 +42,26 @@ func FriendRequestKey(recipientUserId string, senderUserId string) map[string]ty
 	}
 }
 
-func (fr friendRequest) DatabaseFormat() (*map[string]types.AttributeValue, error) {
+func (fr *friendRequest) ApplyPrefixes() {
 	fr.RecipientId = utils.AddPrefix(FriendRequestPkPrefix, fr.RecipientId)
 	fr.SenderId = utils.AddPrefix(FriendRequestSkPrefix, fr.SenderId)
-	item, err := attributevalue.MarshalMap(fr)
-
-	if err != nil {
-		log.Print("an error occurred while trying to marshal friend req item")
-		return nil, err
-	}
-
-	return &item, nil
 }
 
-func FriendRequestItemsToUserDisplayStructs(item *[]map[string]types.AttributeValue) (*[]UserDisplayInfo, error) {
+func FriendRequestItemsToUserDisplayStructs(items *[]map[string]types.AttributeValue) *[]UserDisplayInfo {
 	// TODO: write a unit test for this function
 	// takes friends request items from the database and converts them to user display info
 	// user id, nickname, name and display picture
 
-	var requests []friendRequest
-	if err := attributevalue.UnmarshalListOfMaps(*item, &requests); err != nil {
-		return nil, err
-	}
+	result := utils.DatabaseItemsToStructs(items, func(fr *friendRequest) {
+		fr.RecipientId = strings.TrimPrefix(fr.RecipientId, FriendRequestPkPrefix)
+		fr.SenderId = strings.TrimPrefix(fr.SenderId, FriendRequestSkPrefix)
+	})
 
-	var users []UserDisplayInfo
+	var friendRequests []UserDisplayInfo
 
-	for index, request := range requests {
-		requests[index].SenderId = strings.TrimPrefix(request.SenderId, FriendRequestSkPrefix)
-
-		users = append(users, UserDisplayInfo{
-			Userid:                  requests[index].SenderId,
+	for _, request := range *result {
+		friendRequests = append(friendRequests, UserDisplayInfo{
+			Userid:                  request.SenderId,
 			Nickname:                request.Nickname,
 			Name:                    request.Name,
 			DpUrl:                   request.DpUrl,
@@ -81,5 +69,5 @@ func FriendRequestItemsToUserDisplayStructs(item *[]map[string]types.AttributeVa
 		})
 	}
 
-	return &users, nil
+	return &friendRequests
 }

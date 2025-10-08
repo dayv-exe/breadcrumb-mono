@@ -1,10 +1,9 @@
 package models
 
 import (
-	"breadcrumb-backend-go/constants"
-	"breadcrumb-backend-go/utils"
+	"backend/constants"
+	"backend/utils"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -117,19 +116,15 @@ func GetUserSearchIndexesKeys(dbIndexItems []map[string]types.AttributeValue) []
 	return keys
 }
 
-func SearchItemsToUserInfoStruct(items *[]map[string]types.AttributeValue) (*[]UserDisplayInfo, error) {
-	var searchItems []userSearchDbItem
-	if err := attributevalue.UnmarshalListOfMaps(*items, &searchItems); err != nil {
-		log.Println("An error occurred while trying to unmarshal search results to turn into user structs")
-		return nil, err
-	}
+func SearchItemsToUserInfoStruct(items *[]map[string]types.AttributeValue) *[]UserDisplayInfo {
+	searchItems := utils.DatabaseItemsToStructs(items, func(s *userSearchDbItem) {
+		s.Userid = strings.TrimPrefix(s.Userid, UserPkPrefix)
+	})
 
 	var users []UserDisplayInfo
-	for index, user := range searchItems {
-		searchItems[index].Userid = strings.TrimPrefix(user.Userid, UserPkPrefix)
-
+	for _, user := range *searchItems {
 		users = append(users, UserDisplayInfo{
-			Userid:                  searchItems[index].Userid,
+			Userid:                  user.Userid,
 			Nickname:                user.Nickname,
 			Name:                    user.Name,
 			DpUrl:                   user.DpUrl,
@@ -137,5 +132,5 @@ func SearchItemsToUserInfoStruct(items *[]map[string]types.AttributeValue) (*[]U
 		})
 	}
 
-	return &users, nil
+	return &users
 }

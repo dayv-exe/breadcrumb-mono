@@ -1,10 +1,9 @@
 package models
 
 import (
-	"breadcrumb-backend-go/utils"
+	"backend/utils"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -39,24 +38,14 @@ func NicknameKey(nickname string) map[string]types.AttributeValue {
 	}
 }
 
-func (n Nickname) DatabaseFormat() *map[string]types.AttributeValue {
+func (n *Nickname) ApplyPrefixes() {
 	n.Nickname = utils.AddPrefix(nicknamePkPrefix, n.Nickname)
-	item, err := attributevalue.MarshalMap(n)
-
-	if err != nil {
-		return nil
-	}
-
-	return &item
 }
 
-func ConvertToNickname(item *map[string]types.AttributeValue) (*Nickname, error) {
-	var n Nickname
-	if err := attributevalue.UnmarshalMap(*item, &n); err != nil {
-		return nil, err
-	}
+func ConvertToNickname(item *map[string]types.AttributeValue) *Nickname {
+	nickname := (*utils.DatabaseItemsToStructs(&[]map[string]types.AttributeValue{*item}, func(n *Nickname) {
+		n.UserId = strings.TrimPrefix(n.UserId, nicknamePkPrefix)
+	}))[0]
 
-	// clean up db tags
-	n.Nickname = strings.TrimPrefix(n.Nickname, nicknamePkPrefix)
-	return &n, nil
+	return &nickname
 }

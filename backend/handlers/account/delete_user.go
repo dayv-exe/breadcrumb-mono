@@ -3,25 +3,19 @@ package account
 // DELETES USER FROM DYNAMO DB THEN COGNITO
 
 import (
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type DeleteUserDependencies struct {
-	DbClient        *dynamodb.Client
-	CognitoClient   *cognitoidentityprovider.Client
-	UserPoolId      string
-	TableName       string
-	SearchTableName string
+	Dependencies *utils.HandlerDependencies
 }
 
-func (deps *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (this *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userId := utils.GetAuthUserId(req)
 
 	if userId == "" {
@@ -30,9 +24,8 @@ func (deps *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *e
 
 	// get user details from db
 	dbHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 	user, uErr := dbHelper.FindById(userId)
 
@@ -45,7 +38,7 @@ func (deps *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *e
 	}
 
 	// delete user from dynamodb
-	delErr := dbHelper.DeleteFromDynamo(user, deps.SearchTableName)
+	delErr := dbHelper.DeleteFromDynamo(user, this.Dependencies.SearchTableName)
 
 	if delErr != nil {
 		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again", delErr, "error from delete from dynamo db"), nil
@@ -53,9 +46,8 @@ func (deps *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *e
 
 	// delete user from cognito
 	cognitoHelper := helpers.UserCognitoHelper{
-		CognitoClient: deps.CognitoClient,
-		UserPoolId:    deps.UserPoolId,
-		Ctx:           ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	cogErr := cognitoHelper.DeleteFromCognito(userId, true)

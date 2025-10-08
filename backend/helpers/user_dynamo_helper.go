@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"log"
@@ -14,12 +14,11 @@ import (
 )
 
 type UserDynamoHelper struct {
-	DbClient  *dynamodb.Client
-	TableName string
-	Ctx       context.Context
+	Dependencies *utils.HandlerDependencies
+	Ctx          context.Context
 }
 
-func (deps *UserDynamoHelper) AddUser(u *models.User, searchTableName string) error {
+func (this *UserDynamoHelper) AddUser(u *models.User, searchTableName string) error {
 	// create new nickname item, to reserve nickname in race conditions for example
 	newNickname := models.NewNickname(u.Nickname, u.Name, u.Userid)
 
@@ -28,8 +27,8 @@ func (deps *UserDynamoHelper) AddUser(u *models.User, searchTableName string) er
 		{
 			// adds nickname item to reserve name
 			Put: &types.Put{
-				TableName: aws.String(deps.TableName),
-				Item:      *newNickname.DatabaseFormat(),
+				TableName: aws.String(this.Dependencies.TableName),
+				Item:      *utils.ToDatabaseFormat(newNickname),
 				// if this fails most likely because nickname is already in use
 				ConditionExpression: aws.String("attribute_not_exists(pk)"),
 			},
@@ -37,16 +36,15 @@ func (deps *UserDynamoHelper) AddUser(u *models.User, searchTableName string) er
 		{
 			// add user to db
 			Put: &types.Put{
-				TableName: aws.String(deps.TableName),
-				Item:      *u.DatabaseFormat(),
+				TableName: aws.String(this.Dependencies.TableName),
+				Item:      *utils.ToDatabaseFormat(u),
 			},
 		},
 	}
 
 	searchHelper := SearchDynamoHelper{
-		DbClient:        deps.DbClient,
-		Ctx:             deps.Ctx,
-		SearchTableName: searchTableName,
+		Dependencies: this.Dependencies,
+		Ctx:          this.Ctx,
 	}
 
 	// to create all the search indexes for the new user
@@ -61,7 +59,7 @@ func (deps *UserDynamoHelper) AddUser(u *models.User, searchTableName string) er
 		TransactItems: append(newUserTransactions, searchIndexTransactions...),
 	}
 
-	_, err := deps.DbClient.TransactWriteItems(deps.Ctx, input)
+	_, err := this.Dependencies.DbClient.TransactWriteItems(this.Ctx, input)
 
 	if err != nil {
 		// Check for transaction cancellation reasons
@@ -72,9 +70,9 @@ func (deps *UserDynamoHelper) AddUser(u *models.User, searchTableName string) er
 	return nil
 }
 
-func (deps *UserDynamoHelper) FindByNickname(nickname string) (*models.User, error) {
+func (this *UserDynamoHelper) FindByNickname(nickname string) (*models.User, error) {
 	input := &dynamodb.QueryInput{
-		TableName:              aws.String(deps.TableName),
+		TableName:              aws.String(this.Dependencies.TableName),
 		IndexName:              aws.String("NicknameIndex"),
 		KeyConditionExpression: aws.String("nickname = :nick"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -83,7 +81,7 @@ func (deps *UserDynamoHelper) FindByNickname(nickname string) (*models.User, err
 		Limit: aws.Int32(1),
 	}
 
-	output, err := deps.DbClient.Query(deps.Ctx, input)
+	output, err := this.Dependencies.DbClient.Query(this.Ctx, input)
 
 	if err != nil {
 		return nil, err
@@ -94,16 +92,16 @@ func (deps *UserDynamoHelper) FindByNickname(nickname string) (*models.User, err
 		return nil, nil
 	}
 
-	return models.ConvertToUser(output.Items[0])
+	return models.ConvertToUser(output.Items[0]), nil
 }
 
-func (deps *UserDynamoHelper) FindById(id string) (*models.User, error) {
+func (this *UserDynamoHelper) FindById(id string) (*models.User, error) {
 	input := dynamodb.GetItemInput{
 		Key:       models.UserKey(id),
-		TableName: &deps.TableName,
+		TableName: &this.Dependencies.TableName,
 	}
 
-	output, err := deps.DbClient.GetItem(deps.Ctx, &input)
+	output, err := this.Dependencies.DbClient.GetItem(this.Ctx, &input)
 
 	if err != nil {
 		return nil, err
@@ -114,10 +112,10 @@ func (deps *UserDynamoHelper) FindById(id string) (*models.User, error) {
 		return nil, nil
 	}
 
-	return models.ConvertToUser(output.Item)
+	return models.ConvertToUser(output.Item), nil
 }
 
-func (deps *UserDynamoHelper) DeleteFromDynamo(u *models.User, searchTableName string) error {
+func (this *UserDynamoHelper) DeleteFromDynamo(u *models.User, searchTableName string) error {
 	// delete user profile, nickname, friends, post and allat
 
 	// transactions to remove user item and nickname reservation item from db
@@ -126,22 +124,21 @@ func (deps *UserDynamoHelper) DeleteFromDynamo(u *models.User, searchTableName s
 			// delete account metadata
 			Delete: &types.Delete{
 				Key:       models.UserKey(u.Userid),
-				TableName: aws.String(deps.TableName),
+				TableName: aws.String(this.Dependencies.TableName),
 			},
 		},
 		{
 			// delete nickname reservation
 			Delete: &types.Delete{
 				Key:       models.NicknameKey(u.Nickname),
-				TableName: aws.String(deps.TableName),
+				TableName: aws.String(this.Dependencies.TableName),
 			},
 		},
 	}
 
 	searchHelper := SearchDynamoHelper{
-		DbClient:        deps.DbClient,
-		Ctx:             deps.Ctx,
-		SearchTableName: searchTableName,
+		Dependencies: this.Dependencies,
+		Ctx:          this.Ctx,
 	}
 	// transactions to remove all users search indexes from search table
 	searchIndexTransactions, siErr := searchHelper.GetDeleteUserIndexesItems(u)
@@ -154,7 +151,7 @@ func (deps *UserDynamoHelper) DeleteFromDynamo(u *models.User, searchTableName s
 		TransactItems: append(deleteUserTransactions, searchIndexTransactions...),
 	}
 
-	_, err := deps.DbClient.TransactWriteItems(deps.Ctx, input)
+	_, err := this.Dependencies.DbClient.TransactWriteItems(this.Ctx, input)
 
 	if err != nil {
 		utils.PrintTransactWriteCancellationReason(err)
@@ -164,7 +161,7 @@ func (deps *UserDynamoHelper) DeleteFromDynamo(u *models.User, searchTableName s
 	return nil
 }
 
-func (deps *UserDynamoHelper) UpdateName(user *models.User, newName string, updateNickname bool, searchTableName string) error {
+func (this *UserDynamoHelper) UpdateName(user *models.User, newName string, updateNickname bool, searchTableName string) error {
 	attributeToUpdate := "name"
 	// check if the new name is valid
 	if !updateNickname {
@@ -178,7 +175,7 @@ func (deps *UserDynamoHelper) UpdateName(user *models.User, newName string, upda
 	if updateNickname {
 		// if we are updating nickname
 		attributeToUpdate = "nickname"
-		nnAvailable, nnaErr := deps.NicknameAvailable(newName)
+		nnAvailable, nnaErr := this.NicknameAvailable(newName)
 		if nnaErr != nil {
 			// if we are unable to determine if new nickname is available
 			log.Println("error while trying to determine if new nickname is available")
@@ -195,9 +192,8 @@ func (deps *UserDynamoHelper) UpdateName(user *models.User, newName string, upda
 	var transactItems []types.TransactWriteItem
 
 	searchHelper := SearchDynamoHelper{
-		DbClient:        deps.DbClient,
-		Ctx:             deps.Ctx,
-		SearchTableName: searchTableName,
+		Dependencies: this.Dependencies,
+		Ctx:          this.Ctx,
 	}
 
 	// get the search indexes of the old name, and puts them all in delete transactions
@@ -230,7 +226,7 @@ func (deps *UserDynamoHelper) UpdateName(user *models.User, newName string, upda
 	userItems := types.TransactWriteItem{
 		Update: &types.Update{
 			Key:              models.UserKey(user.Userid),
-			TableName:        aws.String(deps.TableName),
+			TableName:        aws.String(this.Dependencies.TableName),
 			UpdateExpression: aws.String(fmt.Sprintf("SET %s = :n", attributeToUpdate)),
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":n": &types.AttributeValueMemberS{Value: newName},
@@ -245,7 +241,7 @@ func (deps *UserDynamoHelper) UpdateName(user *models.User, newName string, upda
 		TransactItems: transactItems,
 	}
 
-	_, updateErr := deps.DbClient.TransactWriteItems(deps.Ctx, input)
+	_, updateErr := this.Dependencies.DbClient.TransactWriteItems(this.Ctx, input)
 	if updateErr != nil {
 		log.Println("Something went wrong while trying to update name")
 		utils.PrintTransactWriteCancellationReason(updateErr)
@@ -255,17 +251,17 @@ func (deps *UserDynamoHelper) UpdateName(user *models.User, newName string, upda
 	return nil
 }
 
-func (deps *UserDynamoHelper) updateAttribute(attributeName string, key map[string]types.AttributeValue, newAttribute types.AttributeValue) error {
+func (this *UserDynamoHelper) updateAttribute(attributeName string, key map[string]types.AttributeValue, newAttribute types.AttributeValue) error {
 	input := &dynamodb.UpdateItemInput{
 		Key:                 key,
-		TableName:           &deps.TableName,
+		TableName:           &this.Dependencies.TableName,
 		ConditionExpression: aws.String(fmt.Sprintf("SET %s = :s", attributeName)),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":s": newAttribute,
 		},
 	}
 
-	_, err := deps.DbClient.UpdateItem(deps.Ctx, input)
+	_, err := this.Dependencies.DbClient.UpdateItem(this.Ctx, input)
 	if err != nil {
 		log.Print("An error occurred while trying to update attribute")
 		return err
@@ -274,7 +270,7 @@ func (deps *UserDynamoHelper) updateAttribute(attributeName string, key map[stri
 	return nil
 }
 
-func (deps *UserDynamoHelper) UpdateBio(userId string, bio string) error {
+func (this *UserDynamoHelper) UpdateBio(userId string, bio string) error {
 	if !utils.BioIsValid(&bio) {
 		log.Println("new bio given to update bio function is invalid")
 		return fmt.Errorf("Bio invalid!")
@@ -283,21 +279,21 @@ func (deps *UserDynamoHelper) UpdateBio(userId string, bio string) error {
 	key := models.UserKey(userId)
 	val := &types.AttributeValueMemberS{Value: bio}
 
-	return deps.updateAttribute("bio", key, val)
+	return this.updateAttribute("bio", key, val)
 }
 
-func (deps *UserDynamoHelper) UpdateDpUrl(userId string, url string) error {
+func (this *UserDynamoHelper) UpdateDpUrl(userId string, url string) error {
 	return nil
 }
 
-func (deps *UserDynamoHelper) NicknameAvailable(nickname string) (bool, error) {
+func (this *UserDynamoHelper) NicknameAvailable(nickname string) (bool, error) {
 	input := dynamodb.GetItemInput{
 		Key:       models.NicknameKey(nickname),
-		TableName: aws.String(deps.TableName),
+		TableName: aws.String(this.Dependencies.TableName),
 	}
 
 	return nicknameAvailableQueryRunner(func() (*dynamodb.GetItemOutput, error) {
-		return deps.DbClient.GetItem(deps.Ctx, &input)
+		return this.Dependencies.DbClient.GetItem(this.Ctx, &input)
 	})
 }
 

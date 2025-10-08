@@ -1,0 +1,12 @@
+abort_signup
+account_search
+custom_email
+delete_user
+edit_user_details
+friendship_action
+get_user_details
+nickname_available
+presignup
+remove_stale_accounts
+s3bucket_actions
+signup_confirm

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"breadcrumb-backend-go/utils"
+	"backend/utils"
 	"reflect"
 	"testing"
 
@@ -37,7 +37,7 @@ func TestUser_DatabaseFormat(t *testing.T) {
 		false,
 	)
 
-	result := *user.DatabaseFormat()
+	result := *utils.ToDatabaseFormat(user)
 
 	result["default_pic_colors"] = &dbTypes.AttributeValueMemberS{Value: ""}
 
@@ -79,7 +79,7 @@ func TestConvertToUser(t *testing.T) {
 		},
 	}
 
-	result, err := ConvertToUser(map[string]dbTypes.AttributeValue{
+	result := ConvertToUser(map[string]dbTypes.AttributeValue{
 		"pk":             &dbTypes.AttributeValueMemberS{Value: "USER#123"},
 		"nickname":       &dbTypes.AttributeValueMemberS{Value: "test"},
 		"name":           &dbTypes.AttributeValueMemberS{Value: "test"},
@@ -88,10 +88,6 @@ func TestConvertToUser(t *testing.T) {
 		"is_suspended":   &dbTypes.AttributeValueMemberBOOL{Value: false},
 		"is_deactivated": &dbTypes.AttributeValueMemberBOOL{Value: false},
 	})
-
-	if err != nil {
-		t.Fatalf("An unexpected error occurred %v", err.Error())
-	}
 
 	if !reflect.DeepEqual(*result, expect) {
 		t.Errorf("Result: %v does not match expected: %v", result, expect)

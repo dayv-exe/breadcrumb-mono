@@ -1,21 +1,19 @@
 package discover
 
 import (
-	"breadcrumb-backend-go/constants"
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/constants"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type FriendRequestDependencies struct {
-	DbClient  *dynamodb.Client
-	TableName string
+	Dependencies *utils.HandlerDependencies
 }
 
 func handleSendRequest(status string, sender *models.User, recipientId string, friendshipHelper helpers.FriendshipDynamoHelper) (events.APIGatewayProxyResponse, error) {
@@ -96,7 +94,7 @@ func handleGetAllFriendRequests(thisUserId string, friendshipHelper helpers.Frie
 	return models.SuccessfulGetRequestResponse(allReqs), nil
 }
 
-func (deps *FriendRequestDependencies) HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (this *FriendRequestDependencies) HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// /friendship/{action}/{userid}
 	log.Println("entered main handler function")
 	action, actionExists := req.PathParameters["action"]
@@ -120,9 +118,8 @@ func (deps *FriendRequestDependencies) HandleFriendshipAction(ctx context.Contex
 
 	// check if they are friends
 	friendshipHelper := helpers.FriendshipDynamoHelper{
-		DbClient:  deps.DbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	status, statusErr := friendshipHelper.GetFriendshipStatus(thisUserId, otherUserId)
@@ -133,9 +130,8 @@ func (deps *FriendRequestDependencies) HandleFriendshipAction(ctx context.Contex
 	log.Println("status: " + status)
 
 	findUserHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	thisUser, tuErr := findUserHelper.FindById(thisUserId)

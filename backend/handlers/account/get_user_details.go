@@ -3,28 +3,20 @@ package account
 // RETURNS PRIMARY USER DETAILS, OR IF USER REQUESTS OWN DETAILS, RETURN ALL THEIR DETAILS IN COGNITO AND DYNAMODB
 
 import (
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 // if a user request their details, this function will return all their info from cognito and dynamodb
 // if a user request details of another user, it will only return profile picture url, nickname, username, and maybe mutual friends
 
 type GetUserDetailsDependencies struct {
-	// cognito stuff
-	CognitoClient *cognitoidentityprovider.Client
-	UserPoolId    string
-
-	// dynamodb stuff
-	DdbClient *dynamodb.Client
-	TableName string
+	Dependencies *utils.HandlerDependencies
 }
 
 type completeUserDetails struct {
@@ -42,7 +34,7 @@ func getUser(useId bool, identifier string, dbHelper helpers.UserDynamoHelper) (
 	}
 }
 
-func (deps *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (this *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// gets user details from db, returns only public information, if user requesting is not the user being requested.
 
 	identifierName, idNameExists := req.PathParameters["identifier_name"]
@@ -60,9 +52,8 @@ func (deps *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context
 
 	// get all info on a user from dynamodb
 	dbHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DdbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 	user, dbErr := getUser(usingId, identifier, dbHelper)
 
@@ -82,9 +73,8 @@ func (deps *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context
 	if utils.IsAuthenticatedUser(req, user.Userid) {
 		// if the logged in user is requesting their own information
 		cognitoHelper := helpers.UserCognitoHelper{
-			CognitoClient: deps.CognitoClient,
-			UserPoolId:    deps.UserPoolId,
-			Ctx:           ctx,
+			Dependencies: this.Dependencies,
+			Ctx:          ctx,
 		}
 
 		userCognitoInfo, cogErr := cognitoHelper.GetManagedInfo(user.Userid)
@@ -106,9 +96,8 @@ func (deps *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context
 
 	// only return nickname, name, profile picture if one user requests another users information
 	friendshipHelper := helpers.FriendshipDynamoHelper{
-		DbClient:  deps.DdbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	friendshipStatus, fsErr := friendshipHelper.GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)

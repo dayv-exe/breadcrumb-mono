@@ -1,7 +1,7 @@
 package models
 
 import (
-	"breadcrumb-backend-go/utils"
+	"backend/utils"
 	"reflect"
 	"testing"
 
@@ -31,15 +31,15 @@ func TestFriendRequestDbFormat(t *testing.T) {
 			DefaultProfilePicColors: "",
 		},
 	}
-	res, _ := fr.DatabaseFormat()
-	result := *res
 
-	if len(result) != len(expected) {
-		t.Fatalf("Expected %d keys, got %d", len(expected), len(result))
+	result := utils.ToDatabaseFormat(&fr)
+
+	if len(*result) != len(expected) {
+		t.Fatalf("Expected %d keys, got %d", len(expected), len(*result))
 	}
 
 	for key, expVal := range expected {
-		val, exists := result[key]
+		val, exists := (*result)[key]
 		if !exists {
 			t.Errorf("Missing key: %v", key)
 			continue
@@ -79,7 +79,7 @@ func TestConvertToFriendRequest(t *testing.T) {
 		},
 	}
 
-	results, _ := FriendRequestItemsToUserDisplayStructs(&item)
+	results := FriendRequestItemsToUserDisplayStructs(&item)
 	if !reflect.DeepEqual((*results)[0], expected) {
 		t.Errorf("Result: %v does not match expected: %v", (*results)[0], expected)
 	}
@@ -106,7 +106,7 @@ func TestFriendRequestToUserInfoStruct(t *testing.T) {
 		DefaultProfilePicColors: "",
 	}
 
-	result, _ := FriendRequestItemsToUserDisplayStructs(&friendReqDbItem)
+	result := FriendRequestItemsToUserDisplayStructs(&friendReqDbItem)
 
 	if !reflect.DeepEqual((*result)[0], expect) {
 		t.Errorf("expected %v, got %v", expect, (*result)[0])

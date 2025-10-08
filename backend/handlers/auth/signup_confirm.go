@@ -1,25 +1,21 @@
 package auth
 
 import (
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type PostConfirmationDependencies struct {
-	DdbClient       *dynamodb.Client
-	CognitoClient   *cognitoidentityprovider.Client
-	TableName       string
-	SearchTableName string
+	Dependencies *utils.HandlerDependencies
 }
 
-func (deps PostConfirmationDependencies) HandlePostConfirmation(ctx context.Context, event events.CognitoEventUserPoolsPostConfirmation) (interface{}, error) {
+func (this PostConfirmationDependencies) HandlePostConfirmation(ctx context.Context, event events.CognitoEventUserPoolsPostConfirmation) (interface{}, error) {
 	// runs after user has validated their email
 
 	// this function should only run if it is trigger by signup confirm
@@ -33,15 +29,14 @@ func (deps PostConfirmationDependencies) HandlePostConfirmation(ctx context.Cont
 
 	// to add user to users table
 	dbHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DdbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	// create new user
 	newUser := models.NewUser(userID, nickName, name, false)
 
-	err := dbHelper.AddUser(newUser, deps.SearchTableName) // adds new user to users table
+	err := dbHelper.AddUser(newUser, this.Dependencies.SearchTableName) // adds new user to users table
 
 	if err != nil {
 		// if something goes wrong during the signup process deelete user cognito info
@@ -49,9 +44,8 @@ func (deps PostConfirmationDependencies) HandlePostConfirmation(ctx context.Cont
 
 		// remove the users info from cognito
 		cognitoHelper := helpers.UserCognitoHelper{
-			UserPoolId:    event.UserPoolID,
-			CognitoClient: deps.CognitoClient,
-			Ctx:           ctx,
+			Dependencies: this.Dependencies,
+			Ctx:          ctx,
 		}
 		cognitoErr := cognitoHelper.DeleteFromCognito(userID, true)
 		if cognitoErr != nil {

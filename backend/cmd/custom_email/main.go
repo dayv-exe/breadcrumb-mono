@@ -1,7 +1,7 @@
 package main
 
 import (
-	"breadcrumb-backend-go/handlers/emails"
+	"backend/handlers/emails"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )

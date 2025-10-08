@@ -1,38 +1,18 @@
 package main
 
 import (
-	"breadcrumb-backend-go/handlers/auth"
-	"context"
-	"log"
-	"os"
+	"backend/handlers/auth"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 )
 
 var (
-	client     *cognitoidentityprovider.Client
-	userPoolId string
-	starter    auth.AbortSignupDependencies
+	starter auth.AbortSignupDependencies
 )
 
 func init() {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		log.Fatalf("unable to load SDK config: %v", err)
-	}
-
-	client = cognitoidentityprovider.NewFromConfig(cfg)
-
-	userPoolId = os.Getenv("USER_POOL_ID")
-	if userPoolId == "" {
-		log.Fatal("USER_POOL_ID environment variable is required")
-	}
-
 	starter = auth.AbortSignupDependencies{
-		Client:     client,
-		UserPoolId: userPoolId,
+		Dependencies: starter.Dependencies,
 	}
 }
 

@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"log"
 	"strings"
@@ -13,12 +13,11 @@ import (
 )
 
 type SearchDynamoHelper struct {
-	DbClient        *dynamodb.Client
-	Ctx             context.Context
-	SearchTableName string
+	Dependencies *utils.HandlerDependencies
+	Ctx          context.Context
 }
 
-func (deps *SearchDynamoHelper) SearchUser(searchStr string, limit int32) (*[]models.UserDisplayInfo, error) {
+func (this *SearchDynamoHelper) SearchUser(searchStr string, limit int32) (*[]models.UserDisplayInfo, error) {
 
 	var matches []models.UserDisplayInfo
 	seen := make(map[string]int)
@@ -28,7 +27,7 @@ func (deps *SearchDynamoHelper) SearchUser(searchStr string, limit int32) (*[]mo
 	for _, token := range tokens {
 		if len(token) >= models.UserSearchIndexPrefixLen {
 			input := dynamodb.QueryInput{
-				TableName:              aws.String(deps.SearchTableName),
+				TableName:              aws.String(this.Dependencies.SearchTableName),
 				KeyConditionExpression: aws.String("pk = :pk AND begins_with(sk, :skPrefix)"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
 					":pk":       &types.AttributeValueMemberS{Value: models.UserSearchIndexPkPrefix + token[:models.UserSearchIndexPrefixLen]},
@@ -37,17 +36,13 @@ func (deps *SearchDynamoHelper) SearchUser(searchStr string, limit int32) (*[]mo
 				Limit: aws.Int32(limit),
 			}
 
-			found, qErr := deps.DbClient.Query(deps.Ctx, &input)
+			found, qErr := this.Dependencies.DbClient.Query(this.Ctx, &input)
 			if qErr != nil {
 				log.Println("An error occurred inside loop for querying tokens gotten from search string")
 				return nil, qErr
 			}
 
-			usersFound, ufErr := models.SearchItemsToUserInfoStruct(&found.Items)
-			if ufErr != nil {
-				log.Print("error while converting search items to user")
-				return nil, ufErr
-			}
+			usersFound := models.SearchItemsToUserInfoStruct(&found.Items)
 
 			matches = append(matches, (*usersFound)...)
 		}
@@ -69,16 +64,10 @@ func (deps *SearchDynamoHelper) SearchUser(searchStr string, limit int32) (*[]mo
 	return &result, nil
 }
 
-func (deps *SearchDynamoHelper) GetUserSearchIndexItems(user *models.User) ([]types.TransactWriteItem, error) {
+func (this *SearchDynamoHelper) GetUserSearchIndexItems(user *models.User) ([]types.TransactWriteItem, error) {
 	// Adds items to search table to allow for queries where search string is similar to nickname or full name
 	builder := models.UserSearch{
-		UserDisplayInfo: models.UserDisplayInfo{
-			Userid:                  user.Userid,
-			Nickname:                user.Nickname,
-			Name:                    user.Name,
-			DpUrl:                   user.DpUrl,
-			DefaultProfilePicColors: user.DefaultProfilePicColors,
-		},
+		UserDisplayInfo: *models.NewUserDisplayInfo(*user),
 	}
 
 	indexes, err := builder.BuildSearchIndexes()
@@ -92,7 +81,7 @@ func (deps *SearchDynamoHelper) GetUserSearchIndexItems(user *models.User) ([]ty
 	for _, index := range indexes {
 		items = append(items, types.TransactWriteItem{
 			Put: &types.Put{
-				TableName: aws.String(deps.SearchTableName),
+				TableName: aws.String(this.Dependencies.SearchTableName),
 				Item:      index,
 			},
 		})
@@ -101,16 +90,10 @@ func (deps *SearchDynamoHelper) GetUserSearchIndexItems(user *models.User) ([]ty
 	return items, nil
 }
 
-func (deps *SearchDynamoHelper) GetDeleteUserIndexesItems(user *models.User) ([]types.TransactWriteItem, error) {
+func (this *SearchDynamoHelper) GetDeleteUserIndexesItems(user *models.User) ([]types.TransactWriteItem, error) {
 	// rebuild indexes, then query them and get their primary keys
 	builder := models.UserSearch{
-		UserDisplayInfo: models.UserDisplayInfo{
-			Userid:                  user.Userid,
-			Nickname:                user.Nickname,
-			Name:                    user.Name,
-			DpUrl:                   user.DpUrl,
-			DefaultProfilePicColors: user.DefaultProfilePicColors,
-		},
+		UserDisplayInfo: *models.NewUserDisplayInfo(*user),
 	}
 
 	indexes, builderErr := builder.BuildSearchIndexes()
@@ -123,7 +106,7 @@ func (deps *SearchDynamoHelper) GetDeleteUserIndexesItems(user *models.User) ([]
 	for _, key := range keys {
 		items = append(items, types.TransactWriteItem{
 			Delete: &types.Delete{
-				TableName: aws.String(deps.SearchTableName),
+				TableName: aws.String(this.Dependencies.SearchTableName),
 				Key:       key,
 			},
 		})

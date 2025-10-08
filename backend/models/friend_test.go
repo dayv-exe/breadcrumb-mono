@@ -1,7 +1,7 @@
 package models
 
 import (
-	"breadcrumb-backend-go/utils"
+	"backend/utils"
 	"reflect"
 	"testing"
 
@@ -24,7 +24,7 @@ func TestFriendDatabaseFormat(t *testing.T) {
 	otherUser := NewUser("321", "sndr", "sender", false)
 	otherUser.DefaultProfilePicColors = ""
 
-	result, _ := NewFriendship("123", otherUser).DatabaseFormat()
+	result := utils.ToDatabaseFormat(NewFriendship("123", otherUser))
 
 	if len(*result) != len(expected) {
 		t.Fatalf("Expected %d keys, got %d", len(expected), len(*result))
@@ -70,7 +70,7 @@ func TestFriendToUserInfoStruct(t *testing.T) {
 		DefaultProfilePicColors: "",
 	}
 
-	result, _ := FriendItemsToUserDisplayStructs(&friendDbItem)
+	result := FriendItemsToUserDisplayStructs(&friendDbItem)
 
 	if !reflect.DeepEqual((*result)[0], expect) {
 		t.Errorf("expected %v, got %v", expect, (*result)[0])

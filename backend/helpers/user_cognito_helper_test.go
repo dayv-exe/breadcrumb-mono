@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"breadcrumb-backend-go/utils"
+	"backend/utils"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"

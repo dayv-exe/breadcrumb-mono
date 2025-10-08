@@ -3,10 +3,9 @@ package models
 // standard user db model
 
 import (
-	"breadcrumb-backend-go/utils"
+	"backend/utils"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -94,6 +93,16 @@ func GetUserDisplayInfoNoId(u *User) *UserDisplayInfoNoId {
 	}
 }
 
+func NewUserDisplayInfo(u User) *UserDisplayInfo {
+	return &UserDisplayInfo{
+		Userid:                  u.Userid,
+		Nickname:                u.Nickname,
+		Name:                    u.Name,
+		DpUrl:                   u.DpUrl,
+		DefaultProfilePicColors: u.DefaultProfilePicColors,
+	}
+}
+
 func UserKey(userid string) map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{
 		"pk": &types.AttributeValueMemberS{Value: utils.AddPrefix(UserPkPrefix, userid)},
@@ -101,24 +110,14 @@ func UserKey(userid string) map[string]types.AttributeValue {
 	}
 }
 
-func (u User) DatabaseFormat() *map[string]types.AttributeValue {
+func (u *User) ApplyPrefixes() {
 	u.Userid = utils.AddPrefix(UserPkPrefix, u.Userid)
-
-	item, err := attributevalue.MarshalMap(u)
-
-	if err != nil {
-		return nil
-	}
-	return &item
 }
 
-func ConvertToUser(item map[string]types.AttributeValue) (*User, error) {
-	var u User
-	if err := attributevalue.UnmarshalMap(item, &u); err != nil {
-		return nil, err
-	}
+func ConvertToUser(item map[string]types.AttributeValue) *User {
+	user := (*utils.DatabaseItemsToStructs(&[]map[string]types.AttributeValue{item}, func(u *User) {
+		u.Userid = strings.TrimPrefix(u.Userid, UserPkPrefix)
+	}))[0]
 
-	u.Userid = strings.TrimPrefix(u.Userid, UserPkPrefix)
-
-	return &u, nil
+	return &user
 }

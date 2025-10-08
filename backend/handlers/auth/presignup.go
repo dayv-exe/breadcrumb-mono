@@ -1,22 +1,20 @@
 package auth
 
 import (
-	"breadcrumb-backend-go/constants"
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/utils"
+	"backend/constants"
+	"backend/helpers"
+	"backend/utils"
 	"context"
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type PreSignupDependencies struct {
-	DdbClient *dynamodb.Client
-	TableName string
+	Dependencies *utils.HandlerDependencies
 }
 
-func (deps *PreSignupDependencies) PreSignupHandler(ctx context.Context, event events.CognitoEventUserPoolsPreSignup) (events.CognitoEventUserPoolsPreSignup, error) {
+func (this *PreSignupDependencies) PreSignupHandler(ctx context.Context, event events.CognitoEventUserPoolsPreSignup) (events.CognitoEventUserPoolsPreSignup, error) {
 	// runs before user is added to cognito user pool
 
 	nickname := event.Request.UserAttributes["nickname"]
@@ -29,9 +27,8 @@ func (deps *PreSignupDependencies) PreSignupHandler(ctx context.Context, event e
 	}
 
 	dbHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DdbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	// one final check if username is still free

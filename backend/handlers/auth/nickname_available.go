@@ -1,23 +1,21 @@
 package auth
 
 import (
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type HandleNicknameAvailableDependencies struct {
-	DdbClient *dynamodb.Client
-	TableName string
+	Dependencies *utils.HandlerDependencies
 }
 
-func (deps *HandleNicknameAvailableDependencies) HandleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (this *HandleNicknameAvailableDependencies) HandleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// returns true if a nickname has not been taken by a user in dynamodb
 
@@ -28,9 +26,8 @@ func (deps *HandleNicknameAvailableDependencies) HandleNicknameAvailable(ctx con
 	}
 
 	dbHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DdbClient,
-		Ctx:       ctx,
-		TableName: deps.TableName,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	isAvailable, dbErr := dbHelper.NicknameAvailable(nickname)

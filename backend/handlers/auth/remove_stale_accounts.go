@@ -3,8 +3,9 @@
 package auth
 
 import (
-	"breadcrumb-backend-go/constants"
-	"breadcrumb-backend-go/helpers"
+	"backend/constants"
+	"backend/helpers"
+	"backend/utils"
 	"context"
 	"fmt"
 	"log"
@@ -19,22 +20,20 @@ var (
 )
 
 type RemoveStaleAccountsDependencies struct {
-	Client     *cognitoidentityprovider.Client
-	UserPoolId string
+	Dependencies *utils.HandlerDependencies
 }
 
-func (deps *RemoveStaleAccountsDependencies) HandleRemoveStaleAccounts(ctx context.Context) error {
+func (this *RemoveStaleAccountsDependencies) HandleRemoveStaleAccounts(ctx context.Context) error {
 	var paginationToken *string
 	count := 0
 	cognitoHelper := helpers.UserCognitoHelper{
-		UserPoolId:    deps.UserPoolId,
-		CognitoClient: deps.Client,
-		Ctx:           ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	for {
 		input := &cognitoidentityprovider.ListUsersInput{
-			UserPoolId: aws.String(deps.UserPoolId),
+			UserPoolId: aws.String(this.Dependencies.UserPoolId),
 			Filter:     aws.String("cognito:user_status=\"UNCONFIRMED\""),
 			Limit:      aws.Int32(60),
 		}
@@ -43,7 +42,7 @@ func (deps *RemoveStaleAccountsDependencies) HandleRemoveStaleAccounts(ctx conte
 			input.PaginationToken = paginationToken
 		}
 
-		res, err := deps.Client.ListUsers(ctx, input)
+		res, err := this.Dependencies.CognitoClient.ListUsers(ctx, input)
 		if err != nil {
 			return fmt.Errorf("FAILED TO LIST USERS: %w", err)
 		}

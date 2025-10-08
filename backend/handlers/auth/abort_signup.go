@@ -1,22 +1,21 @@
 package auth
 
 import (
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 )
 
 // deletes an unverified user from cognito when the user cancels verification process on the frontend
 
 type AbortSignupDependencies struct {
-	Client     *cognitoidentityprovider.Client
-	UserPoolId string
+	Dependencies *utils.HandlerDependencies
 }
 
-func (deps *AbortSignupDependencies) AbortSignupHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (this *AbortSignupDependencies) AbortSignupHandler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// invalid username(sub, uuid)
 	userId := req.PathParameters["id"]
@@ -25,9 +24,8 @@ func (deps *AbortSignupDependencies) AbortSignupHandler(ctx context.Context, req
 	}
 
 	cognitoHelper := helpers.UserCognitoHelper{
-		UserPoolId:    deps.UserPoolId,
-		CognitoClient: deps.Client,
-		Ctx:           ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	err := cognitoHelper.DeleteFromCognito(userId, true)

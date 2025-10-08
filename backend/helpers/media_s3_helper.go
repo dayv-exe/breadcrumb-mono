@@ -1,7 +1,8 @@
 package helpers
 
 import (
-	"breadcrumb-backend-go/constants"
+	"backend/constants"
+	"backend/utils"
 	"context"
 	"fmt"
 	"time"
@@ -12,9 +13,8 @@ import (
 )
 
 type MediaHelper struct {
-	S3Client   *s3.Client
-	BucketName string
-	Ctx        context.Context
+	Dependencies *utils.HandlerDependencies
+	Ctx          context.Context
 }
 
 type PresignRequest struct {
@@ -25,16 +25,16 @@ type PresignResponse struct {
 	Url string `json:"url"`
 }
 
-func (deps *MediaHelper) GeneratePresignedUrl(input *PresignRequest) (*v4.PresignedHTTPRequest, error) {
-	s3PresignClient := s3.NewPresignClient(deps.S3Client)
+func (this *MediaHelper) GeneratePresignedUrl(input *PresignRequest) (*v4.PresignedHTTPRequest, error) {
+	s3PresignClient := s3.NewPresignClient(this.Dependencies.S3Client)
 
 	putReq := &s3.PutObjectInput{
-		Bucket:      aws.String(deps.BucketName),
+		Bucket:      aws.String(this.Dependencies.BucketName),
 		Key:         aws.String(input.Key),
 		ContentType: aws.String("image/jpeg"),
 	}
 
-	result, err := s3PresignClient.PresignPutObject(deps.Ctx, putReq, func(po *s3.PresignOptions) {
+	result, err := s3PresignClient.PresignPutObject(this.Ctx, putReq, func(po *s3.PresignOptions) {
 		po.Expires = constants.PRESIGNED_URL_EXPIRY * time.Minute
 	})
 	if err != nil {

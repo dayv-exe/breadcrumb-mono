@@ -3,27 +3,24 @@ package account
 // TO EDIT USER DETAILS, PARSE THE ATTRIBUTE TO EDIT IN {ACTION}
 
 import (
-	"breadcrumb-backend-go/helpers"
-	"breadcrumb-backend-go/models"
-	"breadcrumb-backend-go/utils"
+	"backend/helpers"
+	"backend/models"
+	"backend/utils"
 	"context"
 	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 type EditUserDetailsDependency struct {
-	DdbClient       *dynamodb.Client
-	TableName       string
-	SearchTableName string
+	Dependencies *utils.HandlerDependencies
 }
 
 type editUserDetailsReq struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-func (deps *EditUserDetailsDependency) HandleEditUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (this *EditUserDetailsDependency) HandleEditUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// get action and payload
 	action := req.PathParameters["action"]
 	var reqBody editUserDetailsReq
@@ -37,18 +34,17 @@ func (deps *EditUserDetailsDependency) HandleEditUserDetails(ctx context.Context
 	switch action {
 	case "nickname":
 		// change nickname
-		return deps.handleChangeName(userid, reqBody, ctx, true)
+		return this.handleChangeName(userid, reqBody, ctx, true)
 
 	case "name":
 		// change name
-		return deps.handleChangeName(userid, reqBody, ctx, false)
+		return this.handleChangeName(userid, reqBody, ctx, false)
 
 	case "bio":
 		// change bio
 		userHelper := helpers.UserDynamoHelper{
-			DbClient:  deps.DdbClient,
-			TableName: deps.TableName,
-			Ctx:       ctx,
+			Dependencies: this.Dependencies,
+			Ctx:          ctx,
 		}
 		bioErr := userHelper.UpdateBio(userid, string(reqBody.Payload))
 		if bioErr != nil {
@@ -62,12 +58,11 @@ func (deps *EditUserDetailsDependency) HandleEditUserDetails(ctx context.Context
 	}
 }
 
-func (deps *EditUserDetailsDependency) handleChangeName(userid string, reqBody editUserDetailsReq, ctx context.Context, updateNickname bool) (events.APIGatewayProxyResponse, error) {
+func (this *EditUserDetailsDependency) handleChangeName(userid string, reqBody editUserDetailsReq, ctx context.Context, updateNickname bool) (events.APIGatewayProxyResponse, error) {
 	// handles updating both name and nickname
 	userHelper := helpers.UserDynamoHelper{
-		DbClient:  deps.DdbClient,
-		TableName: deps.TableName,
-		Ctx:       ctx,
+		Dependencies: this.Dependencies,
+		Ctx:          ctx,
 	}
 
 	// gets the user from db
@@ -91,7 +86,7 @@ func (deps *EditUserDetailsDependency) handleChangeName(userid string, reqBody e
 		return models.InvalidRequestErrorResponse("You can only change your name or nickname once in 30 days."), nil
 	}
 
-	err := userHelper.UpdateName(user, string(reqBody.Payload), updateNickname, deps.SearchTableName)
+	err := userHelper.UpdateName(user, string(reqBody.Payload), updateNickname, this.Dependencies.SearchTableName)
 
 	if err != nil {
 		return models.ServerSideErrorResponse("", err, "error while trying to update name or nickname"), nil

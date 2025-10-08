@@ -1,51 +1,19 @@
 package main
 
 import (
-	apis "breadcrumb-backend-go/handlers/account"
-	"context"
-	"fmt"
-	"log"
-	"os"
+	apis "backend/handlers/account"
+	"backend/utils"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 var (
-	ddbClient     *dynamodb.Client
-	cognitoClient *cognitoidentityprovider.Client
-	userPoolId    string
-	tableName     string
-	starter       apis.GetUserDetailsDependencies
+	starter apis.GetUserDetailsDependencies
 )
 
 func init() {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	if err != nil {
-		panic(fmt.Sprintf("unable to load SDK config, %v", err))
-	}
-
-	ddbClient = dynamodb.NewFromConfig(cfg)
-
-	cognitoClient = cognitoidentityprovider.NewFromConfig(cfg)
-	userPoolId = os.Getenv("USER_POOL_ID")
-	if userPoolId == "" {
-		log.Fatal("USER_POOL_ID environment variable is required")
-	}
-
-	tableName = os.Getenv("USERS_TABLE")
-
-	if tableName == "" {
-		panic("USERS_TABLE environment not set")
-	}
-
 	starter = apis.GetUserDetailsDependencies{
-		UserPoolId:    userPoolId,
-		CognitoClient: cognitoClient,
-		DdbClient:     ddbClient,
-		TableName:     tableName,
+		Dependencies: utils.InitHandlerDependencies(utils.WithCognito(), utils.WithDatabase()),
 	}
 }
 
