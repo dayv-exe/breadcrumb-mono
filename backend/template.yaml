@@ -11,7 +11,6 @@ Globals:
       Variables:
         USERS_TABLE: !Ref UsersTable
         SEARCH_TABLE: !Ref SearchTable
-        USER_POOL_ID: !Ref CognitoUserPool
         MEDIA_BUCKET: !Ref MediaBucket
         CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
         CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
