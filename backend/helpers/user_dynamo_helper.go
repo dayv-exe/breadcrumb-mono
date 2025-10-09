@@ -18,6 +18,19 @@ type UserDynamoHelper struct {
 	Ctx          context.Context
 }
 
+func NewUserDynamoHelper(deps *UserDynamoHelper, ctx context.Context) *UserDynamoHelper {
+	helper = utils.Helper{
+		TableName: deps.Dependencies.TableName,
+		DbClient:  deps.Dependencies.DbClient,
+		Ctx:       ctx,
+	}
+
+	return &UserDynamoHelper{
+		Dependencies: deps.Dependencies,
+		Ctx:          ctx,
+	}
+}
+
 func (this *UserDynamoHelper) AddUser(u *models.User, searchTableName string) error {
 	// create new nickname item, to reserve nickname in race conditions for example
 	newNickname := models.NewNickname(u.Nickname, u.Name, u.Userid)

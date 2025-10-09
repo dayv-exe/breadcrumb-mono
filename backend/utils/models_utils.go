@@ -31,3 +31,12 @@ func DatabaseItemsToStructs[T any](items *[]map[string]types.AttributeValue, pos
 
 	return &structs
 }
+
+func DatabaseItemToStruct[T any](item *map[string]types.AttributeValue, postProcess func(*T)) *T {
+	var modelStruct T
+	if err := attributevalue.UnmarshalMap(*item, &modelStruct); err != nil {
+		panic("Failed to convert database item to struct of type %T")
+	}
+	postProcess(&modelStruct)
+	return &modelStruct
+}

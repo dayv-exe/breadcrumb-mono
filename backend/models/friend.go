@@ -9,19 +9,19 @@ import (
 
 const (
 	FriendItemPk = "USER#"
-	FriendItemSk = "FRIEND#"
+	FriendItemSk = "Friend#"
 )
 
-type friend struct {
+type Friend struct {
 	ThisUserId          string `dynamodbav:"pk"`
 	OtherUserID         string `dynamodbav:"sk"`
 	UserDisplayInfoNoId        // this denormalized info of the other user
 	Date                string `dynamodbav:"date"`
 }
 
-func NewFriendship(thisUserId string, otherUser *User) *friend {
+func NewFriendship(thisUserId string, otherUser *User) *Friend {
 	// Returns 2 friendship items
-	return &friend{
+	return &Friend{
 		ThisUserId:          thisUserId,
 		OtherUserID:         otherUser.Userid,
 		UserDisplayInfoNoId: *GetUserDisplayInfoNoId(otherUser),
@@ -36,28 +36,35 @@ func FriendKey(thisUserId string, otherUserId string) map[string]types.Attribute
 	}
 }
 
-func (f *friend) ApplyPrefixes() {
+func (f *Friend) ApplyPrefixes() {
 	f.ThisUserId = utils.AddPrefix(FriendItemPk, f.ThisUserId)
 	f.OtherUserID = utils.AddPrefix(FriendItemSk, f.OtherUserID)
+}
+
+func DbItemToFriendStruct(item *map[string]types.AttributeValue) *Friend {
+	return utils.DatabaseItemToStruct(item, func(f *Friend) {
+		f.ThisUserId = strings.TrimPrefix(f.ThisUserId, FriendItemPk)
+		f.OtherUserID = strings.TrimPrefix(f.OtherUserID, FriendItemSk)
+	})
 }
 
 // TODO: write unit test for this function
 func FriendItemsToUserDisplayStructs(items *[]map[string]types.AttributeValue) *[]UserDisplayInfo {
 	// convert db items to friends
-	result := utils.DatabaseItemsToStructs(items, func(f *friend) {
+	result := utils.DatabaseItemsToStructs(items, func(f *Friend) {
 		f.ThisUserId = strings.TrimPrefix(f.ThisUserId, FriendItemPk)
 		f.OtherUserID = strings.TrimPrefix(f.OtherUserID, FriendItemSk)
 	})
 
 	// convert friends to user display info
 	var friends []UserDisplayInfo
-	for _, friend := range *result {
+	for _, Friend := range *result {
 		friends = append(friends, UserDisplayInfo{
-			Userid:                  friend.OtherUserID,
-			Nickname:                friend.Nickname,
-			Name:                    friend.Name,
-			DpUrl:                   friend.DpUrl,
-			DefaultProfilePicColors: friend.DefaultProfilePicColors,
+			Userid:                  Friend.OtherUserID,
+			Nickname:                Friend.Nickname,
+			Name:                    Friend.Name,
+			DpUrl:                   Friend.DpUrl,
+			DefaultProfilePicColors: Friend.DefaultProfilePicColors,
 		})
 	}
 
