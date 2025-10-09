@@ -66,7 +66,7 @@ jobs:
         run: |
           sam deploy \
             --template-file template.yaml \
-            --s3-bucket breadcrumb-sam-${{ env.AWS_REGION }}-prod \
+            --s3-bucket breadcrumb-stack-${{ env.AWS_REGION }}-prod \
             --stack-name breadcrumb-stack-prod \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${{env.AWS_REGION}} \
