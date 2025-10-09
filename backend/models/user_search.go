@@ -71,7 +71,7 @@ func (u *UserSearch) BuildSearchIndexes() []map[string]types.AttributeValue {
 
 			item, err := attributevalue.MarshalMap(new)
 			if err != nil {
-				log.Panicf("An error occurred while marshaling user search db item: %w", err)
+				log.Panicf("An error occurred while marshaling user search db item: %v", err)
 			}
 
 			indexes = append(indexes, item)

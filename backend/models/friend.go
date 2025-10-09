@@ -9,7 +9,7 @@ import (
 
 const (
 	FriendItemPk = "USER#"
-	FriendItemSk = "Friend#"
+	FriendItemSk = "FRIEND#"
 )
 
 type Friend struct {
