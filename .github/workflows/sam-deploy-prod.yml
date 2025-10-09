@@ -1,11 +1,12 @@
-name: Build and deploy Breadcrumb backend
+name: Build and deploy breadcrumb backend in production
 
 env:
   AWS_REGION: "eu-west-2"
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -15,9 +16,20 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
+
+      - name: Read build directories
+        id: build-dirs
+        run: |
+          BUILD_DIRS=$(cat build_dirs.txt | tr '\n' ',' | sed 's/,$//')
+          echo "dirs=$BUILD_DIRS" >> $GITHUB_OUTPUT
+          echo "Build directories: $BUILD_DIRS"
 
       - name: setup docker build
         uses: docker/setup-buildx-action@v3
@@ -34,29 +46,17 @@ jobs:
         with:
           use-installer: true
 
-      - name: run unit tests for auth packages
-        run: |
-          cd handlers/auth
-          go test -v ./...
-
-      # - name: run  unit tests for media packages
-      #   run: |
-      #     cd handlers/media
-      #     go test -v ./...
-
       - name: run utils unit tests
-        run: |
-          cd utils
-          go test -v ./...
+        working-directory: backend/utils
+        run: go test -v ./...
 
       - name: run unit tests for models
-        run: |
-          cd models
-          go test -v ./...
+        working-directory: backend/models
+        run: go test -v ./...
 
       - name: build go bins for lambda
         run: |
-          docker build --build-arg BUILD_DIRS="signup_confirm,custom_email,nickname_available,presignup,abort_signup,remove_stale_accounts,get_user_details,edit_user_details,delete_user,account_search,friendship_action,s3bucket_actions" -t breadcrumb .
+          docker build --build-arg BUILD_DIRS="${{ steps.build-dirs.outputs.dirs }}" -t breadcrumb .
           docker create --name extract-builder breadcrumb
           rm -rf ./bin
           docker cp extract-builder:/app/bin ./bin
@@ -67,8 +67,9 @@ jobs:
           sam deploy \
             --template-file template.yaml \
             --s3-bucket breadcrumb-sam-${{ env.AWS_REGION }} \
-            --stack-name breadcrumb-stack \
+            --stack-name recipe-stack \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${{env.AWS_REGION}} \
+            --parameter-overrides EnvironmentName=prod \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
