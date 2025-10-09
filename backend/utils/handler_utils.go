@@ -20,18 +20,20 @@ const (
 	MEDIA_BUCKET           = "MEDIA_BUCKET"
 )
 
-type HandlerDependencies struct {
+type handlerDependencies struct {
 	DbClient             *dynamodb.Client
 	CognitoClient        *cognitoidentityprovider.Client
 	S3Client             *s3.Client
 	BucketName           string
-	TableName            string
+	MainTableName        string
 	SearchTableName      string
 	UserPoolId           string
 	CloudFrontDomainName string
 }
 
-type option func(*HandlerDependencies, aws.Config)
+var HandlerDependencies handlerDependencies
+
+type option func(*handlerDependencies, aws.Config)
 
 func getConfig() aws.Config {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
@@ -52,36 +54,34 @@ func getEnvironmentVariable(key string) string {
 }
 
 func WithDatabase() option {
-	return func(hd *HandlerDependencies, c aws.Config) {
-		hd.TableName = getEnvironmentVariable(MAIN_TABLE)
+	return func(hd *handlerDependencies, c aws.Config) {
+		hd.MainTableName = getEnvironmentVariable(MAIN_TABLE)
 		hd.SearchTableName = getEnvironmentVariable(SEARCH_TABLE)
 		hd.DbClient = dynamodb.NewFromConfig(c)
 	}
 }
 
 func WithCognito() option {
-	return func(hd *HandlerDependencies, c aws.Config) {
+	return func(hd *handlerDependencies, c aws.Config) {
 		hd.CognitoClient = cognitoidentityprovider.NewFromConfig(c)
 		hd.UserPoolId = getEnvironmentVariable(USER_POOL_ID)
 	}
 }
 
 func WithBucket() option {
-	return func(hd *HandlerDependencies, c aws.Config) {
+	return func(hd *handlerDependencies, c aws.Config) {
 		hd.BucketName = getEnvironmentVariable(MEDIA_BUCKET)
 		hd.S3Client = s3.NewFromConfig(c)
 	}
 }
 
-func InitHandlerDependencies(opts ...option) *HandlerDependencies {
+func InitHandlerDependencies(opts ...option) {
 	cfg := getConfig()
-	deps := &HandlerDependencies{}
 
-	deps.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
+	// init cloudfront always
+	HandlerDependencies.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
 
 	for _, opt := range opts {
-		opt(deps, cfg)
+		opt(&HandlerDependencies, cfg)
 	}
-
-	return deps
 }

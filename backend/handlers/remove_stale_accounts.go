@@ -1,6 +1,4 @@
-// delete users that have not verified their email within 24hours
-
-package auth
+package handlers
 
 import (
 	"backend/constants"
@@ -19,21 +17,14 @@ var (
 	currLoops = 0
 )
 
-type RemoveStaleAccountsDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
-func (this *RemoveStaleAccountsDependencies) HandleRemoveStaleAccounts(ctx context.Context) error {
+func HandleRemoveStaleAccounts(ctx context.Context) error {
 	var paginationToken *string
 	count := 0
-	cognitoHelper := helpers.UserCognitoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
+	cognitoHelper := helpers.NewCognitoHelper(ctx)
 
 	for {
 		input := &cognitoidentityprovider.ListUsersInput{
-			UserPoolId: aws.String(this.Dependencies.UserPoolId),
+			UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
 			Filter:     aws.String("cognito:user_status=\"UNCONFIRMED\""),
 			Limit:      aws.Int32(60),
 		}
@@ -42,7 +33,7 @@ func (this *RemoveStaleAccountsDependencies) HandleRemoveStaleAccounts(ctx conte
 			input.PaginationToken = paginationToken
 		}
 
-		res, err := this.Dependencies.CognitoClient.ListUsers(ctx, input)
+		res, err := utils.HandlerDependencies.CognitoClient.ListUsers(ctx, input)
 		if err != nil {
 			return fmt.Errorf("FAILED TO LIST USERS: %w", err)
 		}

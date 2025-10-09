@@ -1,11 +1,11 @@
 package models
 
 import (
-	"backend/constants"
 	"backend/utils"
-	"fmt"
+	"log"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -27,16 +27,12 @@ type userSearchDbItem struct {
 	UserDisplayInfoNoId
 }
 
-func (u *UserSearch) BuildSearchIndexes() ([]map[string]types.AttributeValue, error) {
+func (u *UserSearch) BuildSearchIndexes() []map[string]types.AttributeValue {
 	// returns items to be put in the database that contains search index
 	// for example
 	// john.test this function will return
 	// pk: jo, sk: john
 	// pk: te, sk: test
-
-	if len(u.Nickname) < constants.MIN_USERNAME_CHARS {
-		return nil, fmt.Errorf("Name or nickname is too short!")
-	}
 
 	u.Nickname = strings.ToLower(u.Nickname)
 
@@ -75,14 +71,14 @@ func (u *UserSearch) BuildSearchIndexes() ([]map[string]types.AttributeValue, er
 
 			item, err := attributevalue.MarshalMap(new)
 			if err != nil {
-				return nil, fmt.Errorf("An error occurred while marshaling user search db item: %w", err)
+				log.Panicf("An error occurred while marshaling user search db item: %w", err)
 			}
 
 			indexes = append(indexes, item)
 		}
 	}
 
-	return indexes, nil
+	return indexes
 }
 
 func GetUserSearchIndexesKeys(dbIndexItems []map[string]types.AttributeValue) []map[string]types.AttributeValue {
@@ -116,7 +112,7 @@ func GetUserSearchIndexesKeys(dbIndexItems []map[string]types.AttributeValue) []
 	return keys
 }
 
-func SearchItemsToUserInfoStruct(items *[]map[string]types.AttributeValue) *[]UserDisplayInfo {
+func SearchItemsToUserInfoStruct(items []map[string]types.AttributeValue) *[]UserDisplayInfo {
 	searchItems := utils.DatabaseItemsToStructs(items, func(s *userSearchDbItem) {
 		s.Userid = strings.TrimPrefix(s.Userid, UserPkPrefix)
 	})
@@ -133,4 +129,48 @@ func SearchItemsToUserInfoStruct(items *[]map[string]types.AttributeValue) *[]Us
 	}
 
 	return &users
+}
+
+func GetUserSearchIndexItems(user *User) []types.TransactWriteItem {
+	// Adds items to search table to allow for queries where search string is similar to nickname or full name
+	builder := UserSearch{
+		UserDisplayInfo: *NewUserDisplayInfo(*user),
+	}
+
+	indexes := builder.BuildSearchIndexes()
+
+	// creates slice of items
+	var items []types.TransactWriteItem
+	for _, index := range indexes {
+		items = append(items, types.TransactWriteItem{
+			Put: &types.Put{
+				TableName: aws.String(utils.HandlerDependencies.SearchTableName),
+				Item:      index,
+			},
+		})
+	}
+
+	return items
+}
+
+func GetDeleteUserIndexesItems(user *User) []types.TransactWriteItem {
+	// rebuild indexes, then query them and get their primary keys
+	builder := UserSearch{
+		UserDisplayInfo: *NewUserDisplayInfo(*user),
+	}
+
+	indexes := builder.BuildSearchIndexes()
+
+	keys := GetUserSearchIndexesKeys(indexes)
+	var items []types.TransactWriteItem
+	for _, key := range keys {
+		items = append(items, types.TransactWriteItem{
+			Delete: &types.Delete{
+				TableName: aws.String(utils.HandlerDependencies.SearchTableName),
+				Key:       key,
+			},
+		})
+	}
+
+	return items
 }

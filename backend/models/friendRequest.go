@@ -47,7 +47,7 @@ func (fr *friendRequest) ApplyPrefixes() {
 	fr.SenderId = utils.AddPrefix(FriendRequestSkPrefix, fr.SenderId)
 }
 
-func FriendRequestItemsToUserDisplayStructs(items *[]map[string]types.AttributeValue) *[]UserDisplayInfo {
+func FriendRequestItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[]UserDisplayInfo {
 	// TODO: write a unit test for this function
 	// takes friends request items from the database and converts them to user display info
 	// user id, nickname, name and display picture

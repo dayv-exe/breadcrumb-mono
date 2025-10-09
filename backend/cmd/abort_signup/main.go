@@ -1,21 +1,16 @@
 package main
 
 import (
-	"backend/handlers/auth"
+	"backend/handlers"
+	"backend/utils"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var (
-	starter auth.AbortSignupDependencies
-)
-
 func init() {
-	starter = auth.AbortSignupDependencies{
-		Dependencies: starter.Dependencies,
-	}
+	utils.InitHandlerDependencies(utils.WithCognito())
 }
 
 func main() {
-	lambda.Start(starter.AbortSignupHandler)
+	lambda.Start(handlers.AbortSignupHandler)
 }

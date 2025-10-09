@@ -1,10 +1,9 @@
-package media
+package handlers
 
 import (
 	"backend/constants"
 	"backend/helpers"
 	"backend/models"
-	"backend/utils"
 	"context"
 	"encoding/json"
 	"log"
@@ -12,14 +11,9 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type S3BucketActionsDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
-func (this *S3BucketActionsDependencies) handleGeneratePresignedUrl(req *events.APIGatewayProxyRequest, s3Client *s3.Client, bucketName string, ctx context.Context) (events.APIGatewayProxyResponse, error) {
+func handleGeneratePresignedUrl(req *events.APIGatewayProxyRequest, ctx context.Context) (events.APIGatewayProxyResponse, error) {
 	var input helpers.PresignRequest
 	if err := json.Unmarshal([]byte(req.Body), &input); err != nil {
 		log.Println("unable to convert req body to request struct")
@@ -43,12 +37,7 @@ func (this *S3BucketActionsDependencies) handleGeneratePresignedUrl(req *events.
 		return models.InvalidRequestErrorResponse(""), nil
 	}
 
-	mediaHelper := helpers.MediaHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-
-	result, err := mediaHelper.GeneratePresignedUrl(&input)
+	result, err := helpers.NewMediaHelper(ctx).GeneratePresignedUrl(&input)
 	if err != nil {
 		return models.ServerSideErrorResponse("failed to generate presigned url", err, "error while generating presigned url"), nil
 	}
@@ -56,7 +45,7 @@ func (this *S3BucketActionsDependencies) handleGeneratePresignedUrl(req *events.
 	return models.SuccessfulGetRequestResponse(result), nil
 }
 
-func (this *S3BucketActionsDependencies) HandleStorageActions(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleStorageActions(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	action, ok := req.PathParameters["action"]
 	if !ok || action == "" {
 		return models.InvalidRequestErrorResponse(""), nil
@@ -64,7 +53,7 @@ func (this *S3BucketActionsDependencies) HandleStorageActions(ctx context.Contex
 
 	switch action {
 	case "presign-url":
-		return this.handleGeneratePresignedUrl(req, this.Dependencies.S3Client, this.Dependencies.BucketName, ctx)
+		return handleGeneratePresignedUrl(req, ctx)
 
 	default:
 		return models.InvalidRequestErrorResponse("invalid action requested"), nil

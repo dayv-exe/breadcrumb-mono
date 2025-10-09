@@ -19,9 +19,9 @@ func ToDatabaseFormat[T DatabaseFormattable](item T) *map[string]types.Attribute
 	return &dbItem
 }
 
-func DatabaseItemsToStructs[T any](items *[]map[string]types.AttributeValue, postProcess func(*T)) *[]T {
+func DatabaseItemsToStructs[T any](items []map[string]types.AttributeValue, postProcess func(*T)) *[]T {
 	var structs []T
-	if err := attributevalue.UnmarshalListOfMaps(*items, &structs); err != nil {
+	if err := attributevalue.UnmarshalListOfMaps(items, &structs); err != nil {
 		panic("Failed to convert database item to structs of type %T")
 	}
 
@@ -32,11 +32,6 @@ func DatabaseItemsToStructs[T any](items *[]map[string]types.AttributeValue, pos
 	return &structs
 }
 
-func DatabaseItemToStruct[T any](item *map[string]types.AttributeValue, postProcess func(*T)) *T {
-	var modelStruct T
-	if err := attributevalue.UnmarshalMap(*item, &modelStruct); err != nil {
-		panic("Failed to convert database item to struct of type %T")
-	}
-	postProcess(&modelStruct)
-	return &modelStruct
+func DatabaseItemToStruct[T any](item map[string]types.AttributeValue, postProcess func(*T)) *T {
+	return &(*DatabaseItemsToStructs([]map[string]types.AttributeValue{item}, postProcess))[0]
 }

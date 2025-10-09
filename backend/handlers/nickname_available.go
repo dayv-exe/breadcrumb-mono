@@ -1,4 +1,4 @@
-package auth
+package handlers
 
 import (
 	"backend/helpers"
@@ -11,11 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type HandleNicknameAvailableDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
-func (this *HandleNicknameAvailableDependencies) HandleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// returns true if a nickname has not been taken by a user in dynamodb
 
@@ -25,12 +21,7 @@ func (this *HandleNicknameAvailableDependencies) HandleNicknameAvailable(ctx con
 		return models.SuccessfulRequestResponse(fmt.Sprintf("%v", false), false), nil
 	}
 
-	dbHelper := helpers.UserDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-
-	isAvailable, dbErr := dbHelper.NicknameAvailable(nickname)
+	isAvailable, dbErr := helpers.NewUserHelper(ctx).NicknameAvailable(nickname)
 
 	if dbErr != nil {
 		return models.ServerSideErrorResponse("An error has occurred, try again.", dbErr, "error while trying to check if nickname is available"), nil

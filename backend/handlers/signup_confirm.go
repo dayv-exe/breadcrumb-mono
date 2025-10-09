@@ -1,9 +1,8 @@
-package auth
+package handlers
 
 import (
 	"backend/helpers"
 	"backend/models"
-	"backend/utils"
 	"context"
 	"fmt"
 	"log"
@@ -11,11 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type PostConfirmationDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
-func (this PostConfirmationDependencies) HandlePostConfirmation(ctx context.Context, event events.CognitoEventUserPoolsPostConfirmation) (interface{}, error) {
+func HandlePostConfirmation(ctx context.Context, event events.CognitoEventUserPoolsPostConfirmation) (interface{}, error) {
 	// runs after user has validated their email
 
 	// this function should only run if it is trigger by signup confirm
@@ -27,27 +22,17 @@ func (this PostConfirmationDependencies) HandlePostConfirmation(ctx context.Cont
 	nickName := event.Request.UserAttributes["nickname"]
 	name := event.Request.UserAttributes["name"]
 
-	// to add user to users table
-	dbHelper := helpers.UserDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-
 	// create new user
 	newUser := models.NewUser(userID, nickName, name, false)
 
-	err := dbHelper.AddUser(newUser, this.Dependencies.SearchTableName) // adds new user to users table
+	err := helpers.NewUserHelper(ctx).AddUser(newUser) // adds new user to users table
 
 	if err != nil {
 		// if something goes wrong during the signup process deelete user cognito info
 		log.Printf("ERROR IN SIGNUP CONFIRM GO FUNC: %v", err)
 
 		// remove the users info from cognito
-		cognitoHelper := helpers.UserCognitoHelper{
-			Dependencies: this.Dependencies,
-			Ctx:          ctx,
-		}
-		cognitoErr := cognitoHelper.DeleteFromCognito(userID, true)
+		cognitoErr := helpers.NewCognitoHelper(ctx).DeleteFromCognito(userID, true)
 		if cognitoErr != nil {
 			log.Println("Error occurred while trying to remove user cognito account: " + cognitoErr.Error())
 			return nil, fmt.Errorf("Something went wrong while setting up account, try again.")

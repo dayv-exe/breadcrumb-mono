@@ -23,7 +23,7 @@ const (
 // 2.) david = pk: fullname#ar sk: fullname#arubuike raw: david kalu arubuike
 // 3.) david = pk: fullname#ka sk: fullname#kalu raw: david kalu arubuike
 
-func NewNickname(nicknameStr string, name string, userid string) *Nickname {
+func NewNickname(nicknameStr string, userid string) *Nickname {
 	return &Nickname{
 		Nickname:    nicknameStr,
 		Description: nicknameSkPrefix,
@@ -42,10 +42,8 @@ func (n *Nickname) ApplyPrefixes() {
 	n.Nickname = utils.AddPrefix(nicknamePkPrefix, n.Nickname)
 }
 
-func ConvertToNickname(item *map[string]types.AttributeValue) *Nickname {
-	nickname := (*utils.DatabaseItemsToStructs(&[]map[string]types.AttributeValue{*item}, func(n *Nickname) {
+func ConvertToNickname(item map[string]types.AttributeValue) *Nickname {
+	return utils.DatabaseItemToStruct(item, func(n *Nickname) {
 		n.UserId = strings.TrimPrefix(n.UserId, nicknamePkPrefix)
-	}))[0]
-
-	return &nickname
+	})
 }

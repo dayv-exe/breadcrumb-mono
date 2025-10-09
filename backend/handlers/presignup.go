@@ -1,4 +1,4 @@
-package auth
+package handlers
 
 import (
 	"backend/constants"
@@ -10,11 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type PreSignupDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
-func (this *PreSignupDependencies) PreSignupHandler(ctx context.Context, event events.CognitoEventUserPoolsPreSignup) (events.CognitoEventUserPoolsPreSignup, error) {
+func PreSignupHandler(ctx context.Context, event events.CognitoEventUserPoolsPreSignup) (events.CognitoEventUserPoolsPreSignup, error) {
 	// runs before user is added to cognito user pool
 
 	nickname := event.Request.UserAttributes["nickname"]
@@ -26,13 +22,8 @@ func (this *PreSignupDependencies) PreSignupHandler(ctx context.Context, event e
 		return event, fmt.Errorf("invalid nickname")
 	}
 
-	dbHelper := helpers.UserDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-
 	// one final check if username is still free
-	nicknameAvail, err := dbHelper.NicknameAvailable(nickname)
+	nicknameAvail, err := helpers.NewUserHelper(ctx).NicknameAvailable(nickname)
 
 	if err != nil {
 		return event, fmt.Errorf("error checking nickname availability %w", err)

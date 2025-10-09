@@ -1,29 +1,22 @@
-package discover
+package handlers
 
 import (
 	"backend/constants"
 	"backend/helpers"
 	"backend/models"
-	"backend/utils"
 	"context"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type AccountSearchDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
 type SearchResult struct {
 	models.UserSearch
 	Type string `json:"type"`
 }
 
-func (this *AccountSearchDependencies) HandleAccountSearch(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleAccountSearch(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// /search/{search_string}
-
-	limit := 30 // limit to 30 results
 	searchStr := req.PathParameters["search_string"]
 	if len(searchStr) < models.UserSearchIndexPrefixLen {
 		// return empty array if string length is too short
@@ -39,12 +32,7 @@ func (this *AccountSearchDependencies) HandleAccountSearch(ctx context.Context, 
 
 	searchStr = searchStr[:maxChars]
 
-	searchHelper := helpers.SearchDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-
-	results, err := searchHelper.SearchUser(strings.ToLower(searchStr), int32(limit))
+	results, err := helpers.NewSearchHelper(ctx).SearchUser(strings.ToLower(searchStr))
 
 	if err != nil {
 		return models.ServerSideErrorResponse("", err, "error from dynamo helper searching users"), nil

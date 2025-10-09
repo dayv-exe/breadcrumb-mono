@@ -12,9 +12,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type MediaHelper struct {
-	Dependencies *utils.HandlerDependencies
-	Ctx          context.Context
+type mediaHelper struct {
+	Ctx context.Context
+}
+
+func NewMediaHelper(ctx context.Context) *mediaHelper {
+	return &mediaHelper{
+		Ctx: ctx,
+	}
 }
 
 type PresignRequest struct {
@@ -25,11 +30,11 @@ type PresignResponse struct {
 	Url string `json:"url"`
 }
 
-func (this *MediaHelper) GeneratePresignedUrl(input *PresignRequest) (*v4.PresignedHTTPRequest, error) {
-	s3PresignClient := s3.NewPresignClient(this.Dependencies.S3Client)
+func (this *mediaHelper) GeneratePresignedUrl(input *PresignRequest) (*v4.PresignedHTTPRequest, error) {
+	s3PresignClient := s3.NewPresignClient(utils.HandlerDependencies.S3Client)
 
 	putReq := &s3.PutObjectInput{
-		Bucket:      aws.String(this.Dependencies.BucketName),
+		Bucket:      aws.String(utils.HandlerDependencies.BucketName),
 		Key:         aws.String(input.Key),
 		ContentType: aws.String("image/jpeg"),
 	}

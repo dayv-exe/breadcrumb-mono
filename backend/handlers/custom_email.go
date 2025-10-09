@@ -1,4 +1,4 @@
-package emails
+package handlers
 
 import (
 	"context"
@@ -33,7 +33,7 @@ func getBody(headerTxt string, promptTxt string, codeParam string) string {
 `, headerTxt, promptTxt, codeParam)
 }
 
-func Handler(ctx context.Context, event events.CognitoEventUserPoolsCustomMessage) (events.CognitoEventUserPoolsCustomMessage, error) {
+func HandleSendCustomEmail(ctx context.Context, event events.CognitoEventUserPoolsCustomMessage) (events.CognitoEventUserPoolsCustomMessage, error) {
 	switch event.TriggerSource {
 	case "CustomMessage_SignUp":
 		event.Response.EmailSubject = "Verify your Breadcrumb account"

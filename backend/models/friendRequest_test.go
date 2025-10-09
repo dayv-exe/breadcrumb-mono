@@ -79,7 +79,7 @@ func TestConvertToFriendRequest(t *testing.T) {
 		},
 	}
 
-	results := FriendRequestItemsToUserDisplayStructs(&item)
+	results := FriendRequestItemsToUserDisplayStructs(item)
 	if !reflect.DeepEqual((*results)[0], expected) {
 		t.Errorf("Result: %v does not match expected: %v", (*results)[0], expected)
 	}
@@ -106,7 +106,7 @@ func TestFriendRequestToUserInfoStruct(t *testing.T) {
 		DefaultProfilePicColors: "",
 	}
 
-	result := FriendRequestItemsToUserDisplayStructs(&friendReqDbItem)
+	result := FriendRequestItemsToUserDisplayStructs(friendReqDbItem)
 
 	if !reflect.DeepEqual((*result)[0], expect) {
 		t.Errorf("expected %v, got %v", expect, (*result)[0])

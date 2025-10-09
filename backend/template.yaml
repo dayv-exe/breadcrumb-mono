@@ -359,31 +359,6 @@ Resources:
               - cognito-idp:AdminGetUser
             Resource: "*"
 
-  EditUserDetails:
-    Type: AWS::Serverless::Function
-    Properties:
-      MemorySize: 512
-      CodeUri: bin/edit_user_details/edit_user_details.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: allows user to edit some of their account information
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /edit/profile/{action}
-            Method: POST
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref RelationshipsTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SearchTable
-
   DeleteUser:
     Type: AWS::Serverless::Function
     Properties:

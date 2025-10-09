@@ -1,4 +1,4 @@
-package account
+package handlers
 
 // RETURNS PRIMARY USER DETAILS, OR IF USER REQUESTS OWN DETAILS, RETURN ALL THEIR DETAILS IN COGNITO AND DYNAMODB
 
@@ -15,26 +15,24 @@ import (
 // if a user request their details, this function will return all their info from cognito and dynamodb
 // if a user request details of another user, it will only return profile picture url, nickname, username, and maybe mutual friends
 
-type GetUserDetailsDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
 type completeUserDetails struct {
 	// all the information on a user
 	models.User
 	helpers.CognitoManagedInfo
 }
 
-func getUser(useId bool, identifier string, dbHelper helpers.UserDynamoHelper) (*models.User, error) {
+type findableFn func(identifier string) (*models.User, error)
+
+func getUser(useId bool, identifier string, findByIdFn, findByName findableFn) (*models.User, error) {
 	// to allow getting user by user id or nickname
 	if useId {
-		return dbHelper.FindById(identifier)
+		return findByIdFn(identifier)
 	} else {
-		return dbHelper.FindByNickname(identifier)
+		return findByName(identifier)
 	}
 }
 
-func (this *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// gets user details from db, returns only public information, if user requesting is not the user being requested.
 
 	identifierName, idNameExists := req.PathParameters["identifier_name"]
@@ -49,13 +47,10 @@ func (this *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context
 	}
 
 	usingId := identifierName == "id"
+	userHelper := helpers.NewUserHelper(ctx)
 
 	// get all info on a user from dynamodb
-	dbHelper := helpers.UserDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-	user, dbErr := getUser(usingId, identifier, dbHelper)
+	user, dbErr := getUser(usingId, identifier, userHelper.FindById, userHelper.FindByNickname)
 
 	// error
 	if dbErr != nil {
@@ -72,12 +67,8 @@ func (this *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context
 
 	if utils.IsAuthenticatedUser(req, user.Userid) {
 		// if the logged in user is requesting their own information
-		cognitoHelper := helpers.UserCognitoHelper{
-			Dependencies: this.Dependencies,
-			Ctx:          ctx,
-		}
 
-		userCognitoInfo, cogErr := cognitoHelper.GetManagedInfo(user.Userid)
+		userCognitoInfo, cogErr := helpers.NewCognitoHelper(ctx).GetManagedInfo(user.Userid)
 
 		if cogErr != nil {
 			return models.ServerSideErrorResponse("", fmt.Errorf("Get cognito info error: %w", cogErr), "while trying to get users cognito info"), nil
@@ -95,12 +86,7 @@ func (this *GetUserDetailsDependencies) HandleGetUserDetails(ctx context.Context
 	}
 
 	// only return nickname, name, profile picture if one user requests another users information
-	friendshipHelper := helpers.FriendshipDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
-
-	friendshipStatus, fsErr := friendshipHelper.GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)
+	friendshipStatus, fsErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)
 
 	if fsErr != nil {
 		return models.ServerSideErrorResponse("Something went wrong while trying to get friendship status", fsErr, "error while trying to get friendship status"), nil

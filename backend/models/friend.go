@@ -41,7 +41,7 @@ func (f *Friend) ApplyPrefixes() {
 	f.OtherUserID = utils.AddPrefix(FriendItemSk, f.OtherUserID)
 }
 
-func DbItemToFriendStruct(item *map[string]types.AttributeValue) *Friend {
+func DbItemToFriendStruct(item map[string]types.AttributeValue) *Friend {
 	return utils.DatabaseItemToStruct(item, func(f *Friend) {
 		f.ThisUserId = strings.TrimPrefix(f.ThisUserId, FriendItemPk)
 		f.OtherUserID = strings.TrimPrefix(f.OtherUserID, FriendItemSk)
@@ -49,7 +49,7 @@ func DbItemToFriendStruct(item *map[string]types.AttributeValue) *Friend {
 }
 
 // TODO: write unit test for this function
-func FriendItemsToUserDisplayStructs(items *[]map[string]types.AttributeValue) *[]UserDisplayInfo {
+func FriendItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[]UserDisplayInfo {
 	// convert db items to friends
 	result := utils.DatabaseItemsToStructs(items, func(f *Friend) {
 		f.ThisUserId = strings.TrimPrefix(f.ThisUserId, FriendItemPk)

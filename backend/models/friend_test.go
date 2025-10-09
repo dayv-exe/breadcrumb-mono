@@ -70,7 +70,7 @@ func TestFriendToUserInfoStruct(t *testing.T) {
 		DefaultProfilePicColors: "",
 	}
 
-	result := FriendItemsToUserDisplayStructs(&friendDbItem)
+	result := FriendItemsToUserDisplayStructs(friendDbItem)
 
 	if !reflect.DeepEqual((*result)[0], expect) {
 		t.Errorf("expected %v, got %v", expect, (*result)[0])

@@ -76,10 +76,7 @@ func TestNameChangeAllowed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := NameChangeAllowed(tt.lastChangeDate)
-			if err != nil {
-				t.Errorf("An unexpected error occurred %v", err)
-			}
+			result := NameChangeAllowed(tt.lastChangeDate)
 			if result != tt.expectAllowChange {
 				t.Errorf("Expected %v but got %v instead!", tt.expectAllowChange, result)
 			}

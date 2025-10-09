@@ -114,10 +114,14 @@ func (u *User) ApplyPrefixes() {
 	u.Userid = utils.AddPrefix(UserPkPrefix, u.Userid)
 }
 
-func ConvertToUser(item map[string]types.AttributeValue) *User {
-	user := (*utils.DatabaseItemsToStructs(&[]map[string]types.AttributeValue{item}, func(u *User) {
+func ConvertToUsers(items []map[string]types.AttributeValue) *[]User {
+	users := utils.DatabaseItemsToStructs(items, func(u *User) {
 		u.Userid = strings.TrimPrefix(u.Userid, UserPkPrefix)
-	}))[0]
+	})
 
-	return &user
+	return users
+}
+
+func ConvertToUser(item map[string]types.AttributeValue) *User {
+	return &(*ConvertToUsers([]map[string]types.AttributeValue{item}))[0]
 }

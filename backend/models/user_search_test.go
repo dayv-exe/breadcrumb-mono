@@ -117,7 +117,7 @@ func TestGetUserSearchIndexesKeysNickName(t *testing.T) {
 					Name:     tt.name,
 				},
 			}
-			indexes, _ := u.BuildSearchIndexes()
+			indexes := u.BuildSearchIndexes()
 			result := GetUserSearchIndexesKeys(indexes)
 
 			if len(result) != len(tt.expectedKeys) {
@@ -208,10 +208,7 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 				},
 			}
 
-			result, err := u.BuildSearchIndexes()
-			if err != nil {
-				t.Fatalf("An unexpected error has occurred: %v", err)
-			}
+			result := u.BuildSearchIndexes()
 
 			if len(result) != len(tt.expect) {
 				t.Fatalf("Expected %v items but got %v instead", len(tt.expect), len(result))

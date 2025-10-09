@@ -1,11 +1,11 @@
 package main
 
 import (
-	"backend/handlers/emails"
+	"backend/handlers"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 func main() {
-	lambda.Start(emails.Handler)
+	lambda.Start(handlers.HandleSendCustomEmail)
 }

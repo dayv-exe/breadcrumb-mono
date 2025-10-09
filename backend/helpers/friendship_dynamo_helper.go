@@ -10,80 +10,68 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type FriendshipDynamoHelper struct {
-	Dependencies *utils.HandlerDependencies
-	Ctx          context.Context
+type friendshipDynamoHelper struct {
+	Ctx context.Context
 }
 
-var (
-	helper utils.Helper
-)
-
-func NewFriendshipHelper(deps *utils.HandlerDependencies, ctx context.Context) *FriendshipDynamoHelper {
-	helper = utils.Helper{
-		TableName: deps.TableName,
-		DbClient:  deps.DbClient,
-		Ctx:       ctx,
-	}
-
-	return &FriendshipDynamoHelper{
-		Dependencies: deps,
-		Ctx:          ctx,
+func NewFriendshipHelper(ctx context.Context) *friendshipDynamoHelper {
+	return &friendshipDynamoHelper{
+		Ctx: ctx,
 	}
 }
 
-func (this *FriendshipDynamoHelper) SendFriendReq(sender *models.User, recipientId string) error {
+func (this *friendshipDynamoHelper) SendFriendReq(sender *models.User, recipientId string) error {
 	friendReq := models.NewFriendRequest(recipientId, sender)
-	return utils.PutItem(&helper, &(friendReq))
+	return PutItem(NewHelper(this.Ctx, nil), &friendReq)
 }
 
-func (this *FriendshipDynamoHelper) CancelFriendRequest(senderId, recipientId string) error {
+func (this *friendshipDynamoHelper) CancelFriendRequest(senderId, recipientId string) error {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
-	return utils.DeleteItem(&helper, &friendReqKey)
+	return DeleteItem(NewHelper(this.Ctx, nil), &friendReqKey)
 }
 
-func (this *FriendshipDynamoHelper) EndFriendship(user1id, user2id string) error {
+func (this *friendshipDynamoHelper) EndFriendship(user1id, user2id string) error {
 	// deletes the 2 friendship items belonging to each user that were formally friends
 	key1 := models.FriendKey(user1id, user2id)
 	key2 := models.FriendKey(user2id, user1id)
 
-	return utils.TransactWrite(
-		&helper,
-		utils.UseDelete(&key1, this.Dependencies.TableName),
-		utils.UseDelete(&key2, this.Dependencies.TableName),
+	return TransactWrite(
+		NewHelper(this.Ctx, nil),
+		UseDelete(key1, utils.HandlerDependencies.MainTableName),
+		UseDelete(key2, utils.HandlerDependencies.MainTableName),
 	)
 }
 
-func (this *FriendshipDynamoHelper) AcceptFriendRequest(thisUser, otherUser *models.User) error {
+func (this *friendshipDynamoHelper) AcceptFriendRequest(thisUser, otherUser *models.User) error {
 	// delete friend req and add 2 new friendship items bidirectional one for each user
 	friendReqKey := models.FriendRequestKey(thisUser.Userid, otherUser.Userid)
 	friendshipItem1 := models.NewFriendship(thisUser.Userid, otherUser)
 	friendshipItem2 := models.NewFriendship(otherUser.Userid, thisUser)
 
-	return utils.TransactWrite(
-		&helper,
-		utils.UseDelete(&friendReqKey, this.Dependencies.TableName),
-		utils.UsePut(&friendshipItem1, this.Dependencies.TableName),
-		utils.UsePut(&friendshipItem2, this.Dependencies.TableName),
+	return TransactWrite(
+		NewHelper(this.Ctx, nil),
+		UseDelete(friendReqKey, utils.HandlerDependencies.MainTableName),
+		UsePut(friendshipItem1, utils.HandlerDependencies.MainTableName, nil),
+		UsePut(friendshipItem2, utils.HandlerDependencies.MainTableName, nil),
 	)
 }
 
-func (this *FriendshipDynamoHelper) RejectFriendRequest(senderId, recipientId string) error {
+func (this *friendshipDynamoHelper) RejectFriendRequest(senderId, recipientId string) error {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
-	return utils.DeleteItem(&helper, &friendReqKey)
+	return DeleteItem(NewHelper(this.Ctx, nil), &friendReqKey)
 }
 
-func (this *FriendshipDynamoHelper) usersAreFriends(senderId string, recipientId string) (bool, error) {
+func (this *friendshipDynamoHelper) usersAreFriends(senderId string, recipientId string) (bool, error) {
 	friendshipKey := models.FriendKey(senderId, recipientId)
-	return utils.ItemExists(&helper, &friendshipKey)
+	return ItemExists(NewHelper(this.Ctx, nil), friendshipKey)
 }
 
-func (this *FriendshipDynamoHelper) userHasRequestedFriendship(senderId string, recipientId string) (bool, error) {
+func (this *friendshipDynamoHelper) userHasRequestedFriendship(senderId string, recipientId string) (bool, error) {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
-	return utils.ItemExists(&helper, &friendReqKey)
+	return ItemExists(NewHelper(this.Ctx, nil), friendReqKey)
 }
 
-func (this *FriendshipDynamoHelper) GetFriendshipStatus(senderId string, recipientId string) (string, error) {
+func (this *friendshipDynamoHelper) GetFriendshipStatus(senderId string, recipientId string) (string, error) {
 	// checks if this user has sent a friend request to other user
 	requested, reqErr := this.userHasRequestedFriendship(senderId, recipientId)
 	if reqErr != nil {
@@ -117,35 +105,37 @@ func (this *FriendshipDynamoHelper) GetFriendshipStatus(senderId string, recipie
 	return constants.FRIENDSHIP_STATUS_NOT_FRIENDS, nil
 }
 
-func (this *FriendshipDynamoHelper) GetAllFriends(userId string) (*[]models.UserDisplayInfo, error) {
+func (this *friendshipDynamoHelper) GetAllFriends(userId string) (*[]models.UserDisplayInfo, error) {
 	expression := "pk = :pk AND begins_with(sk, :skPrefix)"
 	expressionVals := map[string]types.AttributeValue{
 		":pk":       &types.AttributeValueMemberS{Value: utils.AddPrefix(models.FriendItemPk, userId)},
 		":skPrefix": &types.AttributeValueMemberS{Value: models.FriendItemSk},
 	}
-	return utils.QueryItems(
-		&helper,
+	return QueryItems(
+		NewHelper(this.Ctx, nil),
+		nil,
 		expression,
-		&expressionVals,
+		expressionVals,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
-			return *models.FriendItemsToUserDisplayStructs(&m)
+			return *models.FriendItemsToUserDisplayStructs(m)
 		},
 	)
 }
 
-func (this *FriendshipDynamoHelper) GetAllFriendRequests(userId string) (*[]models.UserDisplayInfo, error) {
+func (this *friendshipDynamoHelper) GetAllFriendRequests(userId string) (*[]models.UserDisplayInfo, error) {
 	expression := "pk = :pk AND begins_with(sk, :skPrefix)"
 	expressionVals := map[string]types.AttributeValue{
 		":pk":       &types.AttributeValueMemberS{Value: utils.AddPrefix(models.FriendRequestPkPrefix, userId)},
 		":skPrefix": &types.AttributeValueMemberS{Value: models.FriendRequestSkPrefix},
 	}
 
-	return utils.QueryItems(
-		&helper,
+	return QueryItems(
+		NewHelper(this.Ctx, nil),
+		nil,
 		expression,
-		&expressionVals,
+		expressionVals,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
-			return *models.FriendItemsToUserDisplayStructs(&m)
+			return *models.FriendItemsToUserDisplayStructs(m)
 		},
 	)
 }

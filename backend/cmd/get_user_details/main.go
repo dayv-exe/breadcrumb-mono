@@ -1,22 +1,16 @@
 package main
 
 import (
-	apis "backend/handlers/account"
+	"backend/handlers"
 	"backend/utils"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var (
-	starter apis.GetUserDetailsDependencies
-)
-
 func init() {
-	starter = apis.GetUserDetailsDependencies{
-		Dependencies: utils.InitHandlerDependencies(utils.WithCognito(), utils.WithDatabase()),
-	}
+	utils.InitHandlerDependencies(utils.WithDatabase(), utils.WithCognito())
 }
 
 func main() {
-	lambda.Start(starter.HandleGetUserDetails)
+	lambda.Start(handlers.HandleGetUserDetails)
 }

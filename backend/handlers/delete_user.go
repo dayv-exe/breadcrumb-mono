@@ -1,4 +1,4 @@
-package account
+package handlers
 
 // DELETES USER FROM DYNAMO DB THEN COGNITO
 
@@ -11,11 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-type DeleteUserDependencies struct {
-	Dependencies *utils.HandlerDependencies
-}
-
-func (this *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleDeleteUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userId := utils.GetAuthUserId(req)
 
 	if userId == "" {
@@ -23,10 +19,8 @@ func (this *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *e
 	}
 
 	// get user details from db
-	dbHelper := helpers.UserDynamoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
+	dbHelper := helpers.NewUserHelper(ctx)
+
 	user, uErr := dbHelper.FindById(userId)
 
 	if uErr != nil {
@@ -38,19 +32,15 @@ func (this *DeleteUserDependencies) HandleDeleteUser(ctx context.Context, req *e
 	}
 
 	// delete user from dynamodb
-	delErr := dbHelper.DeleteFromDynamo(user, this.Dependencies.SearchTableName)
+	delErr := dbHelper.DeleteFromDynamo(user)
 
 	if delErr != nil {
 		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again", delErr, "error from delete from dynamo db"), nil
 	}
 
 	// delete user from cognito
-	cognitoHelper := helpers.UserCognitoHelper{
-		Dependencies: this.Dependencies,
-		Ctx:          ctx,
-	}
 
-	cogErr := cognitoHelper.DeleteFromCognito(userId, true)
+	cogErr := helpers.NewCognitoHelper(ctx).DeleteFromCognito(userId, true)
 
 	if cogErr != nil {
 		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again.", cogErr, "error from delete from cognito"), nil

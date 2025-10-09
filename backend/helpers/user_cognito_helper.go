@@ -12,9 +12,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 )
 
-type UserCognitoHelper struct {
-	Dependencies *utils.HandlerDependencies
-	Ctx          context.Context
+type userCognitoHelper struct {
+	Ctx context.Context
+}
+
+func NewCognitoHelper(ctx context.Context) *userCognitoHelper {
+	return &userCognitoHelper{
+		Ctx: ctx,
+	}
 }
 
 type CognitoManagedInfo struct {
@@ -22,16 +27,16 @@ type CognitoManagedInfo struct {
 	Birthdate string `json:"birthdate"`
 }
 
-func (this *UserCognitoHelper) GetManagedInfo(sub string) (*CognitoManagedInfo, error) {
+func (this *userCognitoHelper) GetManagedInfo(sub string) (*CognitoManagedInfo, error) {
 	// returns user details managed by cognito like email and birthdate
 
 	input := &cognitoidentityprovider.AdminGetUserInput{
-		UserPoolId: aws.String(this.Dependencies.UserPoolId),
+		UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
 		Username:   aws.String(sub),
 	}
 
 	output, err := getManagedInfoCustomFilter(func() (*cognitoidentityprovider.AdminGetUserOutput, error) {
-		return this.Dependencies.CognitoClient.AdminGetUser(this.Ctx, input)
+		return utils.HandlerDependencies.CognitoClient.AdminGetUser(this.Ctx, input)
 	})
 
 	if err != nil {
@@ -59,17 +64,17 @@ func getManagedInfoCustomFilter(queryFn func() (*cognitoidentityprovider.AdminGe
 	}, nil
 }
 
-func (this *UserCognitoHelper) DeleteFromCognito(id string, ignoreConfirmationStatus bool) error {
+func (this *userCognitoHelper) DeleteFromCognito(id string, ignoreConfirmationStatus bool) error {
 
 	// deletes unconfirmed users, except ignore confirmation status then it deletes any user
 
 	if !ignoreConfirmationStatus {
 		getUserInput := &cognitoidentityprovider.AdminGetUserInput{
-			UserPoolId: aws.String(this.Dependencies.UserPoolId),
+			UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
 			Username:   aws.String(id),
 		}
 
-		getUserOutput, getUserErr := this.Dependencies.CognitoClient.AdminGetUser(this.Ctx, getUserInput)
+		getUserOutput, getUserErr := utils.HandlerDependencies.CognitoClient.AdminGetUser(this.Ctx, getUserInput)
 
 		// return error only if the error is not a user not found exception
 		if getUserErr != nil {
@@ -90,11 +95,11 @@ func (this *UserCognitoHelper) DeleteFromCognito(id string, ignoreConfirmationSt
 	}
 
 	input := &cognitoidentityprovider.AdminDeleteUserInput{
-		UserPoolId: aws.String(this.Dependencies.UserPoolId),
+		UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
 		Username:   aws.String(id),
 	}
 
-	_, err := this.Dependencies.CognitoClient.AdminDeleteUser(this.Ctx, input)
+	_, err := utils.HandlerDependencies.CognitoClient.AdminDeleteUser(this.Ctx, input)
 
 	if err != nil {
 		var notFoundErr *types.UserNotFoundException
