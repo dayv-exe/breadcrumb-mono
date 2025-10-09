@@ -78,6 +78,8 @@ func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error)
 		return false, err
 	}
 
+	log.Println((*output).Item)
+
 	return len(output.Item) > 0, nil
 }
 
