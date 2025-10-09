@@ -67,7 +67,7 @@ jobs:
           sam deploy \
             --template-file template.yaml \
             --s3-bucket breadcrumb-sam-${{ env.AWS_REGION }}-test \
-            --stack-name breadcrumb-stack \
+            --stack-name breadcrumb-stack-test \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${{env.AWS_REGION}} \
             --parameter-overrides EnvironmentName=test \

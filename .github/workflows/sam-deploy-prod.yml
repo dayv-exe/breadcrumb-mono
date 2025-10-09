@@ -66,8 +66,8 @@ jobs:
         run: |
           sam deploy \
             --template-file template.yaml \
-            --s3-bucket breadcrumb-sam-${{ env.AWS_REGION }} \
-            --stack-name recipe-stack \
+            --s3-bucket breadcrumb-sam-${{ env.AWS_REGION }}-prod \
+            --stack-name breadcrumb-stack-prod \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${{env.AWS_REGION}} \
             --parameter-overrides EnvironmentName=prod \

@@ -11,17 +11,22 @@ Globals:
       Variables:
         USERS_TABLE: !Ref UsersTable
         SEARCH_TABLE: !Ref SearchTable
-        RELATIONSHIPS_TABLE: !Ref RelationshipsTable
         MEDIA_BUCKET: !Ref MediaBucket
         CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
         CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: "Environment name either production or test"
+    Default: "test"
 
 Resources:
   # auth
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: BreadUserPool
+      UserPoolName: !Sub BreadUserPool-${EnvironmentName}
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -53,7 +58,7 @@ Resources:
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: bread-client
+      ClientName: !Sub bread-client-${EnvironmentName}
       UserPoolId: !Ref CognitoUserPool
       GenerateSecret: false
       ExplicitAuthFlows:
@@ -62,6 +67,7 @@ Resources:
   CognitoCustomMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub CustomCognitoMessage-${EnvironmentName}
       CodeUri: bin/custom_email/custom_email.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -85,6 +91,7 @@ Resources:
   BreadApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      Name: !Sub BreadApi-${EnvironmentName}
       CorsConfiguration:
         AllowMethods:
           - GET
@@ -198,6 +205,7 @@ Resources:
   S3ActionsFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub S3ActionFunction-${EnvironmentName}
       Timeout: 15
       MemorySize: 512
       CodeUri: bin/s3bucket_actions/s3bucket_actions.zip
@@ -246,6 +254,7 @@ Resources:
   UserPostConfirmationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-post-signup-funcion"
       CodeUri: bin/signup_confirm/signup_confirm.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -271,6 +280,7 @@ Resources:
   PreSignUpFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-pre-signup-function"
       CodeUri: bin/presignup/presignup.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -288,6 +298,7 @@ Resources:
   NicknameAvailableFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-nickname-available-function"
       CodeUri: bin/nickname_available/nickname_available.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -306,6 +317,7 @@ Resources:
   AbortSignupFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-abort-signup"
       CodeUri: bin/abort_signup/abort_signup.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -331,6 +343,7 @@ Resources:
   GetUserDetails:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-get-user-details"
       MemorySize: 512
       CodeUri: bin/get_user_details/get_user_details.zip
       Handler: bootstrap
@@ -351,8 +364,6 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref RelationshipsTable
         - Statement:
             Effect: Allow
             Action:
@@ -362,6 +373,7 @@ Resources:
   DeleteUser:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-delete-user"
       CodeUri: bin/delete_user/delete_user.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -382,8 +394,6 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
-            TableName: !Ref RelationshipsTable
-        - DynamoDBCrudPolicy:
             TableName: !Ref SearchTable
         - Statement:
             Effect: Allow
@@ -394,6 +404,7 @@ Resources:
   RemoveStaleAccountsFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-remove-stale-accounts"
       CodeUri: bin/remove_stale_accounts/remove_stale_accounts.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -419,6 +430,7 @@ Resources:
   AccountSearch:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-account-search"
       MemorySize: 512
       CodeUri: bin/account_search/account_search.zip
       Handler: bootstrap
@@ -440,6 +452,7 @@ Resources:
   FriendshipAction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-friendship-action"
       MemorySize: 512
       CodeUri: bin/friendship_action/friendship_action.zip
       Handler: bootstrap
@@ -457,13 +470,12 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref RelationshipsTable
-
+      
   # user dynamodb table
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub "${AWS::StackName}-Main"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: pk
@@ -488,6 +500,7 @@ Resources:
   SearchTable:
     Type: AWS::DynamoDB::Table
     Properties:
+      TableName: !Sub "${AWS::StackName}-search"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: pk
@@ -499,30 +512,6 @@ Resources:
           KeyType: HASH
         - AttributeName: sk
           KeyType: RANGE
-
-  RelationshipsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: pk
-          AttributeType: S
-        - AttributeName: sk
-          AttributeType: S
-      KeySchema:
-        - AttributeName: pk
-          KeyType: HASH
-        - AttributeName: sk
-          KeyType: RANGE
-      GlobalSecondaryIndexes:
-        - IndexName: InverseIndex
-          KeySchema:
-            - AttributeName: sk
-              KeyType: HASH
-            - AttributeName: pk
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
 
 Outputs:
   BreadApiUrl:
