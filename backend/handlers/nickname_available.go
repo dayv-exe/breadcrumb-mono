@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -22,6 +23,9 @@ func HandleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequ
 	}
 
 	isAvailable, dbErr := helpers.NewUserHelper(ctx).NicknameAvailable(nickname)
+
+	log.Println("is available: ")
+	log.Println(isAvailable)
 
 	if dbErr != nil {
 		return models.ServerSideErrorResponse("An error has occurred, try again.", dbErr, "error while trying to check if nickname is available"), nil

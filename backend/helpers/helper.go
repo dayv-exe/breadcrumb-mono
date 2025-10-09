@@ -69,6 +69,8 @@ func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetI
 		return nil, err
 	}
 
+	log.Println(*output)
+
 	return output, nil
 }
 
@@ -78,7 +80,7 @@ func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error)
 		return false, err
 	}
 
-	log.Println((*output).Item)
+	log.Println(len(output.Item))
 
 	return len(output.Item) > 0, nil
 }
