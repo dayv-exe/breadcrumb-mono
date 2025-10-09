@@ -163,8 +163,10 @@ func (u *userDynamoHelper) UpdateName(user *models.User, newName string) error {
 }
 
 func (this *userDynamoHelper) NicknameAvailable(nickname string) (bool, error) {
-	return ItemExists(
-		NewHelper(this.Ctx, nil),
-		models.NicknameKey(nickname),
-	)
+	exists, err := ItemExists(NewHelper(this.Ctx, nil), models.NicknameKey(nickname))
+	if err != nil {
+		return false, err
+	}
+
+	return !exists, nil // if not exists return false then flip to true so nickname available
 }
