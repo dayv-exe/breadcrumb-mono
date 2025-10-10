@@ -135,7 +135,7 @@ func (this *friendshipDynamoHelper) GetAllFriendRequests(userId string) (*[]mode
 		expression,
 		expressionVals,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
-			return *models.FriendItemsToUserDisplayStructs(m)
+			return *models.FriendRequestItemsToUserDisplayStructs(m)
 		},
 	)
 }
