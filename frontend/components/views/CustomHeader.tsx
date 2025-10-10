@@ -31,6 +31,7 @@ export default function CustomHeader({ handleBack, title }: props) {
     }]}>
       {handleBack &&
         <CustomImageButton
+        size={25}
         flat
         src={getIconImage("back", mode === "light")} 
         handleClick={handleBack}

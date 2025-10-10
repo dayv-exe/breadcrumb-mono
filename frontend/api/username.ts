@@ -8,7 +8,7 @@ export const checkUsernameAvailability = async (username: string): Promise<{ isV
   }
 
   try {
-    const { data } = await axiosInstance.get<{ message: string }>(`/nickname_available/${username}`);
+    const { data } = await axiosInstance.get<{ message: string }>(`/nickname/${username}`);
     const verdict = data.message.toLowerCase() === "true"
     return { isValid: verdict, reason: verdict ? "" : `${username} is already in use` };
   } catch (error) {

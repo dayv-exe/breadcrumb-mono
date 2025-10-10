@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bottomsheet: {
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
 })

@@ -1,11 +1,13 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import Spacer from "@/components/Spacer";
+import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { showSettingsAlert } from "@/utils/helpers";
 import * as Contacts from "expo-contacts";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Linking, ListRenderItem, Platform, StyleSheet, TextInput, View } from "react-native";
 
@@ -55,6 +57,7 @@ export default function InviteFriends() {
   const [contactAccess, setContactAccess] = useState<"all" | "limited" | "none" | undefined>()
   const mode = useColorScheme()
   const theme = useThemeColor
+  const router = useRouter()
 
   async function getContacts() {
     const { granted, accessPrivileges } = await Contacts.requestPermissionsAsync();
@@ -78,6 +81,7 @@ export default function InviteFriends() {
 
   return (
     <CustomView adaptToTheme horizontalPadding={20}>
+      <CustomHeader title="Invite contacts" handleBack={() => router.dismiss()}/>
       <Spacer size="small" />
       <View style={[styles.searchInputContainer, { backgroundColor: theme({}, "fadedBackground") }]}>
         <Image style={styles.searchInputImg} source={getIconImage("search", mode === "light")} />

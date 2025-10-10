@@ -151,6 +151,8 @@ export default function SearchScreen() {
     }} userDetails={item} />
   );
 
+  console.log(searchResult?.error)
+
   return (
     <CustomView adaptToTheme horizontalPadding={10}>
       <SafeAreaView style={{

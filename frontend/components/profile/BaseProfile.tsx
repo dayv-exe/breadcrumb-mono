@@ -292,7 +292,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
       }
     }
 
-    if (userData && userData.error) {
+    if ((userData && userData.error) || error) {
       Toast.show({
         text1: "🚫 Something went wrong",
         autoHide: true,

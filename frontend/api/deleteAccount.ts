@@ -3,7 +3,7 @@ import axiosInstance from '../constants/axios';
 
 export const deleteAccount = async (n: string=""): Promise<{ successful: boolean, reason: string }> => {
   try {
-    await axiosInstance.delete(`/delete/user`)
+    await axiosInstance.delete(`/user`)
     return{successful: true, reason: ""}
   } catch (error) {
     const axiosError = error as AxiosError

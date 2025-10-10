@@ -61,9 +61,9 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
               inputMode === "warn" ? "red" :
                 "green",
 
-            backgroundColor: adaptToTheme ? fadedBackgroundColor: Colors.dark.fadedBackground,
+            backgroundColor: adaptToTheme ? fadedBackgroundColor : Colors.dark.fadedBackground,
 
-            color: textColor
+            color: adaptToTheme ? textColor : Colors.light.text
           }
         ]}
           value={value}
@@ -88,9 +88,7 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
       {infoText && <Text style={[
         styles.infoText,
         {
-          color: adaptToTheme && inputMode !== "warn" ? textColor : inputMode === "normal" ? textColor :
-            inputMode === "warn" ? textColor :
-              textColor,
+          color: adaptToTheme ? textColor : Colors.light.text
         }
       ]}>
         {
@@ -101,10 +99,10 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
         }
       </Text>}
       {(keyboardType === "email-address") &&
-          <View style={{width: "100%"}}>
-            <CustomEmailSuggestion inputVal={value} setInputVal={setValue} />
-          </View>
-        }
+        <View style={{ width: "100%" }}>
+          <CustomEmailSuggestion inputVal={value} setInputVal={setValue} />
+        </View>
+      }
     </View>
   )
 }

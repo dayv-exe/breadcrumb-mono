@@ -18,10 +18,12 @@ interface friendsRes {
 const friendshipAction = async (action: FRIENDSHIP_ACTIONS, payload: string): Promise<friendshipActionRes> => {
   try {
     const { data } = await axiosInstance.get<{ message: string }>(`/friendship/${action}/${payload}`);
+    console.log(data.message)
     return { message: data.message }
   } catch (error) {
     const axiosError = error as AxiosError
     const status = axiosError.response?.status
+    console.log(axiosError.message)
     if (status === 404) {
       return { message: null, error: "User not found!" }
     }

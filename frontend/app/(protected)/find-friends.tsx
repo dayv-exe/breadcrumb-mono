@@ -3,6 +3,7 @@ import CustomLabel from "@/components/CustomLabel";
 import ProfileItem from "@/components/profile/ProfileItem";
 import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
 import Spacer from "@/components/Spacer";
+import CustomHeader from "@/components/views/CustomHeader";
 import CustomRefreshableScrollView from "@/components/views/CustomRefreshableScrollView";
 import CustomView from "@/components/views/CustomView";
 import { useAcceptFriendRequest, useGetAllFriendRequests, useRejectFriendRequest } from "@/hooks/queries/useFriendshipAction";
@@ -115,6 +116,7 @@ export default function FindFriendsScreen() {
 
   return (
     <CustomView adaptToTheme horizontalPadding={15}>
+      <CustomHeader title="Friend requests" handleBack={() => router.dismiss()} />
       <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={() => {
         refetch()
       }}>

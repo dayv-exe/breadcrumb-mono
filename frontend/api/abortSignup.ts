@@ -3,7 +3,7 @@ import axiosInstance from '../constants/axios';
 
 export const abortSignUp = async (id: string): Promise<{ successful: boolean, reason: string }> => {
   try {
-    const { data } = await axiosInstance.get<{message: string}>(`/abort_signup/${id}`)
+    const { data } = await axiosInstance.delete<{message: string}>(`/signup/${id}`)
     return{successful: true, reason:data.message}
   } catch (error) {
     const axiosError = error as AxiosError
