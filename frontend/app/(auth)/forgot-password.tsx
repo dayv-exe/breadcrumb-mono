@@ -123,21 +123,18 @@ export default function ResetPasswordHomeScreen() {
         {step === 1 &&
           <>
             <CustomLabel bold fade labelText="Step 1 of 3" textAlign="center" />
-            <Spacer size="big" />
             <CustomInput labelText="Email: " infoText={getEmailInfoText()} value={email} setValue={e => setEmail(e)} keyboardType="email-address" inputMode={getEmailInputMode()} showInfoTextAlways forceLowercase />
           </>
         }
         {step === 2 &&
           <>
             <CustomLabel bold fade labelText="Step 2 of 3" textAlign="center" />
-            <Spacer size="big" />
             <CustomInput labelText="Verification code: " infoText="enter the verification code we sent you" value={code} setValue={setCode} showInfoTextAlways />
           </>
         }
         {step === 3 &&
           <>
             <CustomLabel bold fade labelText="Step 3 of 3" textAlign="center" />
-            <Spacer size="big" />
             <CustomInput labelText="New password: " infoText="" value={newPassword} setValue={setNewPassword} isPassword />
             <CustomInput labelText="Confirm new password: " infoText={handleConfirmPasswordInfo()} inputMode={handleConfirmPasswordMode()} value={cNewPassword} setValue={setCNewPassword} isPassword showInfoTextAlways />
           </>

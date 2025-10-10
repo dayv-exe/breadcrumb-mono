@@ -27,9 +27,10 @@ type iProps = {
   adaptToTheme?: boolean
   useLessProminentColors?: boolean
   ref?: Ref<TextInput>
+  multiline?: boolean
 }
 
-export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors }: iProps) {
+export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors, multiline=false }: iProps) {
   const [focused, setFocused] = useState(false)
   const [hidePassword, setHidePassword] = useState(true)
 
@@ -54,16 +55,14 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
         {labelText}
       </Text>
       <View style={styles.inputContainer}>
-        <TextInput ref={ref} keyboardType={isPassword && !hidePassword ? "visible-password" : keyboardType} autoCorrect={!disableAutoCorrect} autoCapitalize={forceLowercase ? "none" : autoCapitalize} readOnly={setValue == null} secureTextEntry={isPassword && hidePassword} onFocus={handleFocus} onBlur={handleBlur} style={[
+        <TextInput ref={ref} multiline={multiline} numberOfLines={multiline ? 2 : 1} keyboardType={isPassword && !hidePassword ? "visible-password" : keyboardType} autoCorrect={!disableAutoCorrect} autoCapitalize={forceLowercase ? "none" : autoCapitalize} readOnly={setValue == null} secureTextEntry={isPassword && hidePassword} onFocus={handleFocus} onBlur={handleBlur} style={[
           styles.input,
           {
             borderColor: inputMode === "normal" ? focused ? (!useLessProminentColors ? Colors.light.vibrantButton : Colors.light.vibrantBackground) : "transparent" :
               inputMode === "warn" ? "red" :
                 "green",
-
             backgroundColor: adaptToTheme ? fadedBackgroundColor : Colors.dark.fadedBackground,
-
-            color: adaptToTheme ? textColor : Colors.light.text
+            color: adaptToTheme ? textColor : Colors.light.text,
           }
         ]}
           value={value}
@@ -100,7 +99,7 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
       </Text>}
       {(keyboardType === "email-address") &&
         <View style={{ width: "100%" }}>
-          <CustomEmailSuggestion inputVal={value} setInputVal={setValue} />
+          <CustomEmailSuggestion useTheme={adaptToTheme} inputVal={value} setInputVal={setValue} />
         </View>
       }
     </View>

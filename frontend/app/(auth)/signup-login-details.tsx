@@ -6,8 +6,8 @@ import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
 import { Colors } from "@/constants/Colors";
-import { inputMode } from "@/constants/customInputModeTypes";
-import { emailRegex } from "@/constants/regexes";
+import { useCheckEmail } from "@/hooks/useCheckEmail";
+import { useCheckPassword } from "@/hooks/useCheckPassword";
 import { useAuthStore } from "@/utils/authStore";
 import { useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
@@ -23,27 +23,18 @@ export default function SignupDetailsScreen() {
     email: email,
     password: password
   })
-  const [emailInfo, setEmailInfo] = useState<{ infoTxt: string, inputMode: inputMode }>({ infoTxt: "", inputMode: "normal" })
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: "" })
   const promptedUserToConfirmEmail = useRef(false)
   const [showActivityIndicator, setShowActivityIndicator] = useState(false)
-
-  const getPasswordInfo = (): string => {
-    if (userDetails.password.length < 1) {
-      return "choose a strong password"
-    } else if (userDetails.password.length >= 8) {
-      return ""
-    }
-    return userDetails.password.length < 1 || userDetails.password.length >= 8 ? "choose a strong password" : "❗️ must be at least 8 characters long"
-  }
-  const getPasswordInputMode = (): inputMode => {
-    return userDetails.password.length < 1 ? "normal" : userDetails.password.length < 8 ? "warn" : "normal"
-  }
+  const {email: emailStr, setEmail, emailInfoText, emailInputMode, emailValid} = useCheckEmail()
+  const {password: passwordStr, passwordInfoText, passwordInputMode, passwordValid, setPassword} = useCheckPassword()
 
   const { signUp } = useAuthStore()
 
   const handleSendVerification = async () => {
     setShowActivityIndicator(true)
+    userDetails.email = emailStr
+    userDetails.password = passwordStr
     const response = await signUp(userDetails)
 
     if (!response.isSuccess) {
@@ -80,16 +71,7 @@ export default function SignupDetailsScreen() {
   }
 
   const emailAndPasswordValid = (): boolean => {
-    return emailRegex.test(userDetails.email) && userDetails.password.length >= 8
-  }
-
-  function handleEmailTextChange(e: string) {
-    setUserDetails({ ...userDetails, email: e })
-    if (emailRegex.test(e) || e.length < 1) {
-      setEmailInfo({ infoTxt: "🔒 other users won't see this", inputMode: "normal" })
-    } else {
-      setEmailInfo({ infoTxt: "❗️ doesn't look right yet", inputMode: "warn" })
-    }
+    return emailValid  && passwordValid
   }
 
   return (
@@ -98,9 +80,9 @@ export default function SignupDetailsScreen() {
       <Text style={styles.text}>Step 3 of 4</Text>
       <CustomScrollView>
         <Spacer />
-        <CustomInput keyboardType="email-address" value={userDetails.email} setValue={e => handleEmailTextChange(e)} labelText="Email:" infoText={emailInfo.infoTxt} showInfoTextAlways inputMode={emailInfo.inputMode} forceLowercase />
+        <CustomInput keyboardType="email-address" value={emailStr} setValue={setEmail} labelText="Email:" infoText={emailInfoText} showInfoTextAlways inputMode={emailInputMode} forceLowercase />
         <Spacer size="small" />
-        <CustomInput value={userDetails.password} setValue={e => setUserDetails({ ...userDetails, password: e })} labelText="Password:" infoText={getPasswordInfo()} isPassword showInfoTextOnFocus inputMode={getPasswordInputMode()} />
+        <CustomInput value={passwordStr} setValue={setPassword} labelText="Password:" infoText={passwordInfoText} isPassword showInfoTextOnFocus inputMode={passwordInputMode} />
         <Spacer />
       </CustomScrollView>
 

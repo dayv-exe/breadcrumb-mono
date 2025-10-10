@@ -4,10 +4,8 @@ import CustomInput from "@/components/inputs/CustomInput";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
-import { MAX_FULLNAME_LEN } from "@/constants/appConstants";
 import { Colors } from "@/constants/Colors";
-import { inputMode } from "@/constants/customInputModeTypes";
-import { emojiRegex } from "@/constants/regexes";
+import { useCheckName } from "@/hooks/useCheckName";
 import { useCheckUsername } from "@/hooks/useCheckUsername";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -24,11 +22,13 @@ export default function SignupNameScreen() {
   const router = useRouter()
 
   const { username, setUsername, isValid, handleFinalCheck, getInputMode, getInfoText } = useCheckUsername()
+  const {name, setName, getNameLabelText, NameValid, getNameInputMode} = useCheckName()
 
   const handleProceedToNextPage = () => {
     handleFinalCheck((valid) => {
-      if (valid && fullnameValid()) {
+      if (valid && NameValid()) {
         userDetails.username = username
+        userDetails.fullname = name
         router.push({
           pathname: "/signup-birthdate",
           params: userDetails,
@@ -38,7 +38,7 @@ export default function SignupNameScreen() {
   };
 
   function nextBtnDisabled(): boolean {
-    if (!fullnameValid()) {
+    if (!NameValid()) {
       return true // disable button if fullname is not valid
     }
 
@@ -46,29 +46,6 @@ export default function SignupNameScreen() {
       return true // disable next btn is the username is too long
     }
     return false
-  }
-  function fullnameValid(): boolean {
-    if (userDetails.fullname && userDetails.fullname.length > MAX_FULLNAME_LEN) {
-      return false
-    }
-
-    if (emojiRegex.test(userDetails.fullname ?? "")) {
-      return false
-    }
-
-    return true
-  }
-
-  function getFullNameFeedback(): { text: string, mode: inputMode } {
-    if (userDetails.fullname && userDetails.fullname.length > MAX_FULLNAME_LEN) {
-      return { text: `🚫 cannot be greater than ${MAX_FULLNAME_LEN} characters`, mode: "warn" }
-    }
-
-    if (emojiRegex.test(userDetails.fullname ?? "")) {
-      return { text: `add emojis after completing the signup process`, mode: "warn" }
-    }
-
-    return { text: "helps your friends find you", mode: "normal" }
   }
 
   return (
@@ -80,7 +57,7 @@ export default function SignupNameScreen() {
 
         <Spacer />
 
-        <CustomInput value={userDetails.fullname ?? ""} setValue={e => setUserDetails({ ...userDetails, fullname: e })} labelText="Fullname (optional):" infoText={getFullNameFeedback().text} inputMode={getFullNameFeedback().mode} showInfoTextOnFocus disableAutoCorrect autoCapitalize="words" />
+        <CustomInput value={name} setValue={setName} labelText="Fullname (optional):" infoText={getNameLabelText()} inputMode={getNameInputMode()} showInfoTextOnFocus disableAutoCorrect autoCapitalize="words" />
         <Spacer />
       </CustomScrollView>
 

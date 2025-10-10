@@ -2,6 +2,11 @@ import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
+import EditBio from "@/components/profile/EditBio";
+import EditBirthdate from "@/components/profile/EditBirthdate";
+import EditEmail from "@/components/profile/EditEmail";
+import EditName from "@/components/profile/EditName";
+import EditPassword from "@/components/profile/EditPassword";
 import EditUsername from "@/components/profile/EditUsername";
 import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
@@ -62,7 +67,7 @@ export default function ProfileSettingsScreen() {
   const mode = useColorScheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const [bottomSheetChild, setBottomSheetChild] = useState<EditMode>(EditMode.USERNAME)
+  const bottomSheetChild = useRef<EditMode>(EditMode.USERNAME)
   const [renderSheet, setRenderSheet] = useState(false)
 
   const handleDeleteAccount = () => {
@@ -94,14 +99,40 @@ export default function ProfileSettingsScreen() {
       title: '👤 Account Information', data: [
         {
           name: 'Username', value: nickname, handleClick: () => {
+            bottomSheetChild.current = EditMode.USERNAME
             handleOpenDrawer()
           }
         },
-        { name: "Full name", value: name },
-        { name: 'Bio', value: bio },
-        { name: "Email", value: email },
-        { name: "Password", value: "****" },
-        { name: "Birthdate", value: birthdate },
+        {
+          name: "Full name", value: name, handleClick: () => {
+            bottomSheetChild.current = EditMode.FULLNAME
+            handleOpenDrawer()
+          }
+        },
+        {
+          name: 'Bio', value: bio, handleClick: () => {
+            bottomSheetChild.current = EditMode.BIO
+            handleOpenDrawer()
+          }
+        },
+        {
+          name: "Email", value: email, handleClick: () => {
+            bottomSheetChild.current = EditMode.EMAIL
+            handleOpenDrawer()
+          }
+        },
+        {
+          name: "Password", value: "****", handleClick: () => {
+            bottomSheetChild.current = EditMode.PASSWORD
+            handleOpenDrawer()
+          }
+        },
+        {
+          name: "Birthdate", value: birthdate, handleClick: () => {
+            bottomSheetChild.current = EditMode.BIRTHDATE
+            handleOpenDrawer()
+          }
+        },
       ]
     },
     {
@@ -207,12 +238,37 @@ export default function ProfileSettingsScreen() {
               left: 0
             }} />
             <CustomLabel adaptToTheme width={"auto"} bold textAlign="center" labelText={
-              bottomSheetChild === EditMode.USERNAME ? "Edit username" : ""
+              bottomSheetChild.current === EditMode.USERNAME ? "Edit username" :
+                bottomSheetChild.current === EditMode.FULLNAME ? "Edit Name" :
+                  bottomSheetChild.current === EditMode.BIO ? "Edit bio" :
+                    bottomSheetChild.current === EditMode.BIRTHDATE ? "Edit birthdate" :
+                      bottomSheetChild.current === EditMode.EMAIL ? "Edit email" :
+                        bottomSheetChild.current === EditMode.PASSWORD ? "Edit password" : ""
             } />
           </View>
-          <Spacer  />
-          {renderSheet && bottomSheetChild === EditMode.USERNAME &&
+          <Spacer />
+          {renderSheet && bottomSheetChild.current === EditMode.USERNAME &&
             <EditUsername oldUsername={nickname} />
+          }
+          {
+            renderSheet && bottomSheetChild.current === EditMode.FULLNAME &&
+            <EditName oldName={name} />
+          }
+          {
+            renderSheet && bottomSheetChild.current === EditMode.BIO &&
+            <EditBio oldBio={bio} />
+          }
+          {
+            renderSheet && bottomSheetChild.current === EditMode.BIRTHDATE &&
+            <EditBirthdate />
+          }
+          {
+            renderSheet && bottomSheetChild.current === EditMode.EMAIL &&
+            <EditEmail oldEmail={email} />
+          }
+          {
+            renderSheet && bottomSheetChild.current === EditMode.PASSWORD &&
+            <EditPassword />
           }
         </BottomSheetView>
       </BottomSheet>
