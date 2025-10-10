@@ -47,6 +47,14 @@ func HandleSendCustomEmail(ctx context.Context, event events.CognitoEventUserPoo
 		event.Response.EmailSubject = "Confirm your new email address"
 		event.Response.EmailMessage = getBody("Updating your email address.", "Use this code to complete your email address change", event.Request.CodeParameter)
 
+	case "CustomMessage_VerifyUserAttribute":
+		event.Response.EmailSubject = "Confirm your new email address"
+		event.Response.EmailMessage = getBody("Updating your email address.", "Use this code to complete your email address change", event.Request.CodeParameter)
+
+	case "CustomMessage_ResendCode":
+		event.Response.EmailSubject = "Resent Verification Code"
+		event.Response.EmailMessage = getBody("Verify changes.", "Use this code to verify changes to your details.", event.Request.CodeParameter)
+
 	default:
 		log.Printf("Unknown trigger source: %s", event.TriggerSource)
 	}
