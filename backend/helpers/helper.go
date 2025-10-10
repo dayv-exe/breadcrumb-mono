@@ -56,7 +56,7 @@ func DeleteItem(deps *helper, key *map[string]types.AttributeValue) error {
 	return nil
 }
 
-func getItem(deps *helper, key *map[string]types.AttributeValue, nilIfEmpty bool) (*dynamodb.GetItemOutput, error) {
+func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetItemOutput, error) {
 	input := &dynamodb.GetItemInput{
 		Key:       *key,
 		TableName: &deps.TableName,
@@ -69,28 +69,26 @@ func getItem(deps *helper, key *map[string]types.AttributeValue, nilIfEmpty bool
 		return nil, err
 	}
 
-	if nilIfEmpty && len(output.Item) < 1 {
-		return nil, nil
-	}
-
 	return output, nil
 }
 
 func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error) {
-	output, err := getItem(deps, &key, false)
+	output, err := getItem(deps, &key)
 	if err != nil {
 		return false, err
 	}
-
-	log.Println(len(output.Item))
 
 	return len(output.Item) > 0, nil
 }
 
 func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue, convertToStruct func(map[string]types.AttributeValue) T) (*T, error) {
-	output, err := getItem(deps, &key, true)
+	output, err := getItem(deps, &key)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(output.Item) < 1 {
+		return nil, nil
 	}
 
 	// converts item to struct
@@ -111,6 +109,10 @@ func QueryItems[T any](deps *helper, indexName *string, expression string, value
 	if err != nil {
 		log.Print("an error occurred while trying to query")
 		return nil, err
+	}
+
+	if len(output.Items) < 1 {
+		return nil, nil
 	}
 
 	items := convertToStructs(output.Items)
