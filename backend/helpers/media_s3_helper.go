@@ -31,10 +31,10 @@ type PresignResponse struct {
 }
 
 func (this *mediaHelper) GeneratePresignedUrl(input *PresignRequest) (*v4.PresignedHTTPRequest, error) {
-	s3PresignClient := s3.NewPresignClient(utils.HandlerDependencies.S3Client)
+	s3PresignClient := s3.NewPresignClient(utils.GetDependencies().S3Client)
 
 	putReq := &s3.PutObjectInput{
-		Bucket:      aws.String(utils.HandlerDependencies.BucketName),
+		Bucket:      aws.String(utils.GetDependencies().BucketName),
 		Key:         aws.String(input.Key),
 		ContentType: aws.String("image/jpeg"),
 	}

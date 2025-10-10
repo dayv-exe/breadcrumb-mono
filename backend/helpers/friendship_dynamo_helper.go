@@ -37,8 +37,8 @@ func (this *friendshipDynamoHelper) EndFriendship(user1id, user2id string) error
 
 	return TransactWrite(
 		NewHelper(this.Ctx, nil),
-		UseDelete(key1, utils.HandlerDependencies.MainTableName),
-		UseDelete(key2, utils.HandlerDependencies.MainTableName),
+		UseDelete(key1, utils.GetDependencies().MainTableName),
+		UseDelete(key2, utils.GetDependencies().MainTableName),
 	)
 }
 
@@ -50,9 +50,9 @@ func (this *friendshipDynamoHelper) AcceptFriendRequest(thisUser, otherUser *mod
 
 	return TransactWrite(
 		NewHelper(this.Ctx, nil),
-		UseDelete(friendReqKey, utils.HandlerDependencies.MainTableName),
-		UsePut(friendshipItem1, utils.HandlerDependencies.MainTableName, nil),
-		UsePut(friendshipItem2, utils.HandlerDependencies.MainTableName, nil),
+		UseDelete(friendReqKey, utils.GetDependencies().MainTableName),
+		UsePut(friendshipItem1, utils.GetDependencies().MainTableName, nil),
+		UsePut(friendshipItem2, utils.GetDependencies().MainTableName, nil),
 	)
 }
 

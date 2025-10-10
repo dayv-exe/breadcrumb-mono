@@ -31,12 +31,12 @@ func (this *userCognitoHelper) GetManagedInfo(sub string) (*CognitoManagedInfo, 
 	// returns user details managed by cognito like email and birthdate
 
 	input := &cognitoidentityprovider.AdminGetUserInput{
-		UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
+		UserPoolId: aws.String(utils.GetDependencies().UserPoolId),
 		Username:   aws.String(sub),
 	}
 
 	output, err := getManagedInfoCustomFilter(func() (*cognitoidentityprovider.AdminGetUserOutput, error) {
-		return utils.HandlerDependencies.CognitoClient.AdminGetUser(this.Ctx, input)
+		return utils.GetDependencies().CognitoClient.AdminGetUser(this.Ctx, input)
 	})
 
 	if err != nil {
@@ -70,11 +70,11 @@ func (this *userCognitoHelper) DeleteFromCognito(id string, ignoreConfirmationSt
 
 	if !ignoreConfirmationStatus {
 		getUserInput := &cognitoidentityprovider.AdminGetUserInput{
-			UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
+			UserPoolId: aws.String(utils.GetDependencies().UserPoolId),
 			Username:   aws.String(id),
 		}
 
-		getUserOutput, getUserErr := utils.HandlerDependencies.CognitoClient.AdminGetUser(this.Ctx, getUserInput)
+		getUserOutput, getUserErr := utils.GetDependencies().CognitoClient.AdminGetUser(this.Ctx, getUserInput)
 
 		// return error only if the error is not a user not found exception
 		if getUserErr != nil {
@@ -95,11 +95,11 @@ func (this *userCognitoHelper) DeleteFromCognito(id string, ignoreConfirmationSt
 	}
 
 	input := &cognitoidentityprovider.AdminDeleteUserInput{
-		UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
+		UserPoolId: aws.String(utils.GetDependencies().UserPoolId),
 		Username:   aws.String(id),
 	}
 
-	_, err := utils.HandlerDependencies.CognitoClient.AdminDeleteUser(this.Ctx, input)
+	_, err := utils.GetDependencies().CognitoClient.AdminDeleteUser(this.Ctx, input)
 
 	if err != nil {
 		var notFoundErr *types.UserNotFoundException

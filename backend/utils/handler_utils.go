@@ -20,7 +20,7 @@ const (
 	MEDIA_BUCKET           = "MEDIA_BUCKET"
 )
 
-type handlerDependencies struct {
+type handlerDependenciesType struct {
 	DbClient             *dynamodb.Client
 	CognitoClient        *cognitoidentityprovider.Client
 	S3Client             *s3.Client
@@ -31,9 +31,13 @@ type handlerDependencies struct {
 	CloudFrontDomainName string
 }
 
-var HandlerDependencies handlerDependencies
+var handlerDependencies handlerDependenciesType //
 
-type option func(*handlerDependencies, aws.Config)
+func GetDependencies() *handlerDependenciesType {
+	return &handlerDependencies
+}
+
+type option func(*handlerDependenciesType, aws.Config)
 
 func getConfig() aws.Config {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
@@ -54,7 +58,7 @@ func getEnvironmentVariable(key string) string {
 }
 
 func WithDatabase() option {
-	return func(hd *handlerDependencies, c aws.Config) {
+	return func(hd *handlerDependenciesType, c aws.Config) {
 		hd.MainTableName = getEnvironmentVariable(MAIN_TABLE)
 		hd.SearchTableName = getEnvironmentVariable(SEARCH_TABLE)
 		hd.DbClient = dynamodb.NewFromConfig(c)
@@ -62,14 +66,26 @@ func WithDatabase() option {
 }
 
 func WithCognito() option {
-	return func(hd *handlerDependencies, c aws.Config) {
+	return func(hd *handlerDependenciesType, c aws.Config) {
 		hd.CognitoClient = cognitoidentityprovider.NewFromConfig(c)
 		hd.UserPoolId = getEnvironmentVariable(USER_POOL_ID)
 	}
 }
 
+func WithCognitoClientOnly() option {
+	// for sam functions triggered by cognito actions that cant have user pool id in environment var
+	return func(hd *handlerDependenciesType, c aws.Config) {
+		hd.CognitoClient = cognitoidentityprovider.NewFromConfig(c)
+	}
+}
+
+func LateInitUserPoolId(userPoolId string) {
+	// get the user pool id from the event parameter after function is triggered
+	handlerDependencies.UserPoolId = userPoolId
+}
+
 func WithBucket() option {
-	return func(hd *handlerDependencies, c aws.Config) {
+	return func(hd *handlerDependenciesType, c aws.Config) {
 		hd.BucketName = getEnvironmentVariable(MEDIA_BUCKET)
 		hd.S3Client = s3.NewFromConfig(c)
 	}
@@ -79,9 +95,9 @@ func InitHandlerDependencies(opts ...option) {
 	cfg := getConfig()
 
 	// init cloudfront always
-	HandlerDependencies.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
+	handlerDependencies.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
 
 	for _, opt := range opts {
-		opt(&HandlerDependencies, cfg)
+		opt(&handlerDependencies, cfg)
 	}
 }

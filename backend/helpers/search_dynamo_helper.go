@@ -27,7 +27,7 @@ func (this *searchDynamoHelper) SearchUser(searchStr string) (*[]models.UserDisp
 
 	tokens := utils.SplitOnDelimiter(strings.ToLower(utils.NormalizeString(searchStr)), " ", "_", ".") // splits the search string into tokens
 
-	helper := NewHelper(this.Ctx, &utils.HandlerDependencies.SearchTableName)
+	helper := NewHelper(this.Ctx, &utils.GetDependencies().SearchTableName)
 
 	for _, token := range tokens {
 		if len(token) >= models.UserSearchIndexPrefixLen {

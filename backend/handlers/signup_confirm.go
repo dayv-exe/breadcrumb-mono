@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/helpers"
 	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 
 func HandlePostConfirmation(ctx context.Context, event events.CognitoEventUserPoolsPostConfirmation) (interface{}, error) {
 	// runs after user has validated their email
+	utils.LateInitUserPoolId(event.UserPoolID)
 
 	// this function should only run if it is trigger by signup confirm
 	if event.TriggerSource != "PostConfirmation_ConfirmSignUp" {

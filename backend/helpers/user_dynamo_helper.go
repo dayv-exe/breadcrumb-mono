@@ -30,14 +30,14 @@ func (this *userDynamoHelper) AddUser(u *models.User) error {
 	// put nickname item
 	transactions = append(transactions, UsePut(
 		newNickname,
-		utils.HandlerDependencies.MainTableName,
+		utils.GetDependencies().MainTableName,
 		aws.String("attribute_not_exists(pk)"),
 	))
 
 	// put user item
 	transactions = append(transactions, UsePut(
 		u,
-		utils.HandlerDependencies.MainTableName,
+		utils.GetDependencies().MainTableName,
 		nil,
 	))
 
@@ -81,8 +81,8 @@ func (this *userDynamoHelper) DeleteFromDynamo(u *models.User) error {
 	// delete user profile, nickname, friends, post and allat
 	var transactions []types.TransactWriteItem
 
-	transactions = append(transactions, UseDelete(models.UserKey(u.Userid), utils.HandlerDependencies.MainTableName))
-	transactions = append(transactions, UseDelete(models.NicknameKey(u.Nickname), utils.HandlerDependencies.MainTableName))
+	transactions = append(transactions, UseDelete(models.UserKey(u.Userid), utils.GetDependencies().MainTableName))
+	transactions = append(transactions, UseDelete(models.NicknameKey(u.Nickname), utils.GetDependencies().MainTableName))
 	transactions = append(transactions, models.GetDeleteUserIndexesItems(u)...)
 
 	return TransactWrite(
@@ -114,7 +114,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		map[string]types.AttributeValue{
 			":n": &types.AttributeValueMemberS{Value: newName},
 		},
-		utils.HandlerDependencies.MainTableName,
+		utils.GetDependencies().MainTableName,
 	))
 
 	return TransactWrite(NewHelper(u.Ctx, nil), transactions...)
@@ -147,12 +147,12 @@ func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string)
 	// delete old nickname reservations
 	transactions = append(transactions, UseDelete(
 		models.NicknameKey(oldNickname),
-		utils.HandlerDependencies.MainTableName,
+		utils.GetDependencies().MainTableName,
 	))
 
 	// create new nickname reservation and add to transactions
 	nicknameReservation := models.NewNickname(newNickname, user.Userid)
-	transactions = append(transactions, UsePut(nicknameReservation, utils.HandlerDependencies.MainTableName, nil))
+	transactions = append(transactions, UsePut(nicknameReservation, utils.GetDependencies().MainTableName, nil))
 
 	return u.updateNameOrNickname(user, newNickname, transactions, true)
 }

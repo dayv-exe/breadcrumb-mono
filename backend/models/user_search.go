@@ -144,7 +144,7 @@ func GetUserSearchIndexItems(user *User) []types.TransactWriteItem {
 	for _, index := range indexes {
 		items = append(items, types.TransactWriteItem{
 			Put: &types.Put{
-				TableName: aws.String(utils.HandlerDependencies.SearchTableName),
+				TableName: aws.String(utils.GetDependencies().SearchTableName),
 				Item:      index,
 			},
 		})
@@ -166,7 +166,7 @@ func GetDeleteUserIndexesItems(user *User) []types.TransactWriteItem {
 	for _, key := range keys {
 		items = append(items, types.TransactWriteItem{
 			Delete: &types.Delete{
-				TableName: aws.String(utils.HandlerDependencies.SearchTableName),
+				TableName: aws.String(utils.GetDependencies().SearchTableName),
 				Key:       key,
 			},
 		})

@@ -17,7 +17,7 @@ type helper struct {
 
 func NewHelper(ctx context.Context, tableName *string) *helper {
 	if tableName == nil {
-		tableName = &utils.HandlerDependencies.MainTableName
+		tableName = &utils.GetDependencies().MainTableName
 	}
 	return &helper{
 		TableName: *tableName,
@@ -31,7 +31,7 @@ func PutItem[T utils.DatabaseFormattable](deps *helper, item *T) error {
 		TableName: aws.String(deps.TableName),
 	}
 
-	_, putErr := utils.HandlerDependencies.DbClient.PutItem(deps.Ctx, input)
+	_, putErr := utils.GetDependencies().DbClient.PutItem(deps.Ctx, input)
 
 	if putErr != nil {
 		log.Print("An error occurred while trying to put item in the db")
@@ -47,7 +47,7 @@ func DeleteItem(deps *helper, key *map[string]types.AttributeValue) error {
 		TableName: &deps.TableName,
 	}
 
-	_, err := utils.HandlerDependencies.DbClient.DeleteItem(deps.Ctx, input)
+	_, err := utils.GetDependencies().DbClient.DeleteItem(deps.Ctx, input)
 	if err != nil {
 		log.Print("error while trying to delete item")
 		return err
@@ -63,7 +63,7 @@ func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetI
 	}
 
 	// gets item from db
-	output, err := utils.HandlerDependencies.DbClient.GetItem(deps.Ctx, input)
+	output, err := utils.GetDependencies().DbClient.GetItem(deps.Ctx, input)
 	if err != nil {
 		log.Println("an error occurred while trying to get item from db")
 		return nil, err
@@ -105,7 +105,7 @@ func QueryItems[T any](deps *helper, indexName *string, expression string, value
 		ExpressionAttributeValues: values,
 	}
 
-	output, err := utils.HandlerDependencies.DbClient.Query(deps.Ctx, input)
+	output, err := utils.GetDependencies().DbClient.Query(deps.Ctx, input)
 	if err != nil {
 		log.Print("an error occurred while trying to query")
 		return nil, err
@@ -151,7 +151,7 @@ func TransactWrite(deps *helper, transactions ...types.TransactWriteItem) error 
 		TransactItems: transactions,
 	}
 
-	_, err := utils.HandlerDependencies.DbClient.TransactWriteItems(deps.Ctx, input)
+	_, err := utils.GetDependencies().DbClient.TransactWriteItems(deps.Ctx, input)
 	if err != nil {
 		log.Print("error while trying to transact write")
 		// Check for transaction cancellation reasons

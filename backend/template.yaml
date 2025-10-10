@@ -307,7 +307,7 @@ Resources:
         NicknameAvailableApi:
           Type: HttpApi
           Properties:
-            Path: /nickname_available/{nickname}
+            Path: /nickname/{nickname}
             Method: GET
             ApiId: !Ref BreadApi
       Policies:
@@ -329,8 +329,8 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /abort_signup/{id}
-            Method: GET
+            Path: /signup/{id}
+            Method: DELETE
             ApiId: !Ref BreadApi
       Policies:
         - Statement:
@@ -385,7 +385,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /delete/user
+            Path: /user
             Method: DELETE
             ApiId: !Ref BreadApi
             Auth:

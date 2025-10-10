@@ -24,7 +24,7 @@ func HandleRemoveStaleAccounts(ctx context.Context) error {
 
 	for {
 		input := &cognitoidentityprovider.ListUsersInput{
-			UserPoolId: aws.String(utils.HandlerDependencies.UserPoolId),
+			UserPoolId: aws.String(utils.GetDependencies().UserPoolId),
 			Filter:     aws.String("cognito:user_status=\"UNCONFIRMED\""),
 			Limit:      aws.Int32(60),
 		}
@@ -33,7 +33,7 @@ func HandleRemoveStaleAccounts(ctx context.Context) error {
 			input.PaginationToken = paginationToken
 		}
 
-		res, err := utils.HandlerDependencies.CognitoClient.ListUsers(ctx, input)
+		res, err := utils.GetDependencies().CognitoClient.ListUsers(ctx, input)
 		if err != nil {
 			return fmt.Errorf("FAILED TO LIST USERS: %w", err)
 		}
