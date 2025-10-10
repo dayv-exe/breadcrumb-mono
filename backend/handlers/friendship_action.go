@@ -101,14 +101,14 @@ func HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequ
 
 	// accept friend request
 	case constants.FRIENDSHIP_ACTION_ACCEPT:
-		deps.ExpectedStatus = constants.FRIENDSHIP_STATUS_REQUESTED
+		deps.ExpectedStatus = constants.FRIENDSHIP_STATUS_RECEIVED
 		return handleRequest(ctx, deps, func() error {
 			return friendshipHelper.AcceptFriendRequest(thisUser, otherUser)
 		})
 
 		// reject friend request
 	case constants.FRIENDSHIP_ACTION_REJECT:
-		deps.ExpectedStatus = constants.FRIENDSHIP_STATUS_REQUESTED
+		deps.ExpectedStatus = constants.FRIENDSHIP_STATUS_RECEIVED
 		return handleRequest(ctx, deps, func() error {
 			return friendshipHelper.RejectFriendRequest(otherUserId, thisUserId)
 		})
