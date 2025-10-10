@@ -56,7 +56,7 @@ func DeleteItem(deps *helper, key *map[string]types.AttributeValue) error {
 	return nil
 }
 
-func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetItemOutput, error) {
+func getItem(deps *helper, key *map[string]types.AttributeValue, nilIfEmpty bool) (*dynamodb.GetItemOutput, error) {
 	input := &dynamodb.GetItemInput{
 		Key:       *key,
 		TableName: &deps.TableName,
@@ -69,13 +69,15 @@ func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetI
 		return nil, err
 	}
 
-	log.Println(*output)
+	if nilIfEmpty && len(output.Item) < 1 {
+		return nil, nil
+	}
 
 	return output, nil
 }
 
 func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error) {
-	output, err := getItem(deps, &key)
+	output, err := getItem(deps, &key, false)
 	if err != nil {
 		return false, err
 	}
@@ -86,7 +88,7 @@ func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error)
 }
 
 func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue, convertToStruct func(map[string]types.AttributeValue) T) (*T, error) {
-	output, err := getItem(deps, &key)
+	output, err := getItem(deps, &key, true)
 	if err != nil {
 		return nil, err
 	}
