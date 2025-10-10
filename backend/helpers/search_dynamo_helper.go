@@ -46,7 +46,10 @@ func (this *searchDynamoHelper) SearchUser(searchStr string) (*[]models.UserDisp
 				log.Println("An error occurred inside loop for querying tokens gotten from search string")
 				return nil, err
 			}
-			matches = append(matches, (*usersFound)...)
+
+			if usersFound != nil {
+				matches = append(matches, (*usersFound)...)
+			}
 		}
 	}
 

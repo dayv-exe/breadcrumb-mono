@@ -67,6 +67,10 @@ func (this *userDynamoHelper) FindByNickname(nickname string) (*models.User, err
 		return nil, err
 	}
 
+	if users == nil {
+		return nil, nil
+	}
+
 	return &(*users)[0], nil
 }
 
