@@ -1,21 +1,20 @@
 import { USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
 import { useEditUserInfo } from "@/hooks/queries/useEditUserInfo";
 import { useCheckUsername } from "@/hooks/useCheckUsername";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useEffect, useRef } from "react";
 import { TextInput, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 import CustomInput from "../inputs/CustomInput";
 import Spacer from "../Spacer";
-import CustomKeyboardAvoidingView from "../views/CustomKeyboardAvoidingView";
-import CustomScrollView from "../views/CustomScrollView";
-import { useThemeColor } from "@/hooks/useThemeColor";
 
 type props = {
   oldUsername: string
+  onUpdate: () => void
 }
 
-export default function EditUsername({ oldUsername }: props) {
+export default function EditUsername({ oldUsername, onUpdate }: props) {
   const { username, setUsername, isValid, handleFinalCheck, getInputMode, getInfoText } = useCheckUsername(oldUsername, "")
   const inputRef = useRef<TextInput>(null)
   const { mutate, error, } = useEditUserInfo()
@@ -33,6 +32,7 @@ export default function EditUsername({ oldUsername }: props) {
     handleFinalCheck(isAvailable => {
       if (isAvailable) {
         // network call to update
+        onUpdate()
       }
     })
   }

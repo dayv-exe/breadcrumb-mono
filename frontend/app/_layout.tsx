@@ -20,7 +20,8 @@ const toastConfig = {
           borderRadius: 15,
           borderLeftWidth: 0,
           borderLeftColor: 'transparent',
-          marginTop: props.position === "top" ? 20 : 0
+          marginTop: props.position === "top" ? 20 : 0,
+          flexWrap: "wrap"
         }}
         contentContainerStyle={{ padding: 15 }}
         text1Style={{
@@ -76,7 +77,8 @@ const darkToastConfig = {
           borderRadius: 15,
           borderLeftWidth: 0,
           borderLeftColor: 'transparent',
-          marginTop: props.position === "top" ? 20 : 0
+          marginTop: props.position === "top" ? 20 : 0,
+          flexWrap: "wrap"
         }}
         contentContainerStyle={{ padding: 15 }}
         text1Style={{

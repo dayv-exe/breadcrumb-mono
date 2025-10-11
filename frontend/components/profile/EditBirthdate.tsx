@@ -1,4 +1,6 @@
+import { ShowToast } from "@/constants/appConstants"
 import { useCheckBirthdate } from "@/hooks/useCheckBirthdate"
+import { useChangeBirthdate } from "@/hooks/useCognitoBirthdate"
 import { useEffect, useRef, useState } from "react"
 import { TextInput } from "react-native"
 import CustomLabel from "../CustomLabel"
@@ -6,10 +8,15 @@ import Spacer from "../Spacer"
 import CustomButton from "../buttons/CustomButton"
 import CustomDatePicker from "../inputs/CustomDatePicker"
 
-export default function EditBirthdate() {
+type props = {
+  onUpdate: () => void
+}
+
+export default function EditBirthdate({ onUpdate }: props) {
   const inputRef = useRef<TextInput>(null)
   const { birthdateToString, rawBirthdate, setBirthdate, validateBirthdate } = useCheckBirthdate()
   const [pickerMoving, setPickerMoving] = useState(false)
+  const { pending, updateBirthdate } = useChangeBirthdate()
 
   function disableUpdateBtn() {
     const validation = validateBirthdate()
@@ -20,9 +27,20 @@ export default function EditBirthdate() {
     inputRef.current?.focus()
   }, [])
 
+  async function handleUpdate() {
+    const { success, error } = await updateBirthdate(birthdateToString(rawBirthdate))
+
+    if (error) {
+      ShowToast(error)
+    } else if (success) {
+      ShowToast("👍 Birthdate updated!")
+      onUpdate()
+    }
+  }
+
   return (
     <>
-      <CustomLabel adaptToTheme labelText={`If you update your birthdate now you might NOT be able to update it again in the future.`} fade italic fontSize={14} />
+      <CustomLabel adaptToTheme labelText={`If you change your birthdate now you might NOT be able to change it again in the future.`} fade italic fontSize={14} />
       <CustomDatePicker
         date={rawBirthdate}
         dateStr={birthdateToString(rawBirthdate)}
@@ -31,7 +49,7 @@ export default function EditBirthdate() {
         adaptToTheme
       />
       <Spacer />
-      <CustomButton disabled={disableUpdateBtn()} type="less-prominent" labelText="Update" />
+      <CustomButton handleClick={handleUpdate} isPending={pending} disabled={disableUpdateBtn()} type="less-prominent" labelText="Update" />
     </>
   )
 }

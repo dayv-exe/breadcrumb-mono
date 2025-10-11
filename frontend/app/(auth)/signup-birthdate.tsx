@@ -7,7 +7,6 @@ import CustomScrollView from "@/components/views/CustomScrollView";
 import CustomView from "@/components/views/CustomView";
 import { Colors } from "@/constants/Colors";
 import { useCheckBirthdate } from "@/hooks/useCheckBirthdate";
-import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -26,13 +25,14 @@ export default function BirthdateScreen() {
   const [pickerMoving, setPickerMoving] = useState(true)
   const { rawBirthdate, setBirthdate, validateBirthdate, birthdateToString } = useCheckBirthdate()
 
-  const onChange = (_: DateTimePickerEvent, selectedDate?: Date) => {
-    setUserDetails({ ...userDetails, birthdate: birthdateToString(selectedDate ?? new Date()) });
-  };
+  function handleChange(date: Date) {
+    setBirthdate(date)
+    setUserDetails({...userDetails, birthdate: birthdateToString(date)})
+  }
 
   const handleValidateBirthdate = () => {
     const validation = validateBirthdate()
-
+    console.log(userDetails)
 
     if (!validation.isValid) {
       setPopupDetails({
@@ -59,7 +59,7 @@ export default function BirthdateScreen() {
         <CustomDatePicker
           date={rawBirthdate}
           dateStr={birthdateToString(rawBirthdate)}
-          setDate={setBirthdate}
+          setDate={handleChange}
           setPickerMoving={setPickerMoving}
         />
       </CustomScrollView>

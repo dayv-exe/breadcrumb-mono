@@ -1,6 +1,5 @@
 import { USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
 import { useCheckName } from "@/hooks/useCheckName";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { useEffect, useRef } from "react";
 import { TextInput, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
@@ -14,7 +13,6 @@ type props = {
 
 export default function EditName({ oldName }: props) {
   const inputRef = useRef<TextInput>(null)
-  const bgCol = useThemeColor({}, "background")
 
   const {NameValid, getNameInputMode, getNameLabelText, name, setName} = useCheckName(oldName, "", true)
 

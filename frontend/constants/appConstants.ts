@@ -1,3 +1,5 @@
+import Toast from "react-native-toast-message"
+
 export const SUGGESTED_EMAIL_DOMAINS = [
   "@gmail.com",
   "@icloud.com"
@@ -35,4 +37,12 @@ export enum FRIENDSHIP_ACTIONS {
   END = "end",
   GET_FRIENDS = "all",
   GET_REQUESTS = "pending",
+}
+
+export function ShowToast(message: string) {
+  Toast.show({
+    text1: message,
+    position: "bottom",
+    type: "info",
+  })
 }

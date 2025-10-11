@@ -13,6 +13,7 @@ type props = {
   dateStr: string
   setDate: (date: Date) => void
   setPickerMoving: (b: boolean) => void
+  onChange?: (dateStr: string) => void
   adaptToTheme?: boolean
 }
 
@@ -32,7 +33,7 @@ export default function CustomDatePicker({ date, dateStr, setPickerMoving, setDa
       <View style={{ width: "100%" }}>
         <CustomLabel textColor={adaptToTheme ? textColor : Colors.dark.text} labelText="Birthdate:" bold />
         <CustomButton labelText={dateStr} adaptToTheme={adaptToTheme} type={adaptToTheme ? "theme-faded" : "faded"} handleClick={() => setShowPicker(true)} />
-        <CustomLabel textColor={adaptToTheme ? textColor : Colors.light.text}  labelText="🔒 other users won't see this" fontSize={15} />
+        <CustomLabel textColor={adaptToTheme ? textColor : Colors.light.text} labelText="🔒 other users won't see this" fontSize={15} />
       </View>
       <Spacer />
       {(showPicker || Platform.OS === "ios") && <DateTimePicker
