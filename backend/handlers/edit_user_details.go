@@ -11,8 +11,8 @@ import (
 )
 
 type EditBody struct {
-	Attribute string `json:"attribute"`
-	Value     string `json:"value"`
+	Target  string `json:"target"`
+	Payload string `json:"payload"`
 }
 
 func HandleEditUserDetails(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -27,16 +27,16 @@ func HandleEditUserDetails(ctx context.Context, req *events.APIGatewayProxyReque
 		return models.NotFoundResponse("failed to get user"), nil
 	}
 
-	switch editBody.Attribute {
+	switch editBody.Target {
 	case "nickname":
-		err := helpers.NewUserHelper(ctx).UpdateNickname(user, editBody.Value)
+		err := helpers.NewUserHelper(ctx).UpdateNickname(user, editBody.Payload)
 		if err != nil {
 			return models.ServerSideErrorResponse("", err, ""), nil
 		}
 		return models.SuccessfulRequestResponse("Nickname changed!", false), nil
 
 	case "name":
-		err := helpers.NewUserHelper(ctx).UpdateName(user, editBody.Value)
+		err := helpers.NewUserHelper(ctx).UpdateName(user, editBody.Payload)
 		if err != nil {
 			return models.ServerSideErrorResponse("", err, ""), nil
 		}
