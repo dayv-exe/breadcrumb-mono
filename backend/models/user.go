@@ -19,14 +19,14 @@ type User struct {
 type UserDisplayInfo struct {
 	Userid                  string `dynamodbav:"pk" json:"userId"`
 	Nickname                string `dynamodbav:"nickname" json:"nickname"`
-	Name                    string `dynamodbav:"name" json:"name"`
+	Name                    string `dynamodbav:"fullname" json:"name"`
 	DpUrl                   string `dynamodbav:"dpUrl" json:"dpUrl"`
 	DefaultProfilePicColors string `dynamodbav:"default_pic_colors" json:"defaultPicColors"`
 }
 
 type UserDisplayInfoNoId struct {
 	Nickname                string `dynamodbav:"nickname" json:"nickname"`
-	Name                    string `dynamodbav:"name" json:"name"`
+	Name                    string `dynamodbav:"fullname" json:"name"`
 	DpUrl                   string `dynamodbav:"dpUrl" json:"dpUrl"`
 	DefaultProfilePicColors string `dynamodbav:"default_pic_colors" json:"defaultPicColors"`
 }

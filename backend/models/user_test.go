@@ -12,7 +12,7 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"pk":                     &dbTypes.AttributeValueMemberS{Value: "USER#123"},
 	"sk":                     &dbTypes.AttributeValueMemberS{Value: "PROFILE"},
 	"nickname":               &dbTypes.AttributeValueMemberS{Value: "test"},
-	"name":                   &dbTypes.AttributeValueMemberS{Value: "test test"},
+	"fullname":               &dbTypes.AttributeValueMemberS{Value: "test test"},
 	"bio":                    &dbTypes.AttributeValueMemberS{Value: ""},
 	"dpUrl":                  &dbTypes.AttributeValueMemberS{Value: ""},
 	"is_suspended":           &dbTypes.AttributeValueMemberBOOL{Value: false},
@@ -82,7 +82,7 @@ func TestConvertToUser(t *testing.T) {
 	result := ConvertToUser(map[string]dbTypes.AttributeValue{
 		"pk":             &dbTypes.AttributeValueMemberS{Value: "USER#123"},
 		"nickname":       &dbTypes.AttributeValueMemberS{Value: "test"},
-		"name":           &dbTypes.AttributeValueMemberS{Value: "test"},
+		"fullname":       &dbTypes.AttributeValueMemberS{Value: "test"},
 		"bio":            &dbTypes.AttributeValueMemberS{Value: ""},
 		"dpUrl":          &dbTypes.AttributeValueMemberS{Value: ""},
 		"is_suspended":   &dbTypes.AttributeValueMemberBOOL{Value: false},

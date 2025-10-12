@@ -99,10 +99,10 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	// get transactions to delete all old search indexes
 	transactions = append(transactions, models.GetDeleteUserIndexesItems(user)...)
 
-	target := "name"
+	attributeName := "fullname"
 	// update user struct
 	if updatingNickname {
-		target = "nickname"
+		attributeName = "nickname"
 		user.Nickname = newName
 	} else {
 		user.Name = newName
@@ -114,7 +114,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	// update the actual user item in db
 	transactions = append(transactions, UseUpdate(
 		models.UserKey(user.Userid),
-		fmt.Sprintf("SET %s = :n", target),
+		fmt.Sprintf("SET %s = :n", attributeName),
 		map[string]types.AttributeValue{
 			":n": &types.AttributeValueMemberS{Value: newName},
 		},
