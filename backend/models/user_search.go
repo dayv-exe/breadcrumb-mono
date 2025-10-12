@@ -27,7 +27,7 @@ type userSearchDbItem struct {
 	UserDisplayInfoNoId
 }
 
-func (u *UserSearch) BuildSearchIndexes() []map[string]types.AttributeValue {
+func (u *UserSearch) buildSearchIndexes() []map[string]types.AttributeValue {
 	// returns items to be put in the database that contains search index
 	// for example
 	// john.test this function will return
@@ -137,7 +137,7 @@ func GetUserSearchIndexItems(user *User) []types.TransactWriteItem {
 		UserDisplayInfo: *NewUserDisplayInfo(*user),
 	}
 
-	indexes := builder.BuildSearchIndexes()
+	indexes := builder.buildSearchIndexes()
 
 	// creates slice of items
 	var items []types.TransactWriteItem
@@ -159,7 +159,7 @@ func GetDeleteUserIndexesItems(user *User) []types.TransactWriteItem {
 		UserDisplayInfo: *NewUserDisplayInfo(*user),
 	}
 
-	indexes := builder.BuildSearchIndexes()
+	indexes := builder.buildSearchIndexes()
 
 	keys := GetUserSearchIndexesKeys(indexes)
 	var items []types.TransactWriteItem
