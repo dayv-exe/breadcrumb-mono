@@ -9,3 +9,4 @@ presignup
 remove_stale_accounts
 s3bucket_actions
 signup_confirm
+edit_user_details
