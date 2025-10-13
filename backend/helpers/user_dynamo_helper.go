@@ -96,8 +96,8 @@ func (this *userDynamoHelper) DeleteFromDynamo(u *models.User) error {
 }
 
 func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName string, transactions []types.TransactWriteItem, updatingNickname bool) error {
-	// get transactions to delete all old search indexes
-	transactions = append(transactions, models.GetDeleteUserIndexesItems(user)...)
+	// generate new search indexes based on new name
+	transactions = append(transactions, models.GetUserSearchIndexItems(user)...)
 
 	attributeName := "fullname"
 	// update user struct
@@ -107,9 +107,6 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	} else {
 		user.Name = newName
 	}
-
-	// generate new search indexes based on new name
-	transactions = append(transactions, models.GetUserSearchIndexItems(user)...)
 
 	// update the actual user item in db
 	transactions = append(transactions, UseUpdate(
@@ -121,7 +118,13 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		utils.GetDependencies().MainTableName,
 	))
 
-	return TransactWrite(NewHelper(u.Ctx, nil), transactions...)
+	err := TransactWrite(NewHelper(u.Ctx, nil), transactions...)
+	if err != nil {
+		return err
+	}
+
+	// get transactions to delete all old search indexes
+	return TransactWrite(NewHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
 }
 
 func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string) error {
