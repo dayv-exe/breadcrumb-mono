@@ -105,8 +105,10 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	attributeName := "fullname"
 	if updatingNickname {
 		attributeName = "nickname"
+		oldName = "" // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
 		user.Nickname = newName
 	} else {
+		oldNickname = "" // so user_search index functions ignores deleting and building nickname indexes from search table if we are only updating name
 		user.Name = newName
 	}
 

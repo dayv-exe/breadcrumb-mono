@@ -45,6 +45,7 @@ func (u *UserSearch) buildSearchIndexes() []map[string]types.AttributeValue {
 
 	for _, token := range tokens {
 		// get values
+		// if name to tokenize is not long enough, skip tokenization process
 		if len(strings.TrimSpace(token)) < UserSearchIndexPrefixLen || len(strings.TrimSpace(token[:UserSearchIndexPrefixLen])) < UserSearchIndexPrefixLen {
 			continue // skip
 		}
