@@ -146,8 +146,6 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 }
 
 func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string) error {
-	oldNickname := user.Nickname
-
 	// check user is not updating nickname too soon
 	if !utils.NameChangeAllowed(user.LastNicknameChange) {
 		return fmt.Errorf("Nickname change to soon, try again after a few days")
@@ -171,7 +169,7 @@ func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string)
 
 	// delete old nickname reservations
 	transactions = append(transactions, UseDelete(
-		models.NicknameKey(oldNickname),
+		models.NicknameKey(user.Nickname),
 		utils.GetDependencies().MainTableName,
 	))
 

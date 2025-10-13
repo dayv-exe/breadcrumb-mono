@@ -40,8 +40,7 @@ func NormalizeString(s string) string {
 }
 
 func SplitOnDelimiter(s string, delimiters ...string) []string {
-	//tokens := []string{s}
-	var tokens []string
+	tokens := []string{s} // adds the full name as the first index to store
 	for _, d := range delimiters {
 		if strings.Contains(s, d) {
 			tokens = append(tokens, strings.Split(s, d)...)

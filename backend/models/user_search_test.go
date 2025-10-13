@@ -42,11 +42,19 @@ func TestGetUserSearchIndexesKeysNickName(t *testing.T) {
 			expectedKeys: []map[string]types.AttributeValue{
 				{
 					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#ja"},
+					"sk": &types.AttributeValueMemberS{Value: "jane doe#123"},
+				},
+				{
+					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#ja"},
 					"sk": &types.AttributeValueMemberS{Value: "jane#123"},
 				},
 				{
 					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#do"},
 					"sk": &types.AttributeValueMemberS{Value: "doe#123"},
+				},
+				{
+					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jd"},
+					"sk": &types.AttributeValueMemberS{Value: "jd 247#123"},
 				},
 				{
 					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jd"},
@@ -63,6 +71,10 @@ func TestGetUserSearchIndexesKeysNickName(t *testing.T) {
 			name:     "john john",
 			nickname: "john.john",
 			expectedKeys: []map[string]types.AttributeValue{
+				{
+					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
+					"sk": &types.AttributeValueMemberS{Value: "john john#123"},
+				},
 				{
 					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
 					"sk": &types.AttributeValueMemberS{Value: "john#123"},
@@ -88,6 +100,10 @@ func TestGetUserSearchIndexesKeysNickName(t *testing.T) {
 				// names
 				{
 					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jt"},
+					"sk": &types.AttributeValueMemberS{Value: "jt vence#123"},
+				},
+				{
+					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jt"},
 					"sk": &types.AttributeValueMemberS{Value: "jt#123"},
 				},
 				{
@@ -96,6 +112,10 @@ func TestGetUserSearchIndexesKeysNickName(t *testing.T) {
 				},
 
 				//nicknames
+				{
+					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
+					"sk": &types.AttributeValueMemberS{Value: "jo hntohn#123"},
+				},
 				{
 					"pk": &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
 					"sk": &types.AttributeValueMemberS{Value: "jo#123"},
@@ -162,6 +182,14 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 			name:     "johnny test",
 			nickname: "j.test",
 			expect: []map[string]types.AttributeValue{
+				{
+					"pk":       &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
+					"sk":       &types.AttributeValueMemberS{Value: "johnny test#123"},
+					"userid":   &types.AttributeValueMemberS{Value: "123"},
+					"fullname": &types.AttributeValueMemberS{Value: "johnny test"},
+					"nickname": &types.AttributeValueMemberS{Value: "j.test"},
+					"dpUrl":    &types.AttributeValueMemberS{Value: ""},
+				},
 				{
 					"pk":       &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
 					"sk":       &types.AttributeValueMemberS{Value: "johnny#123"},
