@@ -5,6 +5,7 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -134,7 +135,14 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	// get transactions to delete all old search indexes
 	user.Name = oldName
 	user.Nickname = oldNickname
-	return TransactWrite(NewHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
+	err = TransactWrite(NewHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
+
+	if err != nil {
+		// not a breaking error, at this stage the names have been updated successfully
+		log.Printf("FAILED TO DELETE OLD SEARCH INDEXES. ERROR: %v", err)
+	}
+
+	return nil
 }
 
 func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string) error {
