@@ -127,18 +127,9 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	// update the actual user item in db
 	transactions = append(transactions, UseUpdate(
 		models.UserKey(user.Userid),
-		fmt.Sprintf("SET %s = :n", attributeName),
+		fmt.Sprintf("SET %s = :n, %s = :d", attributeName, dateAttr),
 		map[string]types.AttributeValue{
 			":n": &types.AttributeValueMemberS{Value: newName},
-		},
-		utils.GetDependencies().MainTableName,
-	))
-
-	// update the change date to prevent frequent changes
-	transactions = append(transactions, UseUpdate(
-		models.UserKey(user.Userid),
-		fmt.Sprintf("SET %s = :d", dateAttr),
-		map[string]types.AttributeValue{
 			":d": &types.AttributeValueMemberS{Value: utils.GetDateNow()},
 		},
 		utils.GetDependencies().MainTableName,
