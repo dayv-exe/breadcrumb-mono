@@ -51,25 +51,25 @@ func TestNameChangeAllowed(t *testing.T) {
 		{
 			// yyyy/mm/dd
 			name:              "last changed a week ago",
-			lastChangeDate:    time.Now().AddDate(0, 0, -7).Format(constants.FULL_DATE_TIME_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(0, 0, -7).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: false,
 		},
 		{
 			// yyyy/mm/dd
 			name:              "last changed 2 years ago",
-			lastChangeDate:    time.Now().AddDate(-2, 0, 0).Format(constants.FULL_DATE_TIME_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(-2, 0, 0).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: true,
 		},
 		{
 			// yyyy/mm/dd
 			name:              "last changed 2 days ago",
-			lastChangeDate:    time.Now().AddDate(0, 0, -2).Format(constants.FULL_DATE_TIME_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(0, 0, -2).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: false,
 		},
 		{
 			// yyyy/mm/dd
 			name:              "last changed 31 days ago",
-			lastChangeDate:    time.Now().AddDate(0, 0, -31).Format(constants.FULL_DATE_TIME_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(0, 0, -31).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: true,
 		},
 	}

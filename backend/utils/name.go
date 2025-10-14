@@ -17,12 +17,12 @@ func NameChangeAllowed(lastChangedOn string) bool {
 		return true
 	}
 
-	lastChangeDate, err := time.Parse(constants.FULL_DATE_TIME_LAYOUT, lastChangedOn)
+	lastChangeDate, err := time.Parse(constants.FULL_DATE_LAYOUT, lastChangedOn)
 	if err != nil {
 		log.Fatalf("Failed to parse last name change date %v", err)
 	}
 
-	changeUnfreezeDate := lastChangeDate.AddDate(0, 0, constants.NAME_CHANGE_FREEZE_TIME)
+	changeUnfreezeDate := lastChangeDate.AddDate(0, 0, constants.NAME_CHANGE_DELAY)
 
 	if time.Now().After(changeUnfreezeDate) {
 		return true

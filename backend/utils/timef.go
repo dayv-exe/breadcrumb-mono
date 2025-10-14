@@ -6,9 +6,9 @@ import (
 )
 
 func GetTimeNow() string {
-	return time.Now().Format(constants.FULL_DATE_TIME_LAYOUT)
+	return time.Now().Format(constants.FULL_DATE_LAYOUT)
 }
 
 func GetDateNow() string {
-	return time.Now().Format(constants.BIRTHDATE_ONLY_DATE_LAYOUT)
+	return time.Now().Format(constants.FULL_DATE_LAYOUT)
 }
