@@ -54,7 +54,7 @@ function NoResult() {
       alignItems: "center",
       justifyContent: "flex-start"
     }}>
-      <CustomLabel adaptToTheme fontSize={25} labelText="🔎" />
+      <CustomLabel adaptToTheme fontSize={25} labelText="🧐" />
       <CustomLabel adaptToTheme bold italic fade labelText="No results" />
     </View>
   )

@@ -1,9 +1,9 @@
 import { AxiosError } from 'axios';
-import axiosInstance, { editUserInfoData } from '../constants/axios';
+import axiosInstance, { editUserDetailsData } from '../constants/axios';
 
-export const editUserInfo = async (data: editUserInfoData): Promise<{ successful: boolean, reason: string }> => {
+export const editUserDetails = async (data: editUserDetailsData): Promise<{ successful: boolean, reason: string }> => {
   try {
-    await axiosInstance.post(`/edit/profile`, data)
+    await axiosInstance.put(`/user`, data)
     return{successful: true, reason: ""}
   } catch (error) {
     const axiosError = error as AxiosError

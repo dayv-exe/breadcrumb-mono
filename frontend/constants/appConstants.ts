@@ -16,7 +16,10 @@ export const MIN_PASSWORD_LENGTH = 8
 export const MAX_PASSWORD_LENGTH = 32
 export const MAX_VIDEO_DURATION_MILLISECONDS = 15000
 export const MAX_SEARCH_STRING_CHARS = 20
-export const USERNAME_CHANGE_DELAY = 18 //days
+export const USERNAME_CHANGE_DELAY = 3 //days
+export const NAME_CHANGE_DELAY = 3 //days
+export const BIRTHDATE_CHANGE_DELAY = 3 //days
+export const EMAIL_CHANGE_DELAY = 21 //days
 
 export const STATUS_FRIENDS = "true"
 export const STATUS_REQUESTED = "requested"

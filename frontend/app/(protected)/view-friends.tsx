@@ -35,7 +35,7 @@ function NoFriendsComponent() {
   return (
     <View style={styles.noFriends}>
       <Spacer />
-      <CustomLabel adaptToTheme labelText="🫣" textAlign="center" fontSize={30} />
+      <CustomLabel adaptToTheme labelText="👻" textAlign="center" fontSize={30} />
       <CustomLabel adaptToTheme labelText="No friends to show" textAlign="center" fontSize={17} fade />
     </View>
   )

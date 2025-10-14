@@ -1,7 +1,7 @@
 import { useCheckPassword } from "@/hooks/useCheckPassword";
 import { useChangePassword } from "@/hooks/useCognitoPassword";
-import { useEffect, useRef, useState } from "react";
-import { TextInput, View } from "react-native";
+import { useState } from "react";
+import { View } from "react-native";
 import Toast from "react-native-toast-message";
 import CustomButton from "../buttons/CustomButton";
 import CustomInput from "../inputs/CustomInput";
@@ -20,17 +20,11 @@ type prop = {
 }
 
 export default function EditPassword({ onUpdate }: prop) {
-  const inputRef = useRef<TextInput>(null)
-
   const { password, passwordInfoText, passwordInputMode, passwordValid, setPassword } = useCheckPassword()
 
   const [oldPassword, setOldPassword] = useState("")
 
   const { changePassword, pending } = useChangePassword()
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
 
   function disableUpdateBtn() {
     return !passwordValid && oldPassword.length > 0
@@ -49,7 +43,7 @@ export default function EditPassword({ onUpdate }: prop) {
 
   return (
     <View>
-      <CustomInput value={oldPassword} setValue={setOldPassword} ref={inputRef} adaptToTheme labelText={"Old password"} showInfoTextAlways autoCapitalize="none" isPassword disableAutoCorrect useLessProminentColors />
+      <CustomInput value={oldPassword} setValue={setOldPassword} adaptToTheme labelText={"Old password"} showInfoTextAlways autoCapitalize="none" isPassword disableAutoCorrect useLessProminentColors />
 
       <Spacer size="small" />
 

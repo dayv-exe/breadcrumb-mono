@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
 });
 
 export type allowedTargets = "nickname" | "name" | "bio"
-export type editUserInfoData = {
+export type editUserDetailsData = {
   target: allowedTargets
   payload: string
 }

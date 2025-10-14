@@ -1,8 +1,7 @@
 import { ShowToast } from "@/constants/appConstants"
 import { useCheckBirthdate } from "@/hooks/useCheckBirthdate"
 import { useChangeBirthdate } from "@/hooks/useCognitoBirthdate"
-import { useEffect, useRef, useState } from "react"
-import { TextInput } from "react-native"
+import { useState } from "react"
 import CustomLabel from "../CustomLabel"
 import Spacer from "../Spacer"
 import CustomButton from "../buttons/CustomButton"
@@ -13,7 +12,6 @@ type props = {
 }
 
 export default function EditBirthdate({ onUpdate }: props) {
-  const inputRef = useRef<TextInput>(null)
   const { birthdateToString, rawBirthdate, setBirthdate, validateBirthdate } = useCheckBirthdate()
   const [pickerMoving, setPickerMoving] = useState(false)
   const { pending, updateBirthdate } = useChangeBirthdate()
@@ -22,10 +20,6 @@ export default function EditBirthdate({ onUpdate }: props) {
     const validation = validateBirthdate()
     return !validation.isValid || pickerMoving
   }
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
 
   async function handleUpdate() {
     const { success, error } = await updateBirthdate(birthdateToString(rawBirthdate))

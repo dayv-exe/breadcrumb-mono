@@ -47,6 +47,10 @@ const icons = {
   bigAddFriend: {
     light: require("../../assets/images/icons/big_addfriend_sel_light.png"),
     dark: require("../../assets/images/icons/big_addfriend_sel_dark.png")
+  },
+  menu: {
+    light: require("../../assets/images/icons/menu_unsel_light.png"),
+    dark: require("../../assets/images/icons/menu_unsel_dark.png")
   }
 }
 
@@ -115,7 +119,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const mode = useColorScheme()
   const router = useRouter()
   const [friendshipStatus, setFriendshipStatus] = useState<FRIENDSHIP_STATUS>(FRIENDSHIP_STATUS.NOT_FRIENDS)
-  const { data: userData, error, isFetching: isPending, refetch } = useGetUserDetailsById(userId)
+  const { data: userData, error, isPending, refetch } = useGetUserDetailsById(userId)
   const isMyProfile = useIsMyProfile(userId)
   const { mutate: sendFriendReq, isPending: sendReqPending } = useSendFriendRequest()
   const { mutate: cancelFriendReq, isPending: cancelReqPending } = useCancelFriendRequest()
@@ -261,9 +265,9 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
 
   function handleFriendsClick() {
     router.push({
-        pathname: "/view-friends",
-        params: { accountId: userId, nickname: getNickname() }
-      })
+      pathname: "/view-friends",
+      params: { accountId: userId, nickname: getNickname() }
+    })
   }
 
   useEffect(() => {
@@ -325,7 +329,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               <View style={{ flexDirection: "row" }}>
                 {(!isMyProfile && friendshipStatus === FRIENDSHIP_STATUS.NOT_FRIENDS) && <CustomImageButton src={getFriendBtnIcon()} flat size={18} type="theme-faded" isPending={sendReqPending} handleClick={handleFriendshipAction} />}
                 {(!isMyProfile && friendshipStatus === FRIENDSHIP_STATUS.FRIENDS) && <CustomImageButton src={getFriendBtnIcon()} flat size={18} type="theme-faded" isPending={endFriendshipPending} handleClick={handleEndFriendship} />}
-                <CustomImageButton flat src={getIconImage("options", mode === "light")} handleClick={() => {
+                <CustomImageButton flat src={getIconImage(isMyProfile ? "menu" : "options", mode === "light")} handleClick={() => {
                   if (isMyProfile) {
                     handleShowOptions()
                   }

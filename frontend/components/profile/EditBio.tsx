@@ -1,31 +1,48 @@
+import { ShowToast } from "@/constants/appConstants"
+import { useEditUserDetails } from "@/hooks/queries/useEditUserDetails"
 import { useCheckBio } from "@/hooks/useCheckBio"
-import { useEffect, useRef } from "react"
-import { TextInput, View } from "react-native"
+import { View } from "react-native"
 import Spacer from "../Spacer"
 import CustomButton from "../buttons/CustomButton"
 import CustomInput from "../inputs/CustomInput"
 
 type props = {
   oldBio: string
+  onUpdate: () => void
 }
 
-export default function EditBio({ oldBio }: props) {
-  const inputRef = useRef<TextInput>(null)
+export default function EditBio({ oldBio, onUpdate }: props) {
   const { bio, setBio, bioInfoText, bioInputMode, bioValid } = useCheckBio(oldBio)
+  const { mutate: editBio, isPending } = useEditUserDetails()
 
-  function disableUpdateBtn() {
-    return oldBio === bio || !bioValid
+  function handleUpdate() {
+    editBio({ target: "bio", payload: bio.trim() }, {
+      onSuccess: res => {
+        if (res.successful) {
+          ShowToast("Updated bio!")
+          onUpdate()
+        } else {
+          ShowToast("Failed to update bio, try again.")
+          console.log(res.reason)
+        }
+      },
+
+      onError: err => {
+        ShowToast("failed to update bio, try again")
+        console.log(err)
+      }
+    })
   }
 
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+  function disableUpdateBtn() {
+    return oldBio.trim() === bio.trim() || !bioValid
+  }
 
   return (
     <View>
-      <CustomInput multiline value={bio} setValue={setBio} infoText={bioInfoText} inputMode={bioInputMode} ref={inputRef} adaptToTheme labelText={"Bio"} showInfoTextAlways autoCapitalize="sentences" disableAutoCorrect useLessProminentColors />
+      <CustomInput multiline value={bio} setValue={setBio} infoText={bioInfoText} inputMode={bioInputMode} adaptToTheme labelText={"Bio"} showInfoTextAlways autoCapitalize="sentences" disableAutoCorrect useLessProminentColors />
       <Spacer />
-      <CustomButton disabled={disableUpdateBtn()} type="less-prominent" labelText="Update" />
+      <CustomButton isPending={isPending} handleClick={handleUpdate} disabled={disableUpdateBtn()} type="less-prominent" labelText="Update" />
     </View>
   )
 }

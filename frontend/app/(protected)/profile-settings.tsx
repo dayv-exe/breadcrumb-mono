@@ -48,7 +48,8 @@ enum EditMode {
   BIO,
   EMAIL,
   PASSWORD,
-  BIRTHDATE
+  BIRTHDATE,
+  EMPTY
 }
 
 export default function ProfileSettingsScreen() {
@@ -63,7 +64,7 @@ export default function ProfileSettingsScreen() {
   const mode = useColorScheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const bottomSheetChild = useRef<EditMode>(EditMode.USERNAME)
+  const [bottomSheetChild, setBottomSheetChild] = useState<EditMode>(EditMode.USERNAME)
   const [renderSheet, setRenderSheet] = useState(false)
 
   const [emailOptText, setEmailOptText] = useState("Email")
@@ -109,37 +110,37 @@ export default function ProfileSettingsScreen() {
       title: '👤 Account Information', data: [
         {
           name: 'Username', value: user?.user?.nickname ?? "", handleClick: () => {
-            bottomSheetChild.current = EditMode.USERNAME
+            setBottomSheetChild(EditMode.USERNAME)
             handleOpenDrawer()
           }
         },
         {
-          name: "Full name", value: user?.user?.name ?? "", handleClick: () => {
-            bottomSheetChild.current = EditMode.FULLNAME
+          name: "Name", value: user?.user?.name ?? "", handleClick: () => {
+            setBottomSheetChild(EditMode.FULLNAME)
             handleOpenDrawer()
           }
         },
         {
           name: 'Bio', value: user?.user?.bio ?? "", handleClick: () => {
-            bottomSheetChild.current = EditMode.BIO
+            setBottomSheetChild(EditMode.BIO)
             handleOpenDrawer()
           }
         },
         {
           name: emailOptText, value: user?.user?.email ?? "", handleClick: () => {
-            bottomSheetChild.current = EditMode.EMAIL
+            setBottomSheetChild(EditMode.EMAIL)
             handleOpenDrawer()
           }
         },
         {
           name: "Password", value: "****", handleClick: () => {
-            bottomSheetChild.current = EditMode.PASSWORD
+            setBottomSheetChild(EditMode.PASSWORD)
             handleOpenDrawer()
           }
         },
         {
           name: "Birthdate", value: user?.user?.birthdate ?? "", handleClick: () => {
-            bottomSheetChild.current = EditMode.BIRTHDATE
+            setBottomSheetChild(EditMode.BIRTHDATE)
             handleOpenDrawer()
           }
         },
@@ -194,7 +195,8 @@ export default function ProfileSettingsScreen() {
           flex: 1,
           width: "100%",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          backgroundColor: bgCol
         }}>
           <ActivityIndicator />
         </View>
@@ -247,57 +249,65 @@ export default function ProfileSettingsScreen() {
               handleCloseDrawer()
             }
           }}
-          onClose={() => setRenderSheet(false)}
+          onClose={() => {
+            setRenderSheet(false)
+          }}
           backdropComponent={renderBackdrop}
         >
           <BottomSheetView style={{ marginHorizontal: 20 }}>
             <View style={[styles.header, {
               marginTop: insets.top,
             }]}>
-              <CustomButton handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel" customStyle={{
+              <CustomButton paddingHorizontal={0} handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel" customStyle={{
                 position: "absolute",
                 left: 0
               }} />
               <CustomLabel adaptToTheme width={"auto"} bold textAlign="center" labelText={
-                bottomSheetChild.current === EditMode.USERNAME ? "Edit username" :
-                  bottomSheetChild.current === EditMode.FULLNAME ? "Edit Name" :
-                    bottomSheetChild.current === EditMode.BIO ? "Edit bio" :
-                      bottomSheetChild.current === EditMode.BIRTHDATE ? "Edit birthdate" :
-                        bottomSheetChild.current === EditMode.EMAIL ? "Edit email" :
-                          bottomSheetChild.current === EditMode.PASSWORD ? "Change password" : ""
+                bottomSheetChild === EditMode.USERNAME ? "Edit username" :
+                  bottomSheetChild === EditMode.FULLNAME ? "Edit Name" :
+                    bottomSheetChild === EditMode.BIO ? "Edit bio" :
+                      bottomSheetChild === EditMode.BIRTHDATE ? "Edit birthdate" :
+                        bottomSheetChild === EditMode.EMAIL ? "Edit email" :
+                          bottomSheetChild === EditMode.PASSWORD ? "Change password" : ""
               } />
             </View>
             <Spacer />
-            {renderSheet && bottomSheetChild.current === EditMode.USERNAME &&
-              <EditUsername onUpdate={() => {
+            {renderSheet && bottomSheetChild === EditMode.USERNAME &&
+              <EditUsername lastNicknameChange={user.user?.lastNicknameChange ?? ""} onUpdate={() => {
                 handleCloseDrawer()
                 refetch()
               }} oldUsername={user.user?.nickname ?? ""} />
             }
             {
-              renderSheet && bottomSheetChild.current === EditMode.FULLNAME &&
-              <EditName oldName={user.user?.name ?? ""} />
+              renderSheet && bottomSheetChild === EditMode.FULLNAME &&
+              <EditName lastNameChangeDate={user.user?.lastNameChange ?? ""} onUpdate={() => {
+                handleCloseDrawer()
+                refetch()
+              }} oldName={user.user?.name ?? ""} />
             }
             {
-              renderSheet && bottomSheetChild.current === EditMode.BIO &&
-              <EditBio oldBio={user.user?.bio ?? ""} />
+              renderSheet && bottomSheetChild === EditMode.BIO &&
+              <EditBio oldBio={user.user?.bio ?? ""} onUpdate={() => {
+                refetch()
+                handleCloseDrawer()
+              }} />
             }
             {
-              renderSheet && bottomSheetChild.current === EditMode.BIRTHDATE &&
+              renderSheet && bottomSheetChild === EditMode.BIRTHDATE &&
               <EditBirthdate onUpdate={() => {
                 handleCloseDrawer()
                 refetch()
               }} />
             }
             {
-              renderSheet && bottomSheetChild.current === EditMode.EMAIL &&
+              renderSheet && bottomSheetChild === EditMode.EMAIL &&
               <EditEmail onUpdate={() => {
                 refetch()
                 handleCloseDrawer()
               }} oldEmail={user.user?.email ?? ""} />
             }
             {
-              renderSheet && bottomSheetChild.current === EditMode.PASSWORD &&
+              renderSheet && bottomSheetChild === EditMode.PASSWORD &&
               <EditPassword onUpdate={() => {
                 handleCloseDrawer()
               }} />

@@ -87,7 +87,7 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
       {infoText && <Text style={[
         styles.infoText,
         {
-          color: adaptToTheme ? textColor : Colors.light.text
+          color: adaptToTheme ? textColor : Colors.dark.text
         }
       ]}>
         {

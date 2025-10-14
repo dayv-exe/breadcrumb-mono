@@ -1,4 +1,4 @@
-import { USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
+import { EMAIL_CHANGE_DELAY } from "@/constants/appConstants";
 import { useCheckEmail } from "@/hooks/useCheckEmail";
 import { useCompleteEmailChange, useEmailVerificationStatus, useRequestEmailUpdate, useResendEmailChangeCode } from "@/hooks/useCognitoEmail";
 import { useEffect, useRef, useState } from "react";
@@ -57,7 +57,7 @@ function NewEmailSection({ oldEmail, setStep }: NewEmailProps) {
       <CustomLabel adaptToTheme textAlign="center" labelText={`Step 1 of 2`} fade fontSize={14} />
       <CustomInput value={email} setValue={setEmail} infoText={emailInfoText} inputMode={emailInputMode} ref={inputRef} adaptToTheme labelText={"Email"} showInfoTextAlways autoCapitalize="none" forceLowercase keyboardType="email-address" disableAutoCorrect useLessProminentColors />
       <Spacer />
-      <CustomLabel adaptToTheme labelText={`You can update your name only once every ${USERNAME_CHANGE_DELAY} days.`} fade italic fontSize={14} />
+      <CustomLabel adaptToTheme labelText={`You can update your name only once every ${EMAIL_CHANGE_DELAY} days.`} fade italic fontSize={14} />
       <Spacer size="small" />
       <CustomButton isPending={reqUpdateEmailPending} handleClick={handleClick} disabled={disableUpdateBtn()} type="less-prominent" labelText="Send Verification Code" />
     </View>
@@ -69,12 +69,6 @@ function VerifyEmailSection({ onUpdate }: props) {
   const { resendEmailChangeCode, pending: codePending } = useResendEmailChangeCode()
 
   const { completeEmailChange, pending: changePending } = useCompleteEmailChange()
-
-  const inputRef = useRef<TextInput>(null)
-
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
 
   function disableUpdateBtn() {
     return code.length < 1
@@ -102,7 +96,7 @@ function VerifyEmailSection({ onUpdate }: props) {
   return (
     <View>
       <CustomLabel adaptToTheme textAlign="center" labelText={`Step 2 of 2`} fade fontSize={14} />
-      <CustomInput value={code} setValue={setCode} infoText="enter the code we sent to your new email" inputMode="normal" ref={inputRef} adaptToTheme labelText={"Verification code"} showInfoTextAlways autoCapitalize="none" disableAutoCorrect useLessProminentColors />
+      <CustomInput value={code} setValue={setCode} infoText="enter the code we sent to your new email" inputMode="normal" adaptToTheme labelText={"Verification code"} showInfoTextAlways autoCapitalize="none" disableAutoCorrect useLessProminentColors />
       <Spacer />
       <CustomButton isPending={codePending} handleClick={handleResendEmail} labelText="Resend verification code" type="theme-faded" />
       <Spacer size="small" />
