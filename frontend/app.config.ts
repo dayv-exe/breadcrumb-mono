@@ -37,6 +37,13 @@ export default {
         }
       ],
       [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos."
+        }
+      ],
+      [
         "expo-contacts",
         {
           "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."

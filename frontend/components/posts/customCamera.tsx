@@ -1,9 +1,8 @@
-
 import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { Colors } from "@/constants/Colors";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useRouter } from "expo-router";
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { cancelAnimation, Easing, Extrapolation, interpolate, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -55,15 +54,16 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   const progress = useSharedValue(0)
   const [isRecording, setIsRecording] = useState(false)
   const zoom = useSharedValue(currentCam.neutralZoom)
+  const cameraRef = useRef<Camera>(null)
   const format = useCameraFormat(currentCam, [
-    { photoResolution: { width: 1920, height: 1080 } }
+    { photoResolution: { width: 1920, height: 1080 } },
+    { videoResolution: { width: 1920, height: 1080 } }
   ])
 
   const router = useRouter()
 
   const handleTouchEnd = () => {
     // handles ending video recording when user lift finger from screen while recording
-    setIsRecording(false)
     if (isRecording) {
       stopRecording()
     }
@@ -77,7 +77,6 @@ function CameraScreen({ frontCam, backCam }: camProps) {
     .onUpdate(event => {
       const zoomDelta = -event.translationY / 30
       const z = zoomOffset.value + zoomDelta
-      // const z = zoomOffset.value * event.scale
       if (!isRecording) return
       zoom.value = interpolate(
         z,
@@ -95,7 +94,31 @@ function CameraScreen({ frontCam, backCam }: camProps) {
     [zoom]
   )
 
-  function startRecording() {
+  async function takePhoto() {
+    if (!cameraRef.current) return
+    
+    try {
+      const photo = await cameraRef.current.takePhoto({
+        flash: 'off',
+        enableShutterSound: true
+      })
+      
+      // Navigate to preview page with photo data
+      router.push({
+        pathname: '/media-preview',
+        params: {
+          mediaPath: photo.path,
+          mediaType: 'photo'
+        }
+      })
+    } catch (error) {
+      console.error('Failed to take photo:', error)
+    }
+  }
+
+  async function startRecording() {
+    if (!cameraRef.current) return
+    
     setIsRecording(true)
     progress.value = 0
 
@@ -106,9 +129,34 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         easing: Easing.linear,
       },
       (finished) => {
-        scheduleOnRN(stopRecording)
+        if (finished) {
+          scheduleOnRN(stopRecording)
+        }
       }
     )
+
+    try {
+      cameraRef.current.startRecording({
+        flash: 'off',
+        onRecordingFinished: async (video) => {
+          // Navigate to preview page with video data
+          router.push({
+            pathname: '/media-preview',
+            params: {
+              mediaPath: video.path,
+              mediaType: 'video'
+            }
+          })
+        },
+        onRecordingError: (error) => {
+          console.error('Recording error:', error)
+          setIsRecording(false)
+        },
+      })
+    } catch (error) {
+      console.error('Failed to start recording:', error)
+      setIsRecording(false)
+    }
   }
 
   function flipCamera() {
@@ -116,11 +164,19 @@ function CameraScreen({ frontCam, backCam }: camProps) {
     setCurrentCam(currentCam === availableCams[0] ? availableCams[1] : availableCams[0])
   }
 
-  function stopRecording() {
+  async function stopRecording() {
+    if (!cameraRef.current || !isRecording) return
+    
+    try {
+      await cameraRef.current.stopRecording()
+    } catch (error) {
+      console.error('Failed to stop recording:', error)
+    }
+    
     setIsRecording(false)
     cancelAnimation(progress)
     progress.value = 0
-    zoom.value = 1
+    zoom.value = currentCam.neutralZoom
   }
 
   return (
@@ -128,12 +184,16 @@ function CameraScreen({ frontCam, backCam }: camProps) {
       <View style={[styles.cameraContainer, {paddingBottom: 0}]}>
         <View style={styles.cameraWrapper}>
           <ReanimatedCamera
+            ref={cameraRef}
             enableZoomGesture
             style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]}
             device={currentCam}
             isActive={true}
             animatedProps={animatedProps}
+            photo={true}
+            video={true}
             audio={true}
+            format={format}
           />
         </View>
         {isRecording && <RecordingIndicator />}
@@ -141,7 +201,6 @@ function CameraScreen({ frontCam, backCam }: camProps) {
           <TouchableOpacity>
             <CustomImageButton type="text" src={require("../../assets/images/icons/noflash_sel_light.png")} size={25} fitToContent />
             <Spacer size="tiny" />
-
           </TouchableOpacity>
           <View onTouchStart={flipCamera}>
             <Spacer />
@@ -162,7 +221,12 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         </View>}
         <View style={styles.shutterContainer}>
           <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
-            <TouchableOpacity delayLongPress={150} onLongPress={startRecording} style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "white" }]}>
+            <TouchableOpacity 
+              delayLongPress={50} 
+              onPress={takePhoto}
+              onLongPress={startRecording} 
+              style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "white" }]}
+            >
             </TouchableOpacity>
           </View>
           {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={progress} />}

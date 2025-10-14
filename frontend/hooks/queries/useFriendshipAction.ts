@@ -27,7 +27,7 @@ export const useGetAllFriendRequests = () => useQuery({
 export const useGetAllFriends = (userid: string) => useQuery({
   queryKey: ["friends"],
   queryFn: () => getAllFriends(userid),
-  staleTime: 1 * (60 * 1000),
+  //staleTime: 1 * (60 * 1000),
   enabled: userid.length > 0
 })
 
