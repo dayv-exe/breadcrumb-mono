@@ -11,7 +11,7 @@ export default function MediaPreview() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-
+  
   const mediaPath = params.mediaPath as string;
   const mediaType = params.mediaType as 'photo' | 'video';
   const mediaUri = `file://${mediaPath}`;
@@ -29,13 +29,13 @@ export default function MediaPreview() {
 
   async function handleSave() {
     setIsSaving(true);
-
+    
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync();
-
+      
       if (status !== 'granted') {
         Alert.alert(
-          'Permission Required',
+          'Permission Required', 
           'Please grant media library permissions to save media',
           [{ text: 'OK', onPress: () => setIsSaving(false) }]
         );
@@ -43,7 +43,7 @@ export default function MediaPreview() {
       }
 
       const asset = await MediaLibrary.createAssetAsync(mediaUri);
-
+      
       // Optionally create an album and add the asset to it
       const album = await MediaLibrary.getAlbumAsync('Camera');
       if (album == null) {
@@ -51,9 +51,9 @@ export default function MediaPreview() {
       } else {
         await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
       }
-
+      
       Alert.alert(
-        'Success',
+        'Success', 
         `${mediaType === 'photo' ? 'Photo' : 'Video'} saved to gallery!`,
         [
           {
@@ -94,7 +94,7 @@ export default function MediaPreview() {
       <View style={styles.topControls}>
         <CustomImageButton
           type="text"
-          src={require("../../assets/images/icons/close_unsel_light.png")}
+          src={require("../../assets/images/icons/close_unsel_dark.png")}
           size={28}
           handleClick={handleDiscard}
           fitToContent
@@ -114,17 +114,7 @@ export default function MediaPreview() {
             player={player}
             style={styles.media}
             contentFit="contain"
-            fullscreenOptions={{
-              enable: false
-            }}
-            nativeControls={false}
-            onTouchStart={() => {
-              if (player.playing) {
-                player.pause()
-              } else {
-                player.play()
-              }
-            }}
+            nativeControls={true}
           />
         )}
       </View>

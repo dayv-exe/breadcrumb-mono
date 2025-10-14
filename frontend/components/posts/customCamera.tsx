@@ -2,11 +2,12 @@ import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { Colors } from "@/constants/Colors";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useRouter } from "expo-router";
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { PropsWithChildren, useRef, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { cancelAnimation, Easing, Extrapolation, interpolate, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
-import { Camera, CameraDevice, CameraProps, useCameraDevice, useCameraFormat, useCameraPermission, useMicrophonePermission } from "react-native-vision-camera";
+import { Camera, CameraDevice, CameraProps, useCameraDevice, useCameraFormat, useCameraPermission, useMicrophonePermission, VideoFile } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
 import CustomButton from "../buttons/CustomButton";
 import CustomImageButton from "../buttons/CustomImageButton";
@@ -20,6 +21,11 @@ const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera)
 type camProps = {
   frontCam?: CameraDevice
   backCam?: CameraDevice
+}
+
+type MediaPreview = {
+  type: 'photo' | 'video'
+  uri: string
 }
 
 function ControlButtonContainer({ children }: PropsWithChildren) {
@@ -44,20 +50,70 @@ function CrumbTypePicker() {
   )
 }
 
+type PreviewScreenProps = {
+  media: MediaPreview
+  onRetake: () => void
+  onSave: () => void
+}
+
+function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
+  const player = useVideoPlayer(media.type === 'video' ? media.uri : '', player => {
+    if (media.type === 'video') {
+      player.loop = true;
+      player.play();
+    }
+  });
+
+  return (
+    <View style={styles.previewContainer}>
+      <View style={styles.previewMediaWrapper}>
+        {media.type === 'photo' ? (
+          <Image 
+            source={{ uri: media.uri }} 
+            style={styles.previewMedia}
+            resizeMode="cover"
+          />
+        ) : (
+          <VideoView
+            player={player!}
+            style={styles.previewMedia}
+            contentFit="cover"
+            nativeControls={false}
+          />
+        )}
+      </View>
+      
+      <View style={styles.previewControls}>
+        <CustomButton 
+          type="text" 
+          labelText="Retake" 
+          handleClick={onRetake}
+        />
+        <Spacer size="medium" />
+        <CustomButton 
+          type="prominent" 
+          labelText="Save" 
+          handleClick={onSave}
+        />
+      </View>
+    </View>
+  )
+}
+
 function CameraScreen({ frontCam, backCam }: camProps) {
   let availableCams: CameraDevice[] = []
 
   if (backCam !== null) availableCams.push(backCam!)
   if (frontCam !== null) availableCams.push(frontCam!)
 
+  const cameraRef = useRef<Camera>(null)
   const [currentCam, setCurrentCam] = useState<CameraDevice>(availableCams[0])
+  const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
   const progress = useSharedValue(0)
   const [isRecording, setIsRecording] = useState(false)
   const zoom = useSharedValue(currentCam.neutralZoom)
-  const cameraRef = useRef<Camera>(null)
   const format = useCameraFormat(currentCam, [
-    { photoResolution: { width: 1920, height: 1080 } },
-    { videoResolution: { width: 1920, height: 1080 } }
+    { photoResolution: { width: 1920, height: 1080 } }
   ])
 
   const router = useRouter()
@@ -95,67 +151,58 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   )
 
   async function takePhoto() {
-    if (!cameraRef.current) return
-    
-    try {
-      const photo = await cameraRef.current.takePhoto({
-        flash: 'off',
-        enableShutterSound: true
-      })
-      
-      // Navigate to preview page with photo data
-      router.push({
-        pathname: '/media-preview',
-        params: {
-          mediaPath: photo.path,
-          mediaType: 'photo'
-        }
-      })
-    } catch (error) {
-      console.error('Failed to take photo:', error)
+    if (cameraRef.current) {
+      try {
+        const photo = await cameraRef.current.takePhoto({
+          flash: 'off',
+        })
+        setMediaPreview({
+          type: 'photo',
+          uri: `file://${photo.path}`
+        })
+      } catch (error) {
+        console.error('Error taking photo:', error)
+      }
     }
   }
 
   async function startRecording() {
-    if (!cameraRef.current) return
-    
-    setIsRecording(true)
-    progress.value = 0
+    if (cameraRef.current) {
+      try {
+        setIsRecording(true)
+        progress.value = 0
 
-    progress.value = withTiming(
-      1,
-      {
-        duration: MAX_VIDEO_DURATION_MILLISECONDS,
-        easing: Easing.linear,
-      },
-      (finished) => {
-        if (finished) {
-          scheduleOnRN(stopRecording)
-        }
-      }
-    )
-
-    try {
-      cameraRef.current.startRecording({
-        flash: 'off',
-        onRecordingFinished: async (video) => {
-          // Navigate to preview page with video data
-          router.push({
-            pathname: '/media-preview',
-            params: {
-              mediaPath: video.path,
-              mediaType: 'video'
+        progress.value = withTiming(
+          1,
+          {
+            duration: MAX_VIDEO_DURATION_MILLISECONDS,
+            easing: Easing.linear,
+          },
+          (finished) => {
+            if (finished) {
+              scheduleOnRN(stopRecording)
             }
-          })
-        },
-        onRecordingError: (error) => {
-          console.error('Recording error:', error)
-          setIsRecording(false)
-        },
-      })
-    } catch (error) {
-      console.error('Failed to start recording:', error)
-      setIsRecording(false)
+          }
+        )
+
+        await cameraRef.current.startRecording({
+          flash: 'off',
+          onRecordingFinished: (video: VideoFile) => {
+            setMediaPreview({
+              type: 'video',
+              uri: `file://${video.path}`
+            })
+            setIsRecording(false)
+          },
+          onRecordingError: (error) => {
+            console.error('Recording error:', error)
+            setIsRecording(false)
+          },
+        })
+      } catch (error) {
+        console.error('Error starting recording:', error)
+        setIsRecording(false)
+      }
     }
   }
 
@@ -165,18 +212,39 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   }
 
   async function stopRecording() {
-    if (!cameraRef.current || !isRecording) return
-    
-    try {
-      await cameraRef.current.stopRecording()
-    } catch (error) {
-      console.error('Failed to stop recording:', error)
+    if (cameraRef.current && isRecording) {
+      try {
+        await cameraRef.current.stopRecording()
+        cancelAnimation(progress)
+        progress.value = 0
+        zoom.value = 1
+      } catch (error) {
+        console.error('Error stopping recording:', error)
+      }
     }
-    
-    setIsRecording(false)
-    cancelAnimation(progress)
-    progress.value = 0
-    zoom.value = currentCam.neutralZoom
+  }
+
+  function handleRetake() {
+    setMediaPreview(null)
+  }
+
+  function handleSave() {
+    // TODO: Implement your save logic here
+    // This is where you'd save the photo/video to the device or upload it
+    console.log('Saving media:', mediaPreview)
+    setMediaPreview(null)
+    // You might want to navigate to another screen or show a success message
+  }
+
+  // Show preview screen if media was captured
+  if (mediaPreview) {
+    return (
+      <PreviewScreen 
+        media={mediaPreview}
+        onRetake={handleRetake}
+        onSave={handleSave}
+      />
+    )
   }
 
   return (
@@ -190,10 +258,9 @@ function CameraScreen({ frontCam, backCam }: camProps) {
             device={currentCam}
             isActive={true}
             animatedProps={animatedProps}
+            audio={true}
             photo={true}
             video={true}
-            audio={true}
-            format={format}
           />
         </View>
         {isRecording && <RecordingIndicator />}
@@ -201,6 +268,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
           <TouchableOpacity>
             <CustomImageButton type="text" src={require("../../assets/images/icons/noflash_sel_light.png")} size={25} fitToContent />
             <Spacer size="tiny" />
+
           </TouchableOpacity>
           <View onTouchStart={flipCamera}>
             <Spacer />
@@ -222,7 +290,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         <View style={styles.shutterContainer}>
           <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
             <TouchableOpacity 
-              delayLongPress={50} 
+              delayLongPress={150} 
               onPress={takePhoto}
               onLongPress={startRecording} 
               style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "white" }]}
@@ -376,5 +444,30 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 25,
     overflow: "hidden",
     backgroundColor: "black",
-  }
+  },
+  previewContainer: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  previewMediaWrapper: {
+    flex: 1,
+    width: "100%",
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    overflow: "hidden",
+  },
+  previewMedia: {
+    width: "100%",
+    height: "100%",
+  },
+  previewControls: {
+    position: "absolute",
+    bottom: 30,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
 })
