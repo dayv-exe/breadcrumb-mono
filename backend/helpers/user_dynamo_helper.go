@@ -107,17 +107,17 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	oldNickname := user.Nickname
 
 	// update user struct with new details
-	attributeName := "fullname"
+	attributeName := "fullname"    // hardcoded string
+	dateAttr := "last_name_change" // hardcoded string
 	if updatingNickname {
-		attributeName = "nickname"
-		oldName = "" // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
+		attributeName = "nickname"        // hardcoded string
+		dateAttr = "last_nickname_change" // hardcoded string
+		oldName = ""                      // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
 		user.Nickname = newName
-		user.LastNicknameChange = utils.GetTimeNow()
 		log.Println("updating nickname to " + newName)
 	} else {
 		oldNickname = "" // so user_search index functions ignores deleting and building nickname indexes from search table if we are only updating name
 		user.Name = newName
-		user.LastNameChange = utils.GetTimeNow()
 		log.Println("updating name to " + newName)
 	}
 
@@ -130,6 +130,16 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		fmt.Sprintf("SET %s = :n", attributeName),
 		map[string]types.AttributeValue{
 			":n": &types.AttributeValueMemberS{Value: newName},
+		},
+		utils.GetDependencies().MainTableName,
+	))
+
+	// update the change date to prevent frequent changes
+	transactions = append(transactions, UseUpdate(
+		models.UserKey(user.Userid),
+		fmt.Sprintf("SET %s = :d", dateAttr),
+		map[string]types.AttributeValue{
+			":d": &types.AttributeValueMemberS{Value: utils.GetDateNow()},
 		},
 		utils.GetDependencies().MainTableName,
 	))
