@@ -112,10 +112,12 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		attributeName = "nickname"
 		oldName = "" // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
 		user.Nickname = newName
+		user.LastNicknameChange = utils.GetTimeNow()
 		log.Println("updating nickname to " + newName)
 	} else {
 		oldNickname = "" // so user_search index functions ignores deleting and building nickname indexes from search table if we are only updating name
 		user.Name = newName
+		user.LastNameChange = utils.GetTimeNow()
 		log.Println("updating name to " + newName)
 	}
 
@@ -147,7 +149,6 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		// not a breaking error, at this stage the names have been updated successfully
 		log.Printf("FAILED TO DELETE OLD SEARCH INDEXES. ERROR: %v", err)
 	}
-
 	log.Println("update complete")
 	return nil
 }
@@ -188,6 +189,10 @@ func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string)
 }
 
 func (u *userDynamoHelper) UpdateName(user *models.User, newName string) error {
+	if !utils.NameChangeAllowed(user.LastNameChange) {
+		return fmt.Errorf("name change too soon, wait a few days and try again.")
+	}
+
 	var transactions []types.TransactWriteItem
 	return u.updateNameOrNickname(user, newName, transactions, false)
 }
@@ -202,7 +207,7 @@ func (u *userDynamoHelper) UpdateBio(userid, bio string) error {
 		TableName:        &utils.GetDependencies().MainTableName,
 		UpdateExpression: aws.String("SET bio = :bio"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":bio": &types.AttributeValueMemberS{Value: bio},
+			":bio": &types.AttributeValueMemberS{Value: strings.TrimSpace(bio)},
 		},
 	}
 

@@ -40,13 +40,13 @@ type UserAccountInfo struct {
 }
 
 type UserPersonalInfo struct {
-	BirthdateChangeCount int    `dynamodbav:"birthdate_change_count" json:"birthdateChangeCount"`
-	LastNicknameChange   string `dynamodbav:"last_nickname_change" json:"lastNicknameChange"`
-	LastEmailChange      string `dynamodbav:"last_email_change" json:"lastEmailChange"`
-	LastLogin            string `dynamodbav:"last_login" json:"lastLogin"`
-	LastNameChange       string `dynamodbav:"last_name_change" json:"lastNameChange"`
-	ForceChangeNickname  bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname"`
-	SuspensionReason     string `dynamodbav:"suspension_reason" json:"suspensionReason"`
+	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate"`
+	LastNicknameChange  string `dynamodbav:"last_nickname_change" json:"lastNicknameChange"`
+	LastEmailChange     string `dynamodbav:"last_email_change" json:"lastEmailChange"`
+	LastLogin           string `dynamodbav:"last_login" json:"lastLogin"`
+	LastNameChange      string `dynamodbav:"last_name_change" json:"lastNameChange"`
+	ForceChangeNickname bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname"`
+	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason"`
 }
 
 const (
@@ -72,13 +72,13 @@ func NewUser(userid string, nickname string, name string, isSuspended bool) *Use
 			DateJoined:    utils.GetTimeNow(),
 		},
 		UserPersonalInfo: UserPersonalInfo{
-			BirthdateChangeCount: 0,
-			LastNicknameChange:   "",
-			LastEmailChange:      "",
-			LastLogin:            utils.GetTimeNow(),
-			LastNameChange:       "",
-			ForceChangeNickname:  false,
-			SuspensionReason:     "",
+			CanChangeBirthdate:  true,
+			LastNicknameChange:  "",
+			LastEmailChange:     "",
+			LastLogin:           utils.GetTimeNow(),
+			LastNameChange:      "",
+			ForceChangeNickname: false,
+			SuspensionReason:    "",
 		},
 		DbDescription: UserSkPrefix,
 	}
