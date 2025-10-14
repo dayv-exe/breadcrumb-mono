@@ -31,16 +31,24 @@ func HandleEditUserDetails(ctx context.Context, req *events.APIGatewayProxyReque
 	case "nickname":
 		err := helpers.NewUserHelper(ctx).UpdateNickname(user, editBody.Payload)
 		if err != nil {
-			return models.ServerSideErrorResponse("", err, ""), nil
+			return models.ServerSideErrorResponse("", err, "error while trying to update nickname"), nil
 		}
 		return models.SuccessfulRequestResponse("Nickname changed!", false), nil
 
 	case "name":
 		err := helpers.NewUserHelper(ctx).UpdateName(user, editBody.Payload)
 		if err != nil {
-			return models.ServerSideErrorResponse("", err, ""), nil
+			return models.ServerSideErrorResponse("", err, "error while trying to update name"), nil
 		}
 		return models.SuccessfulRequestResponse("Name changed!", false), nil
+
+	case "bio":
+		err := helpers.NewUserHelper(ctx).UpdateBio(user.Userid, editBody.Payload)
+		if err != nil {
+			return models.ServerSideErrorResponse("", err, "err while trying to update bio"), nil
+		}
+
+		return models.SuccessfulRequestResponse("", false), nil
 
 	default:
 		return models.InvalidRequestErrorResponse("invalid update attribute name"), nil

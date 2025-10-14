@@ -25,6 +25,14 @@ func (this *friendshipDynamoHelper) SendFriendReq(sender *models.User, recipient
 	return PutItem(NewHelper(this.Ctx, nil), &friendReq)
 }
 
+func (this *friendshipDynamoHelper) UpdateFriendRequest() {
+	
+}
+
+func (this *friendshipDynamoHelper) UpdateFriendship() {
+
+}
+
 func (this *friendshipDynamoHelper) CancelFriendRequest(senderId, recipientId string) error {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
 	return DeleteItem(NewHelper(this.Ctx, nil), &friendReqKey)

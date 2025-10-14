@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -97,7 +98,10 @@ func (this *userDynamoHelper) DeleteFromDynamo(u *models.User) error {
 }
 
 func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName string, transactions []types.TransactWriteItem, updatingNickname bool) error {
+	log.Println("name update begins")
 
+	log.Println("old name: " + user.Name)
+	log.Println("old nickname: " + user.Nickname)
 	// store old details to delete later
 	oldName := user.Name
 	oldNickname := user.Nickname
@@ -108,9 +112,11 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		attributeName = "nickname"
 		oldName = "" // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
 		user.Nickname = newName
+		log.Println("updating nickname to " + newName)
 	} else {
 		oldNickname = "" // so user_search index functions ignores deleting and building nickname indexes from search table if we are only updating name
 		user.Name = newName
+		log.Println("updating name to " + newName)
 	}
 
 	// generate new search indexes based on new name
@@ -142,6 +148,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 		log.Printf("FAILED TO DELETE OLD SEARCH INDEXES. ERROR: %v", err)
 	}
 
+	log.Println("update complete")
 	return nil
 }
 
@@ -183,6 +190,29 @@ func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string)
 func (u *userDynamoHelper) UpdateName(user *models.User, newName string) error {
 	var transactions []types.TransactWriteItem
 	return u.updateNameOrNickname(user, newName, transactions, false)
+}
+
+func (u *userDynamoHelper) UpdateBio(userid, bio string) error {
+	if !utils.BioIsValid(&bio) {
+		return fmt.Errorf("bio provided is invalid, bio: %v", bio)
+	}
+
+	input := &dynamodb.UpdateItemInput{
+		Key:              models.UserKey(userid),
+		TableName:        &utils.GetDependencies().MainTableName,
+		UpdateExpression: aws.String("SET bio = :bio"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":bio": &types.AttributeValueMemberS{Value: bio},
+		},
+	}
+
+	_, err := utils.GetDependencies().DbClient.UpdateItem(u.Ctx, input)
+	if err != nil {
+		log.Println("failed to update bio")
+		return err
+	}
+
+	return nil
 }
 
 func (this *userDynamoHelper) NicknameAvailable(nickname string) (bool, error) {
