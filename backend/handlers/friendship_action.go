@@ -115,7 +115,7 @@ func HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequ
 
 		// to list all friends
 	case constants.FRIENDSHIP_ACTION_GET_FRIENDS:
-		return getList(ctx, thisUserId, friendshipHelper.GetAllFriends)
+		return getList(ctx, otherUserId, friendshipHelper.GetAllFriends)
 
 		// to list all friend requests
 	case constants.FRIENDSHIP_ACTION_GET_REQUESTED:
