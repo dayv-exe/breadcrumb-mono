@@ -14,7 +14,9 @@ import CustomImageButton from "../buttons/CustomImageButton";
 import CustomLabel from "../CustomLabel";
 import RecordingIndicator from "../recordingIndicator";
 import Spacer from "../Spacer";
+import CameraModeCarousel, { CameraMode } from './CameraModeCarousel';
 import RecordingProgressRing from "./recordingProgressRing";
+
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera)
 
@@ -68,8 +70,8 @@ function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
     <View style={styles.previewContainer}>
       <View style={styles.previewMediaWrapper}>
         {media.type === 'photo' ? (
-          <Image 
-            source={{ uri: media.uri }} 
+          <Image
+            source={{ uri: media.uri }}
             style={styles.previewMedia}
             resizeMode="cover"
           />
@@ -82,17 +84,17 @@ function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
           />
         )}
       </View>
-      
+
       <View style={styles.previewControls}>
-        <CustomButton 
-          type="text" 
-          labelText="Retake" 
+        <CustomButton
+          type="text"
+          labelText="Retake"
           handleClick={onRetake}
         />
         <Spacer size="medium" />
-        <CustomButton 
-          type="prominent" 
-          labelText="Save" 
+        <CustomButton
+          type="prominent"
+          labelText="Save"
           handleClick={onSave}
         />
       </View>
@@ -113,13 +115,18 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   const [isRecording, setIsRecording] = useState(false)
   const zoom = useSharedValue(currentCam.neutralZoom)
   const format = useCameraFormat(currentCam, [
-    { photoResolution: { width: 1920, height: 1080 } }
+    { photoResolution: { width: 1920, height: 1080 } },
+    { fps: 30 }
   ])
 
+  const [cameraMode, setCameraMode] = useState<CameraMode>('Photo');
+  const CAMERA_MODES: CameraMode[] = ['Photo', 'Video', 'Portrait', 'Night', 'Slo-Mo'];
   const router = useRouter()
+  const handleModeChange = (mode: CameraMode) => {
+    setCameraMode(mode);
+  };
 
   const handleTouchEnd = () => {
-    // handles ending video recording when user lift finger from screen while recording
     if (isRecording) {
       stopRecording()
     }
@@ -229,17 +236,14 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   }
 
   function handleSave() {
-    // TODO: Implement your save logic here
-    // This is where you'd save the photo/video to the device or upload it
-    console.log('Saving media:', mediaPreview)
+    // TODO: add save logic here
     setMediaPreview(null)
-    // You might want to navigate to another screen or show a success message
   }
 
-  // Show preview screen if media was captured
+  // show preview screen if media was captured
   if (mediaPreview) {
     return (
-      <PreviewScreen 
+      <PreviewScreen
         media={mediaPreview}
         onRetake={handleRetake}
         onSave={handleSave}
@@ -249,7 +253,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={[styles.cameraContainer, {paddingBottom: 0}]}>
+      <View style={[styles.cameraContainer, { paddingBottom: 0 }]}>
         <View style={styles.cameraWrapper}>
           <ReanimatedCamera
             ref={cameraRef}
@@ -261,6 +265,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
             audio={true}
             photo={true}
             video={true}
+            format={format}
           />
         </View>
         {isRecording && <RecordingIndicator />}
@@ -276,7 +281,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
             <Spacer size="tiny" />
           </View>
         </View>}
-        {!isRecording && <View style={[styles.topControls, {  }]}>
+        {!isRecording && <View style={[styles.topControls, {}]}>
           <ControlButtonContainer>
             <CustomImageButton fitToContent type="text" src={require("../../assets/images/icons/searchfriends_sel_light.png")} size={22} handleClick={() => router.push("/find-friends")} />
           </ControlButtonContainer>
@@ -287,19 +292,30 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         {!isRecording && <View style={styles.galleryContainer}>
           <CustomImageButton type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
         </View>}
+        {!isRecording && (
+          <View style={styles.modeCarouselContainer}>
+            <CameraModeCarousel
+              modes={CAMERA_MODES}
+              selectedMode={cameraMode}
+              onModeChange={handleModeChange}
+            />
+          </View>
+        )}
         <View style={styles.shutterContainer}>
           <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
-            <TouchableOpacity 
-              delayLongPress={150} 
+            <TouchableOpacity
+              delayLongPress={150}
               onPress={takePhoto}
-              onLongPress={startRecording} 
-              style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "white" }]}
+              onLongPress={startRecording}
+              style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "transparent" }]}
             >
             </TouchableOpacity>
           </View>
           {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={progress} />}
         </View>
-        {!isRecording && <CrumbTypePicker />}
+        {!isRecording &&
+            <CrumbTypePicker />
+          }
       </View>
     </GestureDetector>
   )
@@ -386,7 +402,7 @@ const styles = StyleSheet.create({
     borderRadius: "100%",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "white",
+    backgroundColor: "transparent",
     borderWidth: 7,
     width: 80,
     height: 80,
@@ -469,5 +485,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+  },
+  modeCarouselContainer: {
+    position: 'absolute',
+    bottom: 85,
+    width: '100%',
   },
 })
