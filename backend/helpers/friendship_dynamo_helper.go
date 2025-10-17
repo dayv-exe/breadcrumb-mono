@@ -26,7 +26,6 @@ func (this *friendshipDynamoHelper) SendFriendReq(sender *models.User, recipient
 }
 
 func (this *friendshipDynamoHelper) UpdateFriendRequest() {
-	
 }
 
 func (this *friendshipDynamoHelper) UpdateFriendship() {

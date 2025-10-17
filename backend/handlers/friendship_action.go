@@ -28,13 +28,44 @@ func handleRequest(ctx context.Context, deps handleRequestDependencies, friendsh
 	return models.SuccessfulRequestResponse("Done", false), nil
 }
 
-func getList(ctx context.Context, userId string, getListFunc func(thisUserId string) (*[]models.UserDisplayInfo, error)) (events.APIGatewayProxyResponse, error) {
-	users, err := getListFunc(userId)
+func getFriends(ctx context.Context, req *events.APIGatewayProxyRequest, otherUserid string) (events.APIGatewayProxyResponse, error) {
+	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+
+	users, err := friendshipHelper.GetAllFriends(otherUserid)
+	if err != nil {
+		return models.ServerSideErrorResponse("", err, "error trying to get all friends."), nil
+	}
+
+	currentUser := utils.GetAuthUserId(req)
+	if otherUserid == currentUser {
+		// if user is requesting to see their own list of friends
+		return models.SuccessfulGetRequestResponse(users), nil
+	}
+
+	// user is requesting to see another users list of friends
+	var friends []models.User
+	for _, user := range *users {
+		status, _ := friendshipHelper.GetFriendshipStatus(currentUser, otherUserid)
+		friends = append(friends, models.User{
+			UserDisplayInfo: user,
+			UserAccountInfo: models.UserAccountInfo{
+				FriendshipStatus: status,
+			},
+		})
+	}
+
+	return models.SuccessfulGetRequestResponse(friends), nil
+}
+
+func getRequests(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+	userid := utils.GetAuthUserId(req)
+	requests, err := friendshipHelper.GetAllFriendRequests(userid)
 	if err != nil {
 		return models.ServerSideErrorResponse("Something went wrong try again", err, ""), nil
 	}
 
-	return models.SuccessfulGetRequestResponse(users), nil
+	return models.SuccessfulGetRequestResponse(requests), nil
 }
 
 func HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -115,11 +146,11 @@ func HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequ
 
 		// to list all friends
 	case constants.FRIENDSHIP_ACTION_GET_FRIENDS:
-		return getList(ctx, otherUserId, friendshipHelper.GetAllFriends)
+		return getFriends(ctx, req, otherUserId)
 
 		// to list all friend requests
 	case constants.FRIENDSHIP_ACTION_GET_REQUESTED:
-		return getList(ctx, thisUserId, friendshipHelper.GetAllFriendRequests)
+		return getRequests(ctx, req)
 
 	default:
 		return models.ServerSideErrorResponse("Something went wrong while determining friendship action, try again.", fmt.Errorf("Status returned does not match any expected outcome. status returned: %v", status), "Status returned does not match any expected outcome"), nil

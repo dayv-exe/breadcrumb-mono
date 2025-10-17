@@ -49,25 +49,25 @@ func TestNameChangeAllowed(t *testing.T) {
 		expectAllowChange bool
 	}{
 		{
-			// yyyy/mm/dd
+			// dd/mm/yyyy
 			name:              "last changed a day ago",
 			lastChangeDate:    time.Now().AddDate(0, 0, -1).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: false,
 		},
 		{
-			// yyyy/mm/dd
+			// dd/mm/yyyy
 			name:              "last changed 2 years ago",
 			lastChangeDate:    time.Now().AddDate(-2, 0, 0).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: true,
 		},
 		{
-			// yyyy/mm/dd
+			// dd/mm/yyyy
 			name:              "last changed 0 days ago",
 			lastChangeDate:    time.Now().AddDate(0, 0, 0).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: false,
 		},
 		{
-			// yyyy/mm/dd
+			// dd/mm/yyyy
 			name:              "last changed 31 days ago",
 			lastChangeDate:    time.Now().AddDate(0, 0, -31).Format(constants.FULL_DATE_LAYOUT),
 			expectAllowChange: true,
