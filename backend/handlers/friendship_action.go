@@ -45,7 +45,7 @@ func getFriends(ctx context.Context, req *events.APIGatewayProxyRequest, otherUs
 	// user is requesting to see another users list of friends
 	var friends []models.User
 	for _, user := range *users {
-		status, _ := friendshipHelper.GetFriendshipStatus(currentUser, otherUserid)
+		status, _ := friendshipHelper.GetFriendshipStatus(currentUser, user.Userid)
 		friends = append(friends, models.User{
 			UserDisplayInfo: user,
 			UserAccountInfo: models.UserAccountInfo{
