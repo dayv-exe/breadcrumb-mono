@@ -1,13 +1,14 @@
 import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { Colors } from "@/constants/Colors";
 import { showSettingsAlert } from "@/utils/helpers";
+import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from "expo-router";
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { PropsWithChildren, useRef, useState } from "react";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { PropsWithChildren, useMemo, useRef, useState } from "react";
+import { Alert, Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { cancelAnimation, Easing, Extrapolation, interpolate, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
-import { Camera, CameraDevice, CameraProps, useCameraDevice, useCameraFormat, useCameraPermission, useMicrophonePermission, VideoFile } from "react-native-vision-camera";
+import { Camera, CameraDevice, CameraProps, useCameraDevice, useCameraPermission, useMicrophonePermission, VideoFile } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
 import CustomButton from "../buttons/CustomButton";
 import CustomImageButton from "../buttons/CustomImageButton";
@@ -61,10 +62,16 @@ type PreviewScreenProps = {
 function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
   const player = useVideoPlayer(media.type === 'video' ? media.uri : '', player => {
     if (media.type === 'video') {
-      player.loop = true;
+      player.loop = false;
+      player.currentTime = 0
       player.play();
     }
   });
+
+  player.addListener("playToEnd", () => {
+    player.currentTime = 0
+    player.play()
+  })
 
   return (
     <View style={styles.previewContainer}>
@@ -114,10 +121,11 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   const progress = useSharedValue(0)
   const [isRecording, setIsRecording] = useState(false)
   const zoom = useSharedValue(currentCam.neutralZoom)
-  const format = useCameraFormat(currentCam, [
-    { photoResolution: { width: 1920, height: 1080 } },
-    { fps: 30 }
-  ])
+  const format = useMemo(() => {
+    return currentCam.formats.find(
+      f => f.videoWidth === 1920 && f.videoHeight === 1080 && f.maxFps >= 28
+    );
+  }, [currentCam])
 
   const [cameraMode, setCameraMode] = useState<CameraMode>('Photo');
   const CAMERA_MODES: CameraMode[] = ['Photo', 'Video', 'Portrait', 'Night', 'Slo-Mo'];
@@ -127,6 +135,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   };
 
   const handleTouchEnd = () => {
+    console.log(isRecording)
     if (isRecording) {
       stopRecording()
     }
@@ -199,16 +208,13 @@ function CameraScreen({ frontCam, backCam }: camProps) {
               type: 'video',
               uri: `file://${video.path}`
             })
-            setIsRecording(false)
           },
           onRecordingError: (error) => {
             console.error('Recording error:', error)
-            setIsRecording(false)
           },
         })
       } catch (error) {
         console.error('Error starting recording:', error)
-        setIsRecording(false)
       }
     }
   }
@@ -219,15 +225,18 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   }
 
   async function stopRecording() {
-    if (cameraRef.current && isRecording) {
-      try {
-        await cameraRef.current.stopRecording()
-        cancelAnimation(progress)
-        progress.value = 0
-        zoom.value = 1
-      } catch (error) {
-        console.error('Error stopping recording:', error)
-      }
+    console.log("init stop proceediure")
+    if (!cameraRef.current) return
+    console.log("trying to stop")
+    try {
+      console.log("stopped")
+      setIsRecording(false)
+      await cameraRef.current.stopRecording()
+      cancelAnimation(progress)
+      progress.value = 0
+      zoom.value = 1
+    } catch (error) {
+      console.error('Error stopping recording:', error)
     }
   }
 
@@ -235,9 +244,40 @@ function CameraScreen({ frontCam, backCam }: camProps) {
     setMediaPreview(null)
   }
 
-  function handleSave() {
-    // TODO: add save logic here
-    setMediaPreview(null)
+  async function handleSave() {
+    if (!mediaPreview) return;
+
+    try {
+      // Request permissions
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant media library access to save photos and videos.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Save to gallery
+      const asset = await MediaLibrary.createAssetAsync(mediaPreview.uri);
+
+      Alert.alert(
+        'Success',
+        `${mediaPreview.type === 'photo' ? 'Photo' : 'Video'} saved to gallery!`,
+        [{ text: 'OK' }]
+      );
+
+      setMediaPreview(null);
+    } catch (error) {
+      console.error('Error saving to gallery:', error);
+      Alert.alert(
+        'Error',
+        'Failed to save to gallery.',
+        [{ text: 'OK' }]
+      );
+    }
   }
 
   // show preview screen if media was captured
@@ -313,9 +353,6 @@ function CameraScreen({ frontCam, backCam }: camProps) {
           </View>
           {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={progress} />}
         </View>
-        {!isRecording &&
-            <CrumbTypePicker />
-          }
       </View>
     </GestureDetector>
   )
@@ -396,7 +433,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    bottom: 55,
+    bottom: 30,
   },
   photoShutter: {
     borderRadius: "100%",
@@ -445,7 +482,7 @@ const styles = StyleSheet.create({
   galleryContainer: {
     position: "absolute",
     alignItems: "center",
-    bottom: 75,
+    bottom: 55,
     left: 45,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 5,
@@ -488,7 +525,7 @@ const styles = StyleSheet.create({
   },
   modeCarouselContainer: {
     position: 'absolute',
-    bottom: 85,
+    bottom: 60,
     width: '100%',
   },
 })

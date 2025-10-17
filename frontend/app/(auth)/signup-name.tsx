@@ -1,15 +1,16 @@
 import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
+import CustomLabel from "@/components/CustomLabel";
 import CustomInput from "@/components/inputs/CustomInput";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
-import { Colors } from "@/constants/Colors";
 import { useCheckName } from "@/hooks/useCheckName";
 import { useCheckUsername } from "@/hooks/useCheckUsername";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function SignupNameScreen() {
   const [userDetails, setUserDetails] = useState<signupDetails>({
@@ -23,6 +24,7 @@ export default function SignupNameScreen() {
 
   const { username, setUsername, isValid, handleFinalCheck, getInputMode, getInfoText } = useCheckUsername()
   const {name, setName, getNameLabelText, NameValid, getNameInputMode} = useCheckName()
+  const bgCol = useThemeColor({}, "background")
 
   const handleProceedToNextPage = () => {
     handleFinalCheck((valid) => {
@@ -49,15 +51,15 @@ export default function SignupNameScreen() {
   }
 
   return (
-    <CustomKeyboardAvoidingView backgroundColor={Colors.light.vibrantBackground}>
-      <Text style={styles.text}>Step 1 of 4</Text>
+    <CustomKeyboardAvoidingView backgroundColor={bgCol}>
+      <CustomLabel adaptToTheme textAlign="center" labelText="Step 1 of 4" fade />
       <CustomScrollView>
         <Spacer />
-        <CustomInput value={username} setValue={e => setUsername(e)} labelText="Username:" infoText={getInfoText()} showInfoTextAlways disableAutoCorrect inputMode={getInputMode()} forceLowercase />
+        <CustomInput adaptToTheme value={username} setValue={e => setUsername(e)} labelText="Username:" infoText={getInfoText()} showInfoTextAlways disableAutoCorrect inputMode={getInputMode()} forceLowercase />
 
         <Spacer />
 
-        <CustomInput value={name} setValue={setName} labelText="Fullname (optional):" infoText={getNameLabelText()} inputMode={getNameInputMode()} showInfoTextOnFocus disableAutoCorrect autoCapitalize="words" />
+        <CustomInput adaptToTheme value={name} setValue={setName} labelText="Fullname (optional):" infoText={getNameLabelText()} inputMode={getNameInputMode()} showInfoTextOnFocus disableAutoCorrect autoCapitalize="words" />
         <Spacer />
       </CustomScrollView>
 

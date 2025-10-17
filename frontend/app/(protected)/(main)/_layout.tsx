@@ -101,16 +101,16 @@ function CustomTabIcon({ name, focused, darkMode, size = 21 }: cIconProps) {
         resizeMode="contain"
       />
 
-      {/* {focused && <View style={{
+      {focused && <View style={{
         position: "absolute",
-        width: 5,
-        height: 5,
+        width: 7,
+        height: 4,
         backgroundColor: Colors.light.vibrantBackground,
         bottom: -17,
-        left: 8.5,
+        left: 7.5,
         right: 0,
-        borderRadius: "100%"
-      }}></View>} */}
+        borderRadius: 100,
+      }}></View>}
     </View>
   )
 }
