@@ -1,20 +1,22 @@
 import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
+import CustomLabel from "@/components/CustomLabel";
 import CustomInput from "@/components/inputs/CustomInput";
 import CustomModal from "@/components/modals/CustomModal";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
-import { Colors } from "@/constants/Colors";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { useCheckEmail } from "@/hooks/useCheckEmail";
 import { useCheckPassword } from "@/hooks/useCheckPassword";
 import { useAuthStore } from "@/utils/authStore";
 import { useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function SignupDetailsScreen() {
+  const bgCol = useThemeColor({}, "background")
   const { username, fullname, birthdate, email, password } = useLocalSearchParams<signupDetails>()
   const [userDetails, setUserDetails] = useState<signupDetails>({
     username: username,
@@ -26,8 +28,8 @@ export default function SignupDetailsScreen() {
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: "" })
   const promptedUserToConfirmEmail = useRef(false)
   const [showActivityIndicator, setShowActivityIndicator] = useState(false)
-  const {email: emailStr, setEmail, emailInfoText, emailInputMode, emailValid} = useCheckEmail()
-  const {password: passwordStr, passwordInfoText, passwordInputMode, passwordValid, setPassword} = useCheckPassword()
+  const { email: emailStr, setEmail, emailInfoText, emailInputMode, emailValid } = useCheckEmail()
+  const { password: passwordStr, passwordInfoText, passwordInputMode, passwordValid, setPassword } = useCheckPassword()
 
   const { signUp } = useAuthStore()
 
@@ -71,18 +73,17 @@ export default function SignupDetailsScreen() {
   }
 
   const emailAndPasswordValid = (): boolean => {
-    return emailValid  && passwordValid
+    return emailValid && passwordValid
   }
 
   return (
-    <CustomKeyboardAvoidingView backgroundColor={Colors.light.vibrantBackground}>
+    <CustomKeyboardAvoidingView backgroundColor={bgCol}>
       <CustomModal show={popupDetails.isVisible} closeBtnText="Edit email" secondaryBtnText="Send verification code" message={popupDetails.message} handleClose={() => setPopupDetails({ ...popupDetails, isVisible: false })} handleSecondaryAction={handleSendVerification} />
-      <Text style={styles.text}>Step 3 of 4</Text>
+      <CustomLabel adaptToTheme fade textAlign="center" labelText="Step 3 of 4" />
       <CustomScrollView>
-        <Spacer />
-        <CustomInput keyboardType="email-address" value={emailStr} setValue={setEmail} labelText="Email:" infoText={emailInfoText} showInfoTextAlways inputMode={emailInputMode} forceLowercase />
+        <CustomInput adaptToTheme keyboardType="email-address" value={emailStr} setValue={setEmail} labelText="Email:" infoText={emailInfoText} showInfoTextAlways inputMode={emailInputMode} forceLowercase />
         <Spacer size="small" />
-        <CustomInput value={passwordStr} setValue={setPassword} labelText="Password:" infoText={passwordInfoText} isPassword showInfoTextOnFocus inputMode={passwordInputMode} />
+        <CustomInput adaptToTheme value={passwordStr} setValue={setPassword} labelText="Password:" infoText={passwordInfoText} isPassword showInfoTextOnFocus inputMode={passwordInputMode} />
         <Spacer />
       </CustomScrollView>
 

@@ -1,17 +1,20 @@
 import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
+import CustomLabel from "@/components/CustomLabel";
 import CustomDatePicker from "@/components/inputs/CustomDatePicker";
 import CustomModal from "@/components/modals/CustomModal";
 import Spacer from "@/components/Spacer";
 import CustomScrollView from "@/components/views/CustomScrollView";
 import CustomView from "@/components/views/CustomView";
-import { Colors } from "@/constants/Colors";
 import { useCheckBirthdate } from "@/hooks/useCheckBirthdate";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function BirthdateScreen() {
+  const bgCol = useThemeColor({}, "background")
+  const textCol = useThemeColor({}, "text")
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: "" })
   const { username, fullname, birthdate, email, password } = useLocalSearchParams<signupDetails>()
   const [userDetails, setUserDetails] = useState<signupDetails>({
@@ -27,7 +30,7 @@ export default function BirthdateScreen() {
 
   function handleChange(date: Date) {
     setBirthdate(date)
-    setUserDetails({...userDetails, birthdate: birthdateToString(date)})
+    setUserDetails({ ...userDetails, birthdate: birthdateToString(date) })
   }
 
   const handleValidateBirthdate = () => {
@@ -48,15 +51,16 @@ export default function BirthdateScreen() {
   }
 
   return (
-    <CustomView backgroundColor={Colors.light.vibrantBackground}>
+    <CustomView backgroundColor={bgCol}>
       {popupDetails.isVisible && <CustomModal message={popupDetails.message} show={popupDetails.isVisible} closeBtnText="Close" handleClose={() => {
         setPopupDetails({ ...popupDetails, isVisible: false })
         router.dismissAll()
       }} />}
-      <Text style={styles.text}>Step 2 of 4</Text>
+      <CustomLabel adaptToTheme textAlign="center" labelText="Step 2 of 4" fade />
       <CustomScrollView>
         <Spacer />
         <CustomDatePicker
+          adaptToTheme
           date={rawBirthdate}
           dateStr={birthdateToString(rawBirthdate)}
           setDate={handleChange}

@@ -30,7 +30,7 @@ type iProps = {
   multiline?: boolean
 }
 
-export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors, multiline=false }: iProps) {
+export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors=true, multiline=false }: iProps) {
   const [focused, setFocused] = useState(false)
   const [hidePassword, setHidePassword] = useState(true)
 

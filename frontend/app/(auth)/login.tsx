@@ -5,7 +5,7 @@ import CustomModal from "@/components/modals/CustomModal";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
-import { Colors } from "@/constants/Colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -14,6 +14,7 @@ import Toast from "react-native-toast-message";
 
 export default function LoginScreen() {
   const router = useRouter()
+  const bgCol = useThemeColor({}, "background")
 
   const [loginDetails, setLoginDetails] = useState<loginDetails>({
     email: "",
@@ -62,17 +63,17 @@ export default function LoginScreen() {
   }
 
   return (
-    <CustomKeyboardAvoidingView backgroundColor={Colors.light.vibrantBackground}>
+    <CustomKeyboardAvoidingView backgroundColor={bgCol}>
       <CustomModal show={popupDetails.isVisible} message={popupDetails.message} closeBtnText="Okay" handleClose={handleClosePopup} />
       <CustomScrollView>
         <Spacer />
-        <CustomInput keyboardType="email-address" value={loginDetails.email} setValue={e => setLoginDetails({ ...loginDetails, email: e })} labelText="Email:" infoText="" forceLowercase />
+        <CustomInput adaptToTheme keyboardType="email-address" value={loginDetails.email} setValue={e => setLoginDetails({ ...loginDetails, email: e })} labelText="Email:" infoText="" forceLowercase />
         <Spacer />
-        <CustomInput value={loginDetails.password} setValue={e => setLoginDetails({ ...loginDetails, password: e })} isPassword labelText="Password:" infoText="" handleForgotPassword={handleForgotPassword} />
+        <CustomInput adaptToTheme value={loginDetails.password} setValue={e => setLoginDetails({ ...loginDetails, password: e })} isPassword labelText="Password:" infoText="" handleForgotPassword={handleForgotPassword} />
       </CustomScrollView>
 
       <View style={styles.buttonView}>
-        <CustomButton type="prominent" labelText="Login" handleClick={handleLogin} disabled={isDisabled()} isPending={isPending} />
+        <CustomButton type="less-prominent" labelText="Login" handleClick={handleLogin} disabled={isDisabled()} isPending={isPending} />
         <Spacer />
         <Spacer />
       </View>

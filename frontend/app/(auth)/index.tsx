@@ -3,13 +3,16 @@ import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
-import { Image, StyleSheet, Text } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AuthChoiceScreen() {
   const router = useRouter()
+  const inset = useSafeAreaInsets()
 
   return (
     <CustomView backgroundColor={Colors.light.vibrantBackground}>
+      <View style={{marginTop: inset.top}} />
       <Spacer />
       <Spacer />
       <Image style={styles.image} source={require("../../assets/images/bread-no-bg.png")} />

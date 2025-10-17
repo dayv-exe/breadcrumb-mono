@@ -26,7 +26,7 @@ export default function AuthLayout() {
       </Stack.Protected>
 
       <Stack.Protected guard={showEmailVerificationPage}>
-        <Stack.Screen name="signup-verify" options={{title: "Complete registration"}} />
+        <Stack.Screen name="signup-verify" options={{title: "Complete signup", headerShown: true}} />
       </Stack.Protected>
     </Stack>
   )

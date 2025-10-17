@@ -5,7 +5,7 @@ export function useCheckBirthdate() {
   const [rawBirthdate, setBirthdate] = useState(new Date())
 
   const formatDate = (date: Date) =>
-    `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
+    `${date.getDate().toString().padStart(2, "0")}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getFullYear()}`;
 
   const today = new Date();
 
