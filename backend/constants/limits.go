@@ -7,7 +7,7 @@ const (
 	MAX_USERNAME_CHARS       = 15
 	MAX_FULLNAME_CHARS       = 20
 	MAX_STALE_ACCOUNTS_LOOPS = 5 // max number of pages stale account function can loop through before aborting cleanup
-	FULL_DATE_LAYOUT         = "2006-01-02"
+	FULL_DATE_LAYOUT         = "02-01-2006"
 	MAX_BIO_CHARS            = 50 // max chars allowed in user bio
 	MAX_CHUNKABLE_LEN        = 10 // max length a nickname or name can be for creating search index
 	MAX_SEARCH_STRING_CHARS  = 20
