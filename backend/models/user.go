@@ -112,13 +112,11 @@ func UserKey(userid string) map[string]types.AttributeValue {
 
 func (u *User) ApplyPrefixes() {
 	u.Userid = utils.AddPrefix(UserPkPrefix, u.Userid)
-	u.Nickname = utils.AddPrefix(nicknamePkPrefix, u.Nickname)
 }
 
 func ConvertToUsers(items []map[string]types.AttributeValue) *[]User {
 	users := utils.DatabaseItemsToStructs(items, func(u *User) {
 		u.Userid = strings.TrimPrefix(u.Userid, UserPkPrefix)
-		u.Nickname = strings.TrimPrefix(u.Nickname, nicknamePkPrefix)
 	})
 
 	return users

@@ -55,7 +55,7 @@ func (this *userDynamoHelper) findAllWithNickname(nickname string) (*[]models.Us
 		aws.String("GSIndex"),
 		"gsi = :nickname",
 		map[string]types.AttributeValue{
-			":nickname": models.NicknameGsiVal(nickname),
+			":nickname": &types.AttributeValueMemberS{Value: strings.ToLower(nickname)},
 		},
 		func(m []map[string]types.AttributeValue) []models.User {
 			return *models.ConvertToUsers(m)

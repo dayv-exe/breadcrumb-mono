@@ -11,7 +11,7 @@ import (
 var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"pk":                    &dbTypes.AttributeValueMemberS{Value: "USER#123"},
 	"sk":                    &dbTypes.AttributeValueMemberS{Value: "PROFILE"},
-	"gsi":                   &dbTypes.AttributeValueMemberS{Value: "NICKNAME#test"},
+	"gsi":                   &dbTypes.AttributeValueMemberS{Value: "test"},
 	"fullname":              &dbTypes.AttributeValueMemberS{Value: "test test"},
 	"bio":                   &dbTypes.AttributeValueMemberS{Value: ""},
 	"dpUrl":                 &dbTypes.AttributeValueMemberS{Value: ""},
@@ -81,7 +81,7 @@ func TestConvertToUser(t *testing.T) {
 
 	result := ConvertToUser(map[string]dbTypes.AttributeValue{
 		"pk":             &dbTypes.AttributeValueMemberS{Value: "USER#123"},
-		"gsi":            &dbTypes.AttributeValueMemberS{Value: "NICKNAME#test"},
+		"gsi":            &dbTypes.AttributeValueMemberS{Value: "test"},
 		"fullname":       &dbTypes.AttributeValueMemberS{Value: "test"},
 		"bio":            &dbTypes.AttributeValueMemberS{Value: ""},
 		"dpUrl":          &dbTypes.AttributeValueMemberS{Value: ""},

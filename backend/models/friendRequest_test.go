@@ -15,7 +15,7 @@ func TestFriendRequestDbFormat(t *testing.T) {
 		"sk":                 &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
 		"date":               &types.AttributeValueMemberS{Value: d},
 		"fullname":           &types.AttributeValueMemberS{Value: "test"},
-		"gsi":                &types.AttributeValueMemberS{Value: "NICKNAME#test"},
+		"gsi":                &types.AttributeValueMemberS{Value: "test"},
 		"dpUrl":              &types.AttributeValueMemberS{Value: ""},
 		"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
 	}
@@ -71,7 +71,7 @@ func TestConvertToFriendRequest(t *testing.T) {
 		{
 			"pk":                 &types.AttributeValueMemberS{Value: "USER#rec"},
 			"sk":                 &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-			"gsi":                &types.AttributeValueMemberS{Value: "NICKNAME#send"},
+			"gsi":                &types.AttributeValueMemberS{Value: "send"},
 			"fullname":           &types.AttributeValueMemberS{Value: "send"},
 			"dpUrl":              &types.AttributeValueMemberS{Value: ""},
 			"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
@@ -90,7 +90,7 @@ func TestFriendRequestToUserInfoStruct(t *testing.T) {
 		{
 			"pk":                 &types.AttributeValueMemberS{Value: "123"},
 			"sk":                 &types.AttributeValueMemberS{Value: "321"},
-			"gsi":                &types.AttributeValueMemberS{Value: "NICKNAME#other"},
+			"gsi":                &types.AttributeValueMemberS{Value: "other"},
 			"fullname":           &types.AttributeValueMemberS{Value: "other"},
 			"dpUrl":              &types.AttributeValueMemberS{Value: ""},
 			"default_pic_colors": &types.AttributeValueMemberS{Value: ""},

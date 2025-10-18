@@ -45,7 +45,6 @@ func FriendRequestKey(recipientUserId string, senderUserId string) map[string]ty
 func (fr *friendRequest) ApplyPrefixes() {
 	fr.RecipientId = utils.AddPrefix(FriendRequestPkPrefix, fr.RecipientId)
 	fr.SenderId = utils.AddPrefix(FriendRequestSkPrefix, fr.SenderId)
-	fr.Nickname = utils.AddPrefix(nicknamePkPrefix, fr.Nickname)
 }
 
 func FriendRequestItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[]UserDisplayInfo {
@@ -56,7 +55,6 @@ func FriendRequestItemsToUserDisplayStructs(items []map[string]types.AttributeVa
 	result := utils.DatabaseItemsToStructs(items, func(fr *friendRequest) {
 		fr.RecipientId = strings.TrimPrefix(fr.RecipientId, FriendRequestPkPrefix)
 		fr.SenderId = strings.TrimPrefix(fr.SenderId, FriendRequestSkPrefix)
-		fr.Nickname = strings.TrimPrefix(fr.Nickname, nicknamePkPrefix)
 	})
 
 	var friendRequests []UserDisplayInfo

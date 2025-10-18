@@ -38,10 +38,6 @@ func NicknameKey(nickname string) map[string]types.AttributeValue {
 	}
 }
 
-func NicknameGsiVal(nickname string) *types.AttributeValueMemberS {
-	return &types.AttributeValueMemberS{Value: utils.AddPrefix(nicknamePkPrefix, strings.ToLower(nickname))}
-}
-
 func (n *Nickname) ApplyPrefixes() {
 	n.Nickname = utils.AddPrefix(nicknamePkPrefix, n.Nickname)
 }
