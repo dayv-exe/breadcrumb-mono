@@ -8,5 +8,5 @@ nickname_available
 presignup
 remove_stale_accounts
 s3bucket_actions
-signup_confirm
+create_user
 edit_user_details
