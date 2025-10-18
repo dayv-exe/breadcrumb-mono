@@ -15,7 +15,7 @@ func TestFriendDatabaseFormat(t *testing.T) {
 		"pk":                 &types.AttributeValueMemberS{Value: "USER#123"},
 		"sk":                 &types.AttributeValueMemberS{Value: "FRIEND#321"},
 		"fullname":           &types.AttributeValueMemberS{Value: "sender"},
-		"nickname":           &types.AttributeValueMemberS{Value: "sndr"},
+		"gsi":                &types.AttributeValueMemberS{Value: "NICKNAME#sndr"},
 		"dpUrl":              &types.AttributeValueMemberS{Value: ""},
 		"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
 		"date":               &types.AttributeValueMemberS{Value: d},
@@ -54,7 +54,7 @@ func TestFriendToUserInfoStruct(t *testing.T) {
 		{
 			"pk":                 &types.AttributeValueMemberS{Value: "123"},
 			"sk":                 &types.AttributeValueMemberS{Value: "321"},
-			"nickname":           &types.AttributeValueMemberS{Value: "other"},
+			"gsi":                &types.AttributeValueMemberS{Value: "NICKNAME#other"},
 			"fullname":           &types.AttributeValueMemberS{Value: "other"},
 			"dpUrl":              &types.AttributeValueMemberS{Value: ""},
 			"default_pic_colors": &types.AttributeValueMemberS{Value: ""},

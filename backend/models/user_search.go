@@ -63,7 +63,7 @@ func (u *UserSearch) buildSearchIndexes() []map[string]types.AttributeValue {
 				Sk:     sk,
 				Userid: u.Userid,
 				UserDisplayInfoNoId: UserDisplayInfoNoId{
-					Nickname:                u.Nickname,
+					Nickname:                utils.AddPrefix(nicknamePkPrefix, u.Nickname),
 					Name:                    u.Name,
 					DpUrl:                   u.DpUrl,
 					DefaultProfilePicColors: u.DefaultProfilePicColors,
@@ -116,6 +116,7 @@ func GetUserSearchIndexesKeys(dbIndexItems []map[string]types.AttributeValue) []
 func SearchItemsToUserInfoStruct(items []map[string]types.AttributeValue) *[]UserDisplayInfo {
 	searchItems := utils.DatabaseItemsToStructs(items, func(s *userSearchDbItem) {
 		s.Userid = strings.TrimPrefix(s.Userid, UserPkPrefix)
+		s.Nickname = strings.TrimPrefix(s.Nickname, nicknamePkPrefix)
 	})
 
 	var users []UserDisplayInfo

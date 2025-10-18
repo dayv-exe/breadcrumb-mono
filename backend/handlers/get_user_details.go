@@ -55,9 +55,9 @@ func HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyReques
 	// error
 	if dbErr != nil {
 		if usingId {
-			return models.ServerSideErrorResponse("", fmt.Errorf("Find by id error: %w", dbErr), "error while trying to find user by id"), nil
+			return models.ServerSideErrorResponse("Error while trying to find user by id", fmt.Errorf("Find by id error: %w", dbErr)), nil
 		}
-		return models.ServerSideErrorResponse("", fmt.Errorf("Find by nickname error: %w", dbErr), "error while trying to find user by nickname"), nil
+		return models.ServerSideErrorResponse("Error while trying to find user by nickname", fmt.Errorf("Find by nickname error: %w", dbErr)), nil
 	}
 
 	// no user found
@@ -71,7 +71,7 @@ func HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyReques
 		userCognitoInfo, cogErr := helpers.NewCognitoHelper(ctx).GetManagedInfo(user.Userid)
 
 		if cogErr != nil {
-			return models.ServerSideErrorResponse("", fmt.Errorf("Get cognito info error: %w", cogErr), "while trying to get users cognito info"), nil
+			return models.ServerSideErrorResponse("while trying to get your cognito info", fmt.Errorf("Get cognito info error: %w", cogErr)), nil
 		}
 
 		if userCognitoInfo == nil {
@@ -89,7 +89,7 @@ func HandleGetUserDetails(ctx context.Context, req *events.APIGatewayProxyReques
 	friendshipStatus, fsErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)
 
 	if fsErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to get friendship status", fsErr, "error while trying to get friendship status"), nil
+		return models.ServerSideErrorResponse("Something went wrong while trying to get friendship status", fsErr), nil
 	}
 
 	type response struct {

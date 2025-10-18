@@ -39,7 +39,7 @@ func handleGeneratePresignedUrl(req *events.APIGatewayProxyRequest, ctx context.
 
 	result, err := helpers.NewMediaHelper(ctx).GeneratePresignedUrl(&input)
 	if err != nil {
-		return models.ServerSideErrorResponse("failed to generate presigned url", err, "error while generating presigned url"), nil
+		return models.ServerSideErrorResponse("failed to generate presigned url", err), nil
 	}
 
 	return models.SuccessfulGetRequestResponse(result), nil

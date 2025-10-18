@@ -27,6 +27,24 @@ type CognitoManagedInfo struct {
 	Birthdate string `json:"birthdate"`
 }
 
+func (u *userCognitoHelper) UserExists(sub string) (bool, error) {
+	input := &cognitoidentityprovider.AdminGetUserInput{
+		UserPoolId: &utils.GetDependencies().UserPoolId,
+		Username:   &sub,
+	}
+
+	user, err := utils.GetDependencies().CognitoClient.AdminGetUser(u.Ctx, input)
+	if err != nil {
+		return false, err
+	}
+
+	if user == nil {
+		return false, nil
+	}
+
+	return user.UserStatus == types.UserStatusTypeConfirmed, nil
+}
+
 func (this *userCognitoHelper) GetManagedInfo(sub string) (*CognitoManagedInfo, error) {
 	// returns user details managed by cognito like email and birthdate
 

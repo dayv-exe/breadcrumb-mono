@@ -39,12 +39,14 @@ func FriendKey(thisUserId string, otherUserId string) map[string]types.Attribute
 func (f *Friend) ApplyPrefixes() {
 	f.ThisUserId = utils.AddPrefix(FriendItemPk, f.ThisUserId)
 	f.OtherUserID = utils.AddPrefix(FriendItemSk, f.OtherUserID)
+	f.Nickname = utils.AddPrefix(nicknamePkPrefix, f.Nickname)
 }
 
 func DbItemToFriendStruct(item map[string]types.AttributeValue) *Friend {
 	return utils.DatabaseItemToStruct(item, func(f *Friend) {
 		f.ThisUserId = strings.TrimPrefix(f.ThisUserId, FriendItemPk)
 		f.OtherUserID = strings.TrimPrefix(f.OtherUserID, FriendItemSk)
+		f.Nickname = strings.TrimPrefix(f.Nickname, nicknamePkPrefix)
 	})
 }
 
@@ -54,6 +56,7 @@ func FriendItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[
 	result := utils.DatabaseItemsToStructs(items, func(f *Friend) {
 		f.ThisUserId = strings.TrimPrefix(f.ThisUserId, FriendItemPk)
 		f.OtherUserID = strings.TrimPrefix(f.OtherUserID, FriendItemSk)
+		f.Nickname = strings.TrimPrefix(f.Nickname, nicknamePkPrefix)
 	})
 
 	// convert friends to user display info

@@ -52,10 +52,10 @@ func (this *userDynamoHelper) AddUser(u *models.User) error {
 func (this *userDynamoHelper) findAllWithNickname(nickname string) (*[]models.User, error) {
 	return QueryItems(
 		NewHelper(this.Ctx, nil),
-		aws.String("NicknameIndex"),
-		"nickname = :nick",
+		aws.String("GSIndex"),
+		"gsi = :nickname",
 		map[string]types.AttributeValue{
-			":nick": &types.AttributeValueMemberS{Value: strings.ToLower(nickname)},
+			":nickname": models.NicknameGsiVal(nickname),
 		},
 		func(m []map[string]types.AttributeValue) []models.User {
 			return *models.ConvertToUsers(m)

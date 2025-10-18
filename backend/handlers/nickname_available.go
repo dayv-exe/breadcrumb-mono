@@ -28,7 +28,7 @@ func HandleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequ
 	log.Println(isAvailable)
 
 	if dbErr != nil {
-		return models.ServerSideErrorResponse("An error has occurred, try again.", dbErr, "error while trying to check if nickname is available"), nil
+		return models.ServerSideErrorResponse("An error has occurred while trying to check if nickname is available", dbErr), nil
 	}
 
 	return models.SuccessfulRequestResponse(fmt.Sprintf("%v", isAvailable), false), nil

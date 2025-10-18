@@ -48,11 +48,11 @@ func NotFoundResponse(msg string) events.APIGatewayProxyResponse {
 	return buildResponse(404, ResponseBody{msg})
 }
 
-func ServerSideErrorResponse(msg string, error error, errSrcDescription string) events.APIGatewayProxyResponse {
+func ServerSideErrorResponse(msg string, err error) events.APIGatewayProxyResponse {
 	if msg == "" {
 		msg = "An error has occurred on our end, try again."
 	}
-	log.Println("Error source description: " + errSrcDescription + " ERROR: " + error.Error())
+	log.Println("Error source description: " + msg + " ERROR: " + err.Error())
 	return buildResponse(500, ResponseBody{msg})
 }
 

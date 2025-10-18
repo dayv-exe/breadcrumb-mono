@@ -35,7 +35,7 @@ func HandleAccountSearch(ctx context.Context, req *events.APIGatewayProxyRequest
 	results, err := helpers.NewSearchHelper(ctx).SearchUser(strings.ToLower(searchStr))
 
 	if err != nil {
-		return models.ServerSideErrorResponse("", err, "error from dynamo helper searching users"), nil
+		return models.ServerSideErrorResponse("An error occurred while trying to search users.", err), nil
 	}
 
 	return models.SuccessfulGetRequestResponse(results), nil

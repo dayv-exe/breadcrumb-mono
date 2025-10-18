@@ -7,6 +7,7 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -22,7 +23,8 @@ func handleRequest(ctx context.Context, deps handleRequestDependencies, friendsh
 	}
 	err := friendshipActionFunc()
 	if err != nil {
-		return models.ServerSideErrorResponse("Something went wrong, try again.", err, "Error in friend req handler"), nil
+		log.Println("Error in friendship action function")
+		return models.ServerSideErrorResponse("Something went wrong, try again.", err), nil
 	}
 
 	return models.SuccessfulRequestResponse("Done", false), nil
@@ -33,7 +35,7 @@ func getFriends(ctx context.Context, req *events.APIGatewayProxyRequest, otherUs
 
 	users, err := friendshipHelper.GetAllFriends(otherUserid)
 	if err != nil {
-		return models.ServerSideErrorResponse("", err, "error trying to get all friends."), nil
+		return models.ServerSideErrorResponse("Error trying to get all friends.", err), nil
 	}
 
 	currentUser := utils.GetAuthUserId(req)
@@ -62,7 +64,7 @@ func getRequests(ctx context.Context, req *events.APIGatewayProxyRequest) (event
 	userid := utils.GetAuthUserId(req)
 	requests, err := friendshipHelper.GetAllFriendRequests(userid)
 	if err != nil {
-		return models.ServerSideErrorResponse("Something went wrong try again", err, ""), nil
+		return models.ServerSideErrorResponse("Something went wrong try again", err), nil
 	}
 
 	return models.SuccessfulGetRequestResponse(requests), nil
@@ -89,19 +91,19 @@ func HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequ
 
 	status, statusErr := friendshipHelper.GetFriendshipStatus(thisUserId, otherUserId)
 	if statusErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong, try again.", statusErr, "error while trying to get friendship status"), nil
+		return models.ServerSideErrorResponse("Error while trying to get friendship status", statusErr), nil
 	}
 
 	findUserHelper := helpers.NewUserHelper(ctx)
 
 	thisUser, tuErr := findUserHelper.FindById(thisUserId)
 	if tuErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong.", tuErr, "error while trying to fetch this user details"), nil
+		return models.ServerSideErrorResponse("Error while trying to fetch this user details", tuErr), nil
 	}
 
 	otherUser, ouErr := findUserHelper.FindById(otherUserId)
 	if ouErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong", ouErr, "error while trying to fetch other user details"), nil
+		return models.ServerSideErrorResponse("Error while trying to fetch other user details", ouErr), nil
 	}
 
 	deps := handleRequestDependencies{
@@ -153,6 +155,6 @@ func HandleFriendshipAction(ctx context.Context, req *events.APIGatewayProxyRequ
 		return getRequests(ctx, req)
 
 	default:
-		return models.ServerSideErrorResponse("Something went wrong while determining friendship action, try again.", fmt.Errorf("Status returned does not match any expected outcome. status returned: %v", status), "Status returned does not match any expected outcome"), nil
+		return models.ServerSideErrorResponse("Something went wrong while determining friendship action, try again.", fmt.Errorf("Status returned does not match any expected outcome. status returned: %v", status)), nil
 	}
 }

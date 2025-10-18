@@ -18,14 +18,14 @@ type User struct {
 
 type UserDisplayInfo struct {
 	Userid                  string `dynamodbav:"pk" json:"userId"`
-	Nickname                string `dynamodbav:"nickname" json:"nickname"`
+	Nickname                string `dynamodbav:"gsi" json:"nickname"`
 	Name                    string `dynamodbav:"fullname" json:"name"`
 	DpUrl                   string `dynamodbav:"dpUrl" json:"dpUrl"`
 	DefaultProfilePicColors string `dynamodbav:"default_pic_colors" json:"defaultPicColors"`
 }
 
 type UserDisplayInfoNoId struct {
-	Nickname                string `dynamodbav:"nickname" json:"nickname"`
+	Nickname                string `dynamodbav:"gsi" json:"nickname"`
 	Name                    string `dynamodbav:"fullname" json:"name"`
 	DpUrl                   string `dynamodbav:"dpUrl" json:"dpUrl"`
 	DefaultProfilePicColors string `dynamodbav:"default_pic_colors" json:"defaultPicColors"`
@@ -112,11 +112,13 @@ func UserKey(userid string) map[string]types.AttributeValue {
 
 func (u *User) ApplyPrefixes() {
 	u.Userid = utils.AddPrefix(UserPkPrefix, u.Userid)
+	u.Nickname = utils.AddPrefix(nicknamePkPrefix, u.Nickname)
 }
 
 func ConvertToUsers(items []map[string]types.AttributeValue) *[]User {
 	users := utils.DatabaseItemsToStructs(items, func(u *User) {
 		u.Userid = strings.TrimPrefix(u.Userid, UserPkPrefix)
+		u.Nickname = strings.TrimPrefix(u.Nickname, nicknamePkPrefix)
 	})
 
 	return users

@@ -33,9 +33,13 @@ func NewNickname(nicknameStr string, userid string) *Nickname {
 
 func NicknameKey(nickname string) map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{
-		"pk": &types.AttributeValueMemberS{Value: utils.AddPrefix(nicknamePkPrefix, nickname)},
+		"pk": &types.AttributeValueMemberS{Value: utils.AddPrefix(nicknamePkPrefix, strings.ToLower(nickname))},
 		"sk": &types.AttributeValueMemberS{Value: nicknameSkPrefix},
 	}
+}
+
+func NicknameGsiVal(nickname string) *types.AttributeValueMemberS {
+	return &types.AttributeValueMemberS{Value: utils.AddPrefix(nicknamePkPrefix, strings.ToLower(nickname))}
 }
 
 func (n *Nickname) ApplyPrefixes() {
