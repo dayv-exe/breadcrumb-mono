@@ -110,7 +110,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	attributeName := "fullname"    // hardcoded string
 	dateAttr := "last_name_change" // hardcoded string
 	if updatingNickname {
-		attributeName = "nickname"        // hardcoded string
+		attributeName = "gsi"             // hardcoded string
 		dateAttr = "last_nickname_change" // hardcoded string
 		oldName = ""                      // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
 		user.Nickname = newName
@@ -192,6 +192,10 @@ func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string)
 func (u *userDynamoHelper) UpdateName(user *models.User, newName string) error {
 	if !utils.NameChangeAllowed(user.LastNameChange) {
 		return fmt.Errorf("name change too soon, wait a few days and try again.")
+	}
+
+	if !utils.NameIsValid(&newName) {
+		return fmt.Errorf("%v is an invalid name!", newName)
 	}
 
 	var transactions []types.TransactWriteItem
