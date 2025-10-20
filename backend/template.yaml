@@ -359,7 +359,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /u
+            Path: /u/{id}
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
