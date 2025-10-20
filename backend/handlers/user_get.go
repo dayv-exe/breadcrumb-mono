@@ -1,13 +1,10 @@
 package handlers
 
-// RETURNS PRIMARY USER DETAILS, OR IF USER REQUESTS OWN DETAILS, RETURN ALL THEIR DETAILS IN COGNITO AND DYNAMODB
-
 import (
 	"backend/helpers"
 	"backend/models"
 	"backend/utils"
 	"context"
-	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -21,61 +18,28 @@ type completeUserDetails struct {
 	helpers.CognitoManagedInfo
 }
 
-func fHandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func findUser(ctx context.Context, userid string) (*models.User, error) {
 	userHelper := helpers.NewUserHelper(ctx)
 
-	// get all info on a user from dynamodb
-	user, dbErr := 
-
-	// error
-	if dbErr != nil {
-		return models.ServerSideErrorResponse("Error while trying to find user by nickname", dbErr), nil
+	// search by id first
+	userById, userByIdErr := userHelper.FindById(userid)
+	if userByIdErr != nil {
+		return nil, userByIdErr
 	}
-
-	// no user found
-	if user == nil {
-		return models.NotFoundResponse("User not found"), nil
-	}
-
-	if utils.IsAuthenticatedUser(req, user.Userid) {
-		// if the logged in user is requesting their own information
-
-		userCognitoInfo, cogErr := helpers.NewCognitoHelper(ctx).GetManagedInfo(user.Userid)
-
-		if cogErr != nil {
-			return models.ServerSideErrorResponse("while trying to get your cognito info", fmt.Errorf("Get cognito info error: %w", cogErr)), nil
+	if userById == nil {
+		// search by nickname if id not found
+		userByNickname, userByNicknameErr := userHelper.FindByNickname(userid)
+		if userByNicknameErr != nil {
+			return nil, userByNicknameErr
+		}
+		if userByNickname == nil {
+			return nil, nil
 		}
 
-		if userCognitoInfo == nil {
-			return models.NotFoundResponse("User details not found."), nil
-		}
-
-		return models.SuccessfulGetRequestResponse(completeUserDetails{
-			// return all the users info which is everything in dynamo and somethings in cognito
-			*user,
-			*userCognitoInfo,
-		}), nil
+		return userByNickname, nil
 	}
 
-	// only return nickname, name, profile picture if one user requests another users information
-	friendshipStatus, fsErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)
-
-	if fsErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to get friendship status", fsErr), nil
-	}
-
-	type response struct {
-		models.UserDisplayInfo
-		models.UserAccountInfo
-	}
-
-	user.UserAccountInfo.FriendshipStatus = friendshipStatus
-	res := response{
-		user.UserDisplayInfo,
-		user.UserAccountInfo,
-	}
-
-	return models.SuccessfulGetRequestResponse(res), nil
+	return userById, nil
 }
 
 func HandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -84,6 +48,48 @@ func HandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 		userid = utils.GetAuthUserId(req)
 	}
 
-	userHelper := helpers.NewUserHelper(ctx)
-	
+	user, userErr := findUser(ctx, userid)
+	if userErr != nil {
+		return models.ServerSideErrorResponse("Failed to get user!", userErr), nil
+	}
+
+	if user == nil {
+		return models.NotFoundResponse("User not found!"), nil
+	}
+
+	if user.Userid == utils.GetAuthUserId(req) {
+		// if current user is requesting their own details, return full details including cognito
+		userCognitoInfo, cogitoInfoErr := helpers.NewCognitoHelper(ctx).GetManagedInfo(user.Userid)
+		if cogitoInfoErr != nil {
+			return models.ServerSideErrorResponse("Failed to get users cognito details!", cogitoInfoErr), nil
+		}
+		type res struct {
+			models.User
+			helpers.CognitoManagedInfo
+		}
+		return models.SuccessfulGetRequestResponse(
+			res{
+				*user,
+				*userCognitoInfo,
+			},
+		), nil
+	}
+
+	// if user is requesting details of another user, return only display info and friendship status
+	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)
+	if friendshipStatusErr != nil {
+		return models.ServerSideErrorResponse("Failed to determine users friendship status.", friendshipStatusErr), nil
+	}
+
+	user.FriendshipStatus = friendshipStatus
+	type res struct {
+		models.UserDisplayInfo
+		models.UserAccountInfo
+	}
+	return models.SuccessfulGetRequestResponse(res{
+		user.UserDisplayInfo,
+		models.UserAccountInfo{
+			FriendshipStatus: friendshipStatus,
+		},
+	}), nil
 }
