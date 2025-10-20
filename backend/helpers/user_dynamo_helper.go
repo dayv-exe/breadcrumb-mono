@@ -90,6 +90,9 @@ func (this *userDynamoHelper) DeleteFromDynamo(u *models.User) error {
 	transactions = append(transactions, UseDelete(models.UserKey(u.Userid), utils.GetDependencies().MainTableName))
 	transactions = append(transactions, UseDelete(models.NicknameKey(u.Nickname), utils.GetDependencies().MainTableName))
 	transactions = append(transactions, models.GetDeleteUserIndexesItems(u)...)
+	// end friendships
+	// decline all pending requests
+	// unsend all f reqs
 
 	return TransactWrite(
 		NewHelper(this.Ctx, nil),

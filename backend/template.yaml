@@ -202,16 +202,16 @@ Resources:
               StringEquals:
                 "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
   
-  S3ActionsFunction:
+  GeneratePresignedUrl:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub S3ActionFunction-${EnvironmentName}
       Timeout: 15
       MemorySize: 512
-      CodeUri: bin/s3bucket_actions/s3bucket_actions.zip
+      CodeUri: bin/generate_presigned_url/generate_presigned_url.zip
       Handler: bootstrap
       Architectures: [arm64]
-      Description: to carry out actions like presign url, delete objects and more on s3 bucket
+      Description: to presign url for uploads
       Environment:
         Variables:
           MEDIA_BUCKET: !Ref MediaBucket
@@ -222,8 +222,8 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /storage/{action}
-            Method: POST
+            Path: /presigned_url
+            Method: GET
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
@@ -254,7 +254,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-create-user"
-      CodeUri: bin/create_user/create_user.zip
+      CodeUri: bin/user_create/user_create.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: post a json with sub, nickname and name, then it adds that user to db
@@ -265,7 +265,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /user
+            Path: /u
             Method: POST
             ApiId: !Ref BreadApi
       Policies:
@@ -280,11 +280,11 @@ Resources:
               - cognito-idp:AdminGetUser
             Resource: "*"
 
-  PreSignUpFunction:
+  PreSignUp:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-pre-signup-function"
-      CodeUri: bin/presignup/presignup.zip
+      CodeUri: bin/signup_presignup/signup_presignup.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: Lambda function that runs before user signs up to validate user details
@@ -298,7 +298,7 @@ Resources:
             UserPool: !Ref CognitoUserPool
             Trigger: PreSignUp
 
-  NicknameAvailableFunction:
+  NicknameAvailable:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-nickname-available-function"
@@ -317,11 +317,11 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
 
-  AbortSignupFunction:
+  AbortSignup:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-abort-signup"
-      CodeUri: bin/abort_signup/abort_signup.zip
+      CodeUri: bin/signup_abort/signup_abort.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: deletes the user with the given id if they are unconfirmed
@@ -343,12 +343,12 @@ Resources:
               - cognito-idp:AdminDeleteUser
             Resource: "*"
 
-  GetUserDetails:
+  GetUser:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-get-user-details"
+      FunctionName: !Sub "${AWS::StackName}-get-user"
       MemorySize: 512
-      CodeUri: bin/get_user_details/get_user_details.zip
+      CodeUri: bin/user_get/user_get.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: returns user details
@@ -359,7 +359,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /user/{identifier_name}/{identifier}
+            Path: /u
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -373,12 +373,12 @@ Resources:
               - cognito-idp:AdminGetUser
             Resource: "*"
 
-  EditUserDetails:
+  EditUser:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-edit-user-details"
       MemorySize: 128
-      CodeUri: bin/edit_user_details/edit_user_details.zip
+      CodeUri: bin/user_edit/user_edit.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: edits user details
@@ -389,7 +389,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /user
+            Path: /u
             Method: PUT
             ApiId: !Ref BreadApi
             Auth:
@@ -404,7 +404,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-delete-user"
-      CodeUri: bin/delete_user/delete_user.zip
+      CodeUri: bin/user_delete/user_delete.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: deletes users details at users request
@@ -415,7 +415,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /user
+            Path: /u
             Method: DELETE
             ApiId: !Ref BreadApi
             Auth:
@@ -431,11 +431,11 @@ Resources:
               - cognito-idp:AdminDeleteUser
             Resource: "*"
 
-  RemoveStaleAccountsFunction:
+  SignupUnfinishedRemover:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-remove-stale-accounts"
-      CodeUri: bin/remove_stale_accounts/remove_stale_accounts.zip
+      CodeUri: bin/signup_unfinished_remover/signup_unfinished_remover.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: deletes unverified users from cognito when called
@@ -457,12 +457,12 @@ Resources:
               - cognito-idp:AdminDeleteUser
             Resource: "*"
 
-  AccountSearch:
+  SearchUser:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-account-search"
+      FunctionName: !Sub "${AWS::StackName}-search-user"
       MemorySize: 512
-      CodeUri: bin/account_search/account_search.zip
+      CodeUri: bin/user_search/user_search.zip
       Handler: bootstrap
       Architectures: [arm64]
       Description: queries search table to find user with nickname or full name similar to search string
@@ -479,20 +479,40 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref SearchTable
 
-  FriendshipAction:
+  AcceptFriendRequest:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-friendship-action"
-      MemorySize: 512
-      CodeUri: bin/friendship_action/friendship_action.zip
+      FunctionName: !Sub "${AWS::StackName}-accept-friend-request"
+      CodeUri: bin/friend_requests_accept/friend_requests_accept.zip
       Handler: bootstrap
       Architectures: [arm64]
-      Description: when called, this function will send friend requests if users are not friends, cancel friends request if previously sent, end friendship if users are already friends
+      Description: accept friend request
       Events:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /friendship/{action}/{userid}
+            Path: /friends
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  GetFriendRequests:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-get-friend-requests"
+      CodeUri: bin/friend_requests_get/friend_requests_get.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: list friend requests
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -500,7 +520,91 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
-      
+
+  RejectFriendRequest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-reject-friend-request"
+      CodeUri: bin/friend_requests_reject/friend_requests_reject.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: reject friend request
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests/{id}
+            Method: DELETE
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  SendFriendRequest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-send-friend-request"
+      CodeUri: bin/friend_requests_send/friend_requests_send.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: send friend request
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  GetFriends:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-get-friends"
+      CodeUri: bin/friends_get/friends_get.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: get all users friends
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friends/{id}
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  RemoveFriend:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-remove-friend"
+      CodeUri: bin/friends_remove/friends_remove.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: remove user as a friend
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friends/{id}
+            Method: DELETE
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   # user dynamodb table
   UsersTable:
     Type: AWS::DynamoDB::Table
