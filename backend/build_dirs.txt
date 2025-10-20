@@ -8,7 +8,7 @@ generate_presigned_url
 nickname_available
 signup_abort
 signup_presignup
-signup_unfinished_remove
+signup_unfinished_remover
 user_create
 user_delete
 user_edit

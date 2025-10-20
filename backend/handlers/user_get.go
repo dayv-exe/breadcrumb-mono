@@ -21,43 +21,15 @@ type completeUserDetails struct {
 	helpers.CognitoManagedInfo
 }
 
-type findableFn func(identifier string) (*models.User, error)
-
-func getUser(useId bool, identifier string, findByIdFn, findByName findableFn) (*models.User, error) {
-	// to allow getting user by user id or nickname
-	if useId {
-		return findByIdFn(identifier)
-	} else {
-		return findByName(identifier)
-	}
-}
-
-func HandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// gets user details from db, returns only public information, if user requesting is not the user being requested.
-
-	identifierName, idNameExists := req.PathParameters["identifier_name"]
-	identifier, idExists := req.PathParameters["identifier"]
-
-	if !idNameExists || !idExists {
-		return models.InvalidRequestErrorResponse(""), nil
-	}
-
-	if identifierName != "nickname" && identifierName != "id" {
-		return models.InvalidRequestErrorResponse("Invalid identifier name!"), nil
-	}
-
-	usingId := identifierName == "id"
+func fHandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userHelper := helpers.NewUserHelper(ctx)
 
 	// get all info on a user from dynamodb
-	user, dbErr := getUser(usingId, identifier, userHelper.FindById, userHelper.FindByNickname)
+	user, dbErr := 
 
 	// error
 	if dbErr != nil {
-		if usingId {
-			return models.ServerSideErrorResponse("Error while trying to find user by id", fmt.Errorf("Find by id error: %w", dbErr)), nil
-		}
-		return models.ServerSideErrorResponse("Error while trying to find user by nickname", fmt.Errorf("Find by nickname error: %w", dbErr)), nil
+		return models.ServerSideErrorResponse("Error while trying to find user by nickname", dbErr), nil
 	}
 
 	// no user found
@@ -104,4 +76,14 @@ func HandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 	}
 
 	return models.SuccessfulGetRequestResponse(res), nil
+}
+
+func HandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	userid := req.PathParameters["id"]
+	if userid == "" {
+		userid = utils.GetAuthUserId(req)
+	}
+
+	userHelper := helpers.NewUserHelper(ctx)
+	
 }
