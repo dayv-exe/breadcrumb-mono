@@ -14,3 +14,4 @@ user_delete
 user_edit
 user_get
 user_search
+custom_email
