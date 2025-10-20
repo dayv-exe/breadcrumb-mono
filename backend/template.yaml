@@ -542,6 +542,27 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  UnsendFriendRequest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-unsend-friend-request"
+      CodeUri: bin/friend_requests_unsend/friend_requests_unsend.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: unsend friend request
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests/unsend/{id}
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   SendFriendRequest:
     Type: AWS::Serverless::Function
     Properties:

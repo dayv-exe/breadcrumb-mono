@@ -1,6 +1,7 @@
 friend_requests_accept
 friend_requests_get
 friend_requests_send
+friend_requests_unsend
 friend_requests_reject
 friends_get
 friends_remove
