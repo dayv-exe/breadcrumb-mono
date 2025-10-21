@@ -59,17 +59,7 @@ export default function SignupDetailsScreen() {
 
   const handleSubmit = () => {
     if (!emailAndPasswordValid()) return
-
-    if (!promptedUserToConfirmEmail.current) {
-      setPopupDetails({
-        isVisible: true,
-        message: `We'll send a verification code to "${userDetails.email}" to complete your signup.`
-      })
-      promptedUserToConfirmEmail.current = true
-    } else {
-      // if user has double checked their email
-      handleSendVerification()
-    }
+    handleSendVerification()
   }
 
   const emailAndPasswordValid = (): boolean => {
