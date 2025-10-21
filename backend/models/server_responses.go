@@ -30,6 +30,7 @@ func InvalidRequestErrorResponse(msg string) events.APIGatewayProxyResponse {
 	if msg == "" {
 		msg = "Invalid request body."
 	}
+	log.Println(msg)
 	return buildResponse(400, ResponseBody{msg})
 }
 
