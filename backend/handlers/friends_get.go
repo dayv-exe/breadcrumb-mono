@@ -20,10 +20,14 @@ func HandleGetFriends(ctx context.Context, req *events.APIGatewayProxyRequest) (
 	if friendsErr != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", friendsErr), nil
 	}
+	if friends == nil {
+		return models.SuccessfulGetRequestResponse(nil), nil
+	}
 
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 
 	var users []models.User
+
 	for _, friend := range *friends {
 		var friendshipStatus string
 

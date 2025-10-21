@@ -12,14 +12,18 @@ import (
 
 func HandleGetFriendRequests(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	currentUserId := utils.GetAuthUserId(req)
-	users, userErr := helpers.NewFriendshipHelper(ctx).GetAllFriendRequests(currentUserId)
-	if userErr != nil {
-		return models.ServerSideErrorResponse("Failed to get friend requests!", userErr), nil
+	friendRequests, friendRequestsErr := helpers.NewFriendshipHelper(ctx).GetAllFriendRequests(currentUserId)
+	if friendRequestsErr != nil {
+		return models.ServerSideErrorResponse("Failed to get friend requests!", friendRequestsErr), nil
+	}
+	if friendRequests == nil {
+		return models.SuccessfulGetRequestResponse(nil), nil
 	}
 
-	var friendRequests []models.User
-	for _, user := range *users {
-		friendRequests = append(friendRequests, models.User{
+	var users []models.User
+
+	for _, user := range *friendRequests {
+		users = append(users, models.User{
 			UserDisplayInfo: user,
 			UserAccountInfo: models.UserAccountInfo{
 				FriendshipStatus: constants.FRIENDSHIP_STATUS_RECEIVED,
@@ -27,5 +31,5 @@ func HandleGetFriendRequests(ctx context.Context, req *events.APIGatewayProxyReq
 		})
 	}
 
-	return models.SuccessfulGetRequestResponse(friendRequests), nil
+	return models.SuccessfulGetRequestResponse(users), nil
 }
