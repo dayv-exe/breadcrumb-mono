@@ -29,7 +29,7 @@ func HandleAcceptFriendRequest(ctx context.Context, req *events.APIGatewayProxyR
 		return models.InvalidRequestErrorResponse("You cannot be friends with yourself!"), nil
 	}
 
-	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendshipStatus(reqBody.SenderId, currentUserId)
+	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendshipStatus(currentUserId, reqBody.SenderId)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Something went wrong while trying to determine friendship status!", friendshipStatusErr), nil
 	}

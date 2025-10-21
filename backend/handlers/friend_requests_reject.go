@@ -16,7 +16,7 @@ func HandleRejectFriendRequest(ctx context.Context, req *events.APIGatewayProxyR
 	senderId := req.PathParameters["id"]
 	log.Println(req.PathParameters["id"])
 
-	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(senderId, currentUserId)
+	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(currentUserId, senderId)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine friendship status!", friendshipStatusErr), nil
 	}

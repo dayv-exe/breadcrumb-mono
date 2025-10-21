@@ -78,9 +78,9 @@ func (this *friendshipDynamoHelper) userHasRequestedFriendship(senderId string, 
 	return ItemExists(NewHelper(this.Ctx, nil), friendReqKey)
 }
 
-func (this *friendshipDynamoHelper) GetFriendshipStatus(senderId string, recipientId string) (string, error) {
+func (this *friendshipDynamoHelper) GetFriendshipStatus(currentUserId string, otherUserId string) (string, error) {
 	// checks if this user has sent a friend request to other user
-	requested, reqErr := this.userHasRequestedFriendship(senderId, recipientId)
+	requested, reqErr := this.userHasRequestedFriendship(currentUserId, otherUserId)
 	if reqErr != nil {
 		return "", reqErr
 	}
@@ -90,7 +90,7 @@ func (this *friendshipDynamoHelper) GetFriendshipStatus(senderId string, recipie
 	}
 
 	// checks if other user has sent a friend request to this user
-	received, recErr := this.userHasRequestedFriendship(recipientId, senderId)
+	received, recErr := this.userHasRequestedFriendship(otherUserId, currentUserId)
 	if recErr != nil {
 		log.Print("error while checking if user has RECEIVED a friend request")
 		return "", recErr
@@ -100,7 +100,7 @@ func (this *friendshipDynamoHelper) GetFriendshipStatus(senderId string, recipie
 		return constants.FRIENDSHIP_STATUS_RECEIVED, nil
 	}
 
-	friends, fErr := this.usersAreFriends(senderId, recipientId)
+	friends, fErr := this.usersAreFriends(currentUserId, otherUserId)
 	if fErr != nil {
 		return "", fErr
 	}
