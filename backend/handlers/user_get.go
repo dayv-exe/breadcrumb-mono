@@ -82,14 +82,5 @@ func HandleGetUser(ctx context.Context, req *events.APIGatewayProxyRequest) (eve
 	}
 
 	user.FriendshipStatus = friendshipStatus
-	type res struct {
-		models.UserDisplayInfo
-		models.UserAccountInfo
-	}
-	return models.SuccessfulGetRequestResponse(res{
-		user.UserDisplayInfo,
-		models.UserAccountInfo{
-			FriendshipStatus: friendshipStatus,
-		},
-	}), nil
+	return models.SuccessfulGetRequestResponse(user), nil
 }
