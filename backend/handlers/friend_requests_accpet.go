@@ -34,7 +34,7 @@ func HandleAcceptFriendRequest(ctx context.Context, req *events.APIGatewayProxyR
 		return models.ServerSideErrorResponse("Something went wrong while trying to determine friendship status!", friendshipStatusErr), nil
 	}
 
-	if friendshipStatus != constants.FRIENDSHIP_STATUS_REQUESTED {
+	if friendshipStatus != constants.FRIENDSHIP_STATUS_RECEIVED {
 		return models.InvalidRequestErrorResponse("Cannot accept a friend request that you haven't received!"), nil
 	}
 
