@@ -1,10 +1,11 @@
 import { signupDetails } from "@/api/models/userDetails"
-import { AuthError, confirmResetPassword, confirmSignUp, getCurrentUser, resendSignUpCode, resetPassword, signIn, signOut, signUp } from "aws-amplify/auth"
+import { AuthError, confirmResetPassword, confirmSignUp, getCurrentUser, resendSignUpCode, resetPassword, signIn, SignInOutput, signOut, signUp } from "aws-amplify/auth"
 import { deleteItemAsync, getItem, setItem } from "expo-secure-store"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
 interface iResponse { isSuccess: boolean, info?: any }
+interface iCreateUserResponse { isSuccess: boolean, sub?: string, info?: any, loginFn: () => Promise<void> }
 
 function isAuthError(error: unknown): error is AuthError {
   return typeof error === "object" && error !== null && 'name' in error
@@ -16,15 +17,18 @@ type UserState = {
   userId: string
   userEmail: string
   userPassword: string
-  login: (email: string, password: string) => Promise<iResponse>
+  userFullname: string
+  userNickname: string
+  login: (email: string, password: string, userDetails: SignInOutput | null) => Promise<iResponse>
   logout: () => Promise<iResponse>
   signUp: (userDetails: signupDetails) => Promise<iResponse>
   resetPasswordVerifyEmail: (email: string) => Promise<iResponse>
   resetPassword: (email: string, code: string, newPassword: string) => Promise<iResponse>
   checkAuthStatus: () => Promise<void>
-  verifyEmail: (code: string) => Promise<iResponse>
+  verifyEmail: (code: string) => Promise<iCreateUserResponse>
   cancelSignup: () => Promise<void>
   resendSignUp: () => Promise<iResponse>
+  clearUserDetails: () => Promise<void>
 }
 
 export const useAuthStore = create(
@@ -34,15 +38,20 @@ export const useAuthStore = create(
     userEmail: "",
     userPassword: "",
     userId: "",
-    login: async (email: string, password: string) => {
+    userFullname: "",
+    userNickname: "",
+    clearUserDetails: async () => {
+      set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userNickname: "", userFullname: "" })
+    },
+    login: async (email: string, password: string, userDetails: SignInOutput | null) => {
       try {
-        const user = await signIn({
+        const user = userDetails ? userDetails : await signIn({
           username: email,
           password: password
         })
 
         if (user.isSignedIn) {
-          set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "" })
+          set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userNickname: "", userFullname: "" })
         }
 
         return { isSuccess: user.isSignedIn }
@@ -69,8 +78,6 @@ export const useAuthStore = create(
           password: userDetails.password,
           options: {
             userAttributes: {
-              nickname: userDetails.username,
-              name: userDetails.fullname,
               birthdate: userDetails.birthdate,
             }
           }
@@ -78,11 +85,11 @@ export const useAuthStore = create(
 
         if (!user.isSignUpComplete) {
           // verify email
-          set({ showEmailVerificationPage: true, userEmail: userDetails.email.toLowerCase(), userPassword: userDetails.password, userId: user.userId ?? "" })
+          set({ showEmailVerificationPage: true, userEmail: userDetails.email.toLowerCase(), userPassword: userDetails.password, userId: user.userId ?? "", userFullname: userDetails.fullname, userNickname: userDetails.username })
           return { isSuccess: true }
         } else {
           const { login } = useAuthStore.getState()
-          login(userDetails.email, userDetails.password)
+          login(userDetails.email, userDetails.password, null)
           return { isSuccess: true }
         }
 
@@ -92,7 +99,8 @@ export const useAuthStore = create(
       }
     },
     cancelSignup: async () => {
-      set({ showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "" })
+      await signOut()
+      set({ showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userFullname: "", userNickname: "" })
     },
     checkAuthStatus: async () => {
       try {
@@ -107,21 +115,39 @@ export const useAuthStore = create(
       }
     },
     verifyEmail: async (code: string) => {
-      const { userEmail, userPassword, login } = useAuthStore.getState()
+      const { userEmail, userPassword } = useAuthStore.getState()
       try {
         const user = await confirmSignUp({
           username: userEmail,
           confirmationCode: code
         })
 
+        let userSignin = null
         if (user.isSignUpComplete) {
-          login(userEmail, userPassword)
+          userSignin = await signIn({
+            username: userEmail,
+            password: userPassword
+          })
         }
 
-        return { isSuccess: true }
+        const userId = (await getCurrentUser()).userId
+
+        return {
+          isSuccess: user.isSignUpComplete,
+          sub: userId,
+          loginFn: async () => {
+            await useAuthStore.getState().login(userEmail, userPassword, userSignin ?? null)
+          },
+        }
       } catch (error) {
         console.log(error)
-        return { isSuccess: false, info: error }
+        return {
+          isSuccess: false,
+          info: error,
+          loginFn: async () => {
+            console.error("verify email failed, cannot login")
+          }
+        }
       }
     },
     resendSignUp: async () => {
@@ -133,7 +159,7 @@ export const useAuthStore = create(
 
         { return { isSuccess: true } }
       } catch (error) {
-        set({ userEmail: "", userPassword: "", userId: "", showEmailVerificationPage: false })
+        set({ userEmail: "", userPassword: "", userId: "", showEmailVerificationPage: false, userFullname: "", userNickname: "" })
         console.log("Failed to resend confirmation code: ", error)
         return { isSuccess: false, info: error }
       }

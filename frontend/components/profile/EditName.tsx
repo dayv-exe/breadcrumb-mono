@@ -1,5 +1,5 @@
 import { NAME_CHANGE_DELAY, ShowToast, USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
-import { useEditUserDetails } from "@/hooks/queries/useEditUserDetails";
+import { useEditUser } from "@/hooks/queries/useUserApi";
 import { useCheckName } from "@/hooks/useCheckName";
 import { useDateConverter } from "@/hooks/useDateConverter";
 import { View } from "react-native";
@@ -18,7 +18,7 @@ export default function EditName({ oldName, onUpdate, lastNameChangeDate }: prop
   const { NameValid, getNameInputMode, getNameLabelText, name, setName } = useCheckName(oldName, "", true)
   const { nameChangeTooSoon } = useDateConverter()
 
-  const { mutate: editName, isPending } = useEditUserDetails()
+  const { mutate: editName, isPending } = useEditUser()
 
 
   function nameIsInvalid() {
@@ -41,7 +41,7 @@ export default function EditName({ oldName, onUpdate, lastNameChangeDate }: prop
 
     editName({ target: "name", payload: name }, {
       onSuccess: res => {
-        if (res.successful) {
+        if (!res.error) {
           ShowToast("Updated name successfully")
           onUpdate()
         } else {

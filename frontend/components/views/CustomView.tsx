@@ -7,16 +7,18 @@ type cvProps = {
   backgroundColor?: string
   verticalAlign?: "center" | "flex-start" | "flex-end" | "space-between" | "space-around" | "space-evenly" | undefined
   horizontalPadding?: DimensionValue
+  topPadding?: DimensionValue
   adaptToTheme?: boolean
 }
 
-export default function CustomView({ children, backgroundColor = "#FFF", verticalAlign = "flex-start", horizontalPadding = 40, adaptToTheme = false }: PropsWithChildren<cvProps>) {
+export default function CustomView({ children, backgroundColor = "#FFF", verticalAlign = "flex-start", horizontalPadding = 40, adaptToTheme = false, topPadding }: PropsWithChildren<cvProps>) {
   const theme = useThemeColor
 
   return (
     <View style={[
       styles.container,
       {
+        paddingTop: topPadding,
         backgroundColor: adaptToTheme ? theme({}, "background") : backgroundColor,
         justifyContent: verticalAlign,
         paddingHorizontal: horizontalPadding

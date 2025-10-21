@@ -1,5 +1,5 @@
 import { ShowToast } from "@/constants/appConstants"
-import { useEditUserDetails } from "@/hooks/queries/useEditUserDetails"
+import { useEditUser } from "@/hooks/queries/useUserApi"
 import { useCheckBio } from "@/hooks/useCheckBio"
 import { View } from "react-native"
 import Spacer from "../Spacer"
@@ -13,17 +13,17 @@ type props = {
 
 export default function EditBio({ oldBio, onUpdate }: props) {
   const { bio, setBio, bioInfoText, bioInputMode, bioValid } = useCheckBio(oldBio)
-  const { mutate: editBio, isPending } = useEditUserDetails()
+  const { mutate: editBio, isPending } = useEditUser()
 
   function handleUpdate() {
     editBio({ target: "bio", payload: bio.trim() }, {
       onSuccess: res => {
-        if (res.successful) {
+        if (!res.error) {
           ShowToast("Updated bio!")
           onUpdate()
         } else {
           ShowToast("Failed to update bio, try again.")
-          console.log(res.reason)
+          console.log(res.error)
         }
       },
 

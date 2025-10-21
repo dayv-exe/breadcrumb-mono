@@ -1,7 +1,7 @@
 import { inputMode } from "@/constants/customInputModeTypes";
-import { useUsernameAvailableOnInputChange, useUsernameAvailableOnSubmit } from "@/hooks/queries/useUsernameAvailable";
 import { debounce } from "@/utils/debounce";
 import { useMemo, useState } from "react";
+import { useNicknameAvailable, useNicknameAvailableFn } from "./queries/useNicknameAvailable";
 
 export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?: string) {
   const [username, setUsername] = useState(initUsername ?? "");
@@ -19,9 +19,9 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
     data,
     isPending,
     error,
-  } = useUsernameAvailableOnInputChange(debouncedUname);
+  } = useNicknameAvailable(debouncedUname);
 
-  const { mutate: checkUsernameAvailability } = useUsernameAvailableOnSubmit();
+  const { mutate: checkUsernameAvailability } = useNicknameAvailableFn();
 
   const handleChange = (value: string) => {
     setUsername(value);
@@ -31,7 +31,7 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
   const handleFinalCheck = (onSuccess: (valid: boolean) => void) => {
     checkUsernameAvailability(username, {
       onSuccess: (res) => {
-        onSuccess(res.isValid);
+        onSuccess(res.message);
       },
     });
   };
@@ -41,16 +41,16 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
       return emptyUsernameLabelText ?? "you can change this later";
     } else if (isPending) {
       return "🔎 checking...";
-    } else if (data?.isValid) {
+    } else if (data?.message) {
       return `✅ ${username} is available`;
     } else {
       if (error) return `❌ ${error}`;
-      return `🚫 ${data?.reason}`;
+      return `🚫 ${data?.error}`;
     }
   };
 
   const getInputMode = (): inputMode => {
-    if (username.length < 1 || isPending || data?.isValid) {
+    if (username.length < 1 || isPending || data?.message) {
       return "normal";
     }
     return "warn";
@@ -62,6 +62,6 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
     getInfoText,
     getInputMode,
     handleFinalCheck,
-    isValid: data?.isValid ?? false,
+    isValid: data?.message ?? false,
   };
 }

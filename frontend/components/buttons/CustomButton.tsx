@@ -3,7 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useState } from "react";
-import { ActivityIndicator, AnimatableNumericValue, DimensionValue, Image, StyleProp, StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
+import { ActivityIndicator, AnimatableNumericValue, DimensionValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import Spacer from "../Spacer";
 
 type bProps = {
@@ -25,35 +25,36 @@ type bProps = {
   handleClick?: () => void
   debounceTime?: number
   customStyle?: StyleProp<ViewStyle>
+  customTextStyle?: StyleProp<TextStyle>
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize = 21, paddingHorizontal, fontSize, customStyle }: bProps) {
+export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize = 21, paddingHorizontal, fontSize, customStyle, customTextStyle }: bProps) {
   const theme = useThemeColor
   const mode = useColorScheme()
   const [clicked, setClicked] = useState(false)
   const bgCol = () => {
     switch (type) {
-    case "prominent":
-      return Colors.light.vibrantButton
+      case "prominent":
+        return Colors.light.vibrantButton
 
-    case "faded":
-      return "rgba(255, 255, 255, 0.1)"
+      case "faded":
+        return "rgba(255, 255, 255, 0.1)"
 
-    case "dark-faded":
-      return Colors.light.text
+      case "dark-faded":
+        return Colors.light.text
 
-    case "theme-faded":
-      return theme({}, "fadedBackground")
+      case "theme-faded":
+        return theme({}, "fadedBackground")
 
-    case "less-prominent":
-      return theme({}, "darkenVibrant")
+      case "less-prominent":
+        return theme({}, "darkenVibrant")
 
-    case "themed":
-      return theme({}, "background")
+      case "themed":
+        return theme({}, "background")
 
-    default:
-      return "transparent"
-  }
+      default:
+        return "transparent"
+    }
   }
   const backgroundColor = bgCol()
 
@@ -111,9 +112,10 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         styles.text,
         {
           color: getTextColor(),
-          fontSize: fontSize ? fontSize :  squashed ? 13 : slim ? 14 : 15,
+          fontSize: fontSize ? fontSize : squashed ? 13 : slim ? 14 : 15,
           fontWeight: bold ? 600 : "normal",
-        }
+        },
+        customTextStyle
       ]}>{labelText}</Text>}
     </TouchableOpacity>
   )

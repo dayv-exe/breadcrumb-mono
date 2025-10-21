@@ -5,11 +5,11 @@ import ProfileItem from "@/components/profile/ProfileItem";
 import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
 import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
-import { useGetAllFriends } from "@/hooks/queries/useFriendshipAction";
+import { useGetFriends } from "@/hooks/queries/useFriendsApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { FlatList, ListRenderItem, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const icons = {
   options: {
@@ -36,7 +36,7 @@ function NoFriendsComponent() {
     <View style={styles.noFriends}>
       <Spacer />
       <CustomLabel adaptToTheme labelText="👻" textAlign="center" fontSize={30} />
-      <CustomLabel adaptToTheme labelText="No friends to show" textAlign="center" fontSize={17} fade />
+      <CustomLabel adaptToTheme labelText="Nothing to see here" textAlign="center" fontSize={17} fade />
     </View>
   )
 }
@@ -63,12 +63,13 @@ function LoadingComponent() {
 
 export default function ViewFriendsScreen() {
   const { accountId, nickname } = useLocalSearchParams<{ accountId: string, nickname: string }>()
-  const { data: response, error: friendsError, isPending: isPending, refetch } = useGetAllFriends(accountId)
+  const { data: response, error: friendsError, isPending: isPending, refetch } = useGetFriends(accountId)
   const mode = useColorScheme()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
 
   const renderFriends: ListRenderItem<UserDetails> = ({ item }) => (
-    <ProfileItem userDetails={item} handleClick={() => {
+    <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
       router.push({
         pathname: "/user-profile",
         params: { userId: item.userId, tempNickname: item.nickname }
@@ -77,35 +78,42 @@ export default function ViewFriendsScreen() {
   )
 
   return (
-    <CustomView adaptToTheme horizontalPadding={0}>
-      <SafeAreaView style={{ alignItems: "center", justifyContent: "center" }}>
-        {/* header */}
-        <View style={styles.header}>
+    <CustomView topPadding={insets.top} adaptToTheme horizontalPadding={0}>
+      {/* header */}
+      <View style={styles.header}>
+        <View style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          zIndex: 100
+        }}>
           <CustomImageButton flat handleClick={() => {
             router.dismiss()
           }} src={getIconImage("back", mode === "light")} />
-          <CustomLabel labelText={nickname} bold adaptToTheme textAlign="center" />
-          <CustomImageButton flat src="" />
         </View>
-        <Spacer />
-        <CustomView horizontalPadding={20} adaptToTheme>
-          {response && !isPending && !friendsError && !response.users &&
-            <NoFriendsComponent />
-          }
-          {response && !isPending && !friendsError && response.users &&
-            <FlatList
-              refreshing={isPending}
-              onRefresh={refetch}
-              data={response.users}
-              renderItem={renderFriends}
-            />
-          }
-          {
-            isPending &&
-            <LoadingComponent />
-          }
-        </CustomView>
-      </SafeAreaView>
+        <CustomLabel labelText={nickname} bold adaptToTheme textAlign="center" />
+      </View>
+      {response?.message && <CustomLabel labelText="friends" textAlign="center" fade adaptToTheme />}
+      <Spacer />
+      <CustomView horizontalPadding={20} adaptToTheme>
+        {response && !isPending && !friendsError && !response.message &&
+          <NoFriendsComponent />
+        }
+        {response && !isPending && !friendsError && response.message &&
+          <FlatList
+            style={{ width: "100%" }}
+            refreshing={isPending}
+            onRefresh={refetch}
+            data={response.message}
+            renderItem={renderFriends}
+            ItemSeparatorComponent={() => <Spacer size="small" />}
+          />
+        }
+        {
+          isPending &&
+          <LoadingComponent />
+        }
+      </CustomView>
     </CustomView>
   )
 }
@@ -119,6 +127,7 @@ const styles = StyleSheet.create({
   },
   noFriends: {
     flex: 1,
+    width: "100%",
     alignItems: "center",
     justifyContent: "flex-start",
     flexDirection: "column",

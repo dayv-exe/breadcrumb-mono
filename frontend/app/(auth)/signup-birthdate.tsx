@@ -14,7 +14,6 @@ import { StyleSheet, View } from "react-native";
 
 export default function BirthdateScreen() {
   const bgCol = useThemeColor({}, "background")
-  const textCol = useThemeColor({}, "text")
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: "" })
   const { username, fullname, birthdate, email, password } = useLocalSearchParams<signupDetails>()
   const [userDetails, setUserDetails] = useState<signupDetails>({
@@ -35,7 +34,6 @@ export default function BirthdateScreen() {
 
   const handleValidateBirthdate = () => {
     const validation = validateBirthdate()
-    console.log(userDetails)
 
     if (!validation.isValid) {
       setPopupDetails({

@@ -1,6 +1,10 @@
 import { UserDetails } from "@/api/models/userDetails";
-import { userSearchDetails } from "@/api/models/userSearchDetails";
+import { FRIENDSHIP_STATUS, ShowToast } from "@/constants/appConstants";
+import { buttonTypes } from "@/constants/buttonTypes";
+import { useSendFriendRequest, useUnsendFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useIsMyProfile } from "@/hooks/useIsMyProfile";
+import { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -24,25 +28,124 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 type props = {
-  userDetails: UserDetails | userSearchDetails
+  userDetails: UserDetails
   showFriendReqOpts?: boolean
+  showAddFriendOpt?: boolean
   handleClick: () => void
   handleAccept?: () => void
   handleReject?: () => void
 }
 
-export default function ProfileItem({ userDetails, showFriendReqOpts = false, handleClick, handleAccept, handleReject }: props) {
+
+type fabProps = {
+  isPending: boolean
+  handleClick: () => void
+  text: string
+  btnType: buttonTypes
+}
+function FriendshipActionBtn({ handleClick, text, btnType, isPending }: fabProps) {
+
+  return (
+    <CustomButton adaptToTheme={btnType === "text" ? true : false} isPending={isPending} handleClick={handleClick} labelText={text} type={btnType} customStyle={{
+      padding: 12
+    }}
+      customTextStyle={{
+        fontSize: 12,
+        fontStyle: btnType === "text" ? "italic" : "normal",
+        opacity: btnType === "text" ? .5 : 1
+      }}
+    />
+  )
+}
+
+export default function ProfileItem({ userDetails, showFriendReqOpts = false, handleClick, handleAccept, handleReject, showAddFriendOpt = false }: props) {
+  const { mutate: sendFriendRequest, isPending: SendFriendReqPending } = useSendFriendRequest()
+  const { mutate: cancelFriendRequest, isPending: cancelFriendReqPending } = useUnsendFriendRequest()
   const mode = useColorScheme()
+  const isMyProfile = useIsMyProfile(userDetails.userId ?? "")
+  const [friendshipBtnTxt, setFriendshipBtnTxt] = useState(getText())
+  const [friendshipBtnType, setFriendshipBtnType] = useState<buttonTypes>(getButtonType())
+
+  function getText(): string {
+    switch (userDetails.friends) {
+      case FRIENDSHIP_STATUS.NOT_FRIENDS:
+        return "Add friend"
+
+      case FRIENDSHIP_STATUS.RECEIVED:
+        return "Pending"
+
+      case FRIENDSHIP_STATUS.REQUESTED:
+        return "Requested"
+
+      case FRIENDSHIP_STATUS.FRIENDS:
+        return "Friend"
+
+      default:
+        return ""
+    }
+  }
+
+  function getButtonType(): buttonTypes {
+    return userDetails.friends === FRIENDSHIP_STATUS.NOT_FRIENDS ? "less-prominent" : userDetails.friends === FRIENDSHIP_STATUS.FRIENDS ? "text" : "theme-faded"
+  }
+
+  function handleFriendActionClick() {
+    if (userDetails.friends === FRIENDSHIP_STATUS.NOT_FRIENDS) {
+      // request to be friends
+      sendFriendRequest(userDetails.userId ?? "", {
+        onSuccess: res => {
+          if (!res.error) {
+            setFriendshipBtnTxt("Requested")
+            setFriendshipBtnType("theme-faded")
+            userDetails.friends = FRIENDSHIP_STATUS.REQUESTED
+          } else {
+            ShowToast("Something went wrong.")
+          }
+        },
+        onError: () => {
+          ShowToast("Something went wrong.")
+        }
+      })
+    } else if (userDetails.friends === FRIENDSHIP_STATUS.REQUESTED) {
+      // cancel request sent
+      cancelFriendRequest(userDetails.userId ?? "", {
+        onSuccess: res => {
+          if (!res.error) {
+            setFriendshipBtnTxt("Add friend")
+            setFriendshipBtnType("less-prominent")
+            userDetails.friends = FRIENDSHIP_STATUS.NOT_FRIENDS
+          } else {
+            ShowToast("Something went wrong.")
+          }
+        }
+      })
+    }
+  }
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.container} onPress={handleClick}>
-        <CustomProfilePictureCircle size={60} />
-        <View style={styles.names}>
-          <CustomLabel padding={0} adaptToTheme bold labelText={userDetails.nickname!} fontSize={15} />
-          <Spacer size="tiny" />
-          {userDetails.name && <CustomLabel padding={0} adaptToTheme labelText={userDetails.name} fontSize={15} fade />}
+      <TouchableOpacity style={{
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexDirection: "row",
+      }} onPress={handleClick}>
+        <View style={{
+          flexShrink: 1,
+          alignItems: "center",
+          justifyContent: "flex-start",
+          flexDirection: "row",
+        }}>
+          <CustomProfilePictureCircle size={60} />
+          <View style={styles.names}>
+            <CustomLabel padding={0} adaptToTheme bold labelText={userDetails.nickname!} fontSize={15} />
+            <Spacer size="tiny" />
+            {userDetails.name && <CustomLabel padding={0} adaptToTheme labelText={userDetails.name} fontSize={15} />}
+          </View>
         </View>
+
+        {!isMyProfile && <FriendshipActionBtn handleClick={handleFriendActionClick} btnType={friendshipBtnType} text={friendshipBtnTxt} isPending={SendFriendReqPending || cancelFriendReqPending} />}
+
       </TouchableOpacity>
 
       {showFriendReqOpts && <View style={styles.reqOptsContainer}>
@@ -59,11 +162,10 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    flexShrink: 1,
+    justifyContent: "space-between",
   },
   names: {
-    width: "100%",
+    width: "auto",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "flex-start",

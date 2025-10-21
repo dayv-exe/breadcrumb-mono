@@ -1,4 +1,4 @@
-import { userSearchDetails } from "@/api/models/userSearchDetails";
+import { UserDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomSearchInput from "@/components/inputs/CustomSearchInput";
@@ -7,7 +7,7 @@ import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
 import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
 import { MAX_SEARCH_STRING_CHARS } from "@/constants/appConstants";
-import { useSearchUserOnInputChange } from "@/hooks/queries/useSearchUser";
+import { useSearchUser } from "@/hooks/queries/useUserApi";
 import { debounce } from "@/utils/debounce";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useIsFocused } from "@react-navigation/native";
@@ -131,7 +131,7 @@ export default function SearchScreen() {
     data: searchResult,
     isPending: searchResPending,
     error: searchResultErr
-  } = useSearchUserOnInputChange(debouncedSearchStr)
+  } = useSearchUser(debouncedSearchStr)
 
   function handleSearchInputChange(e: string) {
     setSearchStr(e)
@@ -145,9 +145,9 @@ export default function SearchScreen() {
     })
   }
 
-  const renderUser: ListRenderItem<userSearchDetails> = ({ item }) => (
+  const renderUser: ListRenderItem<UserDetails> = ({ item }) => (
     <ProfileItem key={item.userId} handleClick={() => {
-      handleUserClick(item.userId, item.nickname)
+      handleUserClick(item.userId ?? "", item.nickname ?? "")
     }} userDetails={item} />
   );
 
@@ -185,11 +185,11 @@ export default function SearchScreen() {
             <LoadingView />
           }
           {searchResult?.error && <SearchErrorView />}
-          {searchResult && !searchResult.results && !searchResult.error && <NoResult />}
-          {(!searchResPending && !searchResultErr && searchResult.results) && <FlatList
-            data={searchResult.results}
+          {searchResult && !searchResult.message && !searchResult.error && <NoResult />}
+          {(!searchResPending && !searchResultErr && searchResult.message) && <FlatList
+            data={searchResult.message}
             renderItem={renderUser}
-            keyExtractor={item => item.userId}
+            keyExtractor={item => item.userId ?? ""}
             initialNumToRender={10}
             maxToRenderPerBatch={10}
             ItemSeparatorComponent={() => (<Spacer size="small" />)}

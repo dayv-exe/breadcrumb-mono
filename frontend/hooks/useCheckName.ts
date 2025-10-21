@@ -3,7 +3,7 @@ import { inputMode } from "@/constants/customInputModeTypes"
 import { emojiRegex } from "@/constants/regexes"
 import { useState } from "react"
 
-export function useCheckName(initName?: string, emptyNameLabelText?: string, allowEmojis: boolean = false) {
+export function useCheckName(initName?: string, emptyNameLabelText?: string, allowEmojis: boolean = true) {
   const [name, setName] = useState(initName ?? "")
 
   const getNameLabelText = (): string => {
@@ -23,9 +23,6 @@ export function useCheckName(initName?: string, emptyNameLabelText?: string, all
       return false
     }
 
-    if (!allowEmojis && emojiRegex.test(name)) {
-      return false
-    }
 
     return true
   }

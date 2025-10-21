@@ -47,7 +47,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setIsPending(true)
-    const res = await login(loginDetails.email, loginDetails.password)
+    const res = await login(loginDetails.email, loginDetails.password, null)
     if (!res.isSuccess) {
       Toast.show({
         text1: "🚫 Incorrect login details",

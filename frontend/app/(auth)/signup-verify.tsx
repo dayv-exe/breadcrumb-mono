@@ -5,7 +5,8 @@ import CustomModal from "@/components/modals/CustomModal";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
-import { useAbortSignup } from "@/hooks/queries/useAbortSignup";
+import { useAbortSignup } from "@/hooks/queries/useSignupApi";
+import { useCreateUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useRef, useState } from "react";
@@ -15,7 +16,7 @@ import Toast from "react-native-toast-message";
 export default function SignupVerifyScreen() {
   const bgCol = useThemeColor({}, "background")
   const [code, setCode] = useState("")
-  const { verifyEmail, resendSignUp, userEmail } = useAuthStore()
+  const { verifyEmail, resendSignUp, userEmail, userFullname, userNickname } = useAuthStore()
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: `Are you sure you want to cancel the signup process?` })
   const { cancelSignup, userId } = useAuthStore()
   const [activityIndicators, setActivityIndicators] = useState<{ verifyBtn: boolean, resendBtn: boolean }>({
@@ -25,41 +26,70 @@ export default function SignupVerifyScreen() {
   const resetCodeCount = useRef(0)
 
   const { mutate: abort } = useAbortSignup()
+  const { mutate: createUser } = useCreateUser()
+
+  function handleErrorGracefully(err: string) {
+    if (String(err).includes("CodeMismatchException") || String(err).includes("InvalidParameterException")) {
+      Toast.show({
+        text1: "Invalid verification code!",
+        type: "info",
+      })
+    } else if (String(err).includes("EmptyConfirmSignUpCode")) {
+      Toast.show({
+        text1: "Enter the code to verify!",
+        type: "info",
+      })
+    } else {
+      // if any other unknown error occurs cancel signup completely
+      if (String(err).includes("LimitExceededException")) {
+        Toast.show({
+          text1: "Too many attempts, try again after some time!",
+          type: "info",
+        })
+      } else {
+        Toast.show({
+          text1: "Something went wrong please, try again!",
+          type: "info",
+        })
+      }
+
+      console.error(err)
+      handleLeave()
+    }
+  }
 
   const handleVerify = async () => {
+    console.log(userFullname)
+    console.log(userNickname)
     setActivityIndicators({
       ...activityIndicators, verifyBtn: true
     })
     const res = await verifyEmail(code)
     if (!res.isSuccess) {
-      if (String(res.info).includes("CodeMismatchException") || String(res.info).includes("InvalidParameterException")) {
-        Toast.show({
-          text1: "Invalid verification code!",
-          type: "info",
-        })
-      } else if (String(res.info).includes("EmptyConfirmSignUpCode")) {
-         Toast.show({
-          text1: "Enter the code to verify!",
-          type: "info",
-        })
-      } else {
-        // if any other unknown error occurs cancel signup completely
-        if (String(res.info).includes("LimitExceededException")) {
-          Toast.show({
-            text1: "Too many attempts, try again after some time!",
-            type: "info",
-          })
-        } else {
-          Toast.show({
-            text1: "Something went wrong please, try again!",
-            type: "info",
-          })
-        }
-        handleLeave()
-      }
-
+      handleErrorGracefully(res.info ?? "")
       setActivityIndicators({
         ...activityIndicators, verifyBtn: false
+      })
+    } else if (!res.sub) {
+      handleErrorGracefully("no sub returned")
+    } else if (res.isSuccess) {
+      createUser({
+        name: userFullname,
+        nickname: userNickname,
+        sub: res.sub
+      }, {
+        onSuccess: user => {
+          if (user.error) {
+            handleErrorGracefully(user.error)
+          } else if (!user.error) {
+            res.loginFn()
+          } else {
+            handleErrorGracefully("app in a state of limbo!")
+          }
+        },
+        onError: err => {
+          handleErrorGracefully(err.message)
+        }
       })
     }
   }

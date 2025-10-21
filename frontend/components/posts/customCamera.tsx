@@ -1,5 +1,6 @@
-import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
+import { MAX_VIDEO_DURATION_MILLISECONDS, ShowToast } from "@/constants/appConstants";
 import { Colors } from "@/constants/Colors";
+import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
 import { showSettingsAlert } from "@/utils/helpers";
 import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from "expo-router";
@@ -115,6 +116,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   if (backCam !== null) availableCams.push(backCam!)
   if (frontCam !== null) availableCams.push(frontCam!)
 
+  const { mutate: getPresignedUrl } = useGetPresignedUrl()
   const cameraRef = useRef<Camera>(null)
   const [currentCam, setCurrentCam] = useState<CameraDevice>(availableCams[0])
   const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
@@ -135,7 +137,6 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   };
 
   const handleTouchEnd = () => {
-    console.log(isRecording)
     if (isRecording) {
       stopRecording()
     }
@@ -167,6 +168,23 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   )
 
   async function takePhoto() {
+    getPresignedUrl(".png", {
+      onSuccess: res => {
+        if (res.error) {
+          ShowToast("failed to get")
+          console.log(res.error)
+        } else {
+          ShowToast("gotten")
+          console.log(res.message)
+        }
+      },
+
+      onError: presignedErr => {
+        ShowToast("error")
+        console.log(presignedErr)
+      }
+    })
+
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePhoto({
@@ -225,11 +243,8 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   }
 
   async function stopRecording() {
-    console.log("init stop proceediure")
     if (!cameraRef.current) return
-    console.log("trying to stop")
     try {
-      console.log("stopped")
       setIsRecording(false)
       await cameraRef.current.stopRecording()
       cancelAnimation(progress)

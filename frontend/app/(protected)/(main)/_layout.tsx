@@ -105,7 +105,7 @@ function CustomTabIcon({ name, focused, darkMode, size = 21 }: cIconProps) {
         position: "absolute",
         width: 7,
         height: 4,
-        backgroundColor: Colors.light.vibrantBackground,
+        backgroundColor: !darkMode ? Colors.light.text : Colors.dark.text,
         bottom: -17,
         left: 7.5,
         right: 0,

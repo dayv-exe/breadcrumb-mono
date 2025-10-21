@@ -1,3 +1,5 @@
+import { FRIENDSHIP_STATUS } from "@/constants/appConstants"
+
 export type signupDetails = {
   username: string
   fullname?: string
@@ -31,5 +33,5 @@ export interface UserDetails {
   nickname: string | null;
   suspensionReason: string | null;
   userId: string | null;
-  friends: string | null;
+  friends: FRIENDSHIP_STATUS | null;
 }

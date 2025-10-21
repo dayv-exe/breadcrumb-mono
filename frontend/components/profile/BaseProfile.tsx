@@ -2,8 +2,10 @@ import { UserDetails } from "@/api/models/userDetails";
 import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
 import { FRIENDSHIP_STATUS } from "@/constants/appConstants";
-import { useAcceptFriendRequest, useCancelFriendRequest, useEndFriendship, useRejectFriendRequest, useSendFriendRequest } from "@/hooks/queries/useFriendshipAction";
-import { useGetUserDetailsById } from "@/hooks/queries/useGetUserDetails";
+import { GetId } from "@/constants/userAccountDetails";
+import { useAcceptFriendRequests, useRejectFriendRequest, useSendFriendRequest, useUnsendFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
+import { useRemoveFriend } from "@/hooks/queries/useFriendsApi";
+import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useIsMyProfile } from "@/hooks/useIsMyProfile";
 import { useRouter } from "expo-router";
@@ -84,7 +86,6 @@ function ErrorComponent({ showBackButton, handleBackClick, mode, isPending, hand
         }]}>
           <View style={styles.nameContainer}>
             {showBackButton && <CustomImageButton size={27} flat src={getIconImage("back", mode === "light")} handleClick={handleBackClick} />}
-            {/* NICKNAME LABEL */}
             <CustomLabel fitContent adaptToTheme bold fade italic labelText={"<user not found>"} />
           </View>
           <View style={{ flexDirection: "row" }}>
@@ -102,7 +103,7 @@ function ErrorComponent({ showBackButton, handleBackClick, mode, isPending, hand
             <View style={styles.profileAside}>
               <CustomLabel fontSize={18.5} fade italic bold labelText={"who?"} textAlign="left" adaptToTheme />
               <Spacer size="small" />
-              <CustomButton labelText={"No friends to show"} squashed type="theme-faded" />
+              <CustomButton labelText={"Nothing to see here"} squashed type="theme-faded" />
             </View>
           </View>
           <Spacer />
@@ -119,19 +120,19 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const mode = useColorScheme()
   const router = useRouter()
   const [friendshipStatus, setFriendshipStatus] = useState<FRIENDSHIP_STATUS>(FRIENDSHIP_STATUS.NOT_FRIENDS)
-  const { data: userData, error, isPending, refetch } = useGetUserDetailsById(userId)
+  const { data: userData, error, isPending, refetch } = useGetUser(userId)
   const isMyProfile = useIsMyProfile(userId)
   const { mutate: sendFriendReq, isPending: sendReqPending } = useSendFriendRequest()
-  const { mutate: cancelFriendReq, isPending: cancelReqPending } = useCancelFriendRequest()
-  const { mutate: acceptFriendReq, isPending: acceptReqPending } = useAcceptFriendRequest()
+  const {mutate: unsendFriendRequest, isPending: unsendReqPending} = useUnsendFriendRequest()
+  const { mutate: acceptFriendReq, isPending: acceptReqPending } = useAcceptFriendRequests()
   const { mutate: rejectFriendReq, isPending: rejectReqPending } = useRejectFriendRequest()
-  const { mutate: endFriendship, isPending: endFriendshipPending } = useEndFriendship()
+  const { mutate: endFriendship, isPending: endFriendshipPending } = useRemoveFriend()
 
   const user = useRef<UserDetails>(null)
 
   const handleShowOptions = () => {
-    if (userData?.user) {
-      const u = userData.user
+    if (userData?.message) {
+      const u = userData.message
       router.push({
         pathname: "/profile-settings",
         params: {
@@ -153,15 +154,15 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   }
 
   const getFriendsText = (): string => {
-    return isMyProfile ? "Manage friendships" : "No mutual friends"
+    return "View friends"
   }
 
   const getName = (): string => {
     if (isPending) {
       return "loading..."
     }
-    if (userData?.user?.name) return userData?.user?.name
-    else if (userData?.user?.nickname) return userData.user.nickname
+    if (userData?.message?.name) return userData?.message?.name
+    else if (userData?.message?.nickname) return userData.message.nickname
     else return "<undefined>"
   }
 
@@ -169,7 +170,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     if (isPending) {
       return "loading..."
     }
-    return userData?.user?.nickname ?? "<undefined>"
+    return userData?.message?.nickname ?? "<undefined>"
   }
 
   async function handleRefresh() {
@@ -194,7 +195,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
       })
     } else if (friendshipStatus === FRIENDSHIP_STATUS.REQUESTED) {
       // unsend request if sent
-      cancelFriendReq(userId, {
+      unsendFriendRequest(userId, {
         onSuccess: res => {
           if (res.error) {
             Toast.show({
@@ -231,6 +232,8 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   async function handleRejectFriendRequest() {
     if (friendshipStatus === FRIENDSHIP_STATUS.RECEIVED) {
       rejectFriendReq(userId)
+      console.log(userId)
+      console.log((await GetId()))
       setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
     }
   }
@@ -271,9 +274,9 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   }
 
   useEffect(() => {
-    if (userData && userData.user && !isMyProfile) {
-      user.current = userData.user
-      switch (userData.user.friends) {
+    if (userData && userData.message && !isMyProfile) {
+      user.current = userData.message
+      switch (userData.message.friends) {
         case FRIENDSHIP_STATUS.FRIENDS:
           setFriendshipStatus(FRIENDSHIP_STATUS.FRIENDS)
           break;
@@ -354,8 +357,8 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               </View>
               <Spacer />
               {!isPending && <View style={styles.bio}>
-                {userData?.user?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={userData.user.bio ?? ""} adaptToTheme />}
-                {!userData?.user?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
+                {userData?.message?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={userData.message.bio ?? ""} adaptToTheme />}
+                {!userData?.message?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
               </View>}
               {(!isMyProfile && friendshipStatus !== FRIENDSHIP_STATUS.FRIENDS && !isPending) &&
                 <>
@@ -364,7 +367,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
                   <AddFriendBody imgSrc={getIconImage("bigAddFriend", mode === "light")} name={getName() ?? getNickname()} requestStatus={friendshipStatus} handleFriendBtnClick={handleFriendshipAction} handleAcceptReq={handleAcceptFriendRequest} handleRejectReq={handleRejectFriendRequest}
                     acceptPending={acceptReqPending}
                     rejectPending={rejectReqPending}
-                    handleFriendshipPending={sendReqPending || cancelReqPending}
+                    handleFriendshipPending={sendReqPending || unsendReqPending}
                   />
                 </>
               }

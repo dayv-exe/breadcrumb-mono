@@ -12,8 +12,7 @@ import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
 import { Colors } from "@/constants/Colors";
-import { useDeleteAccount } from "@/hooks/queries/useDeleteAccount";
-import { useGetUserDetailsById } from "@/hooks/queries/useGetUserDetails";
+import { useDeleteUser, useGetUser } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -57,8 +56,8 @@ export default function ProfileSettingsScreen() {
   const {
     userid,
   } = useLocalSearchParams<{ userid: string }>()
-  const { data: user, error, isFetching: isPending, refetch } = useGetUserDetailsById(userid)
-  const { mutate: delAccount } = useDeleteAccount()
+  const { data: user, error, isFetching: isPending, refetch } = useGetUser(userid)
+  const { mutate: delAccount } = useDeleteUser()
   const fadedBgColor = useThemeColor({}, "fadedBackground")
   const bgCol = useThemeColor({}, "background")
   const mode = useColorScheme()
@@ -86,12 +85,12 @@ export default function ProfileSettingsScreen() {
   }
 
   const handleDelAccount = () => {
-    delAccount("", {
+    delAccount(undefined, {
       onSuccess: res => {
-        if (!res.successful) {
+        if (res.error) {
           Toast.show({
             type: "info",
-            text1: res.reason,
+            text1: res.error,
             position: "top",
           })
         } else {
@@ -109,25 +108,25 @@ export default function ProfileSettingsScreen() {
     {
       title: '👤 Account Information', data: [
         {
-          name: 'Username', value: user?.user?.nickname ?? "", handleClick: () => {
+          name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
             setBottomSheetChild(EditMode.USERNAME)
             handleOpenDrawer()
           }
         },
         {
-          name: "Name", value: user?.user?.name ?? "", handleClick: () => {
+          name: "Name", value: user?.message?.name ?? "", handleClick: () => {
             setBottomSheetChild(EditMode.FULLNAME)
             handleOpenDrawer()
           }
         },
         {
-          name: 'Bio', value: user?.user?.bio ?? "", handleClick: () => {
+          name: 'Bio', value: user?.message?.bio ?? "", handleClick: () => {
             setBottomSheetChild(EditMode.BIO)
             handleOpenDrawer()
           }
         },
         {
-          name: emailOptText, value: user?.user?.email ?? "", handleClick: () => {
+          name: emailOptText, value: user?.message?.email ?? "", handleClick: () => {
             setBottomSheetChild(EditMode.EMAIL)
             handleOpenDrawer()
           }
@@ -139,7 +138,7 @@ export default function ProfileSettingsScreen() {
           }
         },
         {
-          name: "Birthdate", value: user?.user?.birthdate ?? "", handleClick: () => {
+          name: "Birthdate", value: user?.message?.birthdate ?? "", handleClick: () => {
             setBottomSheetChild(EditMode.BIRTHDATE)
             handleOpenDrawer()
           }
@@ -273,21 +272,21 @@ export default function ProfileSettingsScreen() {
             </View>
             <Spacer />
             {renderSheet && bottomSheetChild === EditMode.USERNAME &&
-              <EditUsername lastNicknameChange={user.user?.lastNicknameChange ?? ""} onUpdate={() => {
+              <EditUsername lastNicknameChange={user.message?.lastNicknameChange ?? ""} onUpdate={() => {
                 handleCloseDrawer()
                 refetch()
-              }} oldUsername={user.user?.nickname ?? ""} />
+              }} oldUsername={user.message?.nickname ?? ""} />
             }
             {
               renderSheet && bottomSheetChild === EditMode.FULLNAME &&
-              <EditName lastNameChangeDate={user.user?.lastNameChange ?? ""} onUpdate={() => {
+              <EditName lastNameChangeDate={user.message?.lastNameChange ?? ""} onUpdate={() => {
                 handleCloseDrawer()
                 refetch()
-              }} oldName={user.user?.name ?? ""} />
+              }} oldName={user.message?.name ?? ""} />
             }
             {
               renderSheet && bottomSheetChild === EditMode.BIO &&
-              <EditBio oldBio={user.user?.bio ?? ""} onUpdate={() => {
+              <EditBio oldBio={user.message?.bio ?? ""} onUpdate={() => {
                 refetch()
                 handleCloseDrawer()
               }} />
@@ -304,7 +303,7 @@ export default function ProfileSettingsScreen() {
               <EditEmail onUpdate={() => {
                 refetch()
                 handleCloseDrawer()
-              }} oldEmail={user.user?.email ?? ""} />
+              }} oldEmail={user.message?.email ?? ""} />
             }
             {
               renderSheet && bottomSheetChild === EditMode.PASSWORD &&

@@ -6,7 +6,7 @@ import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
 import CustomRefreshableScrollView from "@/components/views/CustomRefreshableScrollView";
 import CustomView from "@/components/views/CustomView";
-import { useAcceptFriendRequest, useGetAllFriendRequests, useRejectFriendRequest } from "@/hooks/queries/useFriendshipAction";
+import { useAcceptFriendRequests, useGetFriendRequests, useRejectFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
 import { useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
@@ -65,8 +65,8 @@ export default function FindFriendsScreen() {
   const focused = useIsFocused()
   const router = useRouter()
 
-  const { data: requests, isPending: isPending, refetch } = useGetAllFriendRequests()
-  const { mutate: acceptFriendReq, isPending: acceptPending } = useAcceptFriendRequest()
+  const { data: requests, isPending: isPending, refetch } = useGetFriendRequests()
+  const { mutate: acceptFriendReq, isPending: acceptPending } = useAcceptFriendRequests()
   const { mutate: rejectFriendReq, isPending: rejectPending } = useRejectFriendRequest()
 
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function FindFriendsScreen() {
         <Spacer />
         <View style={styles.suggested}>
           {
-            !isPending && requests && !requests.error && !requests.users && <NoResultComponent />
+            !isPending && requests && !requests.error && !requests.message && <NoResultComponent />
           }
           {
             !isPending && requests && requests.error && <ErrorComponent />
@@ -132,8 +132,8 @@ export default function FindFriendsScreen() {
             isPending && <LoadingComponent />
           }
           {
-            !isPending && requests && !requests.error && requests.users &&
-            requests.users.map(request => (
+            !isPending && requests && !requests.error && requests.message &&
+            requests.message.map(request => (
               <View key={request.userId} style={{ width: "100%" }}>
                 <ProfileItem
                   key={request.userId}
