@@ -14,6 +14,7 @@ import (
 func HandleRejectFriendRequest(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	currentUserId := utils.GetAuthUserId(req)
 	senderId := req.PathParameters["id"]
+	log.Println(req.PathParameters["id"])
 
 	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(senderId, currentUserId)
 	if friendshipStatusErr != nil {
