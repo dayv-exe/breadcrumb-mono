@@ -38,6 +38,7 @@ func UnauthorizedErrorResponse(msg string) events.APIGatewayProxyResponse {
 	if msg == "" {
 		msg = "Unauthorized request."
 	}
+	log.Println(msg)
 	return buildResponse(401, ResponseBody{msg})
 }
 
@@ -46,6 +47,7 @@ func NotFoundResponse(msg string) events.APIGatewayProxyResponse {
 		msg = "Resource not found."
 	}
 
+	log.Println(msg)
 	return buildResponse(404, ResponseBody{msg})
 }
 

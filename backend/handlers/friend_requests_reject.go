@@ -6,6 +6,7 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
+	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -16,10 +17,11 @@ func HandleRejectFriendRequest(ctx context.Context, req *events.APIGatewayProxyR
 
 	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(senderId, currentUserId)
 	if friendshipStatusErr != nil {
-		return models.InvalidRequestErrorResponse("Failed to determine friendship status!"), nil
+		return models.ServerSideErrorResponse("Failed to determine friendship status!", friendshipStatusErr), nil
 	}
 
 	if friendshipStatus != constants.FRIENDSHIP_STATUS_RECEIVED {
+		log.Println(friendshipStatus)
 		return models.InvalidRequestErrorResponse("No pending friend requests to reject!"), nil
 	}
 
