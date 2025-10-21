@@ -1,8 +1,7 @@
 import { UserDetails } from "@/api/models/userDetails";
 import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
-import { FRIENDSHIP_STATUS } from "@/constants/appConstants";
-import { GetId } from "@/constants/userAccountDetails";
+import { FRIENDSHIP_STATUS, ShowToast } from "@/constants/appConstants";
 import { useAcceptFriendRequests, useRejectFriendRequest, useSendFriendRequest, useUnsendFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
 import { useRemoveFriend } from "@/hooks/queries/useFriendsApi";
 import { useGetUser } from "@/hooks/queries/useUserApi";
@@ -123,7 +122,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const { data: userData, error, isPending, refetch } = useGetUser(userId)
   const isMyProfile = useIsMyProfile(userId)
   const { mutate: sendFriendReq, isPending: sendReqPending } = useSendFriendRequest()
-  const {mutate: unsendFriendRequest, isPending: unsendReqPending} = useUnsendFriendRequest()
+  const { mutate: unsendFriendRequest, isPending: unsendReqPending } = useUnsendFriendRequest()
   const { mutate: acceptFriendReq, isPending: acceptReqPending } = useAcceptFriendRequests()
   const { mutate: rejectFriendReq, isPending: rejectReqPending } = useRejectFriendRequest()
   const { mutate: endFriendship, isPending: endFriendshipPending } = useRemoveFriend()
@@ -231,10 +230,18 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
 
   async function handleRejectFriendRequest() {
     if (friendshipStatus === FRIENDSHIP_STATUS.RECEIVED) {
-      rejectFriendReq(userId)
-      console.log(userId)
-      console.log((await GetId()))
-      setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
+      rejectFriendReq(userId, {
+        onSuccess: res => {
+          if (res.error) {
+            ShowToast("Something went wrong try again.")
+          } else {
+            setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
+          }
+        },
+        onError: err => {
+          ShowToast(err.message)
+        }
+      })
     }
   }
 

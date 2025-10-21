@@ -41,6 +41,7 @@ export const editUser = async (edit: editUserDetailsData): Promise<apiResponse<s
 export const getUser = async (idOrNickname: string): Promise<apiResponse<UserDetails | null>> => {
   try {
     const { data } = await axiosInstance.get<{ message: UserDetails }>(`/u/${idOrNickname}`)
+    console.log(data.message)
     return { message: data.message, error: null }
   } catch (error) {
     console.error((error as AxiosError).message)
