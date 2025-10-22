@@ -1,10 +1,13 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useInitializeLocationTracking } from "@/utils/useLocationStore";
 import { Stack } from "expo-router";
 
 export default function ProtectedLayout() {
   const theme = useThemeColor
   const headerBg = theme({}, "background")
   const headerText = theme({}, "text")
+  useInitializeLocationTracking()
+  
   return (
     <Stack screenOptions={{
       headerShown: false,

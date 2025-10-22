@@ -59,8 +59,6 @@ export default function SignupVerifyScreen() {
   }
 
   const handleVerify = async () => {
-    console.log(userFullname)
-    console.log(userNickname)
     setActivityIndicators({
       ...activityIndicators, verifyBtn: true
     })

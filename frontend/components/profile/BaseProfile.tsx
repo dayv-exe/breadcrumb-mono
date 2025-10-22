@@ -7,6 +7,7 @@ import { useRemoveFriend } from "@/hooks/queries/useFriendsApi";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useIsMyProfile } from "@/hooks/useIsMyProfile";
+import { useLocationStore } from "@/utils/useLocationStore";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -128,6 +129,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const { mutate: endFriendship, isPending: endFriendshipPending } = useRemoveFriend()
 
   const user = useRef<UserDetails>(null)
+  const {address} = useLocationStore()
 
   const handleShowOptions = () => {
     if (userData?.message) {
@@ -316,6 +318,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
         visibilityTime: 3000
       })
     }
+
   }, [isMyProfile, userData])
 
   return (
@@ -362,8 +365,9 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
                   {isPending && <Skeleton height={20} width={60} borderRadius={10} />}
                 </View>
               </View>
-              <Spacer />
+              <Spacer size="small" />
               {!isPending && <View style={styles.bio}>
+                {isMyProfile && address && <CustomLabel fontSize={13} adaptToTheme labelText={address} />}
                 {userData?.message?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={userData.message.bio ?? ""} adaptToTheme />}
                 {!userData?.message?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
               </View>}
