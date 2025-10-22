@@ -4,6 +4,7 @@ import CustomMap, { mapMethods } from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useIsFocused } from "@react-navigation/native";
 import Mapbox from "@rnmapbox/maps";
@@ -36,7 +37,11 @@ const icons = {
   mapToggle: {
     light: require("../../../assets/images/icons/maptoggle_sel_light.png"),
     dark: require("../../../assets/images/icons/maptoggle_sel_dark.png")
-  }
+  },
+  search: {
+    light: require("../../../assets/images/icons/thicksearch_unsel_light.png"),
+    dark: require("../../../assets/images/icons/thicksearch_unsel_dark.png")
+  },
 }
 
 export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
@@ -54,6 +59,7 @@ export default function MapScreen() {
   const [useSatellite, setUseSatellite] = useState(false)
   const isFocused = useIsFocused()
   const router = useRouter()
+  const { coordinates } = useLocationStore()
 
   function handleAddFriend() {
     router.push("/find-friends")
@@ -72,12 +78,13 @@ export default function MapScreen() {
         </View>
         <View>
           <CustomImageButton handleClick={() => {
-            mapMethods?.moveTo([-1.5, 50.7], 10)
+            mapMethods?.moveTo([coordinates?.longitude ?? 0, coordinates?.latitude ?? 0], 13)
           }} src={getIconImage("focusUserLoc", mode === "light")} />
+          <Spacer size="small" />
+          <CustomImageButton src={getIconImage("search", mode === "light")} />
           <Spacer size="small" />
           <CustomImageButton src={getIconImage("frameMap", mode === "light")} />
           <Spacer size="small" />
-
         </View>
       </SafeAreaView>
 

@@ -45,7 +45,7 @@ export enum FRIENDSHIP_ACTIONS {
 export function ShowToast(message: string) {
   Toast.show({
     text1: message,
-    position: "bottom",
+    position: "top",
     type: "info",
   })
 }

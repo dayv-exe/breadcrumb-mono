@@ -129,7 +129,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const { mutate: endFriendship, isPending: endFriendshipPending } = useRemoveFriend()
 
   const user = useRef<UserDetails>(null)
-  const {address} = useLocationStore()
+  const { address } = useLocationStore()
 
   const handleShowOptions = () => {
     if (userData?.message) {
@@ -367,8 +367,8 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               </View>
               <Spacer size="small" />
               {!isPending && <View style={styles.bio}>
-                {isMyProfile && address && <CustomLabel fontSize={13} adaptToTheme labelText={address} />}
                 {userData?.message?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={userData.message.bio ?? ""} adaptToTheme />}
+                {isMyProfile && address && <CustomLabel fontSize={12} fade adaptToTheme labelText={address} />}
                 {!userData?.message?.bio && <CustomLabel width={"80%"} fontSize={15} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
               </View>}
               {(!isMyProfile && friendshipStatus !== FRIENDSHIP_STATUS.FRIENDS && !isPending) &&

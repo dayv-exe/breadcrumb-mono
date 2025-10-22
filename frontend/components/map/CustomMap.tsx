@@ -1,5 +1,7 @@
+import { ShowToast } from "@/constants/appConstants";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { showSettingsAlert } from "@/utils/helpers";
+import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import Constants from "expo-constants";
@@ -51,8 +53,8 @@ export default function CustomMap({ handlePress = () => { }, handleLongPress = (
   const satelliteUrl = Constants.expoConfig?.extra?.satelliteUrl
   const mode = useColorScheme()
   const cameraRef = useRef<Mapbox.Camera>(null)
-  const [location, setLocation] = useState<Location.LocationObject | null>(null)
   const [permissionGranted, setPermissionGranted] = useState(false)
+  const { coordinates } = useLocationStore()
 
   const [mapReady, setMapReady] = useState(false);
 
@@ -106,13 +108,20 @@ export default function CustomMap({ handlePress = () => { }, handleLongPress = (
         attributionEnabled
         logoEnabled={false}
       >
-        <Mapbox.Camera ref={cameraRef} centerCoordinate={[-1.393892369785663, 50.918201981005836]} zoomLevel={zoomLevel} animationDuration={0} pitch={pitch} />
+        <Mapbox.Camera ref={cameraRef} centerCoordinate={[coordinates?.longitude ?? 0, coordinates?.latitude ?? 0]} zoomLevel={zoomLevel} animationDuration={0} pitch={pitch} />
 
-        {userPosition &&
+        {coordinates &&
           <Mapbox.UserLocation
+          onPress={
+            () => {
+              ShowToast("🔐 Only you can see your current location")
+            }
+          }
             visible={true}
-            minDisplacement={10}
-            requestsAlwaysUse={true} />
+            minDisplacement={.5}
+            requestsAlwaysUse={true}
+            showsUserHeadingIndicator
+          />
         }
       </Mapbox.MapView>}
 

@@ -47,9 +47,13 @@ function ControlButtonContainer({ children }: PropsWithChildren) {
 function CrumbTypePicker() {
   return (
     <View style={[styles.pickerContainer, { backgroundColor: Colors.light.backgroundOverlay }]}>
-      <CustomButton squashed width={"auto"} type="faded" labelText="Photo & video" />
+      <CustomButton squashed width={"auto"} type="faded" labelText="photo & video" customTextStyle={{
+        fontSize: 12
+      }} />
       <Spacer size="small" />
-      <CustomButton squashed type="text" labelText="Text" />
+      <CustomButton squashed type="text" labelText="text" customTextStyle={{
+        fontSize: 12
+      }} />
     </View>
   )
 }
@@ -347,6 +351,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         {!isRecording && <View style={styles.galleryContainer}>
           <CustomImageButton type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
         </View>}
+        {!isRecording && <CrumbTypePicker />}
         {!isRecording && (
           <View style={styles.modeCarouselContainer}>
             <CameraModeCarousel
@@ -448,7 +453,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    bottom: 30,
+    bottom: 20,
   },
   photoShutter: {
     borderRadius: "100%",
@@ -472,8 +477,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 50,
     position: "absolute",
-    bottom: 12,
-    padding: 5
+    bottom: 130,
+    padding: 5,
+    opacity: .75
   },
   cameraControls: {
     position: "absolute",
@@ -497,7 +503,7 @@ const styles = StyleSheet.create({
   galleryContainer: {
     position: "absolute",
     alignItems: "center",
-    bottom: 55,
+    bottom: 45,
     left: 45,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 5,
@@ -540,7 +546,7 @@ const styles = StyleSheet.create({
   },
   modeCarouselContainer: {
     position: 'absolute',
-    bottom: 60,
+    bottom: 50,
     width: '100%',
   },
 })

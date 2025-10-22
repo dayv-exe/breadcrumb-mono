@@ -32,7 +32,7 @@ interface LocationActions {
 
 const LOCATION_CONFIG = {
   ACCURACY: Location.Accuracy.BestForNavigation,
-  DISTANCE_INTERVAL: 20,
+  DISTANCE_INTERVAL: 10,
   TIME_INTERVAL: 15000,
 } as const;
 
