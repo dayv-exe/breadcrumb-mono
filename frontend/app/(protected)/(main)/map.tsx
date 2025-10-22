@@ -3,15 +3,15 @@ import CustomLabel from "@/components/CustomLabel";
 import CustomMap, { mapMethods } from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
+import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { useIsFocused } from "@react-navigation/native";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, useColorScheme, View } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const token = Constants.expoConfig?.extra?.mapboxToken;
@@ -53,11 +53,9 @@ export default function MapScreen() {
   const mode = useColorScheme() ?? "light";
   const theme = useThemeColor
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['7%', '15', '25%', '35%', '80%'], []);
+  const snapPoints = useMemo(() => ['7', '35'], []);
   const mapRef = useRef<Mapbox.MapView>(null);
   const [mapMethods, setMapMethods] = useState<mapMethods | null>(null)
-  const [useSatellite, setUseSatellite] = useState(false)
-  const isFocused = useIsFocused()
   const router = useRouter()
   const { coordinates } = useLocationStore()
 
@@ -74,7 +72,7 @@ export default function MapScreen() {
           <CustomImageButton src={getIconImage("addFriend", mode === "light")} handleClick={handleAddFriend} />
         </View>
         <View style={[styles.headerTextContainer, { backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background }]}>
-          <Text style={[styles.headerText, { color: mode === "dark" ? Colors.dark.text : Colors.light.text }]}>0 crumbs</Text>
+          <CustomLabel adaptToTheme labelText="map" />
         </View>
         <View>
           <CustomImageButton handleClick={() => {
@@ -88,14 +86,16 @@ export default function MapScreen() {
         </View>
       </SafeAreaView>
 
-      {(true || isFocused) && <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={useSatellite} />}
+      <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handleLongPress={e => {
+        getPressedLocationInfo(e, mapRef, token)
+      }} />
 
       <BottomSheet
         ref={bottomSheetRef}
         index={0}
         snapPoints={snapPoints}
         enablePanDownToClose={false}
-        containerStyle={{ zIndex: 20 }}
+        containerStyle={{ zIndex: 20, position: "relative" }}
         backgroundStyle={[styles.bottomSheet, {
           backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background,
         }]}
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 5,
     borderRadius: 15,
     elevation: 5,
     shadowColor: "#000",

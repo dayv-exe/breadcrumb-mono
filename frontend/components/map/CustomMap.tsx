@@ -30,6 +30,7 @@ type customMapProps = {
 type permissionProps = {
   handleGrantPermission: () => void
 }
+
 function PermissionScreen({ handleGrantPermission }: permissionProps) {
   const mode = useColorScheme()
 
@@ -47,7 +48,16 @@ function PermissionScreen({ handleGrantPermission }: permissionProps) {
   )
 }
 
-export default function CustomMap({ handlePress = () => { }, handleLongPress = () => { }, mapRef, userPosition, zoomLevel = 3, pitch = 0, setMapMethods, useSatellite = false }: customMapProps) {
+export default function CustomMap({
+  handlePress = () => { },
+  handleLongPress = () => { },
+  mapRef,
+  userPosition,
+  zoomLevel = 3,
+  pitch = 0,
+  setMapMethods,
+  useSatellite = false,
+}: customMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
   const satelliteUrl = Constants.expoConfig?.extra?.satelliteUrl
@@ -55,7 +65,6 @@ export default function CustomMap({ handlePress = () => { }, handleLongPress = (
   const cameraRef = useRef<Mapbox.Camera>(null)
   const [permissionGranted, setPermissionGranted] = useState(false)
   const { coordinates } = useLocationStore()
-
   const [mapReady, setMapReady] = useState(false);
 
   const methods: mapMethods = {
@@ -63,13 +72,13 @@ export default function CustomMap({ handlePress = () => { }, handleLongPress = (
       cameraRef.current?.setCamera({
         centerCoordinate: position,
         zoomLevel: newZoomLevel || zoomLevel,
-        animationDuration: 1000
+        animationDuration: 1000,
       })
     },
 
     moveToUserLocation: (newZoomLevel?: number) => {
-
-    }
+      // Implementation for moving to user location
+    },
   }
 
   async function handlePermissions(showPopUp: boolean = true) {
@@ -89,7 +98,6 @@ export default function CustomMap({ handlePress = () => { }, handleLongPress = (
     handlePermissions(false)
   }, [])
 
-
   return (
     <View style={styles.container}>
       {permissionGranted && <Mapbox.MapView
@@ -108,15 +116,19 @@ export default function CustomMap({ handlePress = () => { }, handleLongPress = (
         attributionEnabled
         logoEnabled={false}
       >
-        <Mapbox.Camera ref={cameraRef} centerCoordinate={[coordinates?.longitude ?? 0, coordinates?.latitude ?? 0]} zoomLevel={zoomLevel} animationDuration={0} pitch={pitch} />
+        <Mapbox.Camera
+          ref={cameraRef}
+          centerCoordinate={[coordinates?.longitude ?? 0, coordinates?.latitude ?? 0]}
+          zoomLevel={zoomLevel}
+          animationDuration={0}
+          pitch={pitch}
+        />
 
         {coordinates &&
           <Mapbox.UserLocation
-          onPress={
-            () => {
+            onPress={() => {
               ShowToast("🔐 Only you can see your current location")
-            }
-          }
+            }}
             visible={true}
             minDisplacement={.5}
             requestsAlwaysUse={true}

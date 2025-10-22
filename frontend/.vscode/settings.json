@@ -6,6 +6,11 @@
   },
   "editor.wordWrap": "on",
   "cSpell.words": [
-    "swipeable"
+    "maptoggle",
+    "searchfriends",
+    "swipeable",
+    "thicksearch",
+    "unsel",
+    "userlocation"
   ]
 }

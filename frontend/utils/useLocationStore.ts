@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { formatAddress } from './locationFormatter';
 
-interface Coordinates {
+export interface Coordinates {
   latitude: number;
   longitude: number;
 }
@@ -103,7 +103,6 @@ export const useLocationStore = create<LocationState & LocationActions>()(
           }
 
           let cleanAddress = formatAddress(location)
-          console.log(location)
           return cleanAddress;
         } catch (error) {
           console.error('Error getting clean address:', error);
@@ -161,7 +160,6 @@ export const useLocationStore = create<LocationState & LocationActions>()(
                 address: newAddress,
                 lastUpdated: Date.now(),
               });
-              console.log(newAddress)
             }
           );
         } catch (error) {
