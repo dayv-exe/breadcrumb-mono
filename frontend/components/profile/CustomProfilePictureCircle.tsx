@@ -1,44 +1,47 @@
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { StyleSheet, View } from "react-native";
-import CustomLabel from "../CustomLabel";
-import Spacer from "../Spacer";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 type props = {
   size?: number
-  showInstruction?: boolean
+  imgUrl?: string
+  nickname: string
+  handleClick?: (src: string,) => void
 }
 
-export default function CustomProfilePictureCircle({ size = 100, showInstruction }: props) {
-  // if no url then use fg and bg colors
-  const theme = useThemeColor
-  const hasProfilePicture = false
+export default function CustomProfilePictureCircle({ size = 100, handleClick, imgUrl, nickname }: props) {
+  const mode = useColorScheme()
+
+  const fgColLight = "#555"
+  const fgColDark = "#fff"
+
+  const bgCol = useThemeColor({}, "fadedBackground")
+
+  const initials = nickname.length > 1 ? nickname.substring(0, 2) : "00"
 
   return (
-    <View style={styles.container}>
-      <View style={[
-        styles.circle,
-        {
-          backgroundColor: theme({}, "fadedBackground"),
-          width: size,
-          height: size,
-        }
-      ]}>
-      </View>
-      {showInstruction &&
-        <View>
-          <Spacer size="small" />
-          <CustomLabel fade adaptToTheme labelText={hasProfilePicture ? "Long press circle to preview" : "Tap circle to set picture"} />
-        </View>
+    <TouchableOpacity style={{
+      backgroundColor: bgCol,
+      width: size,
+      height: size,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "100%",
+    }} onPress={() => {
+      if (handleClick) {
+        handleClick(imgUrl ?? "")
       }
-    </View>
+    }}>
+      <Text style={{
+        fontSize: size * .35,
+        fontWeight: "300",
+        color: mode === "light" ? fgColLight : fgColDark
+      }}>{initials.toUpperCase()}</Text>
+    </TouchableOpacity>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: "center",
-    alignItems: "center"
-  },
   circle: {
     borderRadius: "100%"
   }

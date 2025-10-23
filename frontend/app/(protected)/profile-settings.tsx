@@ -1,6 +1,7 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
+import { useModal } from "@/components/modals/ModalContext";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import EditBio from "@/components/profile/EditBio";
 import EditBirthdate from "@/components/profile/EditBirthdate";
@@ -186,6 +187,7 @@ export default function ProfileSettingsScreen() {
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['100%'], []);
+  const {showModal} = useModal()
 
   return (
     <>
@@ -208,7 +210,18 @@ export default function ProfileSettingsScreen() {
         <View style={[
           styles.container,
         ]}>
-          <CustomProfilePictureCircle showInstruction />
+          <CustomProfilePictureCircle nickname={user.message?.nickname ?? "00"}
+          handleClick={async() => {
+            await showModal({
+              message: "Change profile picture",
+              primaryBtnText: "Choose from photos",
+              secondaryBtnText: "Take photo",
+              onPrimary: () => console.log("Pretend to open gallery"),
+              onSecondary: () => console.log("pretend to open camera"),
+              showCancelBtn: true
+            })
+          }}
+          />
           <Spacer />
           <SectionList
             style={styles.sections}

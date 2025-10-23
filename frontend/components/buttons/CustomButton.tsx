@@ -109,13 +109,13 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         {labelText && <Spacer size="small" />}
       </>}
       {labelText && <Text style={[
+        customTextStyle,
         styles.text,
         {
           color: getTextColor(),
           fontSize: fontSize ? fontSize : squashed ? 13 : slim ? 14 : 15,
           fontWeight: bold ? 600 : "normal",
         },
-        customTextStyle
       ]}>{labelText}</Text>}
     </TouchableOpacity>
   )

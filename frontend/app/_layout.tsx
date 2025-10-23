@@ -1,3 +1,5 @@
+import { BottomSheetProvider } from '@/components/bottomsheet/BottomSheetContext';
+import { ModalProvider } from '@/components/modals/ModalContext';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { useAuthStore } from '@/utils/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -145,18 +147,22 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <Stack screenOptions={{
-          headerShown: false,
-        }}>
-          <Stack.Protected guard={!isLoggedIn}>
-            <Stack.Screen name="(auth)" />
-          </Stack.Protected>
+        <BottomSheetProvider>
+          <ModalProvider>
+            <Stack screenOptions={{
+              headerShown: false,
+            }}>
+              <Stack.Protected guard={!isLoggedIn}>
+                <Stack.Screen name="(auth)" />
+              </Stack.Protected>
 
-          <Stack.Protected guard={isLoggedIn}>
-            <Stack.Screen name="(protected)" />
-          </Stack.Protected>
+              <Stack.Protected guard={isLoggedIn}>
+                <Stack.Screen name="(protected)" />
+              </Stack.Protected>
 
-        </Stack>
+            </Stack>
+          </ModalProvider>
+        </BottomSheetProvider>
         <Toast config={mode === "light" ? darkToastConfig : toastConfig} />
       </QueryClientProvider>
     </GestureHandlerRootView>

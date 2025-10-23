@@ -1,5 +1,5 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
-import React, { useState } from 'react';
+import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../buttons/CustomButton';
 import Spacer from '../Spacer';
@@ -7,18 +7,18 @@ import Spacer from '../Spacer';
 type mTypes = {
   message?: string
   show: boolean
-  closeBtnText?: string
+  primaryBtnText?: string
   secondaryBtnText?: string
-  handleClose?: () => void
+  showCancelBtn?: boolean
+  handlePrimaryAction?: () => void
   handleSecondaryAction?: () => void
+  handleClose?: () => void
 }
 
-export default function CustomModal({ message = "Hello world!", show, closeBtnText = "Okay", secondaryBtnText = "Not okay", handleClose=() => {}, handleSecondaryAction }: mTypes) {
-  const theme = useThemeColor
-
-  const [showSpinnerPri, setShowSpinnerPri] = useState(false)
-  const [showSpinnerSec, setShowSpinnerSec] = useState(false)
-
+export default function CustomModal({ message = "Hello world!", show, primaryBtnText = "Okay", secondaryBtnText = "Not okay", handlePrimaryAction = () => { }, handleSecondaryAction, handleClose, showCancelBtn = false }: mTypes) {
+  const bgCol = useThemeColor({}, "background")
+  const bgOverlay = useThemeColor({}, "backgroundOverlay")
+  const textCol = useThemeColor({}, "text")
   return (
     <Modal
       animationType="fade"
@@ -28,36 +28,35 @@ export default function CustomModal({ message = "Hello world!", show, closeBtnTe
     >
       <View style={[
         styles.modalBackground,
-        {backgroundColor: theme({}, "backgroundOverlay")}
+        { backgroundColor: bgOverlay }
       ]}>
         <View style={[
           styles.modalContainer,
           {
-            backgroundColor: theme({}, "background")
+            backgroundColor: bgCol
           }
         ]}>
           <Text style={[
             styles.modalText,
             {
-              color: theme({}, "text")
+              color: textCol
             }
           ]}>{message}</Text>
           <Spacer />
           <View style={styles.buttonContainer}>
-            <CustomButton labelText={closeBtnText} handleClick={() => {
-              setShowSpinnerPri(true)
-              handleClose()
-              // temporary work around maybe not best practice
-              setInterval(() => setShowSpinnerPri(false), 1000)
-            }} type={handleSecondaryAction ? "prominent" : "prominent"} isPending={showSpinnerPri} />
+            <CustomButton labelText={primaryBtnText} handleClick={() => {
+              handlePrimaryAction()
+            }} type="less-prominent" />
             {handleSecondaryAction && <Spacer />}
             {handleSecondaryAction && <CustomButton labelText={secondaryBtnText} handleClick={() => {
-              setShowSpinnerSec(true)
               handleSecondaryAction()
-
-              // temporary work around not best practice
-              setInterval(() => setShowSpinnerSec(false), 1000)
-            }} type='theme-faded' isPending={showSpinnerSec} />}
+            }} type='theme-faded' />}
+            {showCancelBtn &&
+              <>
+                <Spacer size='small' />
+                <CustomButton customTextStyle={{color: "red"}} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />
+              </>
+            }
           </View>
         </View>
       </View>

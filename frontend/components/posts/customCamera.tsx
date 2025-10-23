@@ -44,15 +44,15 @@ function ControlButtonContainer({ children }: PropsWithChildren) {
   )
 }
 
-function CrumbTypePicker() {
+function fCrumbTypePicker() {
   return (
     <View style={[styles.pickerContainer, { backgroundColor: Colors.light.backgroundOverlay }]}>
       <CustomButton squashed width={"auto"} type="faded" labelText="photo & video" customTextStyle={{
-        fontSize: 12
+        fontSize: 11
       }} />
       <Spacer size="small" />
       <CustomButton squashed type="text" labelText="text" customTextStyle={{
-        fontSize: 12
+        fontSize: 11
       }} />
     </View>
   )
@@ -351,7 +351,6 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         {!isRecording && <View style={styles.galleryContainer}>
           <CustomImageButton type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
         </View>}
-        {!isRecording && <CrumbTypePicker />}
         {!isRecording && (
           <View style={styles.modeCarouselContainer}>
             <CameraModeCarousel
@@ -479,7 +478,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 130,
     padding: 5,
-    opacity: .75
   },
   cameraControls: {
     position: "absolute",
