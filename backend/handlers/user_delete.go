@@ -14,7 +14,7 @@ import (
 func handleDeleteUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 
-	if userId == "" {
+	if userId == "" || userId != req.PathParameters["id"] {
 		return models.UnauthorizedErrorResponse(""), nil
 	}
 
