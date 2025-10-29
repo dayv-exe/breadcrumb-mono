@@ -17,7 +17,7 @@ type SearchResult struct {
 
 func handleSearchUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	// /search/{search_string}
-	searchStr := req.PathParameters["search_string"]
+	searchStr := req.PathParameters["str"]
 	if len(searchStr) < models.UserSearchIndexPrefixLen {
 		// return empty array if string length is too short
 		return models.SuccessfulGetRequestResponse([]models.UserSearch{}), nil

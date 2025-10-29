@@ -17,7 +17,7 @@ func handleNicknameAvailable(ctx context.Context, req events.APIGatewayV2HTTPReq
 	// returns true if a nickname has not been taken by a user in dynamodb
 
 	// if nickname is invalid return false immediately
-	nickname := strings.ToLower(req.PathParameters["nickname"])
+	nickname := strings.ToLower(req.PathParameters["str"])
 	if nickname == "" || !utils.NicknameValid(nickname) {
 		return models.SuccessfulRequestResponse(fmt.Sprintf("%v", false), false), nil
 	}
