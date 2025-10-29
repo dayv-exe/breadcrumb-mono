@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleGetFriendRequests(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleGetFriendRequests(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	currentUserId := utils.GetAuthUserId(req)
 	friendRequests, friendRequestsErr := helpers.NewFriendshipHelper(ctx).GetAllFriendRequests(currentUserId)
 	if friendRequestsErr != nil {

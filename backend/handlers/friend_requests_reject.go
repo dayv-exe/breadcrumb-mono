@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleRejectFriendRequest(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleRejectFriendRequest(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	currentUserId := utils.GetAuthUserId(req)
 	senderId := req.PathParameters["id"]
 	log.Println(req.PathParameters["id"])

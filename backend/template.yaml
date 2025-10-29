@@ -479,6 +479,43 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref SearchTable
 
+  FriendRequestActions:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-friend-requests-actions"
+      CodeUri: bin/friend-requests-actions/friend-requests-actions.zip
+      Handler: bootstrap
+      Architectures: [arm64]
+      Description: handle friend request actions
+      Events:
+        GetFriendFriendRequests:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        SendFriendFriendRequests:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        RejectFriendFriendRequests:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests/{id}
+            Method: DELETE
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable    
+
   AcceptFriendRequest:
     Type: AWS::Serverless::Function
     Properties:
@@ -492,90 +529,6 @@ Resources:
           Type: HttpApi
           Properties:
             Path: /friends
-            Method: POST
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-
-  GetFriendRequests:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-get-friend-requests"
-      CodeUri: bin/friend_requests_get/friend_requests_get.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: list friend requests
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests
-            Method: GET
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-
-  RejectFriendRequest:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-reject-friend-request"
-      CodeUri: bin/friend_requests_reject/friend_requests_reject.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: reject friend request
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests/{id}
-            Method: DELETE
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-
-  UnsendFriendRequest:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-unsend-friend-request"
-      CodeUri: bin/friend_requests_unsend/friend_requests_unsend.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: unsend friend request
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests/unsend/{id}
-            Method: GET
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-
-  SendFriendRequest:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-send-friend-request"
-      CodeUri: bin/friend_requests_send/friend_requests_send.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: send friend request
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests
             Method: POST
             ApiId: !Ref BreadApi
             Auth:

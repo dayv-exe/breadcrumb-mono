@@ -12,5 +12,5 @@ func init() {
 }
 
 func main() {
-	lambda.Start(handlers.HandleRejectFriendRequest)
+	lambda.Start(handlers.HandleFriendRequestActions)
 }
