@@ -479,7 +479,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref SearchTable
 
-  FriendRequestActions:
+  FriendRequestsActions:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-friend-requests-actions"
@@ -488,7 +488,7 @@ Resources:
       Architectures: [arm64]
       Description: handle friend request actions
       Events:
-        GetFriendFriendRequests:
+        GetFriendRequests:
           Type: HttpApi
           Properties:
             Path: /friend-requests
@@ -496,7 +496,7 @@ Resources:
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
-        SendFriendFriendRequests:
+        SendFriendRequests:
           Type: HttpApi
           Properties:
             Path: /friend-requests
@@ -504,7 +504,7 @@ Resources:
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
-        RejectFriendFriendRequests:
+        RejectFriendRequests:
           Type: HttpApi
           Properties:
             Path: /friend-requests/{id}
@@ -516,16 +516,24 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable    
 
-  AcceptFriendRequest:
+  FriendsActions:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-accept-friend-request"
-      CodeUri: bin/friend_requests_accept/friend_requests_accept.zip
+      FunctionName: !Sub "${AWS::StackName}-friends-actions"
+      CodeUri: bin/friends-actions/friends-actions.zip
       Handler: bootstrap
       Architectures: [arm64]
-      Description: accept friend request
+      Description: handle friends actions
       Events:
-        ApiRequest:
+        GetFriends:
+          Type: HttpApi
+          Properties:
+            Path: /friends
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        AcceptFriendRequest:
           Type: HttpApi
           Properties:
             Path: /friends
@@ -533,41 +541,7 @@ Resources:
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-
-  GetFriends:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-get-friends"
-      CodeUri: bin/friends_get/friends_get.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: get all users friends
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /friends/{id}
-            Method: GET
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-
-  RemoveFriend:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-remove-friend"
-      CodeUri: bin/friends_remove/friends_remove.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: remove user as a friend
-      Events:
-        ApiRequest:
+        RemoveFriend:
           Type: HttpApi
           Properties:
             Path: /friends/{id}
@@ -577,7 +551,7 @@ Resources:
               Authorizer: CognitoAuthorizer
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
+            TableName: !Ref UsersTable    
 
   # user dynamodb table
   UsersTable:
@@ -617,7 +591,6 @@ Resources:
           Projection:
             ProjectionType: ALL
         
-
   SearchTable:
     Type: AWS::DynamoDB::Table
     Properties:

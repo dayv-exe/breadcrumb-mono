@@ -1,7 +1,5 @@
-friend_requests_accept
-friend-requests-actions
-friends_get
-friends_remove
+friend_requests_actions
+friends_actions
 generate_presigned_url
 nickname_available
 signup_abort
