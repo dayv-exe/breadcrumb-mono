@@ -15,7 +15,7 @@ type helper struct {
 	Ctx       context.Context
 }
 
-func NewHelper(ctx context.Context, tableName *string) *helper {
+func newHelper(ctx context.Context, tableName *string) *helper {
 	if tableName == nil {
 		tableName = &utils.GetDependencies().MainTableName
 	}

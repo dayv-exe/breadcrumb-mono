@@ -10,24 +10,24 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type searchDynamoHelper struct {
+type searchHelper struct {
 	Ctx context.Context
 }
 
-func NewSearchHelper(ctx context.Context) *searchDynamoHelper {
-	return &searchDynamoHelper{
+func NewSearchHelper(ctx context.Context) *searchHelper {
+	return &searchHelper{
 		Ctx: ctx,
 	}
 }
 
-func (this *searchDynamoHelper) SearchUser(searchStr string) (*[]models.UserDisplayInfo, error) {
+func (this *searchHelper) SearchUser(searchStr string) (*[]models.UserDisplayInfo, error) {
 
 	var matches []models.UserDisplayInfo
 	seen := make(map[string]int)
 
 	tokens := utils.SplitOnDelimiter(strings.ToLower(utils.NormalizeString(searchStr)), " ", "_", ".") // splits the search string into tokens
 
-	helper := NewHelper(this.Ctx, &utils.GetDependencies().SearchTableName)
+	helper := newHelper(this.Ctx, &utils.GetDependencies().SearchTableName)
 
 	for _, token := range tokens {
 		if len(token) >= models.UserSearchIndexPrefixLen {

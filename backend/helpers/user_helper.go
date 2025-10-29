@@ -13,17 +13,17 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type userDynamoHelper struct {
+type userHelper struct {
 	Ctx context.Context
 }
 
-func NewUserHelper(ctx context.Context) *userDynamoHelper {
-	return &userDynamoHelper{
+func NewUserHelper(ctx context.Context) *userHelper {
+	return &userHelper{
 		Ctx: ctx,
 	}
 }
 
-func (this *userDynamoHelper) AddUser(u *models.User) error {
+func (this *userHelper) AddUser(u *models.User) error {
 	var transactions []types.TransactWriteItem
 
 	// nickname item to reserve users nickname
@@ -46,12 +46,12 @@ func (this *userDynamoHelper) AddUser(u *models.User) error {
 	// get search index transact write items
 	transactions = append(transactions, models.GetUserSearchIndexItems(u)...)
 
-	return TransactWrite(NewHelper(this.Ctx, nil), transactions...)
+	return TransactWrite(newHelper(this.Ctx, nil), transactions...)
 }
 
-func (this *userDynamoHelper) findAllWithNickname(nickname string) (*[]models.User, error) {
+func (this *userHelper) findAllWithNickname(nickname string) (*[]models.User, error) {
 	return QueryItems(
-		NewHelper(this.Ctx, nil),
+		newHelper(this.Ctx, nil),
 		aws.String("GSIndex"),
 		"gsi = :nickname",
 		map[string]types.AttributeValue{
@@ -63,7 +63,7 @@ func (this *userDynamoHelper) findAllWithNickname(nickname string) (*[]models.Us
 	)
 }
 
-func (this *userDynamoHelper) FindByNickname(nickname string) (*models.User, error) {
+func (this *userHelper) FindByNickname(nickname string) (*models.User, error) {
 	users, err := this.findAllWithNickname(nickname)
 	if err != nil {
 		return nil, err
@@ -76,14 +76,14 @@ func (this *userDynamoHelper) FindByNickname(nickname string) (*models.User, err
 	return &(*users)[0], nil
 }
 
-func (this *userDynamoHelper) FindById(id string) (*models.User, error) {
-	helper := NewHelper(this.Ctx, nil)
+func (this *userHelper) FindById(id string) (*models.User, error) {
+	helper := newHelper(this.Ctx, nil)
 	return GetAndConvertItem(helper, models.UserKey(id), func(m map[string]types.AttributeValue) models.User {
 		return *models.ConvertToUser(m)
 	})
 }
 
-func (this *userDynamoHelper) DeleteFromDynamo(u *models.User) error {
+func (this *userHelper) DeleteFromDynamo(u *models.User) error {
 	// delete user profile, nickname, friends, post and allat
 	var transactions []types.TransactWriteItem
 
@@ -95,12 +95,12 @@ func (this *userDynamoHelper) DeleteFromDynamo(u *models.User) error {
 	// unsend all f reqs
 
 	return TransactWrite(
-		NewHelper(this.Ctx, nil),
+		newHelper(this.Ctx, nil),
 		transactions...,
 	)
 }
 
-func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName string, transactions []types.TransactWriteItem, updatingNickname bool) error {
+func (u *userHelper) updateNameOrNickname(user *models.User, newName string, transactions []types.TransactWriteItem, updatingNickname bool) error {
 	log.Println("name update begins")
 
 	log.Println("old name: " + user.Name)
@@ -139,7 +139,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	))
 
 	// after update completes successfully
-	err := TransactWrite(NewHelper(u.Ctx, nil), transactions...)
+	err := TransactWrite(newHelper(u.Ctx, nil), transactions...)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	// get transactions to delete all old search indexes
 	user.Name = oldName
 	user.Nickname = oldNickname
-	err = TransactWrite(NewHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
+	err = TransactWrite(newHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
 
 	if err != nil {
 		// not a breaking error, at this stage the names have been updated successfully
@@ -157,7 +157,7 @@ func (u *userDynamoHelper) updateNameOrNickname(user *models.User, newName strin
 	return nil
 }
 
-func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string) error {
+func (u *userHelper) UpdateNickname(user *models.User, newNickname string) error {
 	// check user is not updating nickname too soon
 	if !utils.NameChangeAllowed(user.LastNicknameChange) {
 		return fmt.Errorf("Nickname change to soon, try again after a few days")
@@ -192,7 +192,7 @@ func (u *userDynamoHelper) UpdateNickname(user *models.User, newNickname string)
 	return u.updateNameOrNickname(user, newNickname, transactions, true)
 }
 
-func (u *userDynamoHelper) UpdateName(user *models.User, newName string) error {
+func (u *userHelper) UpdateName(user *models.User, newName string) error {
 	if !utils.NameChangeAllowed(user.LastNameChange) {
 		return fmt.Errorf("name change too soon, wait a few days and try again.")
 	}
@@ -205,7 +205,7 @@ func (u *userDynamoHelper) UpdateName(user *models.User, newName string) error {
 	return u.updateNameOrNickname(user, newName, transactions, false)
 }
 
-func (u *userDynamoHelper) UpdateBio(userid, bio string) error {
+func (u *userHelper) UpdateBio(userid, bio string) error {
 	if !utils.BioIsValid(&bio) {
 		return fmt.Errorf("bio provided is invalid, bio: %v", bio)
 	}
@@ -228,8 +228,8 @@ func (u *userDynamoHelper) UpdateBio(userid, bio string) error {
 	return nil
 }
 
-func (this *userDynamoHelper) NicknameAvailable(nickname string) (bool, error) {
-	exists, err := ItemExists(NewHelper(this.Ctx, nil), models.NicknameKey(nickname))
+func (this *userHelper) NicknameAvailable(nickname string) (bool, error) {
+	exists, err := ItemExists(newHelper(this.Ctx, nil), models.NicknameKey(nickname))
 	if err != nil {
 		return false, err
 	}

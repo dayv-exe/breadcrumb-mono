@@ -12,12 +12,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 )
 
-type userCognitoHelper struct {
+type cognitoHelper struct {
 	Ctx context.Context
 }
 
-func NewCognitoHelper(ctx context.Context) *userCognitoHelper {
-	return &userCognitoHelper{
+func NewCognitoHelper(ctx context.Context) *cognitoHelper {
+	return &cognitoHelper{
 		Ctx: ctx,
 	}
 }
@@ -27,7 +27,7 @@ type CognitoManagedInfo struct {
 	Birthdate string `json:"birthdate"`
 }
 
-func (u *userCognitoHelper) UserExists(sub string) (bool, error) {
+func (u *cognitoHelper) UserExists(sub string) (bool, error) {
 	input := &cognitoidentityprovider.AdminGetUserInput{
 		UserPoolId: &utils.GetDependencies().UserPoolId,
 		Username:   &sub,
@@ -45,7 +45,7 @@ func (u *userCognitoHelper) UserExists(sub string) (bool, error) {
 	return user.UserStatus == types.UserStatusTypeConfirmed, nil
 }
 
-func (this *userCognitoHelper) GetManagedInfo(sub string) (*CognitoManagedInfo, error) {
+func (this *cognitoHelper) GetManagedInfo(sub string) (*CognitoManagedInfo, error) {
 	// returns user details managed by cognito like email and birthdate
 
 	input := &cognitoidentityprovider.AdminGetUserInput{
@@ -82,7 +82,7 @@ func getManagedInfoCustomFilter(queryFn func() (*cognitoidentityprovider.AdminGe
 	}, nil
 }
 
-func (this *userCognitoHelper) DeleteFromCognito(id string, ignoreConfirmationStatus bool) error {
+func (this *cognitoHelper) DeleteFromCognito(id string, ignoreConfirmationStatus bool) error {
 
 	// deletes unconfirmed users, except ignore confirmation status then it deletes any user
 
