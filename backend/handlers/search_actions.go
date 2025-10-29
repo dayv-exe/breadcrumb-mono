@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"strings"
 
@@ -16,6 +17,9 @@ func HandleSearchActions(ctx context.Context, req events.APIGatewayV2HTTPRequest
 			return handleNicknameAvailable(ctx, req)
 		}
 
+		if utils.GetAuthUserId(req) == "" {
+			return models.UnauthorizedErrorResponse(""), nil
+		}
 		return handleSearchUser(ctx, req)
 
 	default:

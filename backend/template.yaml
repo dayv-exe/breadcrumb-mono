@@ -443,8 +443,6 @@ Resources:
             Path: /search/{str}
             Method: GET
             ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
