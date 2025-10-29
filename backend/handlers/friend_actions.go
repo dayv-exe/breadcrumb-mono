@@ -3,19 +3,20 @@ package handlers
 import (
 	"backend/models"
 	"context"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 func HandleFriendsActions(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	switch req.HTTPMethod {
-	case "POST":
+	switch strings.ToLower(req.HTTPMethod) {
+	case "post":
 		return handleAcceptFriendRequest(ctx, req)
 
-	case "GET":
+	case "get":
 		return handleGetFriends(ctx, req)
 
-	case "DELETE":
+	case "delete":
 		return handleRemoveFriend(ctx, req)
 
 	default:

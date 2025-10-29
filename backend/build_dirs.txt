@@ -1,10 +1,8 @@
 friend_request_actions
 friend_actions
 user_actions
-nickname_available
-user_search
+search_actions
 generate_presigned_url
-signup_abort
 signup_presignup
 signup_unfinished_remover
 custom_email

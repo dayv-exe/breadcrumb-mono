@@ -21,8 +21,11 @@ func HandleUserActions(ctx context.Context, req *events.APIGatewayProxyRequest) 
 
 	case "delete":
 		action := req.QueryStringParameters["action"]
-		if action == "delete" {
+		switch action {
+		case "delete":
 			return handleDeleteUser(ctx, req)
+		case "abort":
+			return handleAbortSignup(ctx, req)
 		}
 
 		return models.InvalidRequestErrorResponse("Invalid user delete action!"), nil
