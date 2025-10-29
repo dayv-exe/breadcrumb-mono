@@ -8,8 +8,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleSearchActions(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	switch strings.ToLower(req.HTTPMethod) {
+func HandleSearchActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	switch strings.ToLower(req.RequestContext.HTTP.Method) {
 	case "get":
 		action := req.QueryStringParameters["action"]
 		if action == "nickname" {

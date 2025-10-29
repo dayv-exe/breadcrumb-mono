@@ -15,7 +15,7 @@ type EditBody struct {
 	Payload string `json:"payload"`
 }
 
-func handleEditUser(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	var editBody EditBody
 	if err := json.Unmarshal([]byte(req.Body), &editBody); err != nil {

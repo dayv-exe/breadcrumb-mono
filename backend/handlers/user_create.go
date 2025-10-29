@@ -17,7 +17,7 @@ type createUserRequestBody struct {
 	Name     string `json:"name"`
 }
 
-func abortSignup(ctx context.Context, response events.APIGatewayProxyResponse, userId *string) (events.APIGatewayProxyResponse, error) {
+func abortSignup(ctx context.Context, response events.APIGatewayV2HTTPResponse, userId *string) (events.APIGatewayV2HTTPResponse, error) {
 	if userId != nil {
 		err := helpers.NewCognitoHelper(ctx).DeleteFromCognito(*userId, true)
 		if err != nil {
@@ -27,7 +27,7 @@ func abortSignup(ctx context.Context, response events.APIGatewayProxyResponse, u
 	return response, nil
 }
 
-func handleCreateUser(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleCreateUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	var reqBody createUserRequestBody
 	if err := json.Unmarshal([]byte(req.Body), &reqBody); err != nil {
 		return abortSignup(ctx, models.ServerSideErrorResponse("Failed to unmarshal request body", err), nil)

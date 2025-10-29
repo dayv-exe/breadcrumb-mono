@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func handleNicknameAvailable(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleNicknameAvailable(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 
 	// returns true if a nickname has not been taken by a user in dynamodb
 

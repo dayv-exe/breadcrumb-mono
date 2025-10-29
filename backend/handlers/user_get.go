@@ -42,7 +42,7 @@ func findUser(ctx context.Context, userid string) (*models.User, error) {
 	return userById, nil
 }
 
-func handleGetUser(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userid := req.PathParameters["id"]
 	if userid == "" {
 		userid = utils.GetAuthUserId(req)

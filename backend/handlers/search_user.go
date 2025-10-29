@@ -15,7 +15,7 @@ type SearchResult struct {
 	Type string `json:"type"`
 }
 
-func handleSearchUser(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleSearchUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	// /search/{search_string}
 	searchStr := req.PathParameters["search_string"]
 	if len(searchStr) < models.UserSearchIndexPrefixLen {

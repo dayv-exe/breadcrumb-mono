@@ -6,31 +6,31 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func GetAuthUserId(req events.APIGatewayProxyRequest) string {
+func GetAuthUserId(req events.APIGatewayV2HTTPRequest) string {
 	log.Println("getting user sub from request")
-	jwtMap, ok := req.RequestContext.Authorizer["jwt"].(map[string]interface{})
-	if !ok {
-		log.Println("missing jwt map")
+
+	if req.RequestContext.Authorizer == nil {
+		log.Println("missing authorizer")
 		return ""
 	}
 
-	claims, ok := jwtMap["claims"].(map[string]interface{})
-	if !ok {
-		log.Println("missing claims")
+	jwt := req.RequestContext.Authorizer.JWT
+	if jwt.Claims == nil {
+		log.Println("missing JWT claims")
 		return ""
 	}
 
-	sub, ok := claims["sub"].(string)
-	if !ok {
-		log.Println("missing sub")
+	sub, ok := jwt.Claims["sub"]
+	if !ok || sub == "" {
+		log.Println("missing or empty sub claim")
 		return ""
 	}
 
-	log.Println("gotten user sub from request")
+	log.Println("gotten user sub from request:", sub)
 	return sub
 }
 
-func IsAuthenticatedUser(req events.APIGatewayProxyRequest, userId string) bool {
+func IsAuthenticatedUser(req events.APIGatewayV2HTTPRequest, userId string) bool {
 	sub := GetAuthUserId(req)
 	if sub == "" {
 		return false

@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func handleGetFriends(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := req.PathParameters["id"] // the user who's friends we want to view
 	if userId == "" {
 		userId = utils.GetAuthUserId(req)
