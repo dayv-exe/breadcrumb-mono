@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleFriendsActions(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleFriendsActions(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch strings.ToLower(req.HTTPMethod) {
 	case "post":
 		return handleAcceptFriendRequest(ctx, req)

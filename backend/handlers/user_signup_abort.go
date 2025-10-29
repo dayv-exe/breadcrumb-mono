@@ -10,7 +10,7 @@ import (
 
 // deletes an unverified user from cognito when the user cancels verification process on the frontend
 
-func handleAbortSignup(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleAbortSignup(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// invalid username(sub, uuid)
 	userId := req.PathParameters["id"]
 	if userId == "" {

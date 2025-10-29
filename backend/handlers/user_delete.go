@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func handleDeleteUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleDeleteUser(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userId := utils.GetAuthUserId(req)
 
 	if userId == "" {

@@ -27,7 +27,7 @@ func abortSignup(ctx context.Context, response events.APIGatewayProxyResponse, u
 	return response, nil
 }
 
-func handleCreateUser(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleCreateUser(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var reqBody createUserRequestBody
 	if err := json.Unmarshal([]byte(req.Body), &reqBody); err != nil {
 		return abortSignup(ctx, models.ServerSideErrorResponse("Failed to unmarshal request body", err), nil)

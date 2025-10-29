@@ -15,7 +15,7 @@ type sendFriendReqBody struct {
 	RecipientId string `json:"recipientId"`
 }
 
-func handleSendFriendRequest(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleSendFriendRequest(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var reqBody sendFriendReqBody
 	if unmarshalErr := json.Unmarshal([]byte(req.Body), &reqBody); unmarshalErr != nil {
 		return models.ServerSideErrorResponse("Failed to unmarshal send friend request body", unmarshalErr), nil

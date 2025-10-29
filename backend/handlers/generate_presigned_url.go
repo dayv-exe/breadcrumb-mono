@@ -18,7 +18,7 @@ type response struct {
 	ImageKey  string `json:"imageKey"`
 }
 
-func HandleGeneratePresignedUrl(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleGeneratePresignedUrl(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	userid := utils.GetAuthUserId(req)
 	if userid == "" {
 		return models.UnauthorizedErrorResponse("User id not found"), nil

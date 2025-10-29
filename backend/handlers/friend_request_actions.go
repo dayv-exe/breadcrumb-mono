@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleFriendRequestActions(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleFriendRequestActions(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Printf("method is %v", req.HTTPMethod)
 	switch strings.ToLower(req.HTTPMethod) {
 	case "get":

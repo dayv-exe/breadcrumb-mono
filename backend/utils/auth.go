@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func GetAuthUserId(req *events.APIGatewayProxyRequest) string {
+func GetAuthUserId(req events.APIGatewayProxyRequest) string {
 	log.Println("getting user sub from request")
 	jwtMap, ok := req.RequestContext.Authorizer["jwt"].(map[string]interface{})
 	if !ok {
@@ -30,7 +30,7 @@ func GetAuthUserId(req *events.APIGatewayProxyRequest) string {
 	return sub
 }
 
-func IsAuthenticatedUser(req *events.APIGatewayProxyRequest, userId string) bool {
+func IsAuthenticatedUser(req events.APIGatewayProxyRequest, userId string) bool {
 	sub := GetAuthUserId(req)
 	if sub == "" {
 		return false

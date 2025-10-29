@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func handleUnsendFriendRequest(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleUnsendFriendRequest(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	recipientId := req.PathParameters["id"]
 	currentUserId := utils.GetAuthUserId(req)
 

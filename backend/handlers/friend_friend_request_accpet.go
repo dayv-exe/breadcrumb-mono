@@ -15,7 +15,7 @@ type friendReqBody struct {
 	SenderId string `json:"senderId"`
 }
 
-func handleAcceptFriendRequest(ctx context.Context, req *events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleAcceptFriendRequest(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var reqBody friendReqBody
 	if err := json.Unmarshal([]byte(req.Body), &reqBody); err != nil {
 		return models.ServerSideErrorResponse("Failed to unmarshal accect friend request body.", err), nil
