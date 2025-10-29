@@ -10,7 +10,7 @@ import (
 )
 
 func HandleFriendRequestActions(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Printf("method is %v", req.HTTPMethod)
+	log.Printf("req is %v", req)
 	switch strings.ToLower(req.HTTPMethod) {
 	case "get":
 		return handleGetFriendRequests(ctx, req)
