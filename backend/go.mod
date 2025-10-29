@@ -33,4 +33,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.6 // indirect
 	github.com/aws/smithy-go v1.23.0 // indirect
 	github.com/google/uuid v1.6.0
+	github.com/mmcloughlin/geohash v0.10.0
 )
