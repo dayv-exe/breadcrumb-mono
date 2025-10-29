@@ -403,7 +403,7 @@ Resources:
         GetFriends:
           Type: HttpApi
           Properties:
-            Path: /friends
+            Path: /friends/{id}
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
