@@ -437,11 +437,19 @@ Resources:
       Architectures: [arm64]
       Description: handle search crud actions
       Events:
-        Search:
+        SearchUser:
           Type: HttpApi
           Properties:
             Path: /search/{str}
             Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        NicknameAvailable:
+          Type: HttpApi
+          Properties:
+            Path: /search/{str}
+            Method: POST
             ApiId: !Ref BreadApi
       Policies:
         - DynamoDBCrudPolicy:
