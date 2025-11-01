@@ -1,0 +1,8 @@
+change how search indexes are updated, 
+if you change nickname from johnny_test to test, updates deletes all indexes including new ones since new nickname is very similar to old nickname
+
+use sqs to handle search index updates
+
+use sqs to delete old indexes then create new indexes
+
+sqs must exist to remove indexes, and another should exist to add indexes
