@@ -1,17 +1,17 @@
+import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
+import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap, { mapMethods } from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
-import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
-import { StyleSheet, useColorScheme, View } from "react-native";
+import { useRef, useState } from "react";
+import { ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const token = Constants.expoConfig?.extra?.mapboxToken;
@@ -42,6 +42,18 @@ const icons = {
     light: require("../../../assets/images/icons/thicksearch_unsel_light.png"),
     dark: require("../../../assets/images/icons/thicksearch_unsel_dark.png")
   },
+  addCrumb: {
+    light: require("../../../assets/images/icons/add_sel_light.png"),
+    dark: require("../../../assets/images/icons/add_sel_dark.png")
+  },
+  wall: {
+    light: require("../../../assets/images/icons/walls_sel_light.png"),
+    dark: require("../../../assets/images/icons/walls_sel_dark.png")
+  },
+  close: {
+    light: require("../../../assets/images/icons/close_unsel_light.png"),
+    dark: require("../../../assets/images/icons/close_unsel_dark.png")
+  }
 }
 
 export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
@@ -51,13 +63,12 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 
 export default function MapScreen() {
   const mode = useColorScheme() ?? "light";
-  const theme = useThemeColor
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['7', '35'], []);
   const mapRef = useRef<Mapbox.MapView>(null);
+  const bgCol = useThemeColor({}, "background")
   const [mapMethods, setMapMethods] = useState<mapMethods | null>(null)
   const router = useRouter()
   const { coordinates } = useLocationStore()
+  const { openSheet } = useBottomSheet()
 
   function handleAddFriend() {
     router.push("/find-friends")
@@ -65,9 +76,9 @@ export default function MapScreen() {
 
 
   return (
-    <View style={[styles.page, { backgroundColor: theme({}, "background") }]}>
+    <View style={[styles.page, { backgroundColor: bgCol }]}>
 
-      <SafeAreaView style={[styles.headerWrapper]}>
+      <SafeAreaView pointerEvents="box-none" style={[styles.headerWrapper]}>
         <View>
           <CustomImageButton src={getIconImage("addFriend", mode === "light")} handleClick={handleAddFriend} />
         </View>
@@ -76,7 +87,8 @@ export default function MapScreen() {
         </View>
         <View>
           <CustomImageButton handleClick={() => {
-            mapMethods?.moveTo([coordinates?.longitude ?? 0, coordinates?.latitude ?? 0], 13)
+            const curCoord = useLocationStore.getState().coordinates
+            mapMethods?.moveTo([curCoord?.longitude ?? 0, curCoord?.latitude ?? 0], 13)
           }} src={getIconImage("focusUserLoc", mode === "light")} />
           <Spacer size="small" />
           <CustomImageButton src={getIconImage("search", mode === "light")} />
@@ -86,30 +98,49 @@ export default function MapScreen() {
         </View>
       </SafeAreaView>
 
-      <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handleLongPress={e => {
-        getPressedLocationInfo(e, mapRef, token)
+      <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handlePress={() => {
+        openSheet({
+          content: (
+
+            <View style={{ height: 200 }}>
+              <CustomLabel labelText="Test" adaptToTheme bold />
+            </View>
+          ),
+          showOverlay: true,
+          dynamicHeight: true
+        })
       }} />
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        enablePanDownToClose={false}
-        containerStyle={{ zIndex: 20, position: "relative" }}
-        backgroundStyle={[styles.bottomSheet, {
-          backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background,
-        }]}
-        handleIndicatorStyle={{ backgroundColor: mode === "dark" ? Colors.dark.text : Colors.light.text }}
-      >
-        <BottomSheetView style={{ paddingHorizontal: 30, paddingVertical: 10 }}>
-          <CustomLabel labelText="crumbs" adaptToTheme />
-          <CustomLabel labelText="crumbs you received or sent will show here" adaptToTheme fade />
-          <Spacer size="big" />
-          <CustomLabel labelText="walls" adaptToTheme />
-          <CustomLabel labelText="walls you are part of will show here" adaptToTheme fade />
-          <Spacer />
-        </BottomSheetView>
-      </BottomSheet>
+      <View>
+        <View style={[styles.bottomSheet, {
+          backgroundColor: bgCol,
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          flexDirection: "row",
+          padding: 20,
+          paddingTop: 17,
+          paddingBottom: 15,
+        }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" />
+            <Spacer size="small" />
+            <CustomButton labelText="🧱 Walls" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" />
+            <Spacer size="small" />
+            <CustomButton labelText="🕖 Recent" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" />
+            <Spacer size="small" />
+            <CustomButton labelText="👀 Me" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" />
+            <Spacer size="small" />
+            <CustomButton labelText="📍Nearby" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" />
+          </ScrollView>
+        </View>
+      </View>
     </View>
   );
 }
@@ -144,10 +175,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bottomSheet: {
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
-    shadowRadius: 10,
-    shadowOpacity: .25,
-    elevation: 5,
+    borderTopLeftRadius: 23,
+    borderTopRightRadius: 23,
+    shadowRadius: 7,
+    shadowOpacity: .175,
+    elevation: 4,
   }
 });

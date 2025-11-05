@@ -45,7 +45,7 @@ export const sendFriendRequest = async (recipientId: string): Promise<apiRespons
 
 export const unsendFriendRequest = async (recipientId: string): Promise<apiResponse<string>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: string }>(`/friend-requests/unsend/${recipientId}`)
+    const { data } = await axiosInstance.delete<{ message: string }>(`/friend-requests/${recipientId}?action=unsend`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

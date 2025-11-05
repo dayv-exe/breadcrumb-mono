@@ -44,7 +44,6 @@ export function useDateConverter() {
     if (!date) return null;
 
     const today = new Date();
-    // Normalize both dates to midnight to avoid partial-day issues
     const utc1 = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
     const utc2 = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
 

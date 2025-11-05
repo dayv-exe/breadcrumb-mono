@@ -87,7 +87,7 @@ type cLabelProps = {
   focused?: boolean
 }
 
-function CustomTabIcon({ name, focused, darkMode, size = 21 }: cIconProps) {
+function CustomTabIcon({ name, focused, darkMode, size = 22 }: cIconProps) {
   return (
     <View style={{
       position: "relative",
@@ -164,16 +164,22 @@ export default function MainScreen() {
         ),
         tabBarLabel: ({ focused }) => (
           <CustomTabLabel color={theme({}, "text")} text="Map" focused={focused} />
-        )
+        ),
+        tabBarStyle: {
+          backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
+          height: 90,
+          paddingTop: 14,
+          borderColor: isDarkMode ? "#444" : "#ccc",
+        }
       }} />
 
-      <Tabs.Screen name="messages" options={{
-        title: "Message",
+      <Tabs.Screen name="search" options={{
+        title: "Search",
         tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"crumbs"} focused={focused} darkMode={isDarkMode} />
+          <CustomTabIcon name={"search"} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Chat" focused={focused} />
+          <CustomTabLabel color={theme({}, "text")} text="Search" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
@@ -199,13 +205,13 @@ export default function MainScreen() {
         }
       }} />
 
-      <Tabs.Screen name="search" options={{
-        title: "Search",
+      <Tabs.Screen name="messages" options={{
+        title: "Message",
         tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"search"} focused={focused} darkMode={isDarkMode} />
+          <CustomTabIcon name={"notifications"} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Search" focused={focused} />
+          <CustomTabLabel color={theme({}, "text")} text="Chat" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
@@ -214,7 +220,6 @@ export default function MainScreen() {
           borderColor: isDarkMode ? "#444" : "#ccc",
         }
       }} />
-
 
       <Tabs.Screen name="profile" options={{
         title: "Me",

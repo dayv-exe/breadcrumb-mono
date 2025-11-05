@@ -323,21 +323,6 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
 
   }, [isMyProfile, userData])
 
-  function RandomComp() {
-    useEffect(() => {
-      console.log('🟢 UserForm mounted');
-
-      return () => {
-        console.log('🔴 UserForm unmounted');
-      };
-    }, []);
-    return (
-      <View>
-        <CustomButton type="prominent" />
-      </View>
-    )
-  }
-
   return (
     <>
       {!userData?.error &&
@@ -365,21 +350,24 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
                   } else {
                     openSheet({
                       content: (
-                        <View style={{ alignItems: "center", justifyContent: "center" }}>
+                        <View style={{ alignItems: "center", justifyContent: "center", }}>
                           <CustomLabel fade fontSize={13} textAlign="center" width="80%" adaptToTheme labelText="We will not notify them when you take any of these actions" />
                           <Spacer />
                           {friendshipStatus === FRIENDSHIP_STATUS.FRIENDS && <CustomButton adaptToTheme labelText="Restrict" type="text" />}
-                          <CustomButton adaptToTheme labelText="Block" type="text" />
+
+                          {friendshipStatus === FRIENDSHIP_STATUS.FRIENDS && <CustomButton adaptToTheme labelText="End friendship" type="text" />}
+
+                          {friendshipStatus === FRIENDSHIP_STATUS.REQUESTED && <CustomButton adaptToTheme labelText="Cancel request" type="text" />}
+
+                          {friendshipStatus === FRIENDSHIP_STATUS.RECEIVED && <CustomButton adaptToTheme labelText="Reject friend request" type="text" />}
+
                           <CustomButton adaptToTheme labelText="Report" type="text" />
-                          {friendshipStatus === FRIENDSHIP_STATUS.FRIENDS && <CustomButton adaptToTheme labelText="End friendship" type="text" customTextStyle={{ color: "red" }} />}
 
-                          {friendshipStatus === FRIENDSHIP_STATUS.REQUESTED && <CustomButton adaptToTheme labelText="Cancel request" type="text" customTextStyle={{ color: "red" }} />}
-
-                          {friendshipStatus === FRIENDSHIP_STATUS.RECEIVED && <CustomButton adaptToTheme labelText="Reject friend request" type="text" customTextStyle={{ color: "red" }} />}
+                          <CustomButton adaptToTheme labelText="Block" type="text" customTextStyle={{color: "red"}} />
                           <Spacer />
                         </View>
                       ),
-                      snapPoints: ["1"],
+                      dynamicHeight: true
                     })
                   }
                 }} />
@@ -391,7 +379,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
             <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
               <Spacer size="small" />
               <View style={styles.profileHeader}>
-                <CustomProfilePictureCircle size={100} nickname={userData?.message?.nickname ?? "00"} />
+                <CustomProfilePictureCircle size={100} nickname={userData?.message?.nickname} />
                 <Spacer />
                 <View style={styles.profileAside}>
                   {!isPending && <CustomLabel fontSize={18.5} bold labelText={getName()} textAlign="left" adaptToTheme />}

@@ -10,6 +10,7 @@ type mTypes = {
   primaryBtnText?: string
   secondaryBtnText?: string
   showCancelBtn?: boolean
+
   handlePrimaryAction?: () => void
   handleSecondaryAction?: () => void
   handleClose?: () => void

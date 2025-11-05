@@ -16,6 +16,7 @@ import { Colors } from "@/constants/Colors";
 import { useDeleteUser, useGetUser } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useImagePicker } from "@/hooks/useImagePicker";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
@@ -187,7 +188,8 @@ export default function ProfileSettingsScreen() {
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['100%'], []);
-  const {showModal} = useModal()
+  const { showModal, hideModal } = useModal()
+  const { pickFromGallery, takePhoto, image, isLoading } = useImagePicker()
 
   return (
     <>
@@ -210,17 +212,19 @@ export default function ProfileSettingsScreen() {
         <View style={[
           styles.container,
         ]}>
-          <CustomProfilePictureCircle nickname={user.message?.nickname ?? "00"}
-          handleClick={async() => {
-            await showModal({
-              message: "Change profile picture",
-              primaryBtnText: "Choose from photos",
-              secondaryBtnText: "Take photo",
-              onPrimary: () => console.log("Pretend to open gallery"),
-              onSecondary: () => console.log("pretend to open camera"),
-              showCancelBtn: true
-            })
-          }}
+          <CustomProfilePictureCircle nickname={user.message?.nickname}
+            handleClick={async () => {
+              await showModal({
+                message: "Change profile picture",
+                primaryBtnText: "Choose from photos",
+                secondaryBtnText: "Take photo",
+                onPrimary: () => {
+                  pickFromGallery({ mediaTypes: ["images"], onPictureChosen: () => hideModal() })
+                },
+                onSecondary: () => takePhoto({aspect: [1, 1]}),
+                showCancelBtn: true
+              })
+            }}
           />
           <Spacer />
           <SectionList

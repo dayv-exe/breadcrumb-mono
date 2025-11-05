@@ -129,7 +129,7 @@ const darkToastConfig = {
 export default function RootLayout() {
   const { isLoggedIn, checkAuthStatus } = useAuthStore()
   const mode = useColorScheme()
-
+  
   useEffect(() => {
     checkAuthStatus()
   }, [])

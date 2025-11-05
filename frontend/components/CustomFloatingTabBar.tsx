@@ -58,7 +58,6 @@ export default function CustomFloatingTabBar({ state, descriptors, navigation }:
   const borderColor = isDark ? '#333' : '#e0e0e0';
   const shadowColor = isDark ? '#000' : '#000';
 
-  // Separate main tabs from create tab
   const mainTabData = [
     { key: 'index', name: 'map', label: 'Map' },
     { key: 'messages', name: 'crumbs', label: 'Chat' },

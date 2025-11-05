@@ -1,7 +1,7 @@
 import { buttonTypes, getBackgroundColor } from "@/constants/buttonTypes";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { PropsWithChildren } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 
 type props = {
   handleClick?: () => void
@@ -9,13 +9,14 @@ type props = {
   fitToContent?: boolean
   isFlat?: boolean
   type?: buttonTypes
+  customStyle?: ViewStyle
 }
 
-export default function CustomFloatingSquare({ handleClick, children, allowWidthExpansion = false, isFlat = false, type, fitToContent = false, }: PropsWithChildren<props>) {
+export default function CustomFloatingSquare({ handleClick, children, allowWidthExpansion = false, isFlat = false, type, fitToContent = false, customStyle, }: PropsWithChildren<props>) {
   const theme = useThemeColor
 
   return (
-    <TouchableOpacity style={[
+    <TouchableOpacity style={[customStyle,
       isFlat ? styles.flatContainer : styles.container,
       {
         backgroundColor: getBackgroundColor(type ?? "text", theme),

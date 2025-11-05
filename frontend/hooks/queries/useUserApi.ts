@@ -1,4 +1,5 @@
-import { createUser, deleteUser, editUser, getUser, searchUser } from "@/api/userApi";
+import { searchUser } from "@/api/searchApi";
+import { createUser, deleteUser, editUser, getUser } from "@/api/userApi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useCreateUser = () => useMutation({

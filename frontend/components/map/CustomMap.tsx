@@ -1,4 +1,3 @@
-import { ShowToast } from "@/constants/appConstants";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
@@ -12,14 +11,16 @@ import CustomLabel from "../CustomLabel";
 import CustomButton from "../buttons/CustomButton";
 
 export interface mapMethods {
-  moveTo: (position: Position, newZoomLevel?: number) => void
-  moveToUserLocation: (zoomLevel?: number) => void
+  moveTo: (position: Position | undefined, newZoomLevel?: number, animationDuration?: number) => void
+  centerMap: () => void
+  getCurrentCenter: () => Promise<{ position: Position, zoomLevel: number } | null>
 }
 
 type customMapProps = {
   mapRef?: React.RefObject<Mapbox.MapView | null>
   handlePress?: (v: any) => void
   handleLongPress?: (v: any) => void
+  handleUserLocPress?: () => void
   userPosition?: Position
   zoomLevel?: number
   pitch?: number
@@ -52,7 +53,7 @@ export default function CustomMap({
   handlePress = () => { },
   handleLongPress = () => { },
   mapRef,
-  userPosition,
+  handleUserLocPress,
   zoomLevel = 3,
   pitch = 0,
   setMapMethods,
@@ -66,19 +67,32 @@ export default function CustomMap({
   const [permissionGranted, setPermissionGranted] = useState(false)
   const { coordinates } = useLocationStore()
   const [mapReady, setMapReady] = useState(false);
+  const movedMap = useRef<boolean>(false)
 
   const methods: mapMethods = {
-    moveTo: (position: Position, newZoomLevel?: number) => {
+    moveTo: (position: Position | undefined, newZoomLevel?: number, animationDuration?: number) => {
       cameraRef.current?.setCamera({
         centerCoordinate: position,
         zoomLevel: newZoomLevel || zoomLevel,
-        animationDuration: 1000,
+        animationDuration: animationDuration ?? 1000,
       })
     },
 
-    moveToUserLocation: (newZoomLevel?: number) => {
-      // Implementation for moving to user location
+    getCurrentCenter: async (): Promise<{ position: Position, zoomLevel: number } | null> => {
+      try {
+        const center = await mapRef?.current?.getCenter();
+        const zoom = await mapRef?.current?.getZoom()
+        if (!center || !zoom) return null
+        return { position: center, zoomLevel: zoom };
+      } catch (error) {
+        console.error("Error getting map center:", error);
+        return null;
+      }
     },
+
+    centerMap: () => {
+      
+    }
   }
 
   async function handlePermissions(showPopUp: boolean = true) {
@@ -113,12 +127,14 @@ export default function CustomMap({
         onPress={e => handlePress(e)}
         onLongPress={e => handleLongPress(e)}
         attributionPosition={{ bottom: 100, right: 10 }}
-        attributionEnabled
-        logoEnabled={false}
+        logoPosition={{bottom: 70, left: 10}}
+        attributionEnabled={true}
+        logoEnabled={true}
+        onTouchStart={() => movedMap.current = true}
       >
         <Mapbox.Camera
           ref={cameraRef}
-          centerCoordinate={[coordinates?.longitude ?? 0, coordinates?.latitude ?? 0]}
+          centerCoordinate={!movedMap.current ? [coordinates?.longitude ?? 0, coordinates?.latitude ?? 0] : undefined}
           zoomLevel={zoomLevel}
           animationDuration={0}
           pitch={pitch}
@@ -126,11 +142,9 @@ export default function CustomMap({
 
         {coordinates &&
           <Mapbox.UserLocation
-            onPress={() => {
-              ShowToast("🔐 Only you can see your current location")
-            }}
+            onPress={handleUserLocPress}
             visible={true}
-            minDisplacement={.5}
+            minDisplacement={5}
             requestsAlwaysUse={true}
             showsUserHeadingIndicator
           />

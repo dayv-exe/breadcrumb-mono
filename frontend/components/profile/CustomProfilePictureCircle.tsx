@@ -5,7 +5,7 @@ import { StyleSheet, Text, TouchableOpacity } from "react-native";
 type props = {
   size?: number
   imgUrl?: string
-  nickname: string
+  nickname?: string | null | undefined
   handleClick?: (src: string,) => void
 }
 
@@ -17,7 +17,9 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, im
 
   const bgCol = useThemeColor({}, "fadedBackground")
 
-  const initials = nickname.length > 1 ? nickname.substring(0, 2) : "00"
+  nickname = nickname ?? ""
+  const parts = nickname.split(/[._]/);
+  const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "")
 
   return (
     <TouchableOpacity style={{

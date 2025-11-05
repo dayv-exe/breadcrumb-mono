@@ -44,7 +44,6 @@ export default function MediaPreview() {
 
       const asset = await MediaLibrary.createAssetAsync(mediaUri);
       
-      // Optionally create an album and add the asset to it
       const album = await MediaLibrary.getAlbumAsync('Camera');
       if (album == null) {
         await MediaLibrary.createAlbumAsync('Camera', asset, false);

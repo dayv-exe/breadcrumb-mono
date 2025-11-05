@@ -30,7 +30,7 @@ export default function CustomLabel({ labelText = "Label", textAlign = "left", a
         width: fitContent ? "auto" : width,
         fontSize: fontSize,
         fontStyle: italic ? "italic" : "normal",
-        padding: padding
+        padding: padding,        
       }
     ]}>{labelText}</Text>
   )

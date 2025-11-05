@@ -1,4 +1,4 @@
-import { nicknameAvailable } from "@/api/nicknameAvailable";
+import { nicknameAvailable } from "@/api/searchApi";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useNicknameAvailable = (username: string) => useQuery({

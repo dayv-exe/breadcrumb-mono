@@ -66,7 +66,7 @@ export function formatAddress(location: Location.LocationGeocodedAddress, showSe
         address = `${flag} ${address}`;
       }
     } else {
-      address = `📍 ${address}`;
+      address = `${address}`;
     }
   }
 

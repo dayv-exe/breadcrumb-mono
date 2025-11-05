@@ -1,23 +1,24 @@
-import { MAX_VIDEO_DURATION_MILLISECONDS, ShowToast } from "@/constants/appConstants";
-import { Colors } from "@/constants/Colors";
-import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
-import { showSettingsAlert } from "@/utils/helpers";
-import * as MediaLibrary from 'expo-media-library';
-import { useRouter } from "expo-router";
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { PropsWithChildren, useMemo, useRef, useState } from "react";
-import { Alert, Image, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Reanimated, { cancelAnimation, Easing, Extrapolation, interpolate, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
-import { Camera, CameraDevice, CameraProps, useCameraDevice, useCameraPermission, useMicrophonePermission, VideoFile } from "react-native-vision-camera";
-import { scheduleOnRN } from "react-native-worklets";
-import CustomButton from "../buttons/CustomButton";
-import CustomImageButton from "../buttons/CustomImageButton";
-import CustomLabel from "../CustomLabel";
-import RecordingIndicator from "../recordingIndicator";
-import Spacer from "../Spacer";
-import CameraModeCarousel, { CameraMode } from './CameraModeCarousel';
-import RecordingProgressRing from "./recordingProgressRing";
+import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants"
+import { Colors } from "@/constants/Colors"
+import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl"
+import { useImagePicker } from "@/hooks/useImagePicker"
+import { showSettingsAlert } from "@/utils/helpers"
+import * as MediaLibrary from 'expo-media-library'
+import { useRouter } from "expo-router"
+import { useVideoPlayer, VideoView } from 'expo-video'
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react"
+import { ActivityIndicator, Alert, Image, StyleSheet, TouchableOpacity, View } from "react-native"
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import Reanimated, { cancelAnimation, Easing, Extrapolation, interpolate, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated'
+import { Camera, CameraDevice, CameraProps, useCameraDevice, useCameraPermission, useMicrophonePermission, VideoFile } from "react-native-vision-camera"
+import { scheduleOnRN } from "react-native-worklets"
+import CustomButton from "../buttons/CustomButton"
+import CustomImageButton from "../buttons/CustomImageButton"
+import CustomLabel from "../CustomLabel"
+import RecordingIndicator from "../recordingIndicator"
+import Spacer from "../Spacer"
+import CameraModeCarousel, { CameraMode } from './CameraModeCarousel'
+import RecordingProgressRing from "./recordingProgressRing"
 
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera)
@@ -67,13 +68,15 @@ type PreviewScreenProps = {
 function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
   const player = useVideoPlayer(media.type === 'video' ? media.uri : '', player => {
     if (media.type === 'video') {
-      player.loop = false;
+      player.loop = false
+      player.volume = 1
       player.currentTime = 0
-      player.play();
+      player.play()
     }
-  });
+  })
 
   player.addListener("playToEnd", () => {
+    player.volume = 1
     player.currentTime = 0
     player.play()
   })
@@ -85,7 +88,7 @@ function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
           <Image
             source={{ uri: media.uri }}
             style={styles.previewMedia}
-            resizeMode="cover"
+            resizeMode="contain"
           />
         ) : (
           <VideoView
@@ -130,15 +133,24 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   const format = useMemo(() => {
     return currentCam.formats.find(
       f => f.videoWidth === 1920 && f.videoHeight === 1080 && f.maxFps >= 28
-    );
+    )
   }, [currentCam])
 
-  const [cameraMode, setCameraMode] = useState<CameraMode>('Photo');
-  const CAMERA_MODES: CameraMode[] = ['Photo', 'Video', 'Portrait', 'Night', 'Slo-Mo'];
+  const [cameraMode, setCameraMode] = useState<CameraMode>('Photo')
+  const CAMERA_MODES: CameraMode[] = ['Photo', 'Video', 'Portrait', 'Night', 'Slo-Mo']
   const router = useRouter()
+  const { pickFromGallery, image, isLoading } = useImagePicker()
+  useEffect(() => {
+    if (image && image.type && image.uri) {
+      setMediaPreview({
+        type: image.type === "video" ? "video" : "photo",
+        uri: image.uri
+      })
+    }
+  }, [image])
   const handleModeChange = (mode: CameraMode) => {
-    setCameraMode(mode);
-  };
+    setCameraMode(mode)
+  }
 
   const handleTouchEnd = () => {
     if (isRecording) {
@@ -146,7 +158,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
     }
   }
 
-  const zoomOffset = useSharedValue(0);
+  const zoomOffset = useSharedValue(0)
   const gesture = Gesture.Pan()
     .onBegin(() => {
       zoomOffset.value = zoom.value
@@ -172,24 +184,11 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   )
 
   async function takePhoto() {
-    getPresignedUrl(".png", {
-      onSuccess: res => {
-        if (res.error) {
-          ShowToast("failed to get")
-          console.log(res.error)
-        } else {
-          ShowToast("gotten")
-          console.log(res.message)
-        }
-      },
-
-      onError: presignedErr => {
-        ShowToast("error")
-        console.log(presignedErr)
-      }
-    })
-
     if (cameraRef.current) {
+      setMediaPreview({
+        type: 'photo',
+        uri: ``
+      })
       try {
         const photo = await cameraRef.current.takePhoto({
           flash: 'off',
@@ -264,116 +263,145 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   }
 
   async function handleSave() {
-    if (!mediaPreview) return;
+    if (!mediaPreview) return
 
     try {
       // Request permissions
-      const { status } = await MediaLibrary.requestPermissionsAsync();
+      const { status } = await MediaLibrary.requestPermissionsAsync()
 
       if (status !== 'granted') {
         Alert.alert(
           'Permission Required',
           'Please grant media library access to save photos and videos.',
           [{ text: 'OK' }]
-        );
-        return;
+        )
+        return
       }
 
       // Save to gallery
-      const asset = await MediaLibrary.createAssetAsync(mediaPreview.uri);
+      const asset = await MediaLibrary.createAssetAsync(mediaPreview.uri)
 
       Alert.alert(
         'Success',
         `${mediaPreview.type === 'photo' ? 'Photo' : 'Video'} saved to gallery!`,
         [{ text: 'OK' }]
-      );
+      )
 
-      setMediaPreview(null);
+      setMediaPreview(null)
     } catch (error) {
-      console.error('Error saving to gallery:', error);
+      console.error('Error saving to gallery:', error)
       Alert.alert(
         'Error',
         'Failed to save to gallery.',
         [{ text: 'OK' }]
-      );
+      )
     }
   }
 
   // show preview screen if media was captured
   if (mediaPreview) {
     return (
-      <PreviewScreen
-        media={mediaPreview}
-        onRetake={handleRetake}
-        onSave={handleSave}
-      />
+      <>
+        {mediaPreview.uri &&
+          <PreviewScreen
+            media={mediaPreview}
+            onRetake={handleRetake}
+            onSave={handleSave}
+          />
+        }
+        {
+          !mediaPreview.uri &&
+          <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
+            {/* <ActivityIndicator /> */}
+          </View>
+        }
+      </>
     )
   }
 
   return (
-    <GestureDetector gesture={gesture}>
-      <View style={[styles.cameraContainer, { paddingBottom: 0 }]}>
-        <View style={styles.cameraWrapper}>
-          <ReanimatedCamera
-            ref={cameraRef}
-            enableZoomGesture
-            style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]}
-            device={currentCam}
-            isActive={true}
-            animatedProps={animatedProps}
-            audio={true}
-            photo={true}
-            video={true}
-            format={format}
-          />
-        </View>
-        {isRecording && <RecordingIndicator />}
-        {<View style={styles.cameraControls}>
-          <TouchableOpacity>
-            <CustomImageButton type="text" src={require("../../assets/images/icons/noflash_sel_light.png")} size={25} fitToContent />
-            <Spacer size="tiny" />
+    <>
+      {
+        !isLoading &&
+        <GestureDetector gesture={gesture}>
+          <View style={[styles.cameraContainer, { paddingBottom: 0 }]}>
+            <View style={styles.cameraWrapper}>
+              <ReanimatedCamera
+                ref={cameraRef}
+                enableZoomGesture
+                style={[StyleSheet.absoluteFill, { backgroundColor: "black" }]}
+                device={currentCam}
+                isActive={true}
+                animatedProps={animatedProps}
+                audio={true}
+                photo={true}
+                video={true}
+                format={format}
+                photoQualityBalance="speed"
+              />
+            </View>
+            {isRecording && <RecordingIndicator />}
+            {<View style={styles.cameraControls}>
+              <TouchableOpacity>
+                <CustomImageButton type="text" src={require("../../assets/images/icons/noflash_sel_light.png")} size={25} fitToContent />
+                <Spacer size="tiny" />
 
-          </TouchableOpacity>
-          <View onTouchStart={flipCamera}>
-            <Spacer />
-            <CustomImageButton type="text" src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={25} fitToContent />
-            <Spacer size="tiny" />
+              </TouchableOpacity>
+              <View onTouchStart={flipCamera}>
+                <Spacer />
+                <CustomImageButton type="text" src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={25} fitToContent />
+                <Spacer size="tiny" />
+              </View>
+            </View>}
+            {!isRecording && <View style={[styles.topControls, {}]}>
+              <ControlButtonContainer>
+                <CustomImageButton fitToContent type="text" src={require("../../assets/images/icons/searchfriends_sel_light.png")} size={22} handleClick={() => router.push("/find-friends")} />
+              </ControlButtonContainer>
+              <ControlButtonContainer>
+                <CustomImageButton type="text" src={require("../../assets/images/icons/walls_sel_light.png")} size={22} handleClick={() => router.push("/create-wall")} fitToContent />
+              </ControlButtonContainer>
+            </View>}
+            {!isRecording && (
+              <View style={styles.modeCarouselContainer}>
+                <CameraModeCarousel
+                  modes={CAMERA_MODES}
+                  selectedMode={cameraMode}
+                  onModeChange={handleModeChange}
+                />
+              </View>
+            )}
+            {!isRecording && <View style={styles.galleryContainer}>
+              <CustomImageButton handleClick={() => {
+                console.log("selected gallery")
+                pickFromGallery({ allowsEditing: false, mediaTypes: ["images", "videos"] })
+              }} type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
+            </View>}
+            <View style={styles.shutterContainer}>
+              <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
+                <TouchableOpacity
+                  delayLongPress={150}
+                  onPress={takePhoto}
+                  onLongPress={startRecording}
+                  style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "transparent" }]}
+                >
+                </TouchableOpacity>
+              </View>
+              {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={progress} />}
+            </View>
           </View>
-        </View>}
-        {!isRecording && <View style={[styles.topControls, {}]}>
-          <ControlButtonContainer>
-            <CustomImageButton fitToContent type="text" src={require("../../assets/images/icons/searchfriends_sel_light.png")} size={22} handleClick={() => router.push("/find-friends")} />
-          </ControlButtonContainer>
-          <ControlButtonContainer>
-            <CustomImageButton type="text" src={require("../../assets/images/icons/walls_sel_light.png")} size={22} handleClick={() => router.push("/create-wall")} fitToContent />
-          </ControlButtonContainer>
-        </View>}
-        {!isRecording && <View style={styles.galleryContainer}>
-          <CustomImageButton type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
-        </View>}
-        {!isRecording && (
-          <View style={styles.modeCarouselContainer}>
-            <CameraModeCarousel
-              modes={CAMERA_MODES}
-              selectedMode={cameraMode}
-              onModeChange={handleModeChange}
-            />
-          </View>
-        )}
-        <View style={styles.shutterContainer}>
-          <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
-            <TouchableOpacity
-              delayLongPress={150}
-              onPress={takePhoto}
-              onLongPress={startRecording}
-              style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ccc", backgroundColor: isRecording ? "transparent" : "transparent" }]}
-            >
-            </TouchableOpacity>
-          </View>
-          {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={progress} />}
+        </GestureDetector>
+      }
+      {
+        isLoading &&
+        <View style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          <ActivityIndicator />
         </View>
-      </View>
-    </GestureDetector>
+      }
+    </>
   )
 }
 
