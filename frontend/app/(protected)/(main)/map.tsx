@@ -68,7 +68,7 @@ export default function MapScreen() {
   const [mapMethods, setMapMethods] = useState<mapMethods | null>(null)
   const router = useRouter()
   const { coordinates } = useLocationStore()
-  const { openSheet } = useBottomSheet()
+  const { openSheet, closeSheet } = useBottomSheet()
 
   function handleAddFriend() {
     router.push("/find-friends")
@@ -102,12 +102,13 @@ export default function MapScreen() {
         openSheet({
           content: (
 
-            <View style={{ height: 200 }}>
+            <View style={{height: 150}}>
               <CustomLabel labelText="Test" adaptToTheme bold />
+              <CustomButton labelText="Close" type="less-prominent" handleClick={closeSheet} />
             </View>
           ),
-          showOverlay: true,
-          dynamicHeight: true
+          showOverlay: false,
+          dynamicHeight: true,
         })
       }} />
 

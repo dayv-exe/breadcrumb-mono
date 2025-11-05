@@ -160,7 +160,7 @@ export default function MainScreen() {
       <Tabs.Screen name="map" options={{
         title: "Map",
         tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"map"} size={22.5} focused={focused} darkMode={isDarkMode} />
+          <CustomTabIcon name={"map"} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
           <CustomTabLabel color={theme({}, "text")} text="Map" focused={focused} />

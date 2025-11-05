@@ -355,10 +355,12 @@ function CameraScreen({ frontCam, backCam }: camProps) {
             </View>}
             {!isRecording && <View style={[styles.topControls, {}]}>
               <ControlButtonContainer>
-                <CustomImageButton fitToContent type="text" src={require("../../assets/images/icons/searchfriends_sel_light.png")} size={22} handleClick={() => router.push("/find-friends")} />
+                <CustomImageButton fitToContent type="text" src={require("../../assets/images/icons/searchfriends_sel_light.png")} size={24.5} handleClick={() => router.push("/find-friends")} />
               </ControlButtonContainer>
               <ControlButtonContainer>
-                <CustomImageButton type="text" src={require("../../assets/images/icons/walls_sel_light.png")} size={22} handleClick={() => router.push("/create-wall")} fitToContent />
+                <CustomImageButton handleClick={() => {
+                  pickFromGallery({ allowsEditing: false, mediaTypes: ["images", "videos"] })
+                }} type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
               </ControlButtonContainer>
             </View>}
             {!isRecording && (
@@ -370,12 +372,6 @@ function CameraScreen({ frontCam, backCam }: camProps) {
                 />
               </View>
             )}
-            {!isRecording && <View style={styles.galleryContainer}>
-              <CustomImageButton handleClick={() => {
-                console.log("selected gallery")
-                pickFromGallery({ allowsEditing: false, mediaTypes: ["images", "videos"] })
-              }} type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
-            </View>}
             <View style={styles.shutterContainer}>
               <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
                 <TouchableOpacity
@@ -525,6 +521,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     top: 15,
     paddingHorizontal: 20,
+    paddingRight: 15
   },
   galleryContainer: {
     position: "absolute",
