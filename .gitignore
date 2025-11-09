@@ -44,6 +44,5 @@ frontend/android
 
 backend/bin
 backend/samconfig.toml
-backend/thinking_place.txt
-
+backend/endpoints
 .DS_Store

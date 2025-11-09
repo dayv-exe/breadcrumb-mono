@@ -1,7 +1,4 @@
-friend_request_actions
-friend_actions
-user_actions
-search_actions
+main_handler
 generate_presigned_url
 signup_presignup
 signup_unfinished_remover

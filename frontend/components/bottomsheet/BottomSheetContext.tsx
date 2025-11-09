@@ -33,6 +33,7 @@ const BottomSheetContext = createContext<BottomSheetContextType | undefined>(und
 
 export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
   const bottomSheetRef = useRef<BottomSheet>(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [sheetOptions, setSheetOptions] = useState<BottomSheetOptions>({
     content: null,
     snapPoints: ['50%'],
@@ -55,12 +56,18 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
       showHandle: options.showHandle ?? true,
       reduceAnimations: options.reduceAnimations
     })
+    setIsSheetOpen(true)
     setTimeout(() => bottomSheetRef.current?.expand(), 50)
   }, [])
 
   const closeSheet = useCallback(() => {
     bottomSheetRef.current?.close()
   }, [])
+
+  const handleSheetClose = useCallback(() => {
+    setIsSheetOpen(false)
+    sheetOptions.onSheetDismissed?.()
+  }, [sheetOptions])
 
   const renderBackdrop = useCallback((props: any) => (
     <BottomSheetBackdrop
@@ -105,10 +112,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
           damping: 120,
           mass: 0.5,
         }}
-        onClose={sheetOptions.onSheetDismissed}
+        onClose={handleSheetClose}
       >
         <BottomSheetView>
-          {sheetOptions.content}
+          {isSheetOpen && sheetOptions.content}
         </BottomSheetView>
       </BottomSheet>
     </BottomSheetContext.Provider>

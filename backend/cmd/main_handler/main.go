@@ -8,9 +8,9 @@ import (
 )
 
 func init() {
-	utils.InitHandlerDependencies(utils.WithDatabase(), utils.WithCognito())
+	utils.InitHandlerDependencies(utils.WithDatabase(), utils.WithBucket(), utils.WithCognito())
 }
 
 func main() {
-	lambda.Start(handlers.HandleUserActions)
+	lambda.Start(handlers.HandleHandlers)
 }

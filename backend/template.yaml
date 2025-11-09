@@ -6,7 +6,7 @@ Globals:
   Function:
     Timeout: 10
     Runtime: provided.al2023
-    MemorySize: 128
+    MemorySize: 512
     Environment:
       Variables:
         USERS_TABLE: !Ref UsersTable
@@ -68,6 +68,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-CustomCognitoMessage
+      MemorySize: 128
       CodeUri: bin/custom_email/custom_email.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -206,8 +207,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-S3ActionFunction
-      Timeout: 15
-      MemorySize: 512
       CodeUri: bin/generate_presigned_url/generate_presigned_url.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -254,6 +253,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-pre-signup-function"
+      MemorySize: 128
       CodeUri: bin/signup_presignup/signup_presignup.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -272,6 +272,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-remove-stale-accounts"
+      MemorySize: 128
       CodeUri: bin/signup_unfinished_remover/signup_unfinished_remover.zip
       Handler: bootstrap
       Architectures: [arm64]
@@ -294,18 +295,71 @@ Resources:
               - cognito-idp:AdminDeleteUser
             Resource: "*"
 
-  UserActions:
+  MainHandler:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-user-actions"
-      CodeUri: bin/user_actions/user_actions.zip
+      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-main-handler"
+      CodeUri: bin/main_handler/main_handler.zip
       Handler: bootstrap
       Architectures: [arm64]
-      Description: handle users crud actions
+      Description: handle everything
       Environment:
         Variables:
           USER_POOL_ID: !Ref CognitoUserPool
       Events:
+        # for friends endpoints
+        GetFriends:
+          Type: HttpApi
+          Properties:
+            Path: /friends/{id}
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        AcceptFriendRequest:
+          Type: HttpApi
+          Properties:
+            Path: /friends
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        RemoveFriend:
+          Type: HttpApi
+          Properties:
+            Path: /friends/{id}
+            Method: DELETE
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+        #for friend requests
+        GetFriendRequests:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        SendFriendRequests:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        RejectFriendRequests:
+          Type: HttpApi
+          Properties:
+            Path: /friend-requests/{id}
+            Method: DELETE
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+    
+        # for user stuff
         GetUser:
           Type: HttpApi
           Properties:
@@ -342,101 +396,8 @@ Resources:
             Path: /signup/{id}
             Method: DELETE
             ApiId: !Ref BreadApi
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SearchTable
-        - Statement:
-            Effect: Allow
-            Action:
-              - cognito-idp:AdminDeleteUser
-              - cognito-idp:AdminGetUser
-            Resource: "*"
-
-  FriendRequestActions:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-friend-request-actions"
-      CodeUri: bin/friend_request_actions/friend_request_actions.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: handle friend request crud actions
-      Events:
-        GetFriendRequests:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests
-            Method: GET
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-        SendFriendRequests:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests
-            Method: POST
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-        RejectFriendRequests:
-          Type: HttpApi
-          Properties:
-            Path: /friend-requests/{id}
-            Method: DELETE
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable    
-
-  FriendActions:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-friend-actions"
-      CodeUri: bin/friend_actions/friend_actions.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: handle friends crud actions
-      Events:
-        GetFriends:
-          Type: HttpApi
-          Properties:
-            Path: /friends/{id}
-            Method: GET
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-        AcceptFriendRequest:
-          Type: HttpApi
-          Properties:
-            Path: /friends
-            Method: POST
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-        RemoveFriend:
-          Type: HttpApi
-          Properties:
-            Path: /friends/{id}
-            Method: DELETE
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable    
-
-  SearchActions:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-search-actions"
-      CodeUri: bin/search_actions/search_actions.zip
-      Handler: bootstrap
-      Architectures: [arm64]
-      Description: handle search crud actions
-      Events:
+      
+        # for search
         SearchUser:
           Type: HttpApi
           Properties:
@@ -451,13 +412,19 @@ Resources:
             Path: /search/{str}
             Method: POST
             ApiId: !Ref BreadApi
+
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref SearchTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - cognito-idp:AdminDeleteUser
+              - cognito-idp:AdminGetUser
+            Resource: "*"
 
-  # user dynamodb table
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
