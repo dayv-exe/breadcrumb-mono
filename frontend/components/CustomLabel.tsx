@@ -18,19 +18,19 @@ type lProps = {
 }
 
 export default function CustomLabel({ labelText = "Label", textAlign = "left", adaptToTheme = false, bold = false, fade = false, fitContent = false, width = "100%", fontSize = 17, italic = false, padding = 5, textColor }: lProps) {
-  const theme = useThemeColor
+  const textCol = useThemeColor({}, "text")
   return (
     <Text style={[
       styles.labelText,
       {
-        color: adaptToTheme ? theme({}, "text") : textColor ? textColor : "#fff",
+        color: adaptToTheme ? textCol : textColor ? textColor : "#fff",
         fontWeight: bold ? "600" : "normal",
         textAlign: textAlign,
         opacity: fade ? .7 : 1,
         width: fitContent ? "auto" : width,
         fontSize: fontSize,
         fontStyle: italic ? "italic" : "normal",
-        padding: padding,        
+        padding: padding,
       }
     ]}>{labelText}</Text>
   )

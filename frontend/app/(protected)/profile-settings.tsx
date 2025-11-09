@@ -23,7 +23,7 @@ import { useAuthStore } from "@/utils/authStore";
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, SectionList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -107,6 +107,26 @@ export default function ProfileSettingsScreen() {
     logout()
   }
 
+  const handleOptClick = (title: string, child: React.JSX.Element) => {
+    openSheet({
+      content: (
+        <View style={[styles.bottomsheet, { top: insets.top }]}>
+          <View style={styles.sheetheader}>
+            <View>
+              <CustomLabel adaptToTheme bold labelText={title} padding={0} />
+              <Spacer size="small" />
+            </View>
+            <CustomButton customStyle={{ position: "absolute", top: 0, right: 0, padding: 0 }} labelText="close" type="less-vibrant-text" handleClick={closeSheet} />
+          </View>
+          {child}
+        </View>
+      ),
+      snapPoints: ["100%"],
+      showHandle: false,
+      reduceAnimations: true
+    })
+  }
+
   const { openSheet, closeSheet } = useBottomSheet()
 
   const sections = [
@@ -114,59 +134,77 @@ export default function ProfileSettingsScreen() {
       title: '👤 Account Information', data: [
         {
           name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
-            openSheet({
-              content: (
-                <View style={{  }}>
-                  <View style={{width: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start", flexDirection: "row"}}>
-                    <CustomButton paddingHorizontal={0} handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel"/>
-                  </View>
-                  <EditUsername lastNicknameChange={user?.message?.lastNicknameChange ?? ""} onUpdate={() => {
-                    closeSheet()
-                    refetch()
-                  }} oldUsername={user?.message?.nickname ?? ""} />
-                </View>
-              ),
-              snapPoints: ["100%"],
-              showHandle: false,
-              reduceAnimations: true
-            })
+            handleOptClick("Edit nickname",
+              <EditUsername lastNicknameChange={user?.message?.lastNicknameChange ?? ""} onUpdate={() => {
+                closeSheet()
+                refetch()
+              }} oldUsername={user?.message?.nickname ?? ""} />
+            )
           }
         },
         {
           name: "Name", value: user?.message?.name ?? "", handleClick: () => {
-            setBottomSheetChild(EditMode.FULLNAME)
-            handleOpenDrawer()
+            handleOptClick("Update name",
+              <EditName lastNameChangeDate={user?.message?.lastNameChange ?? ""} onUpdate={() => {
+                closeSheet()
+                refetch()
+              }} oldName={user?.message?.name ?? ""} />
+            )
           }
         },
         {
           name: 'Bio', value: user?.message?.bio ?? "", handleClick: () => {
-            setBottomSheetChild(EditMode.BIO)
-            handleOpenDrawer()
+            handleOptClick("Update bio",
+              <EditBio oldBio={user?.message?.bio ?? ""} onUpdate={() => {
+                closeSheet()
+                refetch()
+              }} />
+            )
           }
         },
         {
           name: emailOptText, value: user?.message?.email ?? "", handleClick: () => {
-            setBottomSheetChild(EditMode.EMAIL)
-            handleOpenDrawer()
+            handleOptClick("Update email",
+              <EditEmail oldEmail={user?.message?.email ?? ""} onUpdate={() => {
+                closeSheet()
+                refetch()
+              }} />
+            )
           }
         },
         {
           name: "Password", value: "****", handleClick: () => {
-            setBottomSheetChild(EditMode.PASSWORD)
-            handleOpenDrawer()
+            handleOptClick("Change password",
+              <EditPassword onUpdate={() => {
+                closeSheet()
+                refetch()
+              }} />
+            )
           }
         },
         {
           name: "Birthdate", value: user?.message?.birthdate ?? "", handleClick: () => {
-            setBottomSheetChild(EditMode.BIRTHDATE)
-            handleOpenDrawer()
+            handleOptClick("Update birthdate",
+              <EditBirthdate onUpdate={() => {
+                closeSheet()
+                refetch()
+              }} />
+            )
           }
         },
       ]
     },
     {
       title: '🔐 Privacy', data: [
-        { name: 'Blocked Users', value: "" },
+        {
+          name: 'Blocked Users', value: "", handleClick: () => {
+            handleOptClick("Blocked users",
+              <View>
+                <CustomLabel adaptToTheme labelText="List of blocked users" />
+              </View>
+            )
+          }
+        },
         { name: "Logout", value: "", handleClick: handleLogout },
         { name: 'Delete account', value: "", handleClick: handleDelAccount },
         { name: 'Bug report', value: "" },
@@ -345,6 +383,7 @@ export default function ProfileSettingsScreen() {
   )
 }
 
+
 const styles = StyleSheet.create({
   header: {
     position: "relative",
@@ -381,7 +420,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bottomsheet: {
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    paddingHorizontal: 20
   },
+  sheetheader: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  }
 })

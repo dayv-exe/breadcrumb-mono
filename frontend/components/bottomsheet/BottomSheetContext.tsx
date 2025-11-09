@@ -91,7 +91,8 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         enableOverDrag={sheetOptions.allowDrag ?? true}
         enableContentPanningGesture={sheetOptions.allowDrag ?? true}
         enableHandlePanningGesture={sheetOptions.allowDrag ?? true}
-        handleIndicatorStyle={{display: sheetOptions.showHandle ? "flex" : "none", backgroundColor: handleCol}}
+        handleIndicatorStyle={{backgroundColor: handleCol}}
+        handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
         backgroundStyle={[sheetOptions.backgroundStyle, { backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow]}
@@ -106,7 +107,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         }}
         onClose={sheetOptions.onSheetDismissed}
       >
-        <BottomSheetView style={{ padding: 20 }}>
+        <BottomSheetView>
           {sheetOptions.content}
         </BottomSheetView>
       </BottomSheet>

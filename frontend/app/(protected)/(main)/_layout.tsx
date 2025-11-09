@@ -125,7 +125,7 @@ export default function MainScreen() {
 
   const segments = useSegments()
   const mode = useColorScheme()
-  const theme = useThemeColor
+  const textColor = useThemeColor({}, "text")
 
   const isAddActive = () => {
     if (segments[2] === "add") return true
@@ -138,11 +138,6 @@ export default function MainScreen() {
 
     if (segments.length < 1) return true
     return false
-  }
-
-  const isMapActive = () => {
-    // removes tabbar border when map screen is visible to allow drawer blend in with tabbar
-    return segments[2] === "map"
   }
   const isDarkMode = mode === "dark" || isAddActive()  // to force navbar into dark mode when showing add screen with camera active because it looks better
 
@@ -160,10 +155,10 @@ export default function MainScreen() {
       <Tabs.Screen name="map" options={{
         title: "Map",
         tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"map"} focused={focused} darkMode={isDarkMode} />
+          <CustomTabIcon name={"map"} size={24} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Map" focused={focused} />
+          <CustomTabLabel color={textColor} text="Map" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
@@ -179,7 +174,7 @@ export default function MainScreen() {
           <CustomTabIcon name={"search"} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Search" focused={focused} />
+          <CustomTabLabel color={textColor} text="Search" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
@@ -195,7 +190,7 @@ export default function MainScreen() {
           <CustomTabIcon name={"add"} focused={focused} size={23} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Create" focused={focused} />
+          <CustomTabLabel color={textColor} text="Create" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: Colors.dark.background,
@@ -211,7 +206,7 @@ export default function MainScreen() {
           <CustomTabIcon name={"notifications"} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Chat" focused={focused} />
+          <CustomTabLabel color={textColor} text="Chat" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
@@ -227,7 +222,7 @@ export default function MainScreen() {
           <CustomTabIcon name={"profile"} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={theme({}, "text")} text="Me" focused={focused} />
+          <CustomTabLabel color={textColor} text="Me" focused={focused} />
         ),
         tabBarStyle: {
           backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
