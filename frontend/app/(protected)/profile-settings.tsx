@@ -1,3 +1,4 @@
+import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -106,13 +107,29 @@ export default function ProfileSettingsScreen() {
     logout()
   }
 
+  const { openSheet, closeSheet } = useBottomSheet()
+
   const sections = [
     {
       title: '👤 Account Information', data: [
         {
           name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
-            setBottomSheetChild(EditMode.USERNAME)
-            handleOpenDrawer()
+            openSheet({
+              content: (
+                <View style={{  }}>
+                  <View style={{width: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start", flexDirection: "row"}}>
+                    <CustomButton paddingHorizontal={0} handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel"/>
+                  </View>
+                  <EditUsername lastNicknameChange={user?.message?.lastNicknameChange ?? ""} onUpdate={() => {
+                    closeSheet()
+                    refetch()
+                  }} oldUsername={user?.message?.nickname ?? ""} />
+                </View>
+              ),
+              snapPoints: ["100%"],
+              showHandle: false,
+              reduceAnimations: true
+            })
           }
         },
         {
@@ -221,7 +238,7 @@ export default function ProfileSettingsScreen() {
                 onPrimary: () => {
                   pickFromGallery({ mediaTypes: ["images"], onPictureChosen: () => hideModal() })
                 },
-                onSecondary: () => takePhoto({aspect: [1, 1]}),
+                onSecondary: () => takePhoto({ aspect: [1, 1] }),
                 showCancelBtn: true
               })
             }}
@@ -249,7 +266,6 @@ export default function ProfileSettingsScreen() {
               }]}>{title}</Text>
             )}
           />
-          <Spacer />
         </View>
         <BottomSheet
           ref={bottomSheetRef}
@@ -288,12 +304,6 @@ export default function ProfileSettingsScreen() {
               } />
             </View>
             <Spacer />
-            {renderSheet && bottomSheetChild === EditMode.USERNAME &&
-              <EditUsername lastNicknameChange={user.message?.lastNicknameChange ?? ""} onUpdate={() => {
-                handleCloseDrawer()
-                refetch()
-              }} oldUsername={user.message?.nickname ?? ""} />
-            }
             {
               renderSheet && bottomSheetChild === EditMode.FULLNAME &&
               <EditName lastNameChangeDate={user.message?.lastNameChange ?? ""} onUpdate={() => {

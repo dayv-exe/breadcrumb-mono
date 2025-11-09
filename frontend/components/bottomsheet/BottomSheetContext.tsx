@@ -20,6 +20,8 @@ type BottomSheetOptions = {
   backgroundStyle?: ViewStyle
   tapOutsideDismiss?: boolean
   onSheetDismissed?: () => void
+  showHandle?: boolean
+  reduceAnimations?: boolean
 };
 
 type BottomSheetContextType = {
@@ -35,7 +37,9 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
     content: null,
     snapPoints: ['50%'],
     dynamicHeight: false,
-    tapOutsideDismiss: true
+    tapOutsideDismiss: true,
+    showHandle: true,
+    reduceAnimations: false
   })
 
   const openSheet = useCallback((options: BottomSheetOptions) => {
@@ -48,6 +52,8 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
       allowDrag: options.allowDrag ?? true,
       showOverlay: options.showOverlay ?? true,
       tapOutsideDismiss: options.tapOutsideDismiss ?? true,
+      showHandle: options.showHandle ?? true,
+      reduceAnimations: options.reduceAnimations
     })
     setTimeout(() => bottomSheetRef.current?.expand(), 50)
   }, [])
@@ -85,13 +91,17 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         enableOverDrag={sheetOptions.allowDrag ?? true}
         enableContentPanningGesture={sheetOptions.allowDrag ?? true}
         enableHandlePanningGesture={sheetOptions.allowDrag ?? true}
-        handleIndicatorStyle={{backgroundColor: handleCol}}
+        handleIndicatorStyle={{display: sheetOptions.showHandle ? "flex" : "none", backgroundColor: handleCol}}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
         backgroundStyle={[sheetOptions.backgroundStyle, { backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow]}
-        animationConfigs={{
+        animationConfigs={!sheetOptions.reduceAnimations ? {
           stiffness: 500,
           damping: 20,
+          mass: 0.5,
+        } : {
+          stiffness: 500,
+          damping: 120,
           mass: 0.5,
         }}
         onClose={sheetOptions.onSheetDismissed}
