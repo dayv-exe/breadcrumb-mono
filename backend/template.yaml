@@ -293,7 +293,6 @@ Resources:
             Action:
               - cognito-idp:ListUsers
               - cognito-idp:AdminDeleteUser
-              - cognito-idp:AdminUserGlobalSignOut
             Resource: "*"
 
   MainHandler:
@@ -434,6 +433,7 @@ Resources:
             Action:
               - cognito-idp:AdminDeleteUser
               - cognito-idp:AdminGetUser
+              - cognito-idp:AdminUserGlobalSignOut
             Resource: "*"
 
   UsersTable:
