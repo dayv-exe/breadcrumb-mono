@@ -23,7 +23,7 @@ func NameChangeAllowed(lastChangedOn string) bool {
 	}
 
 	changeUnfreezeDate := lastChangeDate.AddDate(0, 0, constants.NAME_CHANGE_DELAY)
-
+	lastChangeDate.Add(time.Hour)
 	if time.Now().After(changeUnfreezeDate) {
 		return true
 	}

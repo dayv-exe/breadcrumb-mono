@@ -25,10 +25,10 @@ export interface UserDetails {
   forceChangeNickname: boolean | null;
   isDeactivated: boolean | null;
   isSuspended: boolean | null;
-  lastEmailChange: string | null;
+  allowEmailChange: boolean | null;
   lastLogin: string | null;
-  lastNicknameChange: string | null;
-  lastNameChange: string | null;
+  allowNicknameChange: boolean | null;
+  allowNameChange: boolean | null;
   name: string | null;
   nickname: string | null;
   suspensionReason: string | null;

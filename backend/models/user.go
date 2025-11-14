@@ -41,10 +41,13 @@ type UserAccountInfo struct {
 
 type UserPersonalInfo struct {
 	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate"`
-	LastNicknameChange  string `dynamodbav:"last_nickname_change" json:"lastNicknameChange"`
-	LastEmailChange     string `dynamodbav:"last_email_change" json:"lastEmailChange"`
+	LastNicknameChange  string `dynamodbav:"last_nickname_change" json:"-"`
+	LastEmailChange     string `dynamodbav:"last_email_change" json:"-"`
+	LastNameChange      string `dynamodbav:"last_name_change" json:"-"`
+	AllowNicknameChange bool   `json:"allowNicknameChange"`
+	AllowEmailChange    bool   `json:"allowEmailChange"`
+	AllowNameChange     bool   `json:"allowNameChange"`
 	LastLogin           string `dynamodbav:"last_login" json:"lastLogin"`
-	LastNameChange      string `dynamodbav:"last_name_change" json:"lastNameChange"`
 	ForceChangeNickname bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname"`
 	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason"`
 }

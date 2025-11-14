@@ -32,11 +32,9 @@ axiosInstance.interceptors.request.use(
           const refreshedToken = refreshedSession.tokens?.idToken?.toString()
           if (refreshedToken) {
             config.headers.Authorization = `Bearer ${refreshedToken}`
-            console.log(`Bearer ${refreshedToken}`)
           }
         } else {
           config.headers.Authorization = `Bearer ${token.toString()}`
-          console.log(`Bearer ${token.toString()}`)
         }
       }
     } catch (error) {

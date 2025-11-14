@@ -67,6 +67,10 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 			models.User
 			helpers.CognitoManagedInfo
 		}
+
+		user.AllowNicknameChange = utils.NameChangeAllowed(user.LastNicknameChange)
+		user.AllowNameChange = utils.NameChangeAllowed(user.LastNameChange)
+		user.AllowEmailChange = utils.NameChangeAllowed(user.LastEmailChange)
 		return models.SuccessfulGetRequestResponse(
 			res{
 				*user,
