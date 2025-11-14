@@ -103,7 +103,7 @@ export default function ProfileSettingsScreen() {
     })
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout()
   }
 
@@ -116,7 +116,7 @@ export default function ProfileSettingsScreen() {
               <CustomLabel adaptToTheme bold labelText={title} padding={0} />
               <Spacer size="small" />
             </View>
-            <CustomButton customStyle={{ position: "absolute", top: 0, right: 0, padding: 0 }} labelText="close" type="less-vibrant-text" handleClick={closeSheet} />
+            <CustomButton customTextStyle={{color: "red"}} customStyle={{ position: "absolute", top: 0, right: 0, padding: 0 }} labelText="cancel" type="less-vibrant-text" handleClick={closeSheet} />
           </View>
           {child}
         </View>
@@ -134,7 +134,7 @@ export default function ProfileSettingsScreen() {
       title: '👤 Account Information', data: [
         {
           name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
-            handleOptClick("Edit nickname",
+            handleOptClick("Edit username",
               <EditUsername lastNicknameChange={user?.message?.lastNicknameChange ?? ""} onUpdate={() => {
                 closeSheet()
                 refetch()

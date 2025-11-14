@@ -182,7 +182,6 @@ export const useLocationStore = create<LocationState & LocationActions>()(
     {
       name: 'location-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist certain fields
       partialize: (state) => ({
         coordinates: state.coordinates,
         address: state.address,

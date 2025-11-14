@@ -1,4 +1,5 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useCustomGestures } from "@/hooks/useCustomGestures";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
@@ -18,6 +19,7 @@ export interface mapMethods {
 
 type customMapProps = {
   mapRef?: React.RefObject<Mapbox.MapView | null>
+  handleCancelPress?: () => void
   handlePress?: (v: any) => void
   handleLongPress?: (v: any) => void
   handleUserLocPress?: () => void
@@ -50,6 +52,7 @@ function PermissionScreen({ handleGrantPermission }: permissionProps) {
 }
 
 export default function CustomMap({
+  handleCancelPress = () => {},
   handlePress = () => { },
   handleLongPress = () => { },
   mapRef,
@@ -68,6 +71,20 @@ export default function CustomMap({
   const { coordinates } = useLocationStore()
   const [mapReady, setMapReady] = useState(false);
   const movedMap = useRef<boolean>(false)
+
+  const gestures = useCustomGestures(
+    {
+      onLongPress: (pos) => {
+        handleLongPress(pos)
+      },
+    },
+    {
+      doubleTapDelay: 300,
+      swipeThreshold: 5,
+      longPressDelay: 250,
+      tapMovementThreshold: 1,
+    }
+  );
 
   const methods: mapMethods = {
     moveTo: (position: Position | undefined, newZoomLevel?: number, animationDuration?: number) => {
@@ -91,7 +108,7 @@ export default function CustomMap({
     },
 
     centerMap: () => {
-      
+
     }
   }
 
@@ -124,13 +141,23 @@ export default function CustomMap({
           setMapMethods(methods)
         }}
         styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
-        onPress={e => handlePress(e)}
-        onLongPress={e => handleLongPress(e)}
-        attributionPosition={{ bottom: 100, right: 10 }}
-        logoPosition={{bottom: 70, left: 10}}
+
+        onPress={e => {
+          requestAnimationFrame(() => handlePress(e))
+        }}
+        attributionPosition={{ bottom: 95, right: 3 }}
+        logoPosition={{ bottom: 70, right: 10 }}
         attributionEnabled={true}
         logoEnabled={true}
-        onTouchStart={() => movedMap.current = true}
+        onTouchStart={e => {
+          movedMap.current = true
+          gestures.handleTouchStart(e)
+        }}
+        onTouchEnd={gestures.handleTouchEnd}
+        onTouchMove={e => {
+          gestures.handleTouchMove(e)
+        }}
+        onTouchCancel={gestures.handleTouchCancel}
       >
         <Mapbox.Camera
           ref={cameraRef}

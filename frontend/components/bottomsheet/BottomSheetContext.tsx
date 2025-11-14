@@ -22,6 +22,7 @@ type BottomSheetOptions = {
   onSheetDismissed?: () => void
   showHandle?: boolean
   reduceAnimations?: boolean
+  fullExpansionOnOpen?: boolean
 };
 
 type BottomSheetContextType = {
@@ -40,7 +41,8 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
     dynamicHeight: false,
     tapOutsideDismiss: true,
     showHandle: true,
-    reduceAnimations: false
+    reduceAnimations: false,
+    fullExpansionOnOpen: true,
   })
 
   const openSheet = useCallback((options: BottomSheetOptions) => {
@@ -54,10 +56,19 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
       showOverlay: options.showOverlay ?? true,
       tapOutsideDismiss: options.tapOutsideDismiss ?? true,
       showHandle: options.showHandle ?? true,
-      reduceAnimations: options.reduceAnimations
+      reduceAnimations: options.reduceAnimations,
+      fullExpansionOnOpen: options.fullExpansionOnOpen ?? true
     })
     setIsSheetOpen(true)
-    setTimeout(() => bottomSheetRef.current?.expand(), 50)
+    switch (options.fullExpansionOnOpen) {
+      case true:
+        setTimeout(() => bottomSheetRef.current?.expand(), 50)
+        break;
+
+      default:
+        setTimeout(() => bottomSheetRef.current?.snapToIndex(0), 50)
+        break;
+    }
   }, [])
 
   const closeSheet = useCallback(() => {
@@ -78,11 +89,11 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
     />
   ), [sheetOptions.tapOutsideDismiss])
 
-  const snapPoints = useMemo(() => 
-    sheetOptions.dynamicHeight ? undefined : (sheetOptions?.snapPoints ?? ['50%']), 
+  const snapPoints = useMemo(() =>
+    sheetOptions.dynamicHeight ? undefined : (sheetOptions?.snapPoints ?? ['50%']),
     [sheetOptions]
   );
-  
+
   const bgCol = useThemeColor({}, "background")
   const handleCol = useThemeColor({}, "text")
 
@@ -98,7 +109,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         enableOverDrag={sheetOptions.allowDrag ?? true}
         enableContentPanningGesture={sheetOptions.allowDrag ?? true}
         enableHandlePanningGesture={sheetOptions.allowDrag ?? true}
-        handleIndicatorStyle={{backgroundColor: handleCol}}
+        handleIndicatorStyle={{ backgroundColor: handleCol }}
         handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
     shadowRadius: 10,
-    shadowOpacity: .25,
+    shadowOpacity: .15,
     elevation: 5,
   }
 })

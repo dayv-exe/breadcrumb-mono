@@ -135,7 +135,7 @@ export default function SignupVerifyScreen() {
 
   return (
     <CustomKeyboardAvoidingView backgroundColor={bgCol}>
-      <CustomModal show={popupDetails.isVisible} message={popupDetails.message} closeBtnText="No, stay and continue" secondaryBtnText="Yes, leave" handleSecondaryAction={handleLeave} handleClose={handleStay} />
+      <CustomModal show={popupDetails.isVisible} message={popupDetails.message} primaryBtnText="No, stay and continue" secondaryBtnText="Yes, leave" handleSecondaryAction={handleLeave} handleClose={handleStay} />
       <CustomLabel textAlign="center" labelText="Step 4 of 4" adaptToTheme fade />
       <CustomScrollView>
         <Spacer />

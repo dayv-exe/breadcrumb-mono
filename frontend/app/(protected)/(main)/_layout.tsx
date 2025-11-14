@@ -171,7 +171,7 @@ export default function MainScreen() {
       <Tabs.Screen name="search" options={{
         title: "Search",
         tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"search"} focused={focused} darkMode={isDarkMode} />
+          <CustomTabIcon name={"search"} size={23} focused={focused} darkMode={isDarkMode} />
         ),
         tabBarLabel: ({ focused }) => (
           <CustomTabLabel color={textColor} text="Search" focused={focused} />
