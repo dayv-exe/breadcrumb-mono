@@ -21,6 +21,13 @@ jobs:
         working-directory: backend
 
     steps:
+      - name: check source branch
+	run: |
+	  if [[ "$GITHUB_HEAD_REF" == "beta" ]]; then
+	    echo "merging beta into main is not allowed!!!"
+	    exit
+	  fi
+
       - name: checkout repo
         uses: actions/checkout@v4
 
