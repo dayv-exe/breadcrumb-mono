@@ -82,6 +82,16 @@ func getManagedInfoCustomFilter(queryFn func() (*cognitoidentityprovider.AdminGe
 	}, nil
 }
 
+func (c *cognitoHelper) Signout(userId string) error {
+	input := &cognitoidentityprovider.AdminUserGlobalSignOutInput{
+		UserPoolId: &utils.GetDependencies().UserPoolId,
+		Username:   &userId,
+	}
+
+	_, err := utils.GetDependencies().CognitoClient.AdminUserGlobalSignOut(c.Ctx, input)
+	return err
+}
+
 func (this *cognitoHelper) DeleteFromCognito(id string, ignoreConfirmationStatus bool) error {
 
 	// deletes unconfirmed users, except ignore confirmation status then it deletes any user

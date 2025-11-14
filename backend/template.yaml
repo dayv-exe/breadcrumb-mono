@@ -413,6 +413,16 @@ Resources:
             Method: POST
             ApiId: !Ref BreadApi
 
+        # account control
+        Signout:
+          Type: HttpApi
+          Properties:
+            Path: /signout
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
