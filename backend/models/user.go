@@ -48,7 +48,7 @@ type UserPersonalInfo struct {
 	AllowEmailChange    bool   `dynamodbav:"-" json:"allowEmailChange,omitempty"`
 	AllowNameChange     bool   `dynamodbav:"-" json:"allowNameChange,omitempty"`
 	LastLogin           string `dynamodbav:"last_login" json:"lastLogin,omitempty"`
-	ForceChangeNickname bool   `dynamodbav:"force_change_nickname,omitempty" json:"forceChangeNickname"`
+	ForceChangeNickname bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname,omitempty"`
 	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
 }
 

@@ -42,7 +42,7 @@ func TestUser_DatabaseFormat(t *testing.T) {
 	result["default_pic_colors"] = &dbTypes.AttributeValueMemberS{Value: ""}
 
 	if len(testUserDynamo) != len(result) {
-		t.Fatalf("Expected %d keys, got %d", len(testUserDynamo), len(result))
+		t.Errorf("Expected %d keys, got %d", len(testUserDynamo), len(result))
 	}
 
 	for key, expVal := range testUserDynamo {
