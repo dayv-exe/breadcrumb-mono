@@ -20,10 +20,8 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
-import { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, SectionList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -44,16 +42,6 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme]
 }
 
-enum EditMode {
-  USERNAME,
-  FULLNAME,
-  BIO,
-  EMAIL,
-  PASSWORD,
-  BIRTHDATE,
-  EMPTY
-}
-
 export default function ProfileSettingsScreen() {
   const { logout } = useAuthStore()
   const {
@@ -66,9 +54,7 @@ export default function ProfileSettingsScreen() {
   const mode = useColorScheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const [bottomSheetChild, setBottomSheetChild] = useState<EditMode>(EditMode.USERNAME)
-  const [renderSheet, setRenderSheet] = useState(false)
-
+ 
   const [emailOptText, setEmailOptText] = useState("Email")
   const { emailVerificationStatus } = useEmailVerificationStatus()
 
@@ -135,7 +121,7 @@ export default function ProfileSettingsScreen() {
         {
           name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
             handleOptClick("Edit username",
-              <EditUsername lastNicknameChange={user?.message?.lastNicknameChange ?? ""} onUpdate={() => {
+              <EditUsername allowNicknameChange={user?.message?.allowNicknameChange ?? true} onUpdate={() => {
                 closeSheet()
                 refetch()
               }} oldUsername={user?.message?.nickname ?? ""} />
@@ -145,7 +131,7 @@ export default function ProfileSettingsScreen() {
         {
           name: "Name", value: user?.message?.name ?? "", handleClick: () => {
             handleOptClick("Update name",
-              <EditName lastNameChangeDate={user?.message?.lastNameChange ?? ""} onUpdate={() => {
+              <EditName allowNameChange={user?.message?.allowNameChange ?? true} onUpdate={() => {
                 closeSheet()
                 refetch()
               }} oldName={user?.message?.name ?? ""} />
@@ -218,31 +204,6 @@ export default function ProfileSettingsScreen() {
     },
   ];
 
-  function handleCloseDrawer() {
-    bottomSheetRef.current?.close()
-  }
-
-  function handleOpenDrawer() {
-    setRenderSheet(true)
-    bottomSheetRef.current?.snapToIndex(1)
-  }
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetDefaultBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-        pressBehavior="close"
-      />
-    ),
-    []
-  );
-
-
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['100%'], []);
   const { showModal, hideModal } = useModal()
   const { pickFromGallery, takePhoto, image, isLoading } = useImagePicker()
 
@@ -305,79 +266,6 @@ export default function ProfileSettingsScreen() {
             )}
           />
         </View>
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={-1}
-          snapPoints={snapPoints}
-          enablePanDownToClose={true}
-          backgroundStyle={[styles.bottomsheet, {
-            backgroundColor: bgCol
-          }]}
-          handleStyle={{ display: "none" }}
-          onChange={i => {
-            if (i < 1) {
-              handleCloseDrawer()
-            }
-          }}
-          onClose={() => {
-            setRenderSheet(false)
-          }}
-          backdropComponent={renderBackdrop}
-        >
-          <BottomSheetView style={{ marginHorizontal: 20 }}>
-            <View style={[styles.header, {
-              marginTop: insets.top,
-            }]}>
-              <CustomButton paddingHorizontal={0} handleClick={handleCloseDrawer} type="less-vibrant-text" labelText="Cancel" customStyle={{
-                position: "absolute",
-                left: 0
-              }} />
-              <CustomLabel adaptToTheme width={"auto"} bold textAlign="center" labelText={
-                bottomSheetChild === EditMode.USERNAME ? "Edit username" :
-                  bottomSheetChild === EditMode.FULLNAME ? "Edit Name" :
-                    bottomSheetChild === EditMode.BIO ? "Edit bio" :
-                      bottomSheetChild === EditMode.BIRTHDATE ? "Edit birthdate" :
-                        bottomSheetChild === EditMode.EMAIL ? "Edit email" :
-                          bottomSheetChild === EditMode.PASSWORD ? "Change password" : ""
-              } />
-            </View>
-            <Spacer />
-            {
-              renderSheet && bottomSheetChild === EditMode.FULLNAME &&
-              <EditName lastNameChangeDate={user.message?.lastNameChange ?? ""} onUpdate={() => {
-                handleCloseDrawer()
-                refetch()
-              }} oldName={user.message?.name ?? ""} />
-            }
-            {
-              renderSheet && bottomSheetChild === EditMode.BIO &&
-              <EditBio oldBio={user.message?.bio ?? ""} onUpdate={() => {
-                refetch()
-                handleCloseDrawer()
-              }} />
-            }
-            {
-              renderSheet && bottomSheetChild === EditMode.BIRTHDATE &&
-              <EditBirthdate onUpdate={() => {
-                handleCloseDrawer()
-                refetch()
-              }} />
-            }
-            {
-              renderSheet && bottomSheetChild === EditMode.EMAIL &&
-              <EditEmail onUpdate={() => {
-                refetch()
-                handleCloseDrawer()
-              }} oldEmail={user.message?.email ?? ""} />
-            }
-            {
-              renderSheet && bottomSheetChild === EditMode.PASSWORD &&
-              <EditPassword onUpdate={() => {
-                handleCloseDrawer()
-              }} />
-            }
-          </BottomSheetView>
-        </BottomSheet>
       </CustomView>}
     </>
   )

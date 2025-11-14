@@ -1,7 +1,6 @@
 import { ShowToast, USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
 import { useEditUser } from "@/hooks/queries/useUserApi";
 import { useCheckUsername } from "@/hooks/useCheckUsername";
-import { useDateConverter } from "@/hooks/useDateConverter";
 import { View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -11,16 +10,15 @@ import Spacer from "../Spacer";
 type props = {
   oldUsername: string
   onUpdate: () => void
-  lastNicknameChange: string
+  allowNicknameChange: boolean
 }
 
-export default function EditUsername({ oldUsername, onUpdate, lastNicknameChange }: props) {
+export default function EditUsername({ oldUsername, onUpdate, allowNicknameChange }: props) {
   const { username, setUsername, isValid, handleFinalCheck, getInputMode, getInfoText } = useCheckUsername(oldUsername, "")
   const { mutate: editUsername, isPending } = useEditUser()
-  const {nameChangeTooSoon} = useDateConverter()
 
   function usernameUnchanged(): boolean {
-    return oldUsername === username || nameChangeTooSoon(lastNicknameChange, USERNAME_CHANGE_DELAY)
+    return oldUsername === username || !allowNicknameChange
   }
 
   function handleUpdate() {
@@ -44,7 +42,7 @@ export default function EditUsername({ oldUsername, onUpdate, lastNicknameChange
   return (
     <View>
       {
-        nameChangeTooSoon(lastNicknameChange, USERNAME_CHANGE_DELAY) &&
+        !allowNicknameChange &&
         <CustomLabel adaptToTheme labelText={`You changed your username recently, try again after a few days.`} fontSize={14} />
       }
       <CustomInput adaptToTheme labelText={"Username"} value={username} setValue={e => setUsername(e)} infoText={usernameUnchanged() ? "" : getInfoText()} inputMode={usernameUnchanged() ? "normal" : getInputMode()} showInfoTextAlways autoCapitalize="none" disableAutoCorrect forceLowercase useLessProminentColors />

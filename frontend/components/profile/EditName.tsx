@@ -1,7 +1,6 @@
-import { NAME_CHANGE_DELAY, ShowToast, USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
+import { ShowToast, USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
 import { useEditUser } from "@/hooks/queries/useUserApi";
 import { useCheckName } from "@/hooks/useCheckName";
-import { useDateConverter } from "@/hooks/useDateConverter";
 import { View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -11,12 +10,11 @@ import Spacer from "../Spacer";
 type props = {
   oldName: string
   onUpdate: () => void
-  lastNameChangeDate: string
+  allowNameChange: boolean
 }
 
-export default function EditName({ oldName, onUpdate, lastNameChangeDate }: props) {
+export default function EditName({ oldName, onUpdate, allowNameChange }: props) {
   const { NameValid, getNameInputMode, getNameLabelText, name, setName } = useCheckName(oldName, "", true)
-  const { nameChangeTooSoon } = useDateConverter()
 
   const { mutate: editName, isPending } = useEditUser()
 
@@ -24,7 +22,7 @@ export default function EditName({ oldName, onUpdate, lastNameChangeDate }: prop
   function nameIsInvalid() {
     if (oldName.trim() === name.trim()) return true
     else if (!NameValid()) return true
-    else if (nameChangeTooSoon(lastNameChangeDate, NAME_CHANGE_DELAY)) return true
+    else if (!allowNameChange) return true
 
     return false
   }
@@ -57,7 +55,7 @@ export default function EditName({ oldName, onUpdate, lastNameChangeDate }: prop
 
   return (
     <View>
-      {nameChangeTooSoon(lastNameChangeDate, NAME_CHANGE_DELAY) &&
+      {!allowNameChange &&
         <>
           <CustomLabel adaptToTheme labelText={`You changed your name recently, try again after a few days.`} fontSize={14} />
           <Spacer size="small" />
