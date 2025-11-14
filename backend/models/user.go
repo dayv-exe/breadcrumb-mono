@@ -40,16 +40,16 @@ type UserAccountInfo struct {
 }
 
 type UserPersonalInfo struct {
-	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate"`
+	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
 	LastNicknameChange  string `dynamodbav:"last_nickname_change" json:"-"`
 	LastEmailChange     string `dynamodbav:"last_email_change" json:"-"`
 	LastNameChange      string `dynamodbav:"last_name_change" json:"-"`
-	AllowNicknameChange bool   `json:"allowNicknameChange"`
-	AllowEmailChange    bool   `json:"allowEmailChange"`
-	AllowNameChange     bool   `json:"allowNameChange"`
-	LastLogin           string `dynamodbav:"last_login" json:"lastLogin"`
-	ForceChangeNickname bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname"`
-	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason"`
+	AllowNicknameChange bool   `dynamodbav:"-" json:"allowNicknameChange,omitempty"`
+	AllowEmailChange    bool   `dynamodbav:"-" json:"allowEmailChange,omitempty"`
+	AllowNameChange     bool   `dynamodbav:"-" json:"allowNameChange,omitempty"`
+	LastLogin           string `dynamodbav:"last_login" json:"lastLogin,omitempty"`
+	ForceChangeNickname bool   `dynamodbav:"force_change_nickname,omitempty" json:"forceChangeNickname"`
+	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
 }
 
 const (
