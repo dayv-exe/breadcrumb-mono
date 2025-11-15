@@ -145,7 +145,7 @@ export default function CustomMap({
         onPress={e => {
           requestAnimationFrame(() => handlePress(e))
         }}
-        attributionPosition={{ bottom: 95, right: 3 }}
+        attributionPosition={{ bottom: 100, right: 10 }}
         logoPosition={{ bottom: 70, right: 10 }}
         attributionEnabled={true}
         logoEnabled={true}

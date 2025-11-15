@@ -220,6 +220,10 @@ export default function MapScreen() {
               focusOnUserLocation()
             }} />
             <Spacer size="small" />
+            <CustomButton labelText="❤️ favorites" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
+              handleShowFiltered("❤️ favorites")
+            }} />
+            <Spacer size="small" />
             <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
               handleShowFiltered("🔒 private")
             }} />
