@@ -1,4 +1,6 @@
+import CustomButton from "@/components/buttons/CustomButton";
 import { Colors } from "@/constants/Colors";
+import { useCameraState } from "@/context/CameraContext";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Tabs, useSegments } from "expo-router";
@@ -121,8 +123,50 @@ function CustomTabLabel({ text, color, focused }: cLabelProps) {
   )
 }
 
+function MediaActionButtons() {
+  const { handleSendMedia, handleDiscardMedia } = useCameraState();
+
+  return (
+    <View style={{
+      backgroundColor: '#000',
+      height: 90,
+      borderColor: "transparent",
+      position: "absolute",
+      bottom: 0,
+      width: "100%",
+      zIndex: 100,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      <CustomButton type="text" labelText="Discard" />
+      <CustomButton type="prominent" labelText="Send" />
+    </View>
+  );
+}
+
+function RecordingActionButtons() {
+  return (
+    <View style={{
+      backgroundColor: '#000',
+      height: 90,
+      borderColor: "transparent",
+      position: "absolute",
+      bottom: 0,
+      width: "100%",
+      zIndex: 100,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      
+    </View>
+  );
+}
+
 export default function MainScreen() {
 
+  const { isPreviewActive, isRecording } = useCameraState();
   const segments = useSegments()
   const mode = useColorScheme()
   const textColor = useThemeColor({}, "text")
@@ -142,96 +186,111 @@ export default function MainScreen() {
   const isDarkMode = mode === "dark" || isAddActive()  // to force navbar into dark mode when showing add screen with camera active because it looks better
 
   return (
-    <Tabs initialRouteName="add" screenOptions={{
-      headerShown: false,
-      tabBarStyle: {
-        backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
-        height: 90,
-        paddingTop: 14,
-        borderColor: "transparent",
-      },
-      tabBarShowLabel: false
-    }}>
-      <Tabs.Screen name="map" options={{
-        title: "Map",
-        tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"map"} size={24} focused={focused} darkMode={isDarkMode} />
-        ),
-        tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={textColor} text="Map" focused={focused} />
-        ),
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
-          height: 90,
-          paddingTop: 14,
-          borderColor: isDarkMode ? "#444" : "#ccc",
-        }
-      }} />
+    <View style={{ flex: 1 }}>
+      <Tabs
+        initialRouteName="add"
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: isDarkMode
+              ? Colors.dark.background
+              : Colors.light.background,
+            height: 90,
+            paddingTop: 14,
+            borderColor: "transparent",
+          },
+          tabBarShowLabel: false,
+        }}
+      >
+        <Tabs.Screen name="map" options={{
+          title: "Map",
+          tabBarIcon: ({ focused }) => (
+            <CustomTabIcon name={"map"} size={24} focused={focused} darkMode={isDarkMode} />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel color={textColor} text="Map" focused={focused} />
+          ),
+          tabBarStyle: {
+            backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
+            height: 90,
+            paddingTop: 14,
+            borderColor: isDarkMode ? "#444" : "#ccc",
+          }
+        }} />
 
-      <Tabs.Screen name="search" options={{
-        title: "Search",
-        tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"search"} size={23} focused={focused} darkMode={isDarkMode} />
-        ),
-        tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={textColor} text="Search" focused={focused} />
-        ),
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
-          height: 90,
-          paddingTop: 14,
-          borderColor: isDarkMode ? "#444" : "#ccc",
-        }
-      }} />
+        <Tabs.Screen name="search" options={{
+          title: "Search",
+          tabBarIcon: ({ focused }) => (
+            <CustomTabIcon name={"search"} size={23} focused={focused} darkMode={isDarkMode} />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel color={textColor} text="Search" focused={focused} />
+          ),
+          tabBarStyle: {
+            backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
+            height: 90,
+            paddingTop: 14,
+            borderColor: isDarkMode ? "#444" : "#ccc",
+          }
+        }} />
 
-      <Tabs.Screen name="add" options={{
-        title: "Post",
-        tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"add"} focused={focused} size={23} darkMode={isDarkMode} />
-        ),
-        tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={textColor} text="Create" focused={focused} />
-        ),
-        tabBarStyle: {
-          backgroundColor: '#000',
-          height: 90,
-          paddingTop: 14,
-          borderColor: 'transparent',
-        }
-      }} />
+        <Tabs.Screen name="add" options={{
+          title: "Post",
+          tabBarIcon: ({ focused }) => (
+            <CustomTabIcon name={"add"} focused={focused} size={23} darkMode={isDarkMode} />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel color={textColor} text="Create" focused={focused} />
+          ),
+          tabBarStyle: {
+            backgroundColor: '#000',
+            height: 90,
+            paddingTop: 14,
+            borderColor: 'transparent',
+          }
+        }} />
 
-      <Tabs.Screen name="messages" options={{
-        title: "Message",
-        tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"notifications"} focused={focused} darkMode={isDarkMode} />
-        ),
-        tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={textColor} text="Chat" focused={focused} />
-        ),
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
-          height: 90,
-          paddingTop: 14,
-          borderColor: isDarkMode ? "#444" : "#ccc",
-        }
-      }} />
+        <Tabs.Screen name="messages" options={{
+          title: "Message",
+          tabBarIcon: ({ focused }) => (
+            <CustomTabIcon name={"notifications"} focused={focused} darkMode={isDarkMode} />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel color={textColor} text="Chat" focused={focused} />
+          ),
+          tabBarStyle: {
+            backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
+            height: 90,
+            paddingTop: 14,
+            borderColor: isDarkMode ? "#444" : "#ccc",
+          }
+        }} />
 
-      <Tabs.Screen name="profile" options={{
-        title: "Me",
-        tabBarIcon: ({ focused }) => (
-          <CustomTabIcon name={"profile"} focused={focused} darkMode={isDarkMode} />
-        ),
-        tabBarLabel: ({ focused }) => (
-          <CustomTabLabel color={textColor} text="Me" focused={focused} />
-        ),
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
-          height: 90,
-          paddingTop: 14,
-          borderColor: isDarkMode ? "#444" : "#ccc",
-        }
-      }} />
-    </Tabs>
+        <Tabs.Screen name="profile" options={{
+          title: "Me",
+          tabBarIcon: ({ focused }) => (
+            <CustomTabIcon name={"profile"} focused={focused} darkMode={isDarkMode} />
+          ),
+          tabBarLabel: ({ focused }) => (
+            <CustomTabLabel color={textColor} text="Me" focused={focused} />
+          ),
+          tabBarStyle: {
+            backgroundColor: isDarkMode ? Colors.dark.background : Colors.light.background,
+            height: 90,
+            paddingTop: 14,
+            borderColor: isDarkMode ? "#444" : "#ccc",
+          }
+        }} />
+      </Tabs>
+
+      {isPreviewActive && isAddActive() &&
+        <MediaActionButtons />
+      }
+
+      {isRecording && isAddActive() &&
+        <RecordingActionButtons />
+      }
+    </View>
   )
 }
 

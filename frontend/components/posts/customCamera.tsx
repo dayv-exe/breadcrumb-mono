@@ -1,5 +1,6 @@
 import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants"
 import { Colors } from "@/constants/Colors"
+import { useCameraState } from "@/context/CameraContext"
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl"
 import { useImagePicker } from "@/hooks/useImagePicker"
 import { showSettingsAlert } from "@/utils/helpers"
@@ -66,6 +67,13 @@ type PreviewScreenProps = {
 }
 
 function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
+  const { setIsPreviewActive } = useCameraState()
+
+  useEffect(() => {
+    setIsPreviewActive(true)
+    
+  }, [])
+
   const player = useVideoPlayer(media.type === 'video' ? media.uri : '', player => {
     if (media.type === 'video') {
       player.loop = false
@@ -120,6 +128,7 @@ function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
 function CameraScreen({ frontCam, backCam }: camProps) {
   let availableCams: CameraDevice[] = []
 
+  const {setIsPreviewActive, setIsRecording: setIsCamRecording, resetCameraState} = useCameraState()
   if (backCam !== null) availableCams.push(backCam!)
   if (frontCam !== null) availableCams.push(frontCam!)
 
@@ -147,6 +156,10 @@ function CameraScreen({ frontCam, backCam }: camProps) {
         uri: image.uri
       })
     }
+
+    return () => {
+      resetCameraState()
+    }
   }, [image])
   const handleModeChange = (mode: CameraMode) => {
     setCameraMode(mode)
@@ -155,6 +168,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   const handleTouchEnd = () => {
     if (isRecording) {
       stopRecording()
+      setIsCamRecording(false)
     }
   }
 
@@ -206,6 +220,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   async function startRecording() {
     if (cameraRef.current) {
       try {
+        setIsCamRecording(true)
         setIsRecording(true)
         progress.value = 0
 
@@ -260,6 +275,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
 
   function handleRetake() {
     setMediaPreview(null)
+    setIsPreviewActive(false)
   }
 
   async function handleSave() {
@@ -550,8 +566,9 @@ const styles = StyleSheet.create({
   previewMediaWrapper: {
     flex: 1,
     width: "100%",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    // borderTopLeftRadius: 25,
+    // borderTopRightRadius: 25,
+    // borderRadius: 25,
     overflow: "hidden",
   },
   previewMedia: {

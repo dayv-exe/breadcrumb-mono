@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 import CustomLabel from "../CustomLabel";
 
-export default function NoCameraFoundScreen() {
+export default function NoCameraFound() {
   return (
     <View style={styles.container}>
       <CustomLabel textAlign="center" labelText="🤔" fontSize={21} />
@@ -14,6 +14,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    width: "80%"
   }
 })

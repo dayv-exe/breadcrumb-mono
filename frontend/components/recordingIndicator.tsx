@@ -1,13 +1,17 @@
 import { usePulseAnimation } from "@/hooks/animations/usePulseAnimation";
-import { View } from "react-native";
+import { View, ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 import CustomLabel from "./CustomLabel";
 
-export default function RecordingIndicator() {
+type props = {
+  customStyle?: ViewStyle
+}
+
+export default function RecordingIndicator({customStyle}: props) {
   const pulseStyle = usePulseAnimation(true, { duration: 400 })
 
   return (
-    <View style={{ position: "absolute", top: 10, width: "auto", flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0, 0, 0, 0.25)", paddingHorizontal: 7, borderRadius: 100 }}>
+    <View style={[{ position: "absolute", top: 10, width: "auto", flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0, 0, 0, 0.25)", paddingHorizontal: 7, borderRadius: 100 }, customStyle]}>
       <Animated.View style={[{
         width: 13,
         height: 13,
