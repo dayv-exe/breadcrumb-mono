@@ -193,10 +193,10 @@ export default function MainScreen() {
           <CustomTabLabel color={textColor} text="Create" focused={focused} />
         ),
         tabBarStyle: {
-          backgroundColor: Colors.dark.background,
+          backgroundColor: '#000',
           height: 90,
           paddingTop: 14,
-          borderColor: "#444",
+          borderColor: 'transparent',
         }
       }} />
 

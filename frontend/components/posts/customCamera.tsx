@@ -363,7 +363,7 @@ function CameraScreen({ frontCam, backCam }: camProps) {
                 }} type="text" src={require("../../assets/images/icons/gallery_unsel_light.png")} size={30} />
               </ControlButtonContainer>
             </View>}
-            {!isRecording && (
+            {false && !isRecording && (
               <View style={styles.modeCarouselContainer}>
                 <CameraModeCarousel
                   modes={CAMERA_MODES}
@@ -539,6 +539,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
+    borderRadius: 25,
     overflow: "hidden",
     backgroundColor: "black",
   },
