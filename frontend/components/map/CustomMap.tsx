@@ -143,7 +143,7 @@ export default function CustomMap({
         styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
 
         onPress={e => {
-          requestAnimationFrame(() => handlePress(e))
+          handlePress(e)
         }}
         attributionPosition={{ bottom: 100, right: 10 }}
         logoPosition={{ bottom: 70, right: 10 }}

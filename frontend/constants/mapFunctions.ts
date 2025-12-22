@@ -1,19 +1,19 @@
 import Mapbox from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 
-export const getPressedLocationInfo = async (e: any, mapRef: React.RefObject<Mapbox.MapView | null>, token: string) => {
+export const getPressedLocationInfo = async (e: any, mapRef: React.RefObject<Mapbox.MapView | null>) => {
   const screenPoint: Position = [e.properties.screenPointX, e.properties.screenPointY];
   const res = await mapRef.current?.queryRenderedFeaturesAtPoint(screenPoint, null, [
     "poi-label",
+    "transit-label",
     "continent-label",
     "country-label",
-    "admin-0-boundary",
     "state-label",
     "settlement-major-label",
     "settlement-minor-label",
     "settlement-subdivision-label",
   ]);
-  console.log(res?.features[0])
+  console.log(res)
   return res?.features[0]
 };
 

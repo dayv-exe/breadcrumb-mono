@@ -3,11 +3,10 @@ import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap, { mapMethods } from "@/components/map/CustomMap";
-import Skeleton from "@/components/skeletons/Skeleton";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
+import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { getMostRelevantPOI, queryPOIAtScreenCoordinate } from "@/utils/screenPointToPoi";
 import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
@@ -137,54 +136,9 @@ export default function MapScreen() {
         </View>
       </SafeAreaView>
 
-      <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handleCancelPress={() => closeSheet()} handleLongPress={async e => {
-        if (1 + 1 === 2) {
-          return
-        }
-        openSheet({
-          content: (
-            <>
-              {!selPlace &&
-                <View style={{ height: 200, paddingHorizontal: 20, flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Skeleton width={75} height={75} borderRadius="100%" />
-                    <Spacer size="small" />
-                    <View>
-                      <Skeleton width={200} height={21} borderRadius={25} />
-                      <Spacer size="small" />
-                      <Skeleton width={150} height={21} borderRadius={25} />
-                    </View>
-                  </View>
-                </View>
-              }
-              {selPlace &&
-                <View style={{ height: 200, paddingHorizontal: 20, flexDirection: "column", alignItems: "flex-start", justifyContent: "flex-start" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Skeleton width={75} height={75} borderRadius="100%" />
-                    <Spacer size="small" />
-                    <View>
-                      <CustomLabel adaptToTheme labelText={selPlace.name} />
-                      <Spacer size="small" />
-                      <CustomLabel adaptToTheme labelText={selPlace.type} />
-                    </View>
-                  </View>
-                </View>
-              }
-            </>
-          ),
-          showOverlay: false,
-          dynamicHeight: true,
-        })
-
-        const result = await queryPOIAtScreenCoordinate(mapRef, e.x, e.y);
+      <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handleCancelPress={() => closeSheet()} handlePress={async e => {
+        const result = await getPressedLocationInfo(e, mapRef);
         console.log(result)
-        if (result.features.length > 0) {
-          const poi = getMostRelevantPOI(result.features);
-          setSelPlace({ name: poi?.properties.name, type: poi?.properties.type })
-        } else {
-          console.log('No POI found at this location');
-          console.log('Geographic coordinates:', result.geoCoordinates);
-        }
       }} />
 
       <View>
@@ -207,17 +161,12 @@ export default function MapScreen() {
               paddingHorizontal: 20
             }}
           >
-            <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
-              handleShowFiltered("unopened")
+            <CustomButton labelText="📬 Crumbs" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
+              handleShowFiltered("crumbs")
             }} />
             <Spacer size="small" />
             <CustomButton labelText="🧱 Walls" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
               handleShowFiltered("walls")
-            }} />
-            <Spacer size="small" />
-            <CustomButton labelText="📍Nearby" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
-              handleShowFiltered("nearby")
-              focusOnUserLocation()
             }} />
             <Spacer size="small" />
             <CustomButton labelText="❤️ favorites" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
