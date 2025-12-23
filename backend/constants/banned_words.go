@@ -408,4 +408,5 @@ var BannedTerms = map[string]bool{
 	"hate":                        true,
 	"jihad":                       true,
 	"terrorist":                   true,
+	"breadcrumb":                  true,
 }
