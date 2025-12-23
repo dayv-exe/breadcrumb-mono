@@ -6,9 +6,6 @@ import (
 	"strings"
 )
 
-// not in use yet
-var bannedNicknameSubstrings = []string{"user", ""}
-
 func NicknameValid(nickname string) bool {
 	if len(nickname) < constants.MIN_USERNAME_CHARS || len(nickname) > constants.MAX_USERNAME_CHARS {
 		return false
@@ -38,6 +35,10 @@ func NicknameValid(nickname string) bool {
 	}
 
 	if strings.Contains(nickname, "_.") || strings.Contains(nickname, "._") {
+		return false
+	}
+
+	if GetNameSuspicionPercentage(nickname) == 100 {
 		return false
 	}
 

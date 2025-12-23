@@ -4,6 +4,7 @@ import (
 	"backend/constants"
 	"testing"
 	"time"
+	"unicode"
 )
 
 func TestIsNicknameValid(t *testing.T) {
@@ -30,6 +31,9 @@ func TestIsNicknameValid(t *testing.T) {
 		{"a.1", false},
 		{"ab.1", true},
 		{"p_12345", true},
+		{"this_sucks", false},
+		{"hot.chick69", false},
+		{"h0t_ch1ck123", false},
 	}
 
 	for _, tt := range tests {
@@ -81,5 +85,56 @@ func TestNameChangeAllowed(t *testing.T) {
 				t.Errorf("Expected %v but got %v instead!", tt.expectAllowChange, result)
 			}
 		})
+	}
+}
+
+func TestSuspiciousNamePct(t *testing.T) {
+	tests := []struct {
+		name           string
+		containsBanned bool
+	}{
+		{
+			name:           "pleaseifuckingneedthis",
+			containsBanned: true,
+		},
+		{
+			name:           "ireallyreallyhateb00bs",
+			containsBanned: true,
+		},
+		{
+			name:           "barrack_obama",
+			containsBanned: false,
+		},
+		{
+			name:           "mitch",
+			containsBanned: false,
+		},
+		{
+			name:           "m1tch",
+			containsBanned: false,
+		},
+		{
+			name:           "btch1",
+			containsBanned: false,
+		},
+		{
+			name:           "f*ck123",
+			containsBanned: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := GetNameSuspicionPercentage(tt.name) == 100
+			if result != tt.containsBanned {
+				t.Errorf("Expected result for %v to be %v but result is %v", tt.name, tt.containsBanned, result)
+			}
+		})
+	}
+}
+
+func TestAscii(t *testing.T) {
+	if unicode.IsLetter(rune('*')) {
+		t.Errorf("is letter actually!")
 	}
 }
