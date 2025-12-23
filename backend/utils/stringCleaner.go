@@ -65,6 +65,8 @@ func SplitOnDelimiter(s string, delimiters ...string) []string {
 }
 
 func bannedWordMatch(input, bannedWord string) float64 {
+	input = strings.ToLower(input)
+	bannedWord = strings.ToLower(bannedWord)
 	if len(input) < 1 || len(bannedWord) < 1 {
 		return 0
 	}

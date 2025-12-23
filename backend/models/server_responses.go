@@ -42,6 +42,14 @@ func UnauthorizedErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 	return buildResponse(401, ResponseBody{msg})
 }
 
+func ForbiddenErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
+	if msg == "" {
+		msg = "Insufficient Permissions"
+	}
+	log.Println(msg)
+	return buildResponse(403, ResponseBody{msg})
+}
+
 func NotFoundResponse(msg string) events.APIGatewayV2HTTPResponse {
 	if msg == "" {
 		msg = "Resource not found."

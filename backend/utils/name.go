@@ -8,8 +8,15 @@ import (
 )
 
 func NameIsValid(name *string) bool {
+	if len(*name) > constants.MAX_FULLNAME_CHARS {
+		return false
+	}
 
-	return (len(*name) == 0 || len(*name) <= constants.MAX_FULLNAME_CHARS) && GetNameSuspicionPercentage(*name) < 100
+	if GetNameSuspicionPercentage(*name) == 100 {
+		return false
+	}
+
+	return true
 }
 
 func NameChangeAllowed(lastChangedOn string) bool {
@@ -33,7 +40,7 @@ func NameChangeAllowed(lastChangedOn string) bool {
 }
 
 func GetNameSuspicionPercentage(name string) float64 {
-	normalizedInput := removeEverythingExceptValidChars(name)
+	normalizedInput := removeEverythingExceptValidChars(strings.ToLower(name))
 	if len(normalizedInput) < 1 {
 		return 0.0
 	}

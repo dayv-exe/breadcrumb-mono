@@ -18,6 +18,9 @@ func handleNicknameAvailable(ctx context.Context, req events.APIGatewayV2HTTPReq
 
 	// if nickname is invalid return false immediately
 	nickname := strings.ToLower(req.PathParameters["str"])
+	if utils.GetNameSuspicionPercentage(nickname) == 100 {
+		return models.ForbiddenErrorResponse("This name is not allowed!"), nil
+	}
 	if nickname == "" || !utils.NicknameValid(nickname) {
 		return models.SuccessfulRequestResponse(fmt.Sprintf("%v", false), false), nil
 	}
