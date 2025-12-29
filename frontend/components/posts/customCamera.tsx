@@ -136,8 +136,8 @@ function CameraScreen({ frontCam, backCam }: camProps) {
   const cameraRef = useRef<Camera>(null)
   const [currentCam, setCurrentCam] = useState<CameraDevice>(availableCams[0])
   const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
-  const progress = useSharedValue(0)
   const [isRecording, setIsRecording] = useState(false)
+  const progress = useSharedValue(0)
   const zoom = useSharedValue(currentCam.neutralZoom)
   const format = useMemo(() => {
     return currentCam.formats.find(

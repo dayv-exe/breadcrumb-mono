@@ -1,6 +1,5 @@
-import { showSettingsAlert } from '@/utils/helpers';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { CameraDevice, useCameraDevice, useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
+import { Camera, CameraDevice, useCameraDevice } from 'react-native-vision-camera';
 
 type MediaType = 'photo' | 'video' | null;
 
@@ -11,29 +10,31 @@ type MediaData = {
   thumbnail?: string;
 };
 
-type CameraContextType = {
-  isPreviewActive: boolean;
-  setIsPreviewActive: (active: boolean) => void;
+type MediaPreview = {
+  type: 'photo' | 'video'
+  uri: string
+}
 
+type CameraContextType = {
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
-
   currentMedia: MediaData | null;
   setCurrentMedia: (media: MediaData | null) => void;
 
   resetCameraState: () => void
-
   handleSendMedia: () => void;
   handleDiscardMedia: () => void;
   onSendMedia?: (media: MediaData) => void | Promise<void>;
   setOnSendMedia: (callback: (media: MediaData) => void | Promise<void>) => void;
+  mediaPreview: MediaPreview | null
+  setMediaPreview: (media: MediaPreview) => void 
 
   flipCamera: () => void
   activeCamera: CameraDevice | null
-
-  hasCameraPermissions: boolean
-  hasMicPermissions: boolean
-  requestMediaPermissions: () => void
+  takePhoto: () => void
+  cameraRef: React.RefObject<Camera | null>
+  useFlash: boolean
+  setUseFlash: (s: boolean) => void
 };
 
 const CameraContext = createContext<CameraContextType | undefined>(undefined);
@@ -53,9 +54,6 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   const [currentMedia, setCurrentMedia] = useState<MediaData | null>(null);
   const [onSendMedia, setOnSendMedia] = useState<((media: MediaData) => void | Promise<void>) | undefined>();
 
-  const { hasPermission: hasCameraPermissions, requestPermission: reqCamPermission } = useCameraPermission()
-  const { hasPermission: hasMicPermissions, requestPermission: reqMicPermission } = useMicrophonePermission()
-
   const backCamera = useCameraDevice("back")
   const frontCamera = useCameraDevice("front")
 
@@ -64,8 +62,8 @@ export function CameraProvider({ children }: { children: ReactNode }) {
 
   const availableCameras = useMemo<CameraDevice[]>(() => {
     const cams: CameraDevice[] = []
-    if (frontCamera) cams.push(frontCamera)
     if (backCamera) cams.push(backCamera)
+    if (frontCamera) cams.push(frontCamera)
     return cams
   }, [frontCamera, backCamera])
 
@@ -77,7 +75,6 @@ export function CameraProvider({ children }: { children: ReactNode }) {
   }, [availableCameras])
 
 
-
   function flipCamera() {
     if (availableCameras.length < 2) return
 
@@ -87,20 +84,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     setActiveCamera(availableCameras[selectedCameraIndex.current])
   }
 
-
-  async function requestMediaPermissions() {
-    if (!hasCameraPermissions) {
-      const status = await reqCamPermission()
-      if (!status) {
-        showSettingsAlert("Camera and Microphone")
-      }
-    } else if (!hasMicPermissions) {
-      const status = await reqMicPermission()
-      if (!status) {
-        showSettingsAlert("Microphone")
-      }
-    }
-  }
+  const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
 
   const handleSendMedia = async () => {
     if (!currentMedia) return;
@@ -127,6 +111,30 @@ export function CameraProvider({ children }: { children: ReactNode }) {
     setCurrentMedia(null);
   }
 
+  const cameraRef = useRef<Camera>(null)
+
+  async function takePhoto() {
+    if (cameraRef.current) {
+      setMediaPreview({
+        type: 'photo',
+        uri: ``
+      })
+      try {
+        const photo = await cameraRef.current.takePhoto({
+          flash: 'off',
+        })
+        setMediaPreview({
+          type: 'photo',
+          uri: `file://${photo.path}`
+        })
+      } catch (error) {
+        console.error('Error taking photo:', error)
+      }
+    }
+  }
+
+  const [useFlash, setUseFlash] = useState(false)
+
   return (
     <CameraContext.Provider value={{
       isPreviewActive,
@@ -140,11 +148,14 @@ export function CameraProvider({ children }: { children: ReactNode }) {
       onSendMedia,
       setOnSendMedia,
       resetCameraState,
-      hasCameraPermissions,
-      hasMicPermissions,
-      requestMediaPermissions,
       flipCamera,
       activeCamera,
+      mediaPreview,
+      setMediaPreview,
+      cameraRef,
+      takePhoto,
+      useFlash,
+      setUseFlash,
     }}>
       {children}
     </CameraContext.Provider>

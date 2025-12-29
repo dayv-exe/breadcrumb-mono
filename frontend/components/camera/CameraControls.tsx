@@ -1,16 +1,28 @@
-import { useCameraState } from "@/context/CameraContext";
 import { StyleSheet, View } from "react-native";
 import CustomImageButton from "../buttons/CustomImageButton";
 import Spacer from "../Spacer";
 
-export default function CameraControls() {
-  const { flipCamera } = useCameraState()
+type ctrlProps = {
+  useFlash: "on" | "off"
+  setUseFlash: (s: "on" | "off") => void
+  flipCamera: () => void
+}
+
+const icons = {
+  flash: require("../../assets/images/icons/flash_sel_light.png"),
+  noFlash: require("../../assets/images/icons/noflash_sel_light.png")
+}
+
+export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ctrlProps) {
+  function toggleFlash() {
+    setUseFlash(useFlash === "on" ? "off" : "on")
+  }
 
   return (
     <View style={styles.cameraControls}>
-      <CustomImageButton type="text" src={require("../../../assets/images/icons/noflash_sel_light.png")} size={30} fitToContent />
+      <CustomImageButton handleClick={toggleFlash} type="text" src={useFlash === "on" ? icons.flash : icons.noFlash} size={30} fitToContent />
       <Spacer />
-      <CustomImageButton handleClick={flipCamera} type="text" src={require("../../../assets/images/icons/flipcamera_sel_light.png")} size={30} fitToContent />
+      <CustomImageButton handleClick={flipCamera} type="text" src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={30} fitToContent />
       <Spacer size="tiny" />
     </View>
   )
@@ -26,5 +38,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 10,
     opacity: .9,
+    zIndex: 100,
   },
 })

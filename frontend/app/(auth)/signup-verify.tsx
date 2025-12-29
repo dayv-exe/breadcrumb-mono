@@ -2,6 +2,7 @@ import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomInput from "@/components/inputs/CustomInput";
 import CustomModal from "@/components/modals/CustomModal";
+import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
@@ -27,6 +28,7 @@ export default function SignupVerifyScreen() {
 
   const { mutate: abort } = useAbortSignup()
   const { mutate: createUser } = useCreateUser()
+  const { showModal, hideModal } = useModal()
 
   function handleErrorGracefully(err: string) {
     if (String(err).includes("CodeMismatchException") || String(err).includes("InvalidParameterException")) {
@@ -50,6 +52,12 @@ export default function SignupVerifyScreen() {
         Toast.show({
           text1: "Something went wrong please, try again!",
           type: "info",
+        })
+        showModal({
+          message: "Something went wrong while we were trying to create your account, please try again after a while. Side note: make sure your full name does NOT contain any swear words as this could prevent us from creating your account.",
+          onPrimary() {
+            hideModal()
+          },
         })
       }
 

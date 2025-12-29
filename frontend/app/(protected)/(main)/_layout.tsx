@@ -1,8 +1,9 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import { Colors } from "@/constants/Colors";
-import { useCameraState } from "@/context/CameraContext";
+import { MediaData } from "@/constants/media";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useMediaStore } from "@/utils/mediaStore";
 import { Tabs, useSegments } from "expo-router";
 import { ColorValue, Image, StyleSheet, Text, View } from "react-native";
 
@@ -123,9 +124,7 @@ function CustomTabLabel({ text, color, focused }: cLabelProps) {
   )
 }
 
-function MediaActionButtons() {
-  const { handleSendMedia, handleDiscardMedia } = useCameraState();
-
+function MediaActionButtons({setMediaPreview}: {setMediaPreview: (m: MediaData | null) => void}) {
   return (
     <View style={{
       backgroundColor: '#000',
@@ -139,7 +138,7 @@ function MediaActionButtons() {
       alignItems: "center",
       justifyContent: "center",
     }}>
-      <CustomButton type="text" labelText="Discard" />
+      <CustomButton type="text" labelText="Discard" handleClick={() => setMediaPreview(null)} />
       <CustomButton type="prominent" labelText="Send" />
     </View>
   );
@@ -166,7 +165,7 @@ function RecordingActionButtons() {
 
 export default function MainScreen() {
 
-  const { isPreviewActive, isRecording } = useCameraState();
+  const { isRecording, mediaPreview, setMediaPreview } = useMediaStore();
   const segments = useSegments()
   const mode = useColorScheme()
   const textColor = useThemeColor({}, "text")
@@ -283,8 +282,8 @@ export default function MainScreen() {
         }} />
       </Tabs>
 
-      {isPreviewActive && isAddActive() &&
-        <MediaActionButtons />
+      {mediaPreview && isAddActive() &&
+        <MediaActionButtons setMediaPreview={setMediaPreview} />
       }
 
       {isRecording && isAddActive() &&

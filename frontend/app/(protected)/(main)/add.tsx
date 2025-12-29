@@ -1,7 +1,10 @@
 import CustomImageButton from "@/components/buttons/CustomImageButton";
+import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
-import { useCameraState } from "@/context/CameraContext";
+import ShutterButton from "@/components/camera/ShutterButton";
+import { useCamera } from "@/hooks/useCamera";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -23,7 +26,8 @@ const TopButtons = () => {
 }
 
 export default function AddScreen() {
-  const { activeCamera, isRecording } = useCameraState()
+  const { activeCamera, recordingProgress, startRecording, stopRecording, takePhoto, cameraRef, zoomLevel, setUseFlash, useFlash, flipCamera } = useCamera()
+  const { isRecording } = useMediaStore()
   const isFocused = useIsFocused()
   const insets = useSafeAreaInsets()
 
@@ -31,10 +35,13 @@ export default function AddScreen() {
     <View style={{ flex: 1, backgroundColor: "black", paddingTop: insets.top }}>
       {isFocused &&
         <View style={styles.container}>
-          <CameraView />
+          <CameraView activeCamera={activeCamera} cameraRef={cameraRef} isRecording={isRecording} zoomLevel={zoomLevel} stopRecording={stopRecording}>
+            <ShutterButton recordingProgress={recordingProgress} startRecording={startRecording} stopRecording={stopRecording} takePhoto={takePhoto} />
+          </CameraView>
           {activeCamera &&
             <>
               {!isRecording && <TopButtons />}
+              <CameraControls flipCamera={flipCamera} setUseFlash={setUseFlash} useFlash={useFlash} />
             </>
           }
         </View>
