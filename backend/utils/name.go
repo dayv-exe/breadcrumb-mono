@@ -12,7 +12,7 @@ func NameIsValid(name *string) bool {
 		return false
 	}
 
-	if GetNameSuspicionPercentage(*name) == 100 {
+	if NameIsBanned(*name) {
 		return false
 	}
 
@@ -39,26 +39,26 @@ func NameChangeAllowed(lastChangedOn string) bool {
 	return false
 }
 
-func GetNameSuspicionPercentage(name string) float64 {
+func NameIsBanned(name string) bool {
 	normalizedInput := removeEverythingExceptValidChars(strings.ToLower(name))
 	if len(normalizedInput) < 1 {
-		return 0.0
+		return false
 	}
 
-	matchPct := 0.0
+	isBanned := false
 	n := len(normalizedInput)
 	for banned := range constants.BannedTerms {
 		for i := 0; i < n; i++ {
 			if n-i < len(banned) {
 				break
 			}
-			matchPct = max(matchPct, bannedWordMatch(normalizedInput[i:], banned))
-		}
 
-		if matchPct == 100 {
-			break
+			if isBannedInput(normalizedInput[i:], banned) {
+				isBanned = true
+				break
+			}
 		}
 	}
 
-	return matchPct
+	return isBanned
 }

@@ -38,7 +38,7 @@ func NicknameValid(nickname string) bool {
 		return false
 	}
 
-	if GetNameSuspicionPercentage(nickname) == 100 {
+	if NameIsBanned(nickname) {
 		return false
 	}
 

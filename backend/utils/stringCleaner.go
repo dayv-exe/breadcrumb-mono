@@ -64,36 +64,69 @@ func SplitOnDelimiter(s string, delimiters ...string) []string {
 	return tokens
 }
 
-func bannedWordMatch(input, bannedWord string) float64 {
+func hasTwoDistinctRepeats(s string) bool {
+	s = strings.ToLower(s)
+	runes := []rune(s)
+
+	repeated := map[rune]bool{}
+
+	for i := 1; i < len(runes); i++ {
+		if runes[i] == runes[i-1] && unicode.IsLetter(runes[i]) {
+			repeated[runes[i]] = true
+		}
+	}
+
+	return len(repeated) >= 2
+}
+
+func isBannedInput(input, bannedWord string) bool {
 	input = strings.ToLower(input)
 	bannedWord = strings.ToLower(bannedWord)
-	if len(input) < 1 || len(bannedWord) < 1 {
-		return 0
+
+	if len(input) < 1 || len(bannedWord) < 1 || len(input) < len(bannedWord) {
+		return false
 	}
 
-	var matchPct = 0.0
+	multiRepeatedChars := hasTwoDistinctRepeats(input)
 
-	correctPosCount := 0.0
-	n := float64(len(bannedWord))
+	bannedWordLen := len(bannedWord)
+	inputLen := len(input)
 
-	for i := 0; i < len(input); i++ {
-		if i >= len(bannedWord) {
-			break
-		}
-		if bannedWord[i] == input[i] {
-			// if chars match or char is not an alphabet e.g f*ck, f$ck, f ck will all return 100%
+	correctPosCount := 0
+
+	inputPointer := 0
+	bannedPointer := 0
+	for i := 0; i < 100 &&
+		inputPointer < inputLen &&
+		bannedPointer < bannedWordLen &&
+		correctPosCount < bannedWordLen; i++ {
+		inputChar := input[inputPointer]
+		bannedChar := bannedWord[bannedPointer]
+
+		if inputChar == bannedChar {
 			correctPosCount++
-		} else if i > 0 && !unicode.IsLetter(rune(input[i])) {
-			if (i-1 >= 0 && unicode.IsLetter(rune(input[i-1]))) ||
-				(i+1 < len(input) && unicode.IsLetter(rune(input[i+1]))) {
-				// if the last char is not a letter, and the next char is also not a letter then ignore
-				// e.g f123 will not matched with the f word
-				correctPosCount++
-			}
+		} else if inputPointer > 0 && inputPointer+1 < inputLen && !unicode.IsLetter(rune(inputChar)) {
+			// a char inbetween is not a letter, obusification
+			correctPosCount++
+		} else if !multiRepeatedChars && inputPointer > 2 && inputChar == input[i-1] && inputChar == input[i-2] {
+			// last three chars repeat, ignore them
+			bannedPointer--
+		} else if !multiRepeatedChars && inputPointer > 1 && inputPointer+1 < inputLen && inputChar == input[i-1] && inputChar == input[i+1] {
+			// last char, current char and next char repeat, ignore them
+			bannedPointer--
+		} else if multiRepeatedChars && inputPointer > 1 && inputChar == input[i-1] {
+			// last 2 chars repeat
+			bannedPointer--
+		} else if multiRepeatedChars && inputPointer > 1 && inputPointer+1 < inputLen && inputChar == input[i+1] {
+			// next 2 chars repeat
+			bannedPointer++
+		} else {
+			correctPosCount = 0
 		}
+
+		inputPointer++
+		bannedPointer++
 	}
 
-	matchPct = max(matchPct, (float64(correctPosCount/n) * 100))
-
-	return matchPct
+	return correctPosCount == bannedWordLen
 }
