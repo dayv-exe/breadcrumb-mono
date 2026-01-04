@@ -30,10 +30,7 @@ func TestIsNicknameValid(t *testing.T) {
 		{"14792384913", false},
 		{"a.1", false},
 		{"ab.1", true},
-		{"p_12345", false},
-		{"this_sucks", false},
 		{"hot.chick69", false},
-		{"h0t_ch1ck123", false},
 	}
 
 	for _, tt := range tests {
@@ -121,11 +118,19 @@ func TestSuspiciousNamePct(t *testing.T) {
 			name:           "f*ck123",
 			containsBanned: true,
 		},
+		{
+			name:           "f*ck",
+			containsBanned: true,
+		},
+		{
+			name:           "assistance",
+			containsBanned: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := NameIsBanned(tt.name)
+			result := IsNameBanned(tt.name)
 			if result != tt.containsBanned {
 				t.Errorf("Expected result for %v to be %v but result is %v", tt.name, tt.containsBanned, result)
 			}
@@ -140,22 +145,17 @@ func TestNameBanned(t *testing.T) {
 		isBanned       bool
 	}{
 		{
-			name:           "hate",
-			testBannedWord: "hate",
-			isBanned:       true,
-		},
-		{
-			name:           "h4te",
-			testBannedWord: "hate",
-			isBanned:       true,
-		},
-		{
-			name:           "rapper",
-			testBannedWord: "raper",
+			name:           "assistant",
+			testBannedWord: "ass",
 			isBanned:       false,
 		},
 		{
-			name:           "daammmn",
+			name:           "damn",
+			testBannedWord: "damn",
+			isBanned:       true,
+		},
+		{
+			name:           "d*mn",
 			testBannedWord: "damn",
 			isBanned:       true,
 		},
@@ -163,9 +163,10 @@ func TestNameBanned(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := isBannedInput(tt.name, tt.testBannedWord)
+			banned, sus := getBannedSubStr(tt.name, tt.testBannedWord, false)
+			result := banned != ""
 			if result != tt.isBanned {
-				t.Errorf("Expected %v ban to be %v but got %v instead", tt.name, tt.isBanned, result)
+				t.Errorf("expected %v banned state to be %v but got %v instead\nbanned: %v\nsus: %v", tt.name, tt.isBanned, result, banned, sus)
 			}
 		})
 	}

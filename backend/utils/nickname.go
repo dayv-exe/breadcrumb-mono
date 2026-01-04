@@ -38,7 +38,7 @@ func NicknameValid(nickname string) bool {
 		return false
 	}
 
-	if NameIsBanned(nickname) {
+	if IsNameBanned(nickname) {
 		return false
 	}
 

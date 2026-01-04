@@ -12,7 +12,7 @@ func NameIsValid(name *string) bool {
 		return false
 	}
 
-	if NameIsBanned(*name) {
+	if IsNameBanned(*name) {
 		return false
 	}
 
@@ -39,26 +39,39 @@ func NameChangeAllowed(lastChangedOn string) bool {
 	return false
 }
 
-func NameIsBanned(name string) bool {
-	normalizedInput := removeEverythingExceptValidChars(strings.ToLower(name))
-	if len(normalizedInput) < 1 {
+func IsNameBanned(name string) bool {
+	name = strings.ToLower(name)
+
+	_, exists := constants.BannedTerms[name]
+	if exists {
+		return true
+	}
+
+	name = removeEverythingExceptValidChars(name)
+	if len(name) < 1 {
 		return false
 	}
 
 	isBanned := false
-	n := len(normalizedInput)
-	for banned := range constants.BannedTerms {
-		for i := 0; i < n; i++ {
-			if n-i < len(banned) {
-				break
-			}
+	susCount := 0
 
-			if isBannedInput(normalizedInput[i:], banned) {
-				isBanned = true
-				break
-			}
+	for banned, hardBan := range constants.BannedTerms {
+		bannedStr, susStr := getBannedSubStr(name, banned, hardBan)
+
+		if susStr != "" {
+			susCount++
+			name = strings.ReplaceAll(name, susStr, "")
+		}
+
+		if bannedStr != "" {
+			isBanned = true
+			break
+		}
+
+		if name == "" || susCount > 1 {
+			break
 		}
 	}
 
-	return isBanned
+	return isBanned || susCount > 1
 }

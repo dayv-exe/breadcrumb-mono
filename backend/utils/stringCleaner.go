@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"regexp"
 	"strings"
 	"unicode"
@@ -79,6 +80,20 @@ func hasTwoDistinctRepeats(s string) bool {
 	return len(repeated) >= 2
 }
 
+func allCharsMatch(s string) bool {
+	if len(s) <= 1 {
+		return true
+	}
+
+	first := s[0]
+	for i := 1; i < len(s); i++ {
+		if s[i] != first {
+			return false
+		}
+	}
+	return true
+}
+
 func isBannedInput(input, bannedWord string) bool {
 	input = strings.ToLower(input)
 	bannedWord = strings.ToLower(bannedWord)
@@ -94,6 +109,9 @@ func isBannedInput(input, bannedWord string) bool {
 
 	correctPosCount := 0
 
+	bannedWordStart := 100
+	bannedWordEnd := -1
+
 	inputPointer := 0
 	bannedPointer := 0
 	for i := 0; i < 100 &&
@@ -105,9 +123,11 @@ func isBannedInput(input, bannedWord string) bool {
 
 		if inputChar == bannedChar {
 			correctPosCount++
+			bannedWordStart = min(bannedWordStart, inputPointer)
 		} else if inputPointer > 0 && inputPointer+1 < inputLen && !unicode.IsLetter(rune(inputChar)) {
 			// a char inbetween is not a letter, obusification
 			correctPosCount++
+			bannedWordStart = min(bannedWordStart, inputPointer)
 		} else if !multiRepeatedChars && inputPointer > 2 && inputChar == input[i-1] && inputChar == input[i-2] {
 			// last three chars repeat, ignore them
 			bannedPointer--
@@ -124,9 +144,109 @@ func isBannedInput(input, bannedWord string) bool {
 			correctPosCount = 0
 		}
 
+		bannedWordEnd = max(bannedWordEnd, inputPointer)
+
 		inputPointer++
 		bannedPointer++
 	}
 
-	return correctPosCount == bannedWordLen
+	isBanned := correctPosCount == bannedWordLen
+	if isBanned {
+		log.Printf("start: %v\nend: %v", bannedWordStart, bannedWordEnd)
+	}
+
+	return isBanned
+}
+
+func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string) {
+	// if the banned is 4 chars or less and alone
+	// if the banned is more than 4 chars
+	// contains more than one banned
+
+	input = strings.ToLower(input)
+	bannedWord = strings.ToLower(bannedWord)
+	minStrictBanLen := 5
+
+	if len(input) < 1 || len(bannedWord) < 1 || len(input) < len(bannedWord) {
+		return "", ""
+	}
+
+	if input == bannedWord {
+		return input, ""
+	}
+
+	multiRepeatedChars := hasTwoDistinctRepeats(input)
+	inputLen := len(input)
+
+	bannedSubStr := ""
+	suspiciousSubStr := ""
+	bannedWordEnd := 0
+
+	for j := 0; j < inputLen; j++ {
+		inputSubStr := input[j:]
+		inputSubStrLen := len(inputSubStr)
+		bannedWordLen := len(bannedWord)
+
+		correctPosCount := 0
+
+		inputPointer := 0
+		bannedPointer := 0
+		for i := 0; i < 100 &&
+			inputPointer < inputSubStrLen &&
+			bannedPointer < bannedWordLen &&
+			correctPosCount < bannedWordLen; i++ {
+			inputChar := inputSubStr[inputPointer]
+			bannedChar := bannedWord[bannedPointer]
+
+			if inputChar == bannedChar {
+				correctPosCount++
+				bannedWordEnd++
+			} else if inputPointer > 0 && inputPointer+1 < inputSubStrLen && !unicode.IsLetter(rune(inputChar)) {
+				// a char inbetween is not a letter, obusification
+				correctPosCount++
+				bannedWordEnd++
+			} else if !multiRepeatedChars && inputPointer > 2 && inputChar == inputSubStr[i-1] && inputChar == inputSubStr[i-2] {
+				// last three chars repeat, ignore them
+				bannedPointer--
+			} else if !multiRepeatedChars && inputPointer > 1 && inputPointer+1 < inputSubStrLen && inputChar == inputSubStr[i-1] && inputChar == inputSubStr[i+1] {
+				// last char, current char and next char repeat, ignore them
+				bannedPointer--
+			} else if multiRepeatedChars && inputPointer > 1 && inputChar == inputSubStr[i-1] {
+				// last 2 chars repeat
+				bannedPointer--
+			} else if multiRepeatedChars && inputPointer > 1 && inputPointer+1 < inputSubStrLen && inputChar == inputSubStr[i+1] {
+				// next 2 chars repeat
+				bannedPointer++
+			} else {
+				correctPosCount = 0
+			}
+
+			inputPointer++
+			bannedPointer++
+		}
+
+		if correctPosCount == bannedWordLen {
+			// log.Printf("begins with: %v", input[:j])
+			// log.Printf("ends with: %v", input[bannedWordEnd:])
+			if j == 0 && correctPosCount+1 == inputLen {
+				// if banned is alone
+				bannedSubStr = input
+			} else if allCharsMatch(input[:j]) && allCharsMatch(input[bannedWordEnd:]) {
+				// if the first and last chars are just repetitions
+				bannedSubStr = input
+			} else if bannedWordLen >= minStrictBanLen {
+				// if banned is long enough
+				bannedSubStr = inputSubStr[:inputPointer]
+			} else {
+				// if input contains banned word but may not actual be a banned term (e.g assistant)
+				if strictEval {
+					bannedSubStr = inputSubStr[:inputPointer]
+				} else {
+					suspiciousSubStr = inputSubStr[:inputPointer]
+				}
+			}
+		}
+	}
+
+	return bannedSubStr, suspiciousSubStr
 }

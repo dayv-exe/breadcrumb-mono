@@ -18,7 +18,7 @@ func handleNicknameAvailable(ctx context.Context, req events.APIGatewayV2HTTPReq
 
 	// if nickname is invalid return false immediately
 	nickname := strings.ToLower(req.PathParameters["str"])
-	if utils.NameIsBanned(nickname) {
+	if utils.IsNameBanned(nickname) {
 		return models.ForbiddenErrorResponse("This name is not allowed!"), nil
 	}
 	if nickname == "" || !utils.NicknameValid(nickname) {
