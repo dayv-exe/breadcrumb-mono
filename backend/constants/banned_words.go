@@ -413,6 +413,7 @@ var BannedTerms = map[string]bool{
 	"bread":                       false,
 	"crumb":                       false,
 	"pedo":                        false,
+	"peado":                       false,
 	"touching":                    false,
 	"touch":                       false,
 	"god":                         false,

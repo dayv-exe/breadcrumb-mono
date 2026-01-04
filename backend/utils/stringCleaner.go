@@ -82,7 +82,7 @@ func hasTwoDistinctRepeats(s string) bool {
 
 func allCharsMatch(s string) bool {
 	if len(s) <= 1 {
-		return true
+		return false
 	}
 
 	first := s[0]
@@ -226,9 +226,9 @@ func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string)
 		}
 
 		if correctPosCount == bannedWordLen {
-			// log.Printf("begins with: %v", input[:j])
-			// log.Printf("ends with: %v", input[bannedWordEnd:])
-			if j == 0 && correctPosCount+1 == inputLen {
+			log.Printf("begins with: %v", input[:j])
+			log.Printf("ends with: %v", input[bannedWordEnd:])
+			if j == 0 && correctPosCount == inputLen {
 				// if banned is alone
 				bannedSubStr = input
 			} else if allCharsMatch(input[:j]) && allCharsMatch(input[bannedWordEnd:]) {

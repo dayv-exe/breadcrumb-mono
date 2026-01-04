@@ -95,6 +95,10 @@ func TestSuspiciousNamePct(t *testing.T) {
 			containsBanned: true,
 		},
 		{
+			name:           "pleaseiffffuckingggggneedthis",
+			containsBanned: true,
+		},
+		{
 			name:           "ireallyreallyhateb00bs",
 			containsBanned: true,
 		},
@@ -125,6 +129,22 @@ func TestSuspiciousNamePct(t *testing.T) {
 		{
 			name:           "assistance",
 			containsBanned: false,
+		},
+		{
+			name:           "bass",
+			containsBanned: false,
+		},
+		{
+			name:           "cccrumbbb",
+			containsBanned: true,
+		},
+		{
+			name:           "cccccrumbbb",
+			containsBanned: true,
+		},
+		{
+			name:           "crumbbbbb",
+			containsBanned: true,
 		},
 	}
 
@@ -158,6 +178,11 @@ func TestNameBanned(t *testing.T) {
 			name:           "d*mn",
 			testBannedWord: "damn",
 			isBanned:       true,
+		},
+		{
+			name:           "bass",
+			testBannedWord: "ass",
+			isBanned:       false,
 		},
 	}
 
