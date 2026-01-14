@@ -94,70 +94,6 @@ func allCharsMatch(s string) bool {
 	return true
 }
 
-func isBannedInput(input, bannedWord string) bool {
-	input = strings.ToLower(input)
-	bannedWord = strings.ToLower(bannedWord)
-
-	if len(input) < 1 || len(bannedWord) < 1 || len(input) < len(bannedWord) {
-		return false
-	}
-
-	multiRepeatedChars := hasTwoDistinctRepeats(input)
-
-	bannedWordLen := len(bannedWord)
-	inputLen := len(input)
-
-	correctPosCount := 0
-
-	bannedWordStart := 100
-	bannedWordEnd := -1
-
-	inputPointer := 0
-	bannedPointer := 0
-	for i := 0; i < 100 &&
-		inputPointer < inputLen &&
-		bannedPointer < bannedWordLen &&
-		correctPosCount < bannedWordLen; i++ {
-		inputChar := input[inputPointer]
-		bannedChar := bannedWord[bannedPointer]
-
-		if inputChar == bannedChar {
-			correctPosCount++
-			bannedWordStart = min(bannedWordStart, inputPointer)
-		} else if inputPointer > 0 && inputPointer+1 < inputLen && !unicode.IsLetter(rune(inputChar)) {
-			// a char inbetween is not a letter, obusification
-			correctPosCount++
-			bannedWordStart = min(bannedWordStart, inputPointer)
-		} else if !multiRepeatedChars && inputPointer > 2 && inputChar == input[i-1] && inputChar == input[i-2] {
-			// last three chars repeat, ignore them
-			bannedPointer--
-		} else if !multiRepeatedChars && inputPointer > 1 && inputPointer+1 < inputLen && inputChar == input[i-1] && inputChar == input[i+1] {
-			// last char, current char and next char repeat, ignore them
-			bannedPointer--
-		} else if multiRepeatedChars && inputPointer > 1 && inputChar == input[i-1] {
-			// last 2 chars repeat
-			bannedPointer--
-		} else if multiRepeatedChars && inputPointer > 1 && inputPointer+1 < inputLen && inputChar == input[i+1] {
-			// next 2 chars repeat
-			bannedPointer++
-		} else {
-			correctPosCount = 0
-		}
-
-		bannedWordEnd = max(bannedWordEnd, inputPointer)
-
-		inputPointer++
-		bannedPointer++
-	}
-
-	isBanned := correctPosCount == bannedWordLen
-	if isBanned {
-		log.Printf("start: %v\nend: %v", bannedWordStart, bannedWordEnd)
-	}
-
-	return isBanned
-}
-
 func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string) {
 	// if the banned is 4 chars or less and alone
 	// if the banned is more than 4 chars
@@ -201,6 +137,8 @@ func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string)
 			if inputChar == bannedChar {
 				correctPosCount++
 				bannedWordEnd++
+			} else if string(inputChar) == "." || string(inputChar) == "_" {
+				bannedPointer--
 			} else if inputPointer > 0 && inputPointer+1 < inputSubStrLen && !unicode.IsLetter(rune(inputChar)) {
 				// a char inbetween is not a letter, obusification
 				correctPosCount++

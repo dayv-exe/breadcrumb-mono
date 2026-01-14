@@ -146,6 +146,10 @@ func TestSuspiciousNamePct(t *testing.T) {
 			name:           "crumbbbbb",
 			containsBanned: true,
 		},
+		{
+			name:           "big_butt",
+			containsBanned: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -183,6 +187,11 @@ func TestNameBanned(t *testing.T) {
 			name:           "bass",
 			testBannedWord: "ass",
 			isBanned:       false,
+		},
+		{
+			name:           "wa.ter",
+			testBannedWord: "water",
+			isBanned:       true,
 		},
 	}
 
