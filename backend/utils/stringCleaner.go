@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"regexp"
 	"strings"
 	"unicode"
@@ -95,10 +94,14 @@ func allCharsMatch(s string) bool {
 }
 
 func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string) {
-	// if the banned is 4 chars or less and alone
-	// if the banned is more than 4 chars
-	// contains more than one banned
+	// a string is said to be banned if one or more are met:
+	// if the banned str is 4 chars or less and alone
+	// if the banned str is more than 4 chars
+	// input str contains more than one banned
 
+	input = strings.ReplaceAll(input, "_", "")
+	input = strings.ReplaceAll(input, ".", "")
+	input = strings.ReplaceAll(input, " ", "")
 	input = strings.ToLower(input)
 	bannedWord = strings.ToLower(bannedWord)
 	minStrictBanLen := 5
@@ -137,8 +140,6 @@ func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string)
 			if inputChar == bannedChar {
 				correctPosCount++
 				bannedWordEnd++
-			} else if string(inputChar) == "." || string(inputChar) == "_" {
-				bannedPointer--
 			} else if inputPointer > 0 && inputPointer+1 < inputSubStrLen && !unicode.IsLetter(rune(inputChar)) {
 				// a char inbetween is not a letter, obusification
 				correctPosCount++
@@ -164,8 +165,6 @@ func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string)
 		}
 
 		if correctPosCount == bannedWordLen {
-			log.Printf("begins with: %v", input[:j])
-			log.Printf("ends with: %v", input[bannedWordEnd:])
 			if j == 0 && correctPosCount == inputLen {
 				// if banned is alone
 				bannedSubStr = input

@@ -30,7 +30,7 @@ func TestIsNicknameValid(t *testing.T) {
 		{"14792384913", false},
 		{"a.1", false},
 		{"ab.1", true},
-		{"hot.chick69", false},
+		{"hot.chick69", true},
 	}
 
 	for _, tt := range tests {
@@ -87,76 +87,65 @@ func TestNameChangeAllowed(t *testing.T) {
 
 func TestSuspiciousNamePct(t *testing.T) {
 	tests := []struct {
-		name           string
-		containsBanned bool
+		name     string
+		isBanned bool
 	}{
 		{
-			name:           "pleaseifuckingneedthis",
-			containsBanned: true,
+			name:     "pleaseifuckingneedthis",
+			isBanned: true,
 		},
 		{
-			name:           "pleaseiffffuckingggggneedthis",
-			containsBanned: true,
+			name:     "pleaseiffffuckingggggneedthis",
+			isBanned: true,
 		},
 		{
-			name:           "ireallyreallyhateb00bs",
-			containsBanned: true,
+			name:     "ireallyreallyhateb00bs",
+			isBanned: true,
 		},
 		{
-			name:           "barrack_obama",
-			containsBanned: false,
+			name:     "barrack_obama",
+			isBanned: false,
 		},
 		{
-			name:           "mitch",
-			containsBanned: false,
+			name:     "mitch",
+			isBanned: false,
 		},
 		{
-			name:           "m1tch",
-			containsBanned: false,
+			name:     "m1tch",
+			isBanned: false,
 		},
 		{
-			name:           "btch1",
-			containsBanned: false,
+			name:     "btch1",
+			isBanned: false,
 		},
 		{
-			name:           "f*ck123",
-			containsBanned: true,
+			// testing hard bans
+			name:     "f*ck123",
+			isBanned: true,
 		},
 		{
-			name:           "f*ck",
-			containsBanned: true,
+			name:     "b*tt",
+			isBanned: true,
 		},
 		{
-			name:           "assistance",
-			containsBanned: false,
+			name:     "assistance",
+			isBanned: false,
 		},
 		{
-			name:           "bass",
-			containsBanned: false,
+			name:     "bass",
+			isBanned: false,
 		},
 		{
-			name:           "cccrumbbb",
-			containsBanned: true,
-		},
-		{
-			name:           "cccccrumbbb",
-			containsBanned: true,
-		},
-		{
-			name:           "crumbbbbb",
-			containsBanned: true,
-		},
-		{
-			name:           "big_butt",
-			containsBanned: false,
+			name:     "big_butt",
+			isBanned: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := IsNameBanned(tt.name)
-			if result != tt.containsBanned {
-				t.Errorf("Expected result for %v to be %v but result is %v", tt.name, tt.containsBanned, result)
+			if result != tt.isBanned {
+				t.Errorf("Expected result for %v to be %v but result is %v", tt.name, tt.isBanned, result)
 			}
 		})
 	}

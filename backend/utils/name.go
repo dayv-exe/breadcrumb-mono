@@ -47,7 +47,6 @@ func IsNameBanned(name string) bool {
 		return true
 	}
 
-	name = removeEverythingExceptValidChars(name)
 	if len(name) < 1 {
 		return false
 	}
