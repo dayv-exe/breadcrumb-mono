@@ -6,3 +6,4 @@ use sqs to handle search index updates
 use sqs to delete old indexes then create new indexes
 
 sqs must exist to remove indexes, and another should exist to add indexes
+

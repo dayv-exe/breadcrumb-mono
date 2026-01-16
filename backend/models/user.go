@@ -106,8 +106,8 @@ func NewUserDisplayInfo(u User) *UserDisplayInfo {
 	}
 }
 
-func UserKey(userid string) map[string]types.AttributeValue {
-	return map[string]types.AttributeValue{
+func UserKey(userid string) *map[string]types.AttributeValue {
+	return &map[string]types.AttributeValue{
 		"pk": &types.AttributeValueMemberS{Value: utils.AddPrefix(UserPkPrefix, userid)},
 		"sk": &types.AttributeValueMemberS{Value: UserSkPrefix},
 	}

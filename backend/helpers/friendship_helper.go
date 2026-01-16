@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -23,13 +24,6 @@ func NewFriendshipHelper(ctx context.Context) *friendshipHelper {
 func (this *friendshipHelper) SendFriendReq(sender *models.User, recipientId string) error {
 	friendReq := models.NewFriendRequest(recipientId, sender)
 	return PutItem(newHelper(this.Ctx, nil), &friendReq)
-}
-
-func (this *friendshipHelper) UpdateFriendRequest() {
-}
-
-func (this *friendshipHelper) UpdateFriendship() {
-
 }
 
 func (this *friendshipHelper) CancelFriendRequest(senderId, recipientId string) error {
@@ -113,16 +107,21 @@ func (this *friendshipHelper) GetFriendshipStatus(currentUserId string, otherUse
 }
 
 func (this *friendshipHelper) GetAllFriends(userId string) (*[]models.UserDisplayInfo, error) {
-	expression := "pk = :pk AND begins_with(sk, :skPrefix)"
-	expressionVals := map[string]types.AttributeValue{
-		":pk":       &types.AttributeValueMemberS{Value: utils.AddPrefix(models.FriendItemPk, userId)},
-		":skPrefix": &types.AttributeValueMemberS{Value: models.FriendItemSk},
+	condition := expression.KeyEqual(expression.Key("pk"), expression.Value(utils.AddPrefix(models.FriendItemPk, userId))).And(
+		expression.KeyBeginsWith(expression.Key("sk"), models.FriendItemSk),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(condition).Build()
+
+	if err != nil {
+		log.Println("failed to build expression")
+		return nil, err
 	}
+
 	return QueryItems(
 		newHelper(this.Ctx, nil),
 		nil,
-		expression,
-		expressionVals,
+		expr,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 			return *models.FriendItemsToUserDisplayStructs(m)
 		},
@@ -130,19 +129,53 @@ func (this *friendshipHelper) GetAllFriends(userId string) (*[]models.UserDispla
 }
 
 func (this *friendshipHelper) GetAllFriendRequests(userId string) (*[]models.UserDisplayInfo, error) {
-	expression := "pk = :pk AND begins_with(sk, :skPrefix)"
-	expressionVals := map[string]types.AttributeValue{
-		":pk":       &types.AttributeValueMemberS{Value: utils.AddPrefix(models.FriendRequestPkPrefix, userId)},
-		":skPrefix": &types.AttributeValueMemberS{Value: models.FriendRequestSkPrefix},
+	condition := expression.KeyEqual(
+		expression.Key("pk"),
+		expression.Value(utils.AddPrefix(models.FriendRequestPkPrefix, userId)),
+	).And(
+		expression.KeyBeginsWith(
+			expression.Key("sk"),
+			models.FriendRequestSkPrefix,
+		),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(condition).Build()
+
+	if err != nil {
+		return nil, err
 	}
 
 	return QueryItems(
 		newHelper(this.Ctx, nil),
 		nil,
-		expression,
-		expressionVals,
+		expr,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 			return *models.FriendRequestItemsToUserDisplayStructs(m)
 		},
 	)
+}
+
+func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) error {
+	// get user info
+	// get all friendship items
+	// update the display info
+
+	helper := newHelper(f.Ctx, nil)
+
+	userFriends, err := f.GetAllFriends(currentUser.Userid)
+	if err != nil {
+		log.Println("Failed to get user friends!")
+		return err
+	}
+
+	var updates []types.WriteRequest
+
+	for _, friend := range *userFriends {
+		// gets the friendship key where pk is current user and sk is other user
+		// flips it around to overwrite
+		updatedItem := models.NewFriendship(friend.Userid, currentUser)
+		updates = append(updates, UsePutBatchItem(helper, updatedItem))
+	}
+
+	return BatchWriteItems(helper, updates...)
 }

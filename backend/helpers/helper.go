@@ -3,9 +3,13 @@ package helpers
 import (
 	"backend/utils"
 	"context"
+	"fmt"
 	"log"
+	"math/rand"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -36,6 +40,22 @@ func PutItem[T utils.DatabaseFormattable](deps *helper, item *T) error {
 	if putErr != nil {
 		log.Print("An error occurred while trying to put item in the db")
 		return putErr
+	}
+
+	return nil
+}
+
+func UpdateItem(deps *helper, key *map[string]types.AttributeValue, expr expression.Expression) error {
+	input := &dynamodb.UpdateItemInput{
+		Key:                       *key,
+		TableName:                 &utils.GetDependencies().MainTableName,
+		UpdateExpression:          expr.Update(),
+		ExpressionAttributeValues: expr.Values(),
+	}
+
+	_, err := utils.GetDependencies().DbClient.UpdateItem(deps.Ctx, input)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -97,12 +117,12 @@ func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue,
 	return &item, nil
 }
 
-func QueryItems[T any](deps *helper, indexName *string, expression string, values map[string]types.AttributeValue, convertToStructs func([]map[string]types.AttributeValue) []T) (*[]T, error) {
+func QueryItems[T any](deps *helper, indexName *string, expression expression.Expression, convertToStructs func([]map[string]types.AttributeValue) []T) (*[]T, error) {
 	input := &dynamodb.QueryInput{
 		TableName:                 &deps.TableName,
 		IndexName:                 indexName,
-		KeyConditionExpression:    &expression,
-		ExpressionAttributeValues: values,
+		KeyConditionExpression:    expression.KeyCondition(),
+		ExpressionAttributeValues: expression.Values(),
 	}
 
 	output, err := utils.GetDependencies().DbClient.Query(deps.Ctx, input)
@@ -120,12 +140,88 @@ func QueryItems[T any](deps *helper, indexName *string, expression string, value
 	return &items, nil
 }
 
-func UsePut[T utils.DatabaseFormattable](item T, tableName string, conditionExpression *string) types.TransactWriteItem {
+func BatchWriteItems(deps *helper, requests ...types.WriteRequest) error {
+	context, cancel := context.WithTimeout(deps.Ctx, 10*time.Second)
+	defer cancel()
+
+	const chunkSize = 25
+
+	const maxAttempts = 10
+	const baseBackOff = 50 * time.Millisecond
+	const maxJitter = 50 * time.Millisecond
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < len(requests); i += chunkSize {
+		end := i + chunkSize
+		if end > len(requests) {
+			end = len(requests)
+		}
+
+		unprocessed := map[string][]types.WriteRequest{
+			deps.TableName: requests[i:end],
+		}
+
+		for attempt := 0; attempt < maxAttempts && len(unprocessed) > 0; attempt++ {
+			if err := context.Err(); err != nil {
+				return fmt.Errorf("batch write aborted (context): %w", err)
+			}
+
+			input := &dynamodb.BatchWriteItemInput{
+				RequestItems: unprocessed,
+			}
+
+			out, err := utils.GetDependencies().DbClient.BatchWriteItem(context, input)
+			if err != nil {
+				return fmt.Errorf("batch write to %s failed (chunk %d-%d, attempt %d/%d): %w",
+					deps.TableName, i, end-1, attempt+1, maxAttempts, err)
+			}
+
+			unprocessed = out.UnprocessedItems
+			if len(unprocessed) == 0 {
+				break
+			}
+
+			backoff := baseBackOff * time.Duration(1<<attempt)
+			jitter := time.Duration(rng.Int63n(int64(maxJitter)))
+			sleep := backoff + jitter
+
+			timer := time.NewTimer(sleep)
+			select {
+			case <-context.Done():
+				timer.Stop()
+				return fmt.Errorf("batch write aborted during backoff: %w", context.Err())
+			case <-timer.C:
+			}
+		}
+
+		if len(unprocessed) > 0 {
+			// At this point we tried maxAttempts and still have unprocessed writes.
+			remaining := 0
+			if v, ok := unprocessed[deps.TableName]; ok {
+				remaining = len(v)
+			}
+			return fmt.Errorf("batch write incomplete for %s (chunk %d-%d): %d unprocessed after %d attempts",
+				deps.TableName, i, end-1, remaining, maxAttempts)
+		}
+	}
+
+	return nil
+
+}
+
+func UsePutBatchItem[T utils.DatabaseFormattable](deps *helper, item T) types.WriteRequest {
+	return types.WriteRequest{PutRequest: &types.PutRequest{
+		Item: *utils.ToDatabaseFormat(item),
+	}}
+}
+
+func UsePut[T utils.DatabaseFormattable](item T, tableName string, conditionExpression *expression.Expression) types.TransactWriteItem {
 	return types.TransactWriteItem{
 		Put: &types.Put{
 			Item:                *utils.ToDatabaseFormat(item),
 			TableName:           &tableName,
-			ConditionExpression: conditionExpression,
+			ConditionExpression: conditionExpression.Condition(),
 		},
 	}
 }
@@ -139,13 +235,13 @@ func UseDelete(key map[string]types.AttributeValue, tableName string) types.Tran
 	}
 }
 
-func UseUpdate(key map[string]types.AttributeValue, updateExpr string, exprAttrVal map[string]types.AttributeValue, tableName string) types.TransactWriteItem {
+func UseUpdate(key map[string]types.AttributeValue, updateExpr expression.Expression, tableName string) types.TransactWriteItem {
 	return types.TransactWriteItem{
 		Update: &types.Update{
 			Key:                       key,
 			TableName:                 &tableName,
-			UpdateExpression:          &updateExpr,
-			ExpressionAttributeValues: exprAttrVal,
+			UpdateExpression:          updateExpr.Update(),
+			ExpressionAttributeValues: updateExpr.Values(),
 		},
 	}
 }

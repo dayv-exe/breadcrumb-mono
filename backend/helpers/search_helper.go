@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -31,13 +32,22 @@ func (this *searchHelper) SearchUser(searchStr string) (*[]models.UserDisplayInf
 
 	for _, token := range tokens {
 		if len(token) >= models.UserSearchIndexPrefixLen {
+			keyConditions := expression.KeyEqual(
+				expression.Key("pk"),
+				expression.Value(models.UserSearchIndexPkPrefix+token[:models.UserSearchIndexPrefixLen]),
+			).And(
+				expression.KeyBeginsWith(
+					expression.Key("sk"),
+					token,
+				),
+			)
+
+			expr, _ := expression.NewBuilder().WithKeyCondition(keyConditions).Build()
+
 			usersFound, err := QueryItems(
 				helper,
 				nil,
-				"pk = :pk AND begins_with(sk, :skPrefix)",
-				map[string]types.AttributeValue{
-					":pk":       &types.AttributeValueMemberS{Value: models.UserSearchIndexPkPrefix + token[:models.UserSearchIndexPrefixLen]},
-					":skPrefix": &types.AttributeValueMemberS{Value: token}},
+				expr,
 				func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 					return *models.SearchItemsToUserInfoStruct(m)
 				},

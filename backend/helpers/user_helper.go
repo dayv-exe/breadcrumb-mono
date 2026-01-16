@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -23,8 +23,28 @@ func NewUserHelper(ctx context.Context) *userHelper {
 	}
 }
 
+func (u *userHelper) sliceTypeConverter(m []map[string]types.AttributeValue) []models.User {
+	return *models.ConvertToUsers(m)
+}
+
+func (u *userHelper) typeConverter(m map[string]types.AttributeValue) models.User {
+	return *models.ConvertToUser(m)
+}
+
 func (this *userHelper) AddUser(u *models.User) error {
 	var transactions []types.TransactWriteItem
+
+	expr, err := expression.NewBuilder().
+		WithCondition(
+			expression.AttributeNotExists(
+				expression.Name("pk"),
+			),
+		).
+		Build()
+
+	if err != nil {
+		return err
+	}
 
 	// nickname item to reserve users nickname
 	newNickname := models.NewNickname(u.Nickname, u.Userid)
@@ -33,7 +53,7 @@ func (this *userHelper) AddUser(u *models.User) error {
 	transactions = append(transactions, UsePut(
 		newNickname,
 		utils.GetDependencies().MainTableName,
-		aws.String("attribute_not_exists(pk)"),
+		&expr,
 	))
 
 	// put user item
@@ -50,16 +70,22 @@ func (this *userHelper) AddUser(u *models.User) error {
 }
 
 func (this *userHelper) findAllWithNickname(nickname string) (*[]models.User, error) {
+	keyCondition := expression.KeyEqual(
+		expression.Key("gsi"),
+		expression.Value(strings.ToLower(nickname)),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
+
+	if err != nil {
+		return nil, err
+	}
+
 	return QueryItems(
 		newHelper(this.Ctx, nil),
 		aws.String("GSIndex"),
-		"gsi = :nickname",
-		map[string]types.AttributeValue{
-			":nickname": &types.AttributeValueMemberS{Value: strings.ToLower(nickname)},
-		},
-		func(m []map[string]types.AttributeValue) []models.User {
-			return *models.ConvertToUsers(m)
-		},
+		expr,
+		this.sliceTypeConverter,
 	)
 }
 
@@ -78,16 +104,14 @@ func (this *userHelper) FindByNickname(nickname string) (*models.User, error) {
 
 func (this *userHelper) FindById(id string) (*models.User, error) {
 	helper := newHelper(this.Ctx, nil)
-	return GetAndConvertItem(helper, models.UserKey(id), func(m map[string]types.AttributeValue) models.User {
-		return *models.ConvertToUser(m)
-	})
+	return GetAndConvertItem(helper, *models.UserKey(id), this.typeConverter)
 }
 
 func (this *userHelper) DeleteFromDynamo(u *models.User) error {
 	// delete user profile, nickname, friends, post and allat
 	var transactions []types.TransactWriteItem
 
-	transactions = append(transactions, UseDelete(models.UserKey(u.Userid), utils.GetDependencies().MainTableName))
+	transactions = append(transactions, UseDelete(*models.UserKey(u.Userid), utils.GetDependencies().MainTableName))
 	transactions = append(transactions, UseDelete(models.NicknameKey(u.Nickname), utils.GetDependencies().MainTableName))
 	transactions = append(transactions, models.GetDeleteUserIndexesItems(u)...)
 	// end friendships
@@ -127,19 +151,29 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 	// generate new search indexes based on new name
 	transactions = append(transactions, models.GetUserSearchIndexItems(user)...)
 
+	expr, err := expression.NewBuilder().WithUpdate(
+		expression.Set(
+			expression.Name(attributeName),
+			expression.Value(newName),
+		).Set(
+			expression.Name(dateAttr),
+			expression.Value(utils.GetDateNow()),
+		),
+	).Build()
+
+	if err != nil {
+		return err
+	}
+
 	// update the actual user item in db
 	transactions = append(transactions, UseUpdate(
-		models.UserKey(user.Userid),
-		fmt.Sprintf("SET %s = :n, %s = :d", attributeName, dateAttr),
-		map[string]types.AttributeValue{
-			":n": &types.AttributeValueMemberS{Value: newName},
-			":d": &types.AttributeValueMemberS{Value: utils.GetDateNow()},
-		},
+		*models.UserKey(user.Userid),
+		expr,
 		utils.GetDependencies().MainTableName,
 	))
 
 	// after update completes successfully
-	err := TransactWrite(newHelper(u.Ctx, nil), transactions...)
+	err = TransactWrite(newHelper(u.Ctx, nil), transactions...)
 	if err != nil {
 		return err
 	}
@@ -210,22 +244,19 @@ func (u *userHelper) UpdateBio(userid, bio string) error {
 		return fmt.Errorf("bio provided is invalid, bio: %v", bio)
 	}
 
-	input := &dynamodb.UpdateItemInput{
-		Key:              models.UserKey(userid),
-		TableName:        &utils.GetDependencies().MainTableName,
-		UpdateExpression: aws.String("SET bio = :bio"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":bio": &types.AttributeValueMemberS{Value: strings.TrimSpace(bio)},
-		},
-	}
+	expr, err := expression.NewBuilder().WithUpdate(
+		expression.Set(
+			expression.Name("bio"),
+			expression.Value(strings.TrimSpace(bio)),
+		),
+	).Build()
 
-	_, err := utils.GetDependencies().DbClient.UpdateItem(u.Ctx, input)
 	if err != nil {
-		log.Println("failed to update bio")
+		log.Println("failed to build update expression")
 		return err
 	}
 
-	return nil
+	return UpdateItem(newHelper(u.Ctx, nil), models.UserKey(userid), expr)
 }
 
 func (this *userHelper) NicknameAvailable(nickname string) (bool, error) {
