@@ -218,16 +218,19 @@ func UsePutBatchItem[T utils.DatabaseFormattable](deps *helper, item T) types.Wr
 	}}
 }
 
-func UsePut[T utils.DatabaseFormattable](item T, tableName string, conditionExpression *expression.Expression) types.TransactWriteItem {
-	return types.TransactWriteItem{
-		Put: &types.Put{
-			Item:                      *utils.ToDatabaseFormat(item),
-			TableName:                 &tableName,
-			ConditionExpression:       conditionExpression.Condition(),
-			ExpressionAttributeNames:  conditionExpression.Names(),
-			ExpressionAttributeValues: conditionExpression.Values(),
-		},
+func UsePut[T utils.DatabaseFormattable](item T, tableName string, cond *expression.Expression) types.TransactWriteItem {
+	put := &types.Put{
+		Item:      *utils.ToDatabaseFormat(item),
+		TableName: &tableName,
 	}
+
+	if cond != nil {
+		put.ConditionExpression = cond.Condition()
+		put.ExpressionAttributeNames = cond.Names()
+		put.ExpressionAttributeValues = cond.Values()
+	}
+
+	return types.TransactWriteItem{Put: put}
 }
 
 func UseDelete(key map[string]types.AttributeValue, tableName string) types.TransactWriteItem {
