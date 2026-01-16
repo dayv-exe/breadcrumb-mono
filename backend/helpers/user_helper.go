@@ -187,9 +187,9 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 
 func (u *userHelper) UpdateNickname(user *models.User, newNickname string) error {
 	// check user is not updating nickname too soon
-	if !utils.NameChangeAllowed(user.LastNicknameChange) {
-		return fmt.Errorf("Nickname change to soon, try again after a few days")
-	}
+	// if !utils.NameChangeAllowed(user.LastNicknameChange) {
+	// 	return fmt.Errorf("Nickname change to soon, try again after a few days")
+	// }
 
 	// check that nickname is valid
 	if !utils.NicknameValid(newNickname) {
