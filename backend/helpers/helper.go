@@ -50,6 +50,7 @@ func UpdateItem(deps *helper, key *map[string]types.AttributeValue, expr express
 		Key:                       *key,
 		TableName:                 &utils.GetDependencies().MainTableName,
 		UpdateExpression:          expr.Update(),
+		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 	}
 
@@ -122,6 +123,7 @@ func QueryItems[T any](deps *helper, indexName *string, expression expression.Ex
 		TableName:                 &deps.TableName,
 		IndexName:                 indexName,
 		KeyConditionExpression:    expression.KeyCondition(),
+		ExpressionAttributeNames:  expression.Names(),
 		ExpressionAttributeValues: expression.Values(),
 	}
 
@@ -219,9 +221,11 @@ func UsePutBatchItem[T utils.DatabaseFormattable](deps *helper, item T) types.Wr
 func UsePut[T utils.DatabaseFormattable](item T, tableName string, conditionExpression *expression.Expression) types.TransactWriteItem {
 	return types.TransactWriteItem{
 		Put: &types.Put{
-			Item:                *utils.ToDatabaseFormat(item),
-			TableName:           &tableName,
-			ConditionExpression: conditionExpression.Condition(),
+			Item:                      *utils.ToDatabaseFormat(item),
+			TableName:                 &tableName,
+			ConditionExpression:       conditionExpression.Condition(),
+			ExpressionAttributeNames:  conditionExpression.Names(),
+			ExpressionAttributeValues: conditionExpression.Values(),
 		},
 	}
 }
@@ -241,6 +245,7 @@ func UseUpdate(key map[string]types.AttributeValue, updateExpr expression.Expres
 			Key:                       key,
 			TableName:                 &tableName,
 			UpdateExpression:          updateExpr.Update(),
+			ExpressionAttributeNames:  updateExpr.Names(),
 			ExpressionAttributeValues: updateExpr.Values(),
 		},
 	}
