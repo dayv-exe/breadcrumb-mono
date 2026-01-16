@@ -129,9 +129,14 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 
 	log.Println("old name: " + user.Name)
 	log.Println("old nickname: " + user.Nickname)
-	// store old details to delete later
-	oldName := user.Name
-	oldNickname := user.Nickname
+
+	// get transactions to delete all old search indexes
+	err := TransactWrite(newHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
+
+	if err != nil {
+		// not a breaking error, at this stage the names have been updated successfully
+		log.Printf("FAILED TO DELETE OLD SEARCH INDEXES. ERROR: %v", err)
+	}
 
 	// update user struct with new details
 	attributeName := "fullname"    // hardcoded string
@@ -139,11 +144,9 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 	if updatingNickname {
 		attributeName = "gsi"             // hardcoded string
 		dateAttr = "last_nickname_change" // hardcoded string
-		oldName = ""                      // so user_search index functions ignores deleting and building name indexes from search table if we are only updating nickname
 		user.Nickname = newName
 		log.Println("updating nickname to " + newName)
 	} else {
-		oldNickname = "" // so user_search index functions ignores deleting and building nickname indexes from search table if we are only updating name
 		user.Name = newName
 		log.Println("updating name to " + newName)
 	}
@@ -178,15 +181,6 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 		return err
 	}
 
-	// get transactions to delete all old search indexes
-	user.Name = oldName
-	user.Nickname = oldNickname
-	err = TransactWrite(newHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
-
-	if err != nil {
-		// not a breaking error, at this stage the names have been updated successfully
-		log.Printf("FAILED TO DELETE OLD SEARCH INDEXES. ERROR: %v", err)
-	}
 	log.Println("update complete")
 	return nil
 }
