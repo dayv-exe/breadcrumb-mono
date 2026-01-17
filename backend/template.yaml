@@ -73,7 +73,6 @@ Resources:
       MemorySize: 128
       CodeUri: bin/custom_email/custom_email.zip
       Handler: bootstrap
-      Architectures: [arm64]
       Runtime: provided.al2023
       Description: Custom email logic for Cognito events
       Policies:
@@ -211,7 +210,6 @@ Resources:
       FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-S3ActionFunction
       CodeUri: bin/generate_presigned_url/generate_presigned_url.zip
       Handler: bootstrap
-      Architectures: [arm64]
       Description: to presign url for uploads
       Environment:
         Variables:
@@ -258,7 +256,6 @@ Resources:
       MemorySize: 128
       CodeUri: bin/signup_presignup/signup_presignup.zip
       Handler: bootstrap
-      Architectures: [arm64]
       Description: Lambda function that runs before user signs up to validate user details
       Policies:
         - DynamoDBCrudPolicy:
@@ -277,7 +274,6 @@ Resources:
       MemorySize: 128
       CodeUri: bin/signup_unfinished_remover/signup_unfinished_remover.zip
       Handler: bootstrap
-      Architectures: [arm64]
       Description: deletes unverified users from cognito when called
       Environment:
         Variables:
@@ -303,7 +299,6 @@ Resources:
       FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-main-handler"
       CodeUri: bin/main_handler/main_handler.zip
       Handler: bootstrap
-      Architectures: [arm64]
       Description: handle everything
       Environment:
         Variables:
