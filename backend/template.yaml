@@ -489,7 +489,7 @@ Resources:
       Description: function to handle stuff in queue
       Policies: 
         - DynamoDBCrudPolicy:
-            TableName: !Ref MainTable
+            TableName: !Ref UsersTable
         - SQSPollerPolicy:
             QueueName: !GetAtt BreadQueue.QueueName
       Events:
