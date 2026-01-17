@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 const (
@@ -18,17 +19,20 @@ const (
 	USER_POOL_ID           = "USER_POOL_ID"
 	CLOUDFRONT_DOMAIN_NAME = "CLOUDFRONT_DOMAIN"
 	MEDIA_BUCKET           = "MEDIA_BUCKET"
+	QUEUE                  = "QUEUE_URL"
 )
 
 type handlerDependenciesType struct {
 	DbClient             *dynamodb.Client
 	CognitoClient        *cognitoidentityprovider.Client
 	S3Client             *s3.Client
+	SqsClient            *sqs.Client
 	BucketName           string
 	MainTableName        string
 	SearchTableName      string
 	UserPoolId           string
 	CloudFrontDomainName string
+	QueueUrl             string
 }
 
 var handlerDependencies handlerDependenciesType //
@@ -57,11 +61,21 @@ func getEnvironmentVariable(key string) string {
 	return val
 }
 
+func WithDatabaseAndNoQueue() option {
+	return func(hd *handlerDependenciesType, c aws.Config) {
+		hd.MainTableName = getEnvironmentVariable(MAIN_TABLE)
+		hd.SearchTableName = getEnvironmentVariable(SEARCH_TABLE)
+		hd.DbClient = dynamodb.NewFromConfig(c)
+	}
+}
+
 func WithDatabase() option {
 	return func(hd *handlerDependenciesType, c aws.Config) {
 		hd.MainTableName = getEnvironmentVariable(MAIN_TABLE)
 		hd.SearchTableName = getEnvironmentVariable(SEARCH_TABLE)
 		hd.DbClient = dynamodb.NewFromConfig(c)
+		hd.QueueUrl = getEnvironmentVariable(QUEUE)
+		hd.SqsClient = sqs.NewFromConfig(c)
 	}
 }
 

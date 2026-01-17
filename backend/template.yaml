@@ -14,6 +14,7 @@ Globals:
         MEDIA_BUCKET: !Ref MediaBucket
         CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
         CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
+        QUEUE_URL: !GetAtt BreadQueue.QueueName
 
 Parameters:
   EnvironmentName:
@@ -478,6 +479,38 @@ Resources:
           KeyType: HASH
         - AttributeName: sk
           KeyType: RANGE
+
+  QueueActions:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-bread-queue-actions-${EnvironmentName}
+      CodeUri: bin/queue_actions/queue_actions.zip
+      Handler: bootstrap
+      Description: function to handle stuff in queue
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MainTable
+        - SQSPollerPolicy:
+            QueueName: !GetAtt BreadQueue.QueueName
+      Events:
+        BreadQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt BreadQueue.Arn
+
+  BreadQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${AWS::StackName}-bread-queue-${EnvironmentName}
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt BreadDeadLetterQueue.Arn
+        maxReceiveCount: 3
+
+  BreadDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${AWS::StackName}-bread-dlq-${EnvironmentName}
 
 Outputs:
   BreadApiUrl:

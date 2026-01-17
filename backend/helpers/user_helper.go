@@ -134,8 +134,8 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 	err := TransactWrite(newHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
 
 	if err != nil {
-		// not a breaking error, at this stage the names have been updated successfully
 		log.Printf("FAILED TO DELETE OLD SEARCH INDEXES. ERROR: %v", err)
+		return err
 	}
 
 	// update user struct with new details
@@ -181,6 +181,7 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 		return err
 	}
 
+	err = NewQueueHelper(u.Ctx).PutInQueue(WithUpdateFriendsDisplayInfo(user.Userid))
 	log.Println("update complete")
 	return nil
 }
@@ -221,9 +222,9 @@ func (u *userHelper) UpdateNickname(user *models.User, newNickname string) error
 }
 
 func (u *userHelper) UpdateName(user *models.User, newName string) error {
-	if !utils.NameChangeAllowed(user.LastNameChange) {
-		return fmt.Errorf("name change too soon, wait a few days and try again.")
-	}
+	// if !utils.NameChangeAllowed(user.LastNameChange) {
+	// 	return fmt.Errorf("name change too soon, wait a few days and try again.")
+	// }
 
 	if !utils.NameIsValid(&newName) {
 		return fmt.Errorf("%v is an invalid name!", newName)

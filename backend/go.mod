@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.57.7
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.53.6
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.3
+	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.21
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	golang.org/x/text v0.29.0
 )

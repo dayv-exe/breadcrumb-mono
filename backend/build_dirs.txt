@@ -3,3 +3,4 @@ generate_presigned_url
 signup_presignup
 signup_unfinished_remover
 custom_email
+queue_actions
