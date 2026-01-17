@@ -7,6 +7,7 @@ Globals:
     Timeout: 10
     Runtime: provided.al2023
     MemorySize: 512
+    Architectures: [arm64]
     Environment:
       Variables:
         USERS_TABLE: !Ref UsersTable
