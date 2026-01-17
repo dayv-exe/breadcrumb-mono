@@ -419,6 +419,8 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref SearchTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt BreadQueue.QueueName
         - Statement:
             Effect: Allow
             Action:
