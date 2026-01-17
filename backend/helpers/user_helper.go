@@ -182,6 +182,10 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 	}
 
 	err = NewQueueHelper(u.Ctx).PutInQueue(WithUpdateFriendsDisplayInfo(user.Userid))
+	if err != nil {
+		log.Println("ERROR: failed to put action in queue!")
+		log.Println(err)
+	}
 	log.Println("update complete")
 	return nil
 }
