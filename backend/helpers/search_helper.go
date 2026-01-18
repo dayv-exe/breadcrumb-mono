@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -47,7 +48,9 @@ func (this *searchHelper) SearchUser(searchStr string) (*[]models.UserDisplayInf
 			usersFound, err := QueryItems(
 				helper,
 				nil,
+				nil,
 				expr,
+				aws.Int32(15),
 				func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 					return *models.SearchItemsToUserInfoStruct(m)
 				},
@@ -58,7 +61,7 @@ func (this *searchHelper) SearchUser(searchStr string) (*[]models.UserDisplayInf
 			}
 
 			if usersFound != nil {
-				matches = append(matches, (*usersFound)...)
+				matches = append(matches, usersFound.Items...)
 			}
 		}
 	}

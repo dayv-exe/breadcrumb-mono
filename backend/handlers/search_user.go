@@ -20,7 +20,7 @@ func handleSearchUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	searchStr := req.PathParameters["str"]
 	if len(searchStr) < models.UserSearchIndexPrefixLen {
 		// return empty array if string length is too short
-		return models.SuccessfulGetRequestResponse([]models.UserSearch{}), nil
+		return models.SuccessfulGetRequestResponse([]models.UserSearch{}, nil), nil
 	}
 
 	// only takes the first 2 - 20 chars in the search string to process and then search the database for
@@ -38,5 +38,5 @@ func handleSearchUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		return models.ServerSideErrorResponse("An error occurred while trying to search users.", err), nil
 	}
 
-	return models.SuccessfulGetRequestResponse(results), nil
+	return models.SuccessfulGetRequestResponse(results, nil), nil
 }

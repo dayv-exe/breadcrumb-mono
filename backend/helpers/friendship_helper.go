@@ -106,7 +106,7 @@ func (this *friendshipHelper) GetFriendshipStatus(currentUserId string, otherUse
 	return constants.FRIENDSHIP_STATUS_NOT_FRIENDS, nil
 }
 
-func (this *friendshipHelper) GetAllFriends(userId string) (*[]models.UserDisplayInfo, error) {
+func (this *friendshipHelper) GetAllFriends(userId string, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
 	condition := expression.KeyEqual(expression.Key("pk"), expression.Value(utils.AddPrefix(models.FriendItemPk, userId))).And(
 		expression.KeyBeginsWith(expression.Key("sk"), models.FriendItemSk),
 	)
@@ -118,17 +118,24 @@ func (this *friendshipHelper) GetAllFriends(userId string) (*[]models.UserDispla
 		return nil, err
 	}
 
-	return QueryItems(
+	result, err := QueryItems(
 		newHelper(this.Ctx, nil),
+		lastEvalKey,
 		nil,
 		expr,
+		limit,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 			return *models.FriendItemsToUserDisplayStructs(m)
 		},
 	)
+
+	return &listResponse[models.UserDisplayInfo]{
+		Items:       result.Items,
+		LastEvalKey: result.LastEvaluatedKey,
+	}, nil
 }
 
-func (this *friendshipHelper) GetAllFriendRequests(userId string) (*[]models.UserDisplayInfo, error) {
+func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
 	condition := expression.KeyEqual(
 		expression.Key("pk"),
 		expression.Value(utils.AddPrefix(models.FriendRequestPkPrefix, userId)),
@@ -145,14 +152,21 @@ func (this *friendshipHelper) GetAllFriendRequests(userId string) (*[]models.Use
 		return nil, err
 	}
 
-	return QueryItems(
+	result, err := QueryItems(
 		newHelper(this.Ctx, nil),
+		lastEvaluatedKey,
 		nil,
 		expr,
+		limit,
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 			return *models.FriendRequestItemsToUserDisplayStructs(m)
 		},
 	)
+
+	return &listResponse[models.UserDisplayInfo]{
+		Items:       result.Items,
+		LastEvalKey: result.LastEvaluatedKey,
+	}, nil
 }
 
 func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) error {
@@ -161,21 +175,32 @@ func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) err
 	// update the display info
 
 	helper := newHelper(f.Ctx, nil)
+	var lastEvalKey map[string]types.AttributeValue
 
-	userFriends, err := f.GetAllFriends(currentUser.Userid)
-	if err != nil {
-		log.Println("Failed to get user friends!")
-		return err
+	for {
+		result, err := f.GetAllFriends(currentUser.Userid, &lastEvalKey, nil)
+		if err != nil {
+			log.Println("Failed to get user friends!")
+			return err
+		}
+
+		var updates []types.WriteRequest
+
+		for _, friend := range result.Items {
+			// gets the friendship key where pk is current user and sk is other user
+			// flips it around to overwrite
+			updatedItem := models.NewFriendship(friend.Userid, currentUser)
+			updates = append(updates, UsePutBatchItem(helper, updatedItem))
+		}
+
+		BatchWriteItems(helper, updates...)
+
+		if result.LastEvalKey == nil {
+			break
+		}
+
+		lastEvalKey = result.LastEvalKey
 	}
 
-	var updates []types.WriteRequest
-
-	for _, friend := range *userFriends {
-		// gets the friendship key where pk is current user and sk is other user
-		// flips it around to overwrite
-		updatedItem := models.NewFriendship(friend.Userid, currentUser)
-		updates = append(updates, UsePutBatchItem(helper, updatedItem))
-	}
-
-	return BatchWriteItems(helper, updates...)
+	return nil
 }

@@ -19,6 +19,14 @@ type helper struct {
 	Ctx       context.Context
 }
 
+type listResponse[T any] struct {
+	Items       []T
+	LastEvalKey map[string]types.AttributeValue
+}
+
+type sliceConversionFunc[T any] func([]map[string]types.AttributeValue) []T
+type conversionFunc[T any] func(map[string]types.AttributeValue) T
+
 func newHelper(ctx context.Context, tableName *string) *helper {
 	if tableName == nil {
 		tableName = &utils.GetDependencies().MainTableName
@@ -102,7 +110,7 @@ func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error)
 	return len(output.Item) > 0, nil
 }
 
-func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue, convertToStruct func(map[string]types.AttributeValue) T) (*T, error) {
+func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue, convertToStruct conversionFunc[T]) (*T, error) {
 	output, err := getItem(deps, &key)
 	if err != nil {
 		return nil, err
@@ -118,28 +126,79 @@ func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue,
 	return &item, nil
 }
 
-func QueryItems[T any](deps *helper, indexName *string, expression expression.Expression, convertToStructs func([]map[string]types.AttributeValue) []T) (*[]T, error) {
+func QueryAllItems[T any](deps *helper, indexName *string, expression expression.Expression, convertToStructs sliceConversionFunc[T]) (*[]T, error) {
 	input := &dynamodb.QueryInput{
 		TableName:                 &deps.TableName,
-		IndexName:                 indexName,
 		KeyConditionExpression:    expression.KeyCondition(),
 		ExpressionAttributeNames:  expression.Names(),
 		ExpressionAttributeValues: expression.Values(),
 	}
 
-	output, err := utils.GetDependencies().DbClient.Query(deps.Ctx, input)
+	if indexName != nil {
+		input.IndexName = indexName
+	}
+
+	var allItems []map[string]types.AttributeValue
+	var lastEvaluatedKey map[string]types.AttributeValue
+
+	for {
+		if lastEvaluatedKey != nil {
+			input.ExclusiveStartKey = lastEvaluatedKey
+		}
+
+		result, err := utils.GetDependencies().DbClient.Query(deps.Ctx, input)
+
+		if err != nil {
+			log.Print("an error occurred while trying to query")
+			return nil, err
+		}
+
+		allItems = append(allItems, result.Items...)
+
+		if result.LastEvaluatedKey == nil {
+			break
+		}
+
+		lastEvaluatedKey = result.LastEvaluatedKey
+	}
+
+	items := convertToStructs(allItems)
+
+	return &items, nil
+}
+
+type queryResult[T any] struct {
+	Items            []T
+	LastEvaluatedKey map[string]types.AttributeValue
+}
+
+func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.AttributeValue, indexName *string, expression expression.Expression, limit *int32, convertToStructs sliceConversionFunc[T]) (*queryResult[T], error) {
+
+	input := &dynamodb.QueryInput{
+		TableName:                 &deps.TableName,
+		KeyConditionExpression:    expression.Condition(),
+		ExpressionAttributeNames:  expression.Names(),
+		ExpressionAttributeValues: expression.Values(),
+	}
+
+	if indexName != nil {
+		input.IndexName = indexName
+	}
+
+	if lastEvaluatedKey != nil {
+		input.ExclusiveStartKey = *lastEvaluatedKey
+	}
+
+	result, err := utils.GetDependencies().DbClient.Query(deps.Ctx, input)
 	if err != nil {
-		log.Print("an error occurred while trying to query")
 		return nil, err
 	}
 
-	if len(output.Items) < 1 {
-		return nil, nil
-	}
-
-	items := convertToStructs(output.Items)
-
-	return &items, nil
+	items := convertToStructs(result.Items)
+	return &queryResult[T]{
+		Items:            items,
+		LastEvaluatedKey: result.LastEvaluatedKey,
+	}, nil
 }
 
 func BatchWriteItems(deps *helper, requests ...types.WriteRequest) error {

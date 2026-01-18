@@ -52,5 +52,5 @@ func HandleGeneratePresignedUrl(ctx context.Context, req events.APIGatewayV2HTTP
 		ImageKey:  imageKey,
 	}
 
-	return models.SuccessfulGetRequestResponse(res), nil
+	return models.SuccessfulGetRequestResponse(res, nil), nil
 }

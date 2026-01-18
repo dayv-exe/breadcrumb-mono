@@ -81,12 +81,20 @@ func (this *userHelper) findAllWithNickname(nickname string) (*[]models.User, er
 		return nil, err
 	}
 
-	return QueryItems(
+	result, err := QueryItems(
 		newHelper(this.Ctx, nil),
+		nil,
 		aws.String("GSIndex"),
 		expr,
+		nil,
 		this.sliceTypeConverter,
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result.Items, nil
 }
 
 func (this *userHelper) FindByNickname(nickname string) (*models.User, error) {

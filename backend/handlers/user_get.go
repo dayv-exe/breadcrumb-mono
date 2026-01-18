@@ -76,7 +76,7 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 				*user,
 				*userCognitoInfo,
 			},
-		), nil
+			nil), nil
 	}
 
 	// if user is requesting details of another user, return only display info and friendship status
@@ -89,5 +89,5 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	return models.SuccessfulGetRequestResponse(models.User{
 		UserDisplayInfo: user.UserDisplayInfo,
 		UserAccountInfo: user.UserAccountInfo,
-	}), nil
+	}, nil), nil
 }

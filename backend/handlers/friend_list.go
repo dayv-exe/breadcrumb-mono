@@ -8,27 +8,33 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := req.PathParameters["id"] // the user who's friends we want to view
+	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to decode last evaluated key! Try again.", err), nil
+	}
+
 	if userId == "" {
 		userId = utils.GetAuthUserId(req)
 	}
 
-	friends, friendsErr := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId)
-	if friendsErr != nil {
-		return models.ServerSideErrorResponse("Failed to get friends, try again.", friendsErr), nil
+	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, &lastEvalKey, aws.Int32(20))
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}
-	if friends == nil {
-		return models.SuccessfulGetRequestResponse(nil), nil
+	if result.Items == nil {
+		return models.SuccessfulGetRequestResponse(nil, nil), nil
 	}
 
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 
 	var users []models.User
 
-	for _, friend := range *friends {
+	for _, friend := range result.Items {
 		var friendshipStatus string
 
 		currentUser := utils.GetAuthUserId(req)
@@ -49,5 +55,5 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		})
 	}
 
-	return models.SuccessfulGetRequestResponse(users), nil
+	return models.SuccessfulGetRequestResponse(users, &result.LastEvalKey), nil
 }

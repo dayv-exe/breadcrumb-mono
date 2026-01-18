@@ -3,14 +3,18 @@ package models
 // a way to standardize responses from functions triggered by apigateway event
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type ResponseBody struct {
-	Message interface{} `json:"message"`
+	Message          interface{} `json:"message"`
+	LastEvaluatedKey interface{} `json:"last,omitempty"`
 }
 
 // buildResponse builds a standard API Gateway proxy response
@@ -31,7 +35,10 @@ func InvalidRequestErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 		msg = "Invalid request body."
 	}
 	log.Println(msg)
-	return buildResponse(400, ResponseBody{msg})
+	return buildResponse(400, ResponseBody{
+		Message:          msg,
+		LastEvaluatedKey: nil,
+	})
 }
 
 func UnauthorizedErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
@@ -39,7 +46,7 @@ func UnauthorizedErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 		msg = "Unauthorized request."
 	}
 	log.Println(msg)
-	return buildResponse(401, ResponseBody{msg})
+	return buildResponse(401, ResponseBody{msg, nil})
 }
 
 func ForbiddenErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
@@ -47,7 +54,7 @@ func ForbiddenErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 		msg = "Insufficient Permissions"
 	}
 	log.Println(msg)
-	return buildResponse(403, ResponseBody{msg})
+	return buildResponse(403, ResponseBody{msg, nil})
 }
 
 func NotFoundResponse(msg string) events.APIGatewayV2HTTPResponse {
@@ -56,7 +63,7 @@ func NotFoundResponse(msg string) events.APIGatewayV2HTTPResponse {
 	}
 
 	log.Println(msg)
-	return buildResponse(404, ResponseBody{msg})
+	return buildResponse(404, ResponseBody{msg, nil})
 }
 
 func ServerSideErrorResponse(msg string, err error) events.APIGatewayV2HTTPResponse {
@@ -64,7 +71,7 @@ func ServerSideErrorResponse(msg string, err error) events.APIGatewayV2HTTPRespo
 		msg = "An error has occurred on our end, try again."
 	}
 	log.Println("Error source description: " + msg + " ERROR: " + err.Error())
-	return buildResponse(500, ResponseBody{msg})
+	return buildResponse(500, ResponseBody{msg, nil})
 }
 
 func SuccessfulRequestResponse(msg string, createdResource bool) events.APIGatewayV2HTTPResponse {
@@ -77,11 +84,52 @@ func SuccessfulRequestResponse(msg string, createdResource bool) events.APIGatew
 		sCode = 201
 	}
 
-	return buildResponse(sCode, ResponseBody{msg})
+	return buildResponse(sCode, ResponseBody{msg, nil})
 }
 
-func SuccessfulGetRequestResponse(body interface{}) events.APIGatewayV2HTTPResponse {
+func SuccessfulGetRequestResponse(body interface{}, lastEvaluatedKey *map[string]types.AttributeValue) events.APIGatewayV2HTTPResponse {
+	if lastEvaluatedKey != nil {
+		key := encodeLastEvalKey(*lastEvaluatedKey)
+		return buildResponse(200, ResponseBody{
+			Message:          body,
+			LastEvaluatedKey: key,
+		})
+	}
+
 	return buildResponse(200, ResponseBody{
-		body,
+		Message:          body,
+		LastEvaluatedKey: nil,
 	})
+}
+
+func encodeLastEvalKey(key map[string]types.AttributeValue) string {
+	if key == nil {
+		return ""
+	}
+
+	jsonBytes, err := attributevalue.MarshalMapJSON(key)
+	if err != nil {
+		log.Panicf("Failed to marshal last key: %v, error: %v", key, err)
+	}
+
+	return base64.URLEncoding.EncodeToString(jsonBytes)
+}
+
+func DecodeLastEvalKey(key string) (map[string]types.AttributeValue, error) {
+
+	if key == "" {
+		return nil, nil
+	}
+
+	decoded, err := base64.URLEncoding.DecodeString(key)
+	if err != nil {
+		return nil, err
+	}
+
+	lastKey, err := attributevalue.UnmarshalMapJSON(decoded)
+	if err != nil {
+		return nil, err
+	}
+
+	return lastKey, nil
 }
