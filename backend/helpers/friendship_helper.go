@@ -129,6 +129,10 @@ func (this *friendshipHelper) GetAllFriends(userId string, lastEvalKey *map[stri
 		},
 	)
 
+	if len(result.Items) < 1 {
+		return nil, nil
+	}
+
 	return &listResponse[models.UserDisplayInfo]{
 		Items:       result.Items,
 		LastEvalKey: result.LastEvaluatedKey,
@@ -162,6 +166,10 @@ func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedK
 			return *models.FriendRequestItemsToUserDisplayStructs(m)
 		},
 	)
+
+	if len(result.Items) < 1 {
+		return nil, nil
+	}
 
 	return &listResponse[models.UserDisplayInfo]{
 		Items:       result.Items,

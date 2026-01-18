@@ -175,10 +175,27 @@ type queryResult[T any] struct {
 func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.AttributeValue, indexName *string, expression expression.Expression, limit *int32, convertToStructs sliceConversionFunc[T]) (*queryResult[T], error) {
 
 	input := &dynamodb.QueryInput{
-		TableName:                 &deps.TableName,
-		KeyConditionExpression:    expression.Condition(),
-		ExpressionAttributeNames:  expression.Names(),
-		ExpressionAttributeValues: expression.Values(),
+		TableName: &deps.TableName,
+	}
+
+	if expression.KeyCondition() != nil {
+		input.KeyConditionExpression = expression.KeyCondition()
+	}
+
+	if expression.Names() != nil {
+		input.ExpressionAttributeNames = expression.Names()
+	}
+
+	if expression.Values() != nil {
+		input.ExpressionAttributeValues = expression.Values()
+	}
+
+	if expression.Filter() != nil {
+		input.FilterExpression = expression.Filter()
+	}
+
+	if expression.Projection() != nil {
+		input.ProjectionExpression = expression.Projection()
 	}
 
 	if indexName != nil {
