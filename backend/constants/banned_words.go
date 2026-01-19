@@ -2,7 +2,7 @@ package constants
 
 // set to false to enforce hard ban
 var BannedTerms = map[string]bool{
-	"69":                          false,
+	// "69":                          false,
 	"2g1c":                        false,
 	"2 girls 1 cup":               false,
 	"acrotomophilia":              false,

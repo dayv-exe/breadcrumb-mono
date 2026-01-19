@@ -26,7 +26,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}
-	if result.Items == nil {
+	if result == nil {
 		return models.SuccessfulGetRequestResponse(nil, nil), nil
 	}
 
