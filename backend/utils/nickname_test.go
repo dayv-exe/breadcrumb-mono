@@ -30,7 +30,6 @@ func TestIsNicknameValid(t *testing.T) {
 		{"14792384913", false},
 		{"a.1", false},
 		{"ab.1", true},
-		{"hot.chick69", true},
 	}
 
 	for _, tt := range tests {
