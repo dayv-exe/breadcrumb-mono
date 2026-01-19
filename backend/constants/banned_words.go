@@ -266,7 +266,6 @@ var BannedTerms = map[string]bool{
 	"pissing":                     false,
 	"piss pig":                    false,
 	"pisspig":                     false,
-	"playboy":                     false,
 	"pleasure chest":              false,
 	"pole smoker":                 false,
 	"ponyplay":                    false,

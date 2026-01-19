@@ -103,6 +103,8 @@ func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string)
 	input = strings.ReplaceAll(input, ".", "")
 	input = strings.ReplaceAll(input, " ", "")
 	input = strings.ToLower(input)
+
+	bannedWord = strings.ReplaceAll(bannedWord, " ", "")
 	bannedWord = strings.ToLower(bannedWord)
 	minStrictBanLen := 5
 

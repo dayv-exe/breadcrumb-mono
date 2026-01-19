@@ -40,15 +40,15 @@ func NameChangeAllowed(lastChangedOn string) bool {
 }
 
 func IsNameBanned(name string) bool {
+	if len(name) < 1 {
+		return false
+	}
+
 	name = strings.ToLower(name)
 
 	_, exists := constants.BannedTerms[name]
 	if exists {
 		return true
-	}
-
-	if len(name) < 1 {
-		return false
 	}
 
 	isBanned := false
