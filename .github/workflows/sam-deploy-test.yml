@@ -93,7 +93,7 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-            - name: deploy sam
+      - name: deploy sam
         run: |
           sam deploy \
             --template-file template.yaml \
