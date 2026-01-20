@@ -182,11 +182,27 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
-          TrustedSigners:
-            - self
+          TrustedKeyGroups:
+            - !Ref CloudFrontKeyGroup
         PriceClass: PriceClass_100
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
+
+  CloudFrontPublicKey:
+    Type: AWS::CloudFront::PublicKey
+    Properties:
+      PublicKeyConfig:
+        Name: !Sub "${AWS::StackName}-${EnvironmentName}-cf-public-key"
+        CallerReference: !Sub "${AWS::StackName}-${EnvironmentName}-${AWS::Region}"
+        EncodedKey: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvbCZkjWTIT13ljgnfsrEghqPxrK9oCqFKdqSxIWWTs1VGSez90N9/z4kmYDPZbkN/dss+HhaVV+ZgV9bZtKeNzalHyRqYATsa9jWBwOdCnRi25sCY+AJlRgjK/S+fhJHsrwFU668lVBzRrR0PbV6r1Y2y0HwuKZ9TfPIQzgmBwtj7Av6h8dUS96NSA6CvaH8hcjYZPTiZ1fHkxiIipTFBeAN3vUlqR18Ym4Z7zVapf0CBDHir4oOevH3t9lolbTpOkWyy5XAll3ngQS5YR9qYhzgL/IEXwnt2bwLRE9h9QHRdmgK7v0UjxfIqO/IDHQ+AS+WO5rQSkmSd/VnW9vwKwIDAQAB\n-----END PUBLIC KEY-----"
+
+  CloudFrontKeyGroup:
+    Type: AWS::CloudFront::KeyGroup
+    Properties:
+      KeyGroupConfig:
+        Name: !Sub "${AWS::StackName}-${EnvironmentName}-cf-key-group"
+        Items:
+          - !Ref CloudFrontPublicKey
 
   MediaBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -199,7 +215,7 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub "${MediaBucket.Arn}/uploads/*"
+            Resource: !Sub "${MediaBucket.Arn}/*"
             Condition:
               StringEquals:
                 "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
@@ -239,6 +255,36 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Resource: !Ref CloudFrontKeysSecret
+
+  MediaAccess:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-MediaAccess
+      CodeUri: bin/media_access/media_access.zip
+      Handler: bootstrap
+      Description: Returns CloudFront signed cookies/URL for authorized users
+      Environment:
+        Variables:
+          CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
+          CF_PRIVATE_KEY_SECRET_ARN: !Ref CloudFrontKeysSecret
+          USERS_TABLE: !Ref UsersTable 
+      Events:
+        ApiRequest:
+          Type: HttpApi
+          Properties:
+            Path: /media/access
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+      Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref CloudFrontKeysSecret
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
 
   CloudFrontKeysSecret:
     Type: AWS::SecretsManager::Secret
