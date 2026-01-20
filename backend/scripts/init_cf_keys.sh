@@ -80,29 +80,25 @@ NEW_PRIVATE_KEY_PEM="$(cat "${PRIVATE_KEY_PATH}")"
 
 GET_RES_JSON="$(aws cloudfront get-public-key --id "${CF_PUBLIC_KEY_ID}")"
 
-ETAG="$(python3 - <<'PY'
+ETAG="$(echo "${GET_RES_JSON}" | python3 -c '
 import json, sys
 data=json.loads(sys.stdin.read())
 print(data["ETag"])
-PY
-<<< "${GET_RES_JSON}")"
+')"
 
-CONFIG_JSON="$(python3 - <<'PY'
+CONFIG_JSON="$(echo "${GET_RES_JSON}" | python3 -c '
 import json, sys
 data=json.loads(sys.stdin.read())
 print(json.dumps(data["PublicKey"]["PublicKeyConfig"]))
-PY
-<<< "${GET_RES_JSON}")"
+')"
 
-UPDATED_CONFIG_JSON="$(python3 - <<'PY'
+UPDATED_CONFIG_JSON="$(python3 -c '
 import json, sys
-cfg=json.loads(sys.stdin.read())
-new_key = sys.argv[1]
+cfg=json.loads(sys.argv[1])
+new_key = sys.argv[2]
 cfg["EncodedKey"] = new_key
 print(json.dumps(cfg))
-PY
-"${NEW_PUBLIC_KEY_PEM}"
-<<< "${CONFIG_JSON}")"
+' "${CONFIG_JSON}" "${NEW_PUBLIC_KEY_PEM}")"
 
 aws cloudfront update-public-key \
   --id "${CF_PUBLIC_KEY_ID}" \
@@ -110,19 +106,17 @@ aws cloudfront update-public-key \
   --public-key-config "${UPDATED_CONFIG_JSON}" \
   >/dev/null
 
-PRIVATE_ESCAPED="$(python3 - <<'PY'
+PRIVATE_ESCAPED="$(echo "${NEW_PRIVATE_KEY_PEM}" | python3 -c '
 import sys
 s=sys.stdin.read().replace("\r\n","\n").replace("\n","\\n")
 print(s)
-PY
-<<< "${NEW_PRIVATE_KEY_PEM}")"
+')"
 
-PUBLIC_ESCAPED="$(python3 - <<'PY'
+PUBLIC_ESCAPED="$(echo "${NEW_PUBLIC_KEY_PEM}" | python3 -c '
 import sys
 s=sys.stdin.read().replace("\r\n","\n").replace("\n","\\n")
 print(s)
-PY
-<<< "${NEW_PUBLIC_KEY_PEM}")"
+')"
 
 SECRET_JSON="$(cat <<EOF
 {"private_key":"${PRIVATE_ESCAPED}","public_key":"${PUBLIC_ESCAPED}","key_pair_id":"${CF_PUBLIC_KEY_ID}"}
