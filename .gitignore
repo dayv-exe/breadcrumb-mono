@@ -46,3 +46,7 @@ backend/bin
 backend/samconfig.toml
 backend/endpoints
 .DS_Store
+frontend/*.pem
+backend/*.pem
+frontend/*.env
+backend/*.env

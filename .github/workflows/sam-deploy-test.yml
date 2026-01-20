@@ -93,14 +93,21 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: deploy sam
+            - name: deploy sam
         run: |
           sam deploy \
             --template-file template.yaml \
             --s3-bucket breadcrumb-stack-${{ env.AWS_REGION }}-test \
             --stack-name breadcrumb-stack-test \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --region ${{env.AWS_REGION}} \
+            --region ${{ env.AWS_REGION }} \
             --parameter-overrides EnvironmentName=test \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
+
+      - name: init cloudfront signing keys
+        run: |
+          chmod +x ./scripts/init_cf_keys.sh
+          ./scripts/init_cf_keys.sh \
+            --stack-name breadcrumb-stack-test \
+            --region ${{ env.AWS_REGION }}
