@@ -1,37 +1,52 @@
 import { useVideoPlayer, VideoView } from "expo-video";
+import { useEffect } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import Spacer from "../Spacer";
 
 type MediaPreview = {
-  type: 'photo' | 'video'
-  uri: string
-}
+  type: "photo" | "video";
+  uri: string;
+};
 
 type PreviewScreenProps = {
-  media: MediaPreview
-  onRetake: () => void
-  onSave: () => void
-}
+  media: MediaPreview;
+  onRetake: () => void;
+  onSave: () => void;
+};
 
-export default function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
-  const player = useVideoPlayer(media.type === 'video' ? media.uri : '', player => {
-    if (media.type === 'video') {
-      player.loop = false;
-      player.currentTime = 0
-      player.play();
-    }
+export default function PreviewScreen({
+  media,
+  onRetake,
+  onSave,
+}: PreviewScreenProps) {
+  const uri = media.type === "video" ? media.uri : "";
+
+  const player = useVideoPlayer(uri, (p) => {
+    if (!uri) return;
+
+    p.loop = false;
+    p.currentTime = 0;
+    p.play();
   });
 
-  player.addListener("playToEnd", () => {
-    player.currentTime = 0
-    player.play()
-  })
+  useEffect(() => {
+    if (media.type !== "video") return;
+
+    const sub = player.addListener("playToEnd", () => {
+      player.currentTime = 0;
+      player.play();
+    });
+
+    return () => {
+      sub?.remove?.();
+    };
+  }, [player, media.type]);
 
   return (
     <View style={styles.previewContainer}>
       <View style={styles.previewMediaWrapper}>
-        {media.type === 'photo' ? (
+        {media.type === "photo" ? (
           <Image
             source={{ uri: media.uri }}
             style={styles.previewMedia}
@@ -48,20 +63,12 @@ export default function PreviewScreen({ media, onRetake, onSave }: PreviewScreen
       </View>
 
       <View style={styles.previewControls}>
-        <CustomButton
-          type="text"
-          labelText="Retake"
-          handleClick={onRetake}
-        />
+        <CustomButton type="text" labelText="Retake" handleClick={onRetake} />
         <Spacer size="medium" />
-        <CustomButton
-          type="prominent"
-          labelText="Save"
-          handleClick={onSave}
-        />
+        <CustomButton type="prominent" labelText="Save" handleClick={onSave} />
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -90,4 +97,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
   },
-})
+});
