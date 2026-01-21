@@ -105,9 +105,26 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
 
-      - name: init cloudfront signing keys
+      - name: Get CloudFront PublicKey ID and Secret ID
+        id: cf-ids
         run: |
-          chmod +x ./scripts/init_cf_keys.sh
-          ./scripts/init_cf_keys.sh \
+          CF_PUBLIC_KEY_ID=$(aws cloudformation describe-stack-resource \
             --stack-name breadcrumb-stack-test \
-            --region ${{ env.AWS_REGION }}
+            --logical-resource-id CloudFrontPublicKey \
+            --region ${{ env.AWS_REGION }} \
+            --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+
+          SECRET_ID=$(aws cloudformation describe-stack-resource \
+            --stack-name breadcrumb-stack-test \
+            --logical-resource-id CloudFrontKeysSecret \
+            --region ${{ env.AWS_REGION }} \
+            --query 'StackResourceDetail.PhysicalResourceId' \
+            --output text)
+
+          echo "CloudFront PublicKey ID (key_pair_id): $CF_PUBLIC_KEY_ID"
+          echo "Secrets Manager Secret ID: $SECRET_ID"
+
+          # Export as step outputs
+          echo "key_pair_id=$CF_PUBLIC_KEY_ID" >> $GITHUB_OUTPUT
+          echo "secret_id=$SECRET_ID" >> $GITHUB_OUTPUT
