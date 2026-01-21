@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-PRIVATE_KEY="bootstrap_private.pem"
-PUBLIC_KEY="bootstrap_public.pem"
+PRIVATE_KEY="cloudfront_private_key.pem"
+PUBLIC_KEY="cloudfront_public_key.pem"
 
 echo "Generating CloudFront key pair..."
 
