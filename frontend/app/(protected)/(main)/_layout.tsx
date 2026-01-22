@@ -161,14 +161,15 @@ function MediaActionButtons({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+        paddingBottom: 20,
       }}
     >
       <CustomButton
         type="text"
-        labelText="Discard"
+        labelText={"Discard"}
         handleClick={() => discardAllMedia()}
       />
-      <CustomButton type="prominent" labelText="Send" />
+      <CustomButton type="prominent" labelText="Share" />
     </View>
   );
 }

@@ -1,3 +1,4 @@
+import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { MediaData } from "@/constants/media";
 import { create } from "zustand";
 
@@ -14,7 +15,12 @@ export const useMediaStore = create<MediaState>((set) => ({
   mediaPreview: [],
   isRecording: false,
   addMediaPreview: (media) =>
-    set((state) => ({ mediaPreview: [...state.mediaPreview, media] })),
+    set((state) => {
+      if (state.mediaPreview.length >= MAX_PREVIEW_MEDIA) {
+        return { mediaPreview: [...state.mediaPreview] };
+      }
+      return { mediaPreview: [...state.mediaPreview, media] };
+    }),
   discardMediaPreview: (index) =>
     set((state) => ({
       mediaPreview: state.mediaPreview.filter((_, i) => i !== index),

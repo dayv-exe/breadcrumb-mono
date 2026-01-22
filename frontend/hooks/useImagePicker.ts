@@ -1,27 +1,20 @@
-import { showSettingsAlert } from '@/utils/helpers';
-import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { MediaData } from "@/constants/media";
+import { showSettingsAlert } from "@/utils/helpers";
+import { useMediaStore } from "@/utils/mediaStore";
+import * as ImagePicker from "expo-image-picker";
+import { useState } from "react";
+import { Alert } from "react-native";
 
 interface ImagePickerOptions {
   allowsEditing?: boolean;
   aspect?: [number, number];
   quality?: number;
   mediaTypes?: ImagePicker.MediaType[];
-  onPictureChosen?: () => void
-}
-
-interface ImageResult {
-  uri: string;
-  width: number;
-  height: number;
-  type?: string;
-  fileName?: string;
-  fileSize?: number;
+  onPictureChosen?: () => void;
 }
 
 interface UseImagePickerReturn {
-  image: ImageResult | null;
+  image: MediaData | null;
   isLoading: boolean;
   pickFromGallery: (options?: ImagePickerOptions) => Promise<void>;
   takePhoto: (options?: ImagePickerOptions) => Promise<void>;
@@ -31,40 +24,47 @@ interface UseImagePickerReturn {
 const DEFAULT_OPTIONS: ImagePickerOptions = {
   allowsEditing: true,
   quality: 0.8,
-  mediaTypes: ['images'],
+  mediaTypes: ["images"],
 };
 
 export const useImagePicker = (): UseImagePickerReturn => {
-  const [image, setImage] = useState<ImageResult | null>(null);
+  const [image, setImage] = useState<MediaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { addMediaPreview } = useMediaStore();
 
-  const requestPermission = async (type: 'camera' | 'gallery'): Promise<boolean> => {
+  const requestPermission = async (
+    type: "camera" | "gallery",
+  ): Promise<boolean> => {
     try {
-      const permission = type === 'camera'
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission =
+        type === "camera"
+          ? await ImagePicker.requestCameraPermissionsAsync()
+          : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permission.granted) {
-        showSettingsAlert(
-          type.toUpperCase()
-        );
+        showSettingsAlert(type.toUpperCase());
         return false;
       }
       return true;
     } catch (error) {
-      console.error('Permission error:', error);
+      console.error("Permission error:", error);
       return false;
     }
   };
 
-  const processImageResult = (result: ImagePicker.ImagePickerResult): ImageResult | null => {
+  const processImageResult = (
+    result: ImagePicker.ImagePickerResult,
+  ): MediaData | null => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
       return {
         uri: asset.uri,
         width: asset.width,
         height: asset.height,
-        type: asset.type,
+        type:
+          asset.type === "image" || asset.type === "livePhoto"
+            ? "photo"
+            : "video",
         fileName: asset.fileName ?? "",
         fileSize: asset.fileSize,
       };
@@ -72,10 +72,12 @@ export const useImagePicker = (): UseImagePickerReturn => {
     return null;
   };
 
-  const pickFromGallery = async (options?: ImagePickerOptions): Promise<void> => {
+  const pickFromGallery = async (
+    options?: ImagePickerOptions,
+  ): Promise<void> => {
     setIsLoading(true);
     try {
-      const hasPermission = await requestPermission('gallery');
+      const hasPermission = await requestPermission("gallery");
       if (!hasPermission) {
         setIsLoading(false);
         return;
@@ -92,10 +94,11 @@ export const useImagePicker = (): UseImagePickerReturn => {
       const processedImage = processImageResult(result);
       if (processedImage) {
         setImage(processedImage);
+        addMediaPreview(processedImage);
       }
     } catch (error) {
-      console.error('Error picking image from gallery:', error);
-      Alert.alert('Error', 'Failed to pick image from gallery');
+      console.error("Error picking image from gallery:", error);
+      Alert.alert("Error", "Failed to pick image from gallery");
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +107,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
   const takePhoto = async (options?: ImagePickerOptions): Promise<void> => {
     setIsLoading(true);
     try {
-      const hasPermission = await requestPermission('camera');
+      const hasPermission = await requestPermission("camera");
       if (!hasPermission) {
         setIsLoading(false);
         return;
@@ -123,8 +126,8 @@ export const useImagePicker = (): UseImagePickerReturn => {
         setImage(processedImage);
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo');
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo");
     } finally {
       setIsLoading(false);
     }

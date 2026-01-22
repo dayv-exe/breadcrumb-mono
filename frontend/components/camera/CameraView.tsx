@@ -1,4 +1,5 @@
 import { usePermissions } from "@/hooks/usePermissions";
+import { useMediaStore } from "@/utils/mediaStore";
 import React, { PropsWithChildren, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -14,6 +15,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import RecordingIndicator from "../recordingIndicator";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
+import PreviewCard from "./PreviewCard";
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera);
 
@@ -108,6 +110,8 @@ export default function CameraView({
   const { hasCameraPermissions, hasMicPermissions, requestMediaPermissions } =
     usePermissions();
 
+  const { mediaPreview } = useMediaStore();
+
   if (!hasCameraPermissions || !hasMicPermissions) {
     let missingPermissions = [];
 
@@ -142,6 +146,26 @@ export default function CameraView({
       >
         {children}
       </CameraComponent>
+
+      {!isRecording && (
+        <View style={styles.previewContainer}>
+          {mediaPreview.map((media, index) => {
+            console.log(media.uri);
+            return <PreviewCard index={index} src={media.uri} key={index} />;
+          })}
+        </View>
+      )}
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  previewContainer: {
+    position: "absolute",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    bottom: 170,
+    width: "auto",
+  },
+});
