@@ -1,20 +1,24 @@
-import { MediaData } from "@/constants/media"
-import { create } from "zustand"
+import { MediaData } from "@/constants/media";
+import { create } from "zustand";
 
-type mediaState = {
-  mediaPreview: MediaData | null
-  isRecording: boolean
+type MediaState = {
+  mediaPreview: MediaData[];
+  isRecording: boolean;
+  addMediaPreview: (media: MediaData) => void;
+  discardMediaPreview: (index: number) => void;
+  discardAllMediaPreview: () => void;
+  setIsRecording: (s: boolean) => void;
+};
 
-  setMediaPreview: (media: MediaData | null) => void
-  discardMediaPreview: () => void
-  setIsRecording: (s: boolean) => void
-}
-
-export const useMediaStore = create<mediaState>(set => ({
-  mediaPreview: null,
+export const useMediaStore = create<MediaState>((set) => ({
+  mediaPreview: [],
   isRecording: false,
-
-  setMediaPreview: media => set({ mediaPreview: media }),
-  discardMediaPreview: () => set({ mediaPreview: null }),
-  setIsRecording: isRec => set({ isRecording: isRec })
-}))
+  addMediaPreview: (media) =>
+    set((state) => ({ mediaPreview: [...state.mediaPreview, media] })),
+  discardMediaPreview: (index) =>
+    set((state) => ({
+      mediaPreview: state.mediaPreview.filter((_, i) => i !== index),
+    })),
+  discardAllMediaPreview: () => set({ mediaPreview: [] }),
+  setIsRecording: (isRec) => set({ isRecording: isRec }),
+}));
