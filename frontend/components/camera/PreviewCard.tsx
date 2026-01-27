@@ -4,11 +4,12 @@ import CustomLabel from "../CustomLabel";
 type props = {
   src: string;
   index: number;
+  active?: boolean;
 };
 
 const maxTwists = 2;
 
-export default function PreviewCard({ src, index }: props) {
+export default function PreviewCard({ src, index, active }: props) {
   return (
     <View
       style={[
@@ -26,9 +27,12 @@ export default function PreviewCard({ src, index }: props) {
       ]}
     >
       <Image src={src} style={styles.image} />
-      <View style={styles.text}>
+      <View style={[styles.text, {
+        borderColor: "#fff",
+        borderWidth: active ? 1 : 0
+      }]}>
         {index > 0 && (
-          <CustomLabel bold fontSize={21} labelText={String(index + 1)} />
+          <CustomLabel fontSize={21} labelText={String(index + 1)} />
         )}
       </View>
     </View>

@@ -9,4 +9,5 @@ export type MediaData = {
   height?: number;
   fileName?: string;
   fileSize?: number;
+  resizeMode: "cover" | "contain"
 };

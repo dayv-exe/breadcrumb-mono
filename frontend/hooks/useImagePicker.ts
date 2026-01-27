@@ -3,7 +3,7 @@ import { showSettingsAlert } from "@/utils/helpers";
 import { useMediaStore } from "@/utils/mediaStore";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Alert } from "react-native";
+import { Alert, ScaledSize, useWindowDimensions } from "react-native";
 
 interface ImagePickerOptions {
   allowsEditing?: boolean;
@@ -27,10 +27,18 @@ const DEFAULT_OPTIONS: ImagePickerOptions = {
   mediaTypes: ["images"],
 };
 
+function getImageResizeMode(imageWidth: number, imageHeight: number, screenDimensions: ScaledSize): "cover" | "contain" {
+  const imageAspect = imageWidth / imageHeight;
+  const screenAspect = screenDimensions.width / screenDimensions.height;
+  const aspectDiff = Math.abs(imageAspect - screenAspect);
+  return aspectDiff < 0.125 ? "cover" : "contain"
+}
+
 export const useImagePicker = (): UseImagePickerReturn => {
   const [image, setImage] = useState<MediaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { addMediaPreview } = useMediaStore();
+  const screenDimensions = useWindowDimensions();
 
   const requestPermission = async (
     type: "camera" | "gallery",
@@ -67,6 +75,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
             : "video",
         fileName: asset.fileName ?? "",
         fileSize: asset.fileSize,
+        resizeMode: getImageResizeMode(asset.width, asset.height, screenDimensions)
       };
     }
     return null;

@@ -1,7 +1,7 @@
 import { usePermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
 import React, { PropsWithChildren, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
   Extrapolation,
@@ -110,7 +110,7 @@ export default function CameraView({
   const { hasCameraPermissions, hasMicPermissions, requestMediaPermissions } =
     usePermissions();
 
-  const { mediaPreview } = useMediaStore();
+  const { mediaPreview, setShowMediaPreviews } = useMediaStore();
 
   if (!hasCameraPermissions || !hasMicPermissions) {
     let missingPermissions = [];
@@ -148,12 +148,13 @@ export default function CameraView({
       </CameraComponent>
 
       {!isRecording && (
-        <View style={styles.previewContainer}>
-          {mediaPreview.map((media, index) => {
-            console.log(media.uri);
-            return <PreviewCard index={index} src={media.uri} key={index} />;
-          })}
-        </View>
+        <TouchableOpacity style={styles.previewContainer} onPress={() => setShowMediaPreviews(true)}>
+          {
+            mediaPreview.map((media, index) => {
+              console.log(`height: ${media.height}\nwidth: ${media.width}\nsize:${media.fileSize}`)
+              return <PreviewCard index={index} src={media.uri} key={index} active />;
+            })}
+        </TouchableOpacity>
       )}
     </>
   );
@@ -165,7 +166,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    bottom: 170,
+    bottom: 80,
+    left: 75,
     width: "auto",
   },
 });

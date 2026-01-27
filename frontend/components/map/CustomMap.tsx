@@ -7,7 +7,7 @@ import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import CustomLabel from "../CustomLabel";
 import CustomButton from "../buttons/CustomButton";
 
@@ -52,7 +52,7 @@ function PermissionScreen({ handleGrantPermission }: permissionProps) {
 }
 
 export default function CustomMap({
-  handleCancelPress = () => {},
+  handleCancelPress = () => { },
   handlePress = () => { },
   handleLongPress = () => { },
   mapRef,
@@ -64,6 +64,8 @@ export default function CustomMap({
 }: customMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
+  const lightAndroidUrl = Constants.expoConfig?.extra?.lightAndroidMapUrl
+  const darkAndroidUrl = Constants.expoConfig?.extra?.darkAndroidMapUrl
   const satelliteUrl = Constants.expoConfig?.extra?.satelliteUrl
   const mode = useColorScheme()
   const cameraRef = useRef<Mapbox.Camera>(null)
@@ -140,7 +142,7 @@ export default function CustomMap({
           setMapReady(true)
           setMapMethods(methods)
         }}
-        styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
+        styleURL={useSatellite ? satelliteUrl : mode === "light" ? Platform.OS === "android" ? lightUrl : lightUrl : Platform.OS === "android" ? darkUrl : darkUrl}
 
         onPress={e => {
           handlePress(e)
@@ -166,6 +168,8 @@ export default function CustomMap({
           animationDuration={0}
           pitch={pitch}
         />
+
+      
 
         {coordinates &&
           <Mapbox.UserLocation

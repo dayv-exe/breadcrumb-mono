@@ -89,6 +89,8 @@ export default {
       baseUrl: process.env.secretBaseUrl,
       darkMapUrl: process.env.secretMapDarkStyleUrl,
       lightMapUrl: process.env.secretMapLightStyleUrl,
+      darkAndroidMapUrl: process.env.secretAndroidAppDark,
+      lightAndroidMapUrl: process.env.secretAndroidAppLight,
       satelliteUrl: process.env.secretMapSatelliteUrl
     },
   },

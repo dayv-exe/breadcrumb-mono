@@ -1,6 +1,6 @@
+import { useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, View } from "react-native";
 import CustomImageButton from "../buttons/CustomImageButton";
-import Spacer from "../Spacer";
 
 type ctrlProps = {
   useFlash: "on" | "off"
@@ -18,12 +18,12 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
+  const { isRecording } = useMediaStore()
+
   return (
     <View style={styles.cameraControls}>
-      <CustomImageButton handleClick={toggleFlash} type="text" src={useFlash === "on" ? icons.flash : icons.noFlash} size={30} fitToContent />
-      <Spacer />
-      <CustomImageButton handleClick={flipCamera} type="text" src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={30} fitToContent />
-      <Spacer size="tiny" />
+      <CustomImageButton src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={30} type="text" customStyle={styles.imageButtons} handleClick={flipCamera} />
+      {!isRecording && <CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={30} type="text" customStyle={styles.imageButtons} handleClick={toggleFlash} />}
     </View>
   )
 }
@@ -31,13 +31,12 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
 const styles = StyleSheet.create({
   cameraControls: {
     position: "absolute",
-    right: 5,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 100,
-    paddingTop: 13,
-    paddingHorizontal: 10,
-    paddingBottom: 10,
-    opacity: .9,
+    left: 0,
     zIndex: 100,
   },
+  imageButtons: {
+    margin: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+  }
 })

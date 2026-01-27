@@ -16,7 +16,7 @@ export default function CustomFloatingSquare({ handleClick, children, allowWidth
   const theme = useThemeColor
 
   return (
-    <TouchableOpacity style={[customStyle,
+    <TouchableOpacity style={[
       isFlat ? styles.flatContainer : styles.container,
       {
         backgroundColor: getBackgroundColor(type ?? "text", theme),
@@ -25,7 +25,7 @@ export default function CustomFloatingSquare({ handleClick, children, allowWidth
         paddingVertical: fitToContent ? 0 : allowWidthExpansion ? 10 : 0,
         paddingHorizontal: fitToContent ? 0 : allowWidthExpansion ? 15 : 0,
       }
-    ]} onPress={handleClick}>
+    , customStyle]} onPress={handleClick}>
       {children}
     </TouchableOpacity>
   )

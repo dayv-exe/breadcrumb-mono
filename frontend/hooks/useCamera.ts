@@ -110,6 +110,7 @@ export function useCamera(): useCameraReturnType {
             addMediaPreview({
               type: "video",
               uri: `${video.path}`,
+              resizeMode: "cover"
             });
           },
           onRecordingError: (error) => {
@@ -133,6 +134,7 @@ export function useCamera(): useCameraReturnType {
         addMediaPreview({
           type: "photo",
           uri: `${photo.path}`,
+          resizeMode: "cover"
         });
       } catch (error) {
         console.error("Error taking photo:", error);

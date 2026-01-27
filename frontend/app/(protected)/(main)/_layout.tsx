@@ -148,6 +148,7 @@ function MediaActionButtons({
   addMediaPreview: (m: MediaData) => void;
   discardAllMedia: () => void;
 }) {
+  const { showMediaPreviews, discardMediaPreview } = useMediaStore()
   return (
     <View
       style={{
@@ -166,10 +167,18 @@ function MediaActionButtons({
     >
       <CustomButton
         type="text"
-        labelText={"Discard"}
-        handleClick={() => discardAllMedia()}
+        customTextStyle={{color: "red"}}
+        labelText={showMediaPreviews ? "Delete" : "Discard"}
+        handleClick={() => {
+          if (!showMediaPreviews) {
+            discardAllMedia()
+            return
+          }
+
+          discardMediaPreview()
+        }}
       />
-      <CustomButton type="prominent" labelText="Share" />
+      <CustomButton type="dark-faded" customTextStyle={{color: "white"}} labelText={"Share"} />
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
+import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
 import { useCamera } from "@/hooks/useCamera";
 import { useImagePicker } from "@/hooks/useImagePicker";
@@ -39,6 +40,10 @@ const TopButtons = () => {
   );
 };
 
+function handleRetake() { }
+
+function handleSave() { }
+
 export default function AddScreen() {
   const {
     activeCamera,
@@ -52,41 +57,54 @@ export default function AddScreen() {
     useFlash,
     flipCamera,
   } = useCamera();
-  const { isRecording } = useMediaStore();
+  const { isRecording, mediaPreview, showMediaPreviews } = useMediaStore();
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black", paddingTop: insets.top }}>
-      {isFocused && (
-        <View style={styles.container}>
-          <CameraView
-            activeCamera={activeCamera}
-            cameraRef={cameraRef}
-            isRecording={isRecording}
-            zoomLevel={zoomLevel}
-            stopRecording={stopRecording}
-          >
-            <ShutterButton
-              recordingProgress={recordingProgress}
-              startRecording={startRecording}
-              stopRecording={stopRecording}
-              takePhoto={takePhoto}
-            />
-          </CameraView>
-          {activeCamera && (
-            <>
-              {!isRecording && <TopButtons />}
-              <CameraControls
-                flipCamera={flipCamera}
-                setUseFlash={setUseFlash}
-                useFlash={useFlash}
-              />
-            </>
+    <>
+      {(!showMediaPreviews && mediaPreview.length < 15) && (
+        <View
+          style={{ flex: 1, backgroundColor: "black", paddingTop: insets.top }}
+        >
+          {isFocused && (
+            <View style={styles.container}>
+              <CameraView
+                activeCamera={activeCamera}
+                cameraRef={cameraRef}
+                isRecording={isRecording}
+                zoomLevel={zoomLevel}
+                stopRecording={stopRecording}
+              >
+                <ShutterButton
+                  recordingProgress={recordingProgress}
+                  startRecording={startRecording}
+                  stopRecording={stopRecording}
+                  takePhoto={takePhoto}
+                />
+              </CameraView>
+              {activeCamera && (
+                <>
+                  {!isRecording && <TopButtons />}
+                  <CameraControls
+                    flipCamera={flipCamera}
+                    setUseFlash={setUseFlash}
+                    useFlash={useFlash}
+                  />
+                </>
+              )}
+            </View>
           )}
         </View>
       )}
-    </View>
+      {(showMediaPreviews || mediaPreview.length > 14) && (
+        <PreviewScreen
+          mediaItems={mediaPreview}
+          onRetake={handleRetake}
+          onSave={handleRetake}
+        />
+      )}
+    </>
   );
 }
 

@@ -1,14 +1,8 @@
+import { MediaData } from '@/constants/media';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, CameraDevice, useCameraDevice } from 'react-native-vision-camera';
 
 type MediaType = 'photo' | 'video' | null;
-
-type MediaData = {
-  uri: string;
-  type: MediaType;
-  duration?: number;
-  thumbnail?: string;
-};
 
 type MediaPreview = {
   type: 'photo' | 'video'
@@ -137,8 +131,6 @@ export function CameraProvider({ children }: { children: ReactNode }) {
 
   return (
     <CameraContext.Provider value={{
-      isPreviewActive,
-      setIsPreviewActive,
       isRecording,
       setIsRecording,
       currentMedia,
