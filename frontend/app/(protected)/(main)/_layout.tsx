@@ -1,4 +1,5 @@
 import CustomButton from "@/components/buttons/CustomButton";
+import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
 import { MediaData } from "@/constants/media";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
@@ -148,7 +149,7 @@ function MediaActionButtons({
   addMediaPreview: (m: MediaData) => void;
   discardAllMedia: () => void;
 }) {
-  const { showMediaPreviews, discardMediaPreview } = useMediaStore()
+  const { showMediaPreviews, discardMediaPreview, setShowMediaPreviews } = useMediaStore()
   return (
     <View
       style={{
@@ -162,12 +163,13 @@ function MediaActionButtons({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        paddingBottom: 20,
+        paddingBottom: 12,
       }}
     >
       <CustomButton
         type="text"
-        customTextStyle={{color: "red"}}
+        slim
+        customTextStyle={{ color: showMediaPreviews ? "white" : "red" }}
         labelText={showMediaPreviews ? "Delete" : "Discard"}
         handleClick={() => {
           if (!showMediaPreviews) {
@@ -178,7 +180,9 @@ function MediaActionButtons({
           discardMediaPreview()
         }}
       />
-      <CustomButton type="dark-faded" customTextStyle={{color: "white"}} labelText={"Share"} />
+      <Spacer size="small" />
+      {showMediaPreviews && <CustomButton type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" />}
+      {!showMediaPreviews && <CustomButton slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );
 }

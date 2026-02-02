@@ -36,10 +36,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 15,
-    elevation: 5,
+    elevation: 6,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: .25,
+    shadowOpacity: .3,
     shadowRadius: 5,
   },
   flatContainer: {

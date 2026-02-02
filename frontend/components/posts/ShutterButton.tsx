@@ -33,7 +33,7 @@ export default function ShutterButton({
           style={[
             shutterStyles.innerButton,
             {
-              borderColor: isRecording ? "transparent" : "#ccc",
+              borderColor: isRecording ? "transparent" : "#FFF",
               backgroundColor: "transparent",
             },
           ]}

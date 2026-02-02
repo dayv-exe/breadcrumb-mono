@@ -1,10 +1,41 @@
-import { showSettingsAlert } from "@/utils/helpers"
-import { useCameraPermission, useMicrophonePermission } from "react-native-vision-camera"
+import { showSettingsAlert } from "@/utils/helpers";
+import * as ImagePicker from "expo-image-picker";
+import { useCameraPermission, useMicrophonePermission } from "react-native-vision-camera";
 
-export function usePermissions() {
+export function useMediaPermissions() {
   const { hasPermission: hasCameraPermissions, requestPermission: reqCamPermission } = useCameraPermission()
-    const { hasPermission: hasMicPermissions, requestPermission: reqMicPermission } = useMicrophonePermission()
-  
+  const { hasPermission: hasMicPermissions, requestPermission: reqMicPermission } = useMicrophonePermission()
+
+  async function requestImagePickerGallery() {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        showSettingsAlert("Gallery");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Permission error:", error);
+      return false;
+    }
+  }
+
+  async function requestImagePickerCamera() {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (!permission.granted) {
+        showSettingsAlert("Camera");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Permission error:", error);
+      return false;
+    }
+  }
+
   async function requestMediaPermissions() {
     if (!hasCameraPermissions) {
       const status = await reqCamPermission()
@@ -23,5 +54,7 @@ export function usePermissions() {
     requestMediaPermissions,
     hasCameraPermissions,
     hasMicPermissions,
+    requestImagePickerCamera,
+    requestImagePickerGallery
   }
 }

@@ -235,7 +235,7 @@ export default function ProfileSettingsScreen() {
                 primaryBtnText: "Choose from photos",
                 secondaryBtnText: "Take photo",
                 onPrimary: () => {
-                  pickFromGallery({ mediaTypes: ["images"], onPictureChosen: () => hideModal() })
+                  pickFromGallery({ mediaTypes: ["images"], onPictureChosen: () => hideModal() }, false)
                 },
                 onSecondary: () => takePhoto({ aspect: [1, 1] }),
                 showCancelBtn: true

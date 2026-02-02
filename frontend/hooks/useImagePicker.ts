@@ -1,9 +1,9 @@
 import { MediaData } from "@/constants/media";
-import { showSettingsAlert } from "@/utils/helpers";
 import { useMediaStore } from "@/utils/mediaStore";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Alert, ScaledSize, useWindowDimensions } from "react-native";
+import { useMediaPermissions } from "./usePermissions";
 
 interface ImagePickerOptions {
   allowsEditing?: boolean;
@@ -16,7 +16,7 @@ interface ImagePickerOptions {
 interface UseImagePickerReturn {
   image: MediaData | null;
   isLoading: boolean;
-  pickFromGallery: (options?: ImagePickerOptions) => Promise<void>;
+  pickFromGallery: (options?: ImagePickerOptions, addToMediaPreview?: boolean) => Promise<void>;
   takePhoto: (options?: ImagePickerOptions) => Promise<void>;
   clearImage: () => void;
 }
@@ -39,26 +39,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const { addMediaPreview } = useMediaStore();
   const screenDimensions = useWindowDimensions();
-
-  const requestPermission = async (
-    type: "camera" | "gallery",
-  ): Promise<boolean> => {
-    try {
-      const permission =
-        type === "camera"
-          ? await ImagePicker.requestCameraPermissionsAsync()
-          : await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permission.granted) {
-        showSettingsAlert(type.toUpperCase());
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error("Permission error:", error);
-      return false;
-    }
-  };
+  const { requestImagePickerCamera, requestImagePickerGallery } = useMediaPermissions()
 
   const processImageResult = (
     result: ImagePicker.ImagePickerResult,
@@ -83,10 +64,11 @@ export const useImagePicker = (): UseImagePickerReturn => {
 
   const pickFromGallery = async (
     options?: ImagePickerOptions,
+    addToMediaPreview: boolean = true
   ): Promise<void> => {
     setIsLoading(true);
     try {
-      const hasPermission = await requestPermission("gallery");
+      const hasPermission = await requestImagePickerGallery();
       if (!hasPermission) {
         setIsLoading(false);
         return;
@@ -98,12 +80,15 @@ export const useImagePicker = (): UseImagePickerReturn => {
         allowsEditing: mergedOptions.allowsEditing,
         aspect: mergedOptions.aspect,
         quality: mergedOptions.quality,
+        videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
       });
 
       const processedImage = processImageResult(result);
       if (processedImage) {
         setImage(processedImage);
-        addMediaPreview(processedImage);
+        if (addToMediaPreview) {
+          addMediaPreview(processedImage);
+        }
       }
     } catch (error) {
       console.error("Error picking image from gallery:", error);
@@ -116,7 +101,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
   const takePhoto = async (options?: ImagePickerOptions): Promise<void> => {
     setIsLoading(true);
     try {
-      const hasPermission = await requestPermission("camera");
+      const hasPermission = await requestImagePickerCamera();
       if (!hasPermission) {
         setIsLoading(false);
         return;

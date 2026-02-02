@@ -1,4 +1,4 @@
-import { usePermissions } from "@/hooks/usePermissions";
+import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
 import React, { PropsWithChildren, useMemo } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -8,7 +8,9 @@ import Reanimated, {
   interpolate,
   SharedValue,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
+  withSpring
 } from "react-native-reanimated";
 import { Camera, CameraDevice, CameraProps } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
@@ -58,6 +60,7 @@ function CameraComponent({
       zoomOffset.set(zoomLevel.get());
     })
     .onUpdate((event) => {
+      if (!isRecording) return
       const zoomDelta = -event.translationY / 30;
       const z = zoomOffset.get() + zoomDelta;
 
@@ -108,9 +111,23 @@ export default function CameraView({
   children,
 }: PropsWithChildren<cameraViewType>) {
   const { hasCameraPermissions, hasMicPermissions, requestMediaPermissions } =
-    usePermissions();
+    useMediaPermissions();
 
-  const { mediaPreview, setShowMediaPreviews } = useMediaStore();
+  const { mediaPreview, setShowMediaPreviews, selectedFriend } = useMediaStore();
+  const previewContainerStyle = useAnimatedStyle(() => {
+    return {
+      bottom: withSpring(!selectedFriend ? 75 : 170, {
+        damping: 25,
+        stiffness: 250,
+        mass: 1
+      }),
+      left: withSpring(!selectedFriend ? 70 : 45, {
+        damping: 25,
+        stiffness: 250,
+        mass: 1,
+      }),
+    };
+  }, [selectedFriend]);
 
   if (!hasCameraPermissions || !hasMicPermissions) {
     let missingPermissions = [];
@@ -148,13 +165,13 @@ export default function CameraView({
       </CameraComponent>
 
       {!isRecording && (
-        <TouchableOpacity style={styles.previewContainer} onPress={() => setShowMediaPreviews(true)}>
-          {
-            mediaPreview.map((media, index) => {
-              console.log(`height: ${media.height}\nwidth: ${media.width}\nsize:${media.fileSize}`)
+        <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
+          <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={styles.previewTouchable}>
+            {mediaPreview.map((media, index) => {
               return <PreviewCard index={index} src={media.uri} key={index} active />;
             })}
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </Reanimated.View>
       )}
     </>
   );
@@ -166,8 +183,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    bottom: 80,
-    left: 75,
     width: "auto",
+  },
+  previewTouchable: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

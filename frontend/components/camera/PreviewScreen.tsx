@@ -10,6 +10,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CustomImageButton from "../buttons/CustomImageButton";
 
 type PreviewScreenProps = {
   mediaItems: MediaData[];
@@ -130,14 +131,11 @@ export default function PreviewScreen({
     return null;
   }
 
+  console.log(currentMediaIndex)
+
   return (
     <SafeAreaView style={styles.previewContainer}>
-      <TouchableOpacity onPress={() => setShowMediaPreviews(false)} style={[styles.backButton, {
-        backgroundColor: "rgba(0, 0, 0, .3)",
-        borderRadius: 15
-      }]}>
-        <Image source={require("../../assets/images/icons/camera_sel_light.png")} style={{ width: 30, height: 30 }} />
-      </TouchableOpacity>
+      <CustomImageButton type="text" customStyle={styles.backButton} handleClick={() => setShowMediaPreviews(false)} src={require("../../assets/images/icons/camera_sel_light.png")} size={35} />
       <View style={styles.previewMediaWrapper}>
         {currentMedia.type === "photo" ? (
           <CustomImage media={currentMedia} />
