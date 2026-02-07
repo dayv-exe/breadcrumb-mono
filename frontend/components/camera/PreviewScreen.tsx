@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomImageButton from "../buttons/CustomImageButton";
 
 type PreviewScreenProps = {
@@ -109,6 +109,7 @@ export default function PreviewScreen({
 }: PreviewScreenProps) {
   const { setShowMediaPreviews, setCurrentMediaIndex, currentMediaIndex } = useMediaStore()
   const currentMedia = mediaItems[currentMediaIndex];
+  const insets = useSafeAreaInsets()
 
   const handleSave = useCallback(() => {
     onSave(currentMediaIndex);
@@ -134,9 +135,9 @@ export default function PreviewScreen({
   console.log(currentMediaIndex)
 
   return (
-    <SafeAreaView style={styles.previewContainer}>
+    <View style={[styles.previewContainer]}>
       <CustomImageButton type="text" customStyle={styles.backButton} handleClick={() => setShowMediaPreviews(false)} src={require("../../assets/images/icons/camera_sel_light.png")} size={35} />
-      <View style={styles.previewMediaWrapper}>
+      <View style={[styles.previewMediaWrapper, {marginTop: insets.top}]}>
         {currentMedia.type === "photo" ? (
           <CustomImage media={currentMedia} />
         ) : (
@@ -156,7 +157,7 @@ export default function PreviewScreen({
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -177,7 +178,6 @@ const styles = StyleSheet.create({
   previewMediaWrapper: {
     flex: 1,
     width: "100%",
-    overflow: "hidden",
     borderColor: "orange",
     borderWidth: 0,
   },
