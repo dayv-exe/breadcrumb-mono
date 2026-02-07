@@ -16,6 +16,7 @@ type props = {
   useRedBorders?: boolean
   customStyle?: ViewStyle | ViewStyle[]
   customInputStyle?: TextStyle | TextStyle[]
+  solidAppearance?: boolean
 }
 
 const icons = {
@@ -34,19 +35,21 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme]
 }
 
-export default function CustomSearchInput({ value, handleChange, placeholder, borderRadius, imageSize = 18, ref, useRedBorders = false, handleOnFocus, handleOnBlur, customStyle, customInputStyle }: props) {
+export default function CustomSearchInput({ value, handleChange, placeholder, borderRadius, imageSize = 18, ref, useRedBorders = false, handleOnFocus, handleOnBlur, customStyle, customInputStyle, solidAppearance }: props) {
   const theme = useThemeColor
   const mode = useColorScheme()
+  const fadedBg = theme({}, "fadedBackground")
+  const bgCol = theme({}, "background")
 
   return (
     <View style={[
-      styles.container, {
-        backgroundColor: theme({}, "fadedBackground"),
+      solidAppearance ? styles.solidContainer : styles.container, {
+        backgroundColor: solidAppearance ? bgCol : fadedBg,
         borderRadius: borderRadius ?? 15,
         borderWidth: 2,
         borderColor: useRedBorders ? "red" : "transparent"
       }
-    , customStyle]}>
+      , customStyle]}>
       <Image
         source={getIconImage("search", mode === "light")}
         style={[{
@@ -59,7 +62,7 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
         {
           color: theme({}, "text"),
         }
-      , customInputStyle]}
+        , customInputStyle]}
         value={value}
         onChangeText={e => handleChange(e)}
         placeholder={placeholder}
@@ -109,5 +112,21 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: "absolute",
     right: 0,
-  }
+  },
+
+  solidContainer: {
+    position: "relative",
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingLeft: 15,
+    flexGrow: 1,
+    flexShrink: 1,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: .25,
+    shadowRadius: 10,
+  },
 })

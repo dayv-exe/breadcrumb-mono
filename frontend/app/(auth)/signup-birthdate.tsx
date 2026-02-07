@@ -50,7 +50,7 @@ export default function BirthdateScreen() {
 
   return (
     <CustomView backgroundColor={bgCol}>
-      {popupDetails.isVisible && <CustomModal message={popupDetails.message} show={popupDetails.isVisible} closeBtnText="Close" handleClose={() => {
+      {popupDetails.isVisible && <CustomModal message={popupDetails.message} show={popupDetails.isVisible} handlePrimaryAction={() => {
         setPopupDetails({ ...popupDetails, isVisible: false })
         router.dismissAll()
       }} />}

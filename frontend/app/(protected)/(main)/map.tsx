@@ -1,10 +1,9 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
-import CustomLabel from "@/components/CustomLabel";
+import CustomSearchInput from "@/components/inputs/CustomSearchInput";
 import CustomMap, { mapMethods } from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
-import { Colors } from "@/constants/Colors";
 import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
@@ -79,6 +78,8 @@ export default function MapScreen() {
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top
   const [pageName, setPageName] = useState("map")
+  const [search, setSearch] = useState("")
+  const searchRef = useRef(null)
 
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -117,23 +118,7 @@ export default function MapScreen() {
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
       <SafeAreaView pointerEvents="box-none" style={[styles.headerWrapper]}>
-        <View>
-          <CustomImageButton src={getIconImage("addFriend", mode === "light")} handleClick={handleAddFriend} />
-          <Spacer size="small" />
-        </View>
-        <View style={[styles.headerTextContainer, { backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background }]}>
-          <CustomLabel bold adaptToTheme fade labelText={pageName} />
-        </View>
-        <View>
-          <CustomImageButton src={getIconImage("search", mode === "light")} />
-          <Spacer size="small" />
-          <CustomImageButton src={getIconImage("frameMap", mode === "light")} />
-          <Spacer size="small" />
-          <CustomImageButton handleClick={() => {
-            focusOnUserLocation()
-          }} src={getIconImage("focusUserLoc", mode === "light")} />
-          <Spacer size="small" />
-        </View>
+        <CustomSearchInput value={search} handleChange={setSearch} ref={searchRef} solidAppearance placeholder="Search map..." customStyle={styles.searchBar} />
       </SafeAreaView>
 
       <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handleCancelPress={() => closeSheet()} handlePress={async e => {
@@ -180,12 +165,24 @@ export default function MapScreen() {
           </ScrollView>
         </View>
       </View>
+
+      <View style={styles.mapControls}>
+        <CustomImageButton src={getIconImage("search", mode === "light")} />
+        <Spacer size="small" />
+        <CustomImageButton src={getIconImage("frameMap", mode === "light")} />
+        <Spacer size="small" />
+        <CustomImageButton handleClick={() => {
+          focusOnUserLocation()
+        }} src={getIconImage("focusUserLoc", mode === "light")} />
+        <Spacer size="small" />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   headerWrapper: {
+    flex: 1,
     position: "absolute",
     marginTop: 10,
     top: 0,
@@ -198,6 +195,11 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 16
+  },
+  mapControls:{
+    position: "absolute",
+    bottom: 70,
+    right: 10,
   },
   headerTextContainer: {
     paddingHorizontal: 20,
@@ -219,5 +221,13 @@ const styles = StyleSheet.create({
     shadowRadius: 7,
     shadowOpacity: .1,
     elevation: 4,
-  }
+  },
+  searchBar:{
+    opacity: .8,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: .3,
+    shadowRadius: 5,
+  },
 });

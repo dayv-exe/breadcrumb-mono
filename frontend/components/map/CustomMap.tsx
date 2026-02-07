@@ -147,8 +147,8 @@ export default function CustomMap({
         onPress={e => {
           handlePress(e)
         }}
-        attributionPosition={{ bottom: 100, right: 10 }}
-        logoPosition={{ bottom: 70, right: 10 }}
+        attributionPosition={{ top: 40, right: 10 }}
+        logoPosition={{ bottom: 70, left: 10 }}
         attributionEnabled={true}
         logoEnabled={true}
         onTouchStart={e => {
