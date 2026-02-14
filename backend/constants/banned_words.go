@@ -288,6 +288,7 @@ var BannedTerms = map[string]bool{
 	"raghead":                     false,
 	"raging boner":                false,
 	"rape":                        false,
+	"raper":                       false,
 	"raping":                      false,
 	"rapist":                      false,
 	"rectum":                      false,

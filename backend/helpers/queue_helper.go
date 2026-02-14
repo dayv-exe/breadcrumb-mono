@@ -35,6 +35,13 @@ func WithUpdateFriendsDisplayInfo(userid string) QueueAction {
 	}
 }
 
+func WithUpdateFriendRequestDisplayInfo(userId string) QueueAction {
+	return QueueAction{
+		SenderId: userId,
+		Action:   constants.QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO,
+	}
+}
+
 func (q *queueHelper) PutInQueue(action QueueAction) error {
 	msg, err := json.Marshal(action)
 	if err != nil {

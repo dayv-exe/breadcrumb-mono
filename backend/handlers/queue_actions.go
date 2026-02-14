@@ -22,6 +22,9 @@ func HandleQueueActions(ctx context.Context, sqs events.SQSEvent) error {
 		case constants.QUEUE_ACTION_UPDATE_FRIENDS_DISPLAY_INFO:
 			updateFriendDisplayInfo(ctx, action.SenderId)
 			continue
+
+		case constants.QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO:
+
 		default:
 			log.Println("Invalid queue action!")
 		}
