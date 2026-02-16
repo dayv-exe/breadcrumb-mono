@@ -11,16 +11,17 @@ type mTypes = {
   secondaryBtnText?: string
   showCancelBtn?: boolean
 
-  handlePrimaryAction?: () => void
-  handleSecondaryAction?: () => void
+  handlePrimaryAction: () => void
+  handleSecondaryAction: () => void
   handleClose?: () => void
 }
 
-export default function CustomModal({ message = "Hello world!", show, primaryBtnText = "Okay", secondaryBtnText = "Not okay", handlePrimaryAction = () => { }, handleSecondaryAction, handleClose, showCancelBtn = false }: mTypes) {
+export default function CustomModal({ message = "Hello world!", show, primaryBtnText, secondaryBtnText, handlePrimaryAction, handleSecondaryAction, handleClose, showCancelBtn = false }: mTypes) {
   const bgCol = useThemeColor({}, "background")
   const bgOverlay = useThemeColor({}, "backgroundOverlay")
   const textCol = useThemeColor({}, "text")
   return (
+
     <Modal
       animationType="fade"
       transparent={true}
@@ -45,17 +46,17 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
           ]}>{message}</Text>
           <Spacer />
           <View style={styles.buttonContainer}>
-            <CustomButton labelText={primaryBtnText} handleClick={() => {
+            {primaryBtnText && <CustomButton labelText={primaryBtnText} handleClick={() => {
               handlePrimaryAction()
-            }} type="less-prominent" />
-            {handleSecondaryAction && <Spacer />}
-            {handleSecondaryAction && <CustomButton labelText={secondaryBtnText} handleClick={() => {
+            }} type="less-prominent" />}
+            {secondaryBtnText && <Spacer />}
+            {secondaryBtnText && <CustomButton labelText={secondaryBtnText} handleClick={() => {
               handleSecondaryAction()
             }} type='theme-faded' />}
-            {showCancelBtn &&
+            {showCancelBtn || (!secondaryBtnText && !primaryBtnText) &&
               <>
                 <Spacer size='small' />
-                <CustomButton customTextStyle={{color: "red"}} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />
+                <CustomButton customTextStyle={{ color: "red" }} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />
               </>
             }
           </View>
@@ -84,14 +85,18 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: 300,
-    borderRadius: 15,
+    borderRadius: 25,
     padding: 20,
     elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: .3,
+    shadowRadius: 5,
   },
   modalText: {
     fontSize: 17,
     textAlign: 'center',
-    opacity: .8,
+    opacity: 1,
     lineHeight: 25
   },
 });

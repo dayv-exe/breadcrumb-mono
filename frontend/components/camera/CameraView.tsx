@@ -85,7 +85,7 @@ function CameraComponent({
           enableZoomGesture
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: "black", borderRadius: 25, overflow: "hidden" },
+            { backgroundColor: "black", borderRadius: 25,  overflow: "hidden" },
           ]}
           device={activeCamera!}
           isActive={true}
@@ -116,7 +116,7 @@ export default function CameraView({
   const { mediaPreview, setShowMediaPreviews, selectedFriend } = useMediaStore();
   const previewContainerStyle = useAnimatedStyle(() => {
     return {
-      bottom: withSpring(!selectedFriend ? 75 : 170, {
+      bottom: withSpring(!selectedFriend ? 95 : 180, {
         damping: 25,
         stiffness: 250,
         mass: 1

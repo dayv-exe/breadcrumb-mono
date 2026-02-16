@@ -2,7 +2,7 @@ import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomDatePicker from "@/components/inputs/CustomDatePicker";
-import CustomModal from "@/components/modals/CustomModal";
+import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import CustomScrollView from "@/components/views/CustomScrollView";
 import CustomView from "@/components/views/CustomView";
@@ -14,7 +14,6 @@ import { StyleSheet, View } from "react-native";
 
 export default function BirthdateScreen() {
   const bgCol = useThemeColor({}, "background")
-  const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: "" })
   const { username, fullname, birthdate, email, password } = useLocalSearchParams<signupDetails>()
   const [userDetails, setUserDetails] = useState<signupDetails>({
     username: username,
@@ -26,6 +25,7 @@ export default function BirthdateScreen() {
   const router = useRouter()
   const [pickerMoving, setPickerMoving] = useState(true)
   const { rawBirthdate, setBirthdate, validateBirthdate, birthdateToString } = useCheckBirthdate()
+  const {showModal, hideModal} = useModal()
 
   function handleChange(date: Date) {
     setBirthdate(date)
@@ -36,9 +36,13 @@ export default function BirthdateScreen() {
     const validation = validateBirthdate()
 
     if (!validation.isValid) {
-      setPopupDetails({
-        isVisible: true,
-        message: validation.reason
+      showModal({
+        message: validation.reason,
+        onPrimary: () => {
+          router.dismissAll()
+          hideModal()
+        },
+        primaryBtnText: "Okay"
       })
     } else {
       router.push({
@@ -50,10 +54,6 @@ export default function BirthdateScreen() {
 
   return (
     <CustomView backgroundColor={bgCol}>
-      {popupDetails.isVisible && <CustomModal message={popupDetails.message} show={popupDetails.isVisible} handlePrimaryAction={() => {
-        setPopupDetails({ ...popupDetails, isVisible: false })
-        router.dismissAll()
-      }} />}
       <CustomLabel adaptToTheme textAlign="center" labelText="Step 2 of 4" fade />
       <CustomScrollView>
         <Spacer />

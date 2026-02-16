@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { inputMode } from "@/constants/customInputModeTypes";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ref, useState } from "react";
-import { DimensionValue, Image, KeyboardTypeOptions, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { DimensionValue, Image, KeyboardTypeOptions, StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomEmailSuggestion from "../buttons/CustomEmailSuggestion";
 import Spacer from "../Spacer";
@@ -28,9 +28,17 @@ type iProps = {
   useLessProminentColors?: boolean
   ref?: Ref<TextInput>
   multiline?: boolean
+  allowNewLines?: boolean
+  customStyle?: StyleProp<ViewStyle>
+  customInputStyle?: StyleProp<TextStyle>
+  hideActiveBorders?: boolean
+  enabled?: boolean
+  onFocus?: () => void
+  onBlur?: () => void
+  onSubmitEditing?: () => void
 }
 
-export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors=true, multiline=false }: iProps) {
+export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors = true, multiline = false, allowNewLines = true, customStyle, customInputStyle, hideActiveBorders, onFocus, onBlur, onSubmitEditing }: iProps) {
   const [focused, setFocused] = useState(false)
   const [hidePassword, setHidePassword] = useState(true)
 
@@ -41,32 +49,66 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
 
   if (keyboardType === "email-address") disableAutoCorrect = true
 
+  const handleChangeText = (e: string) => {
+    if (!setValue) return
+    let text = forceLowercase ? e.toLowerCase() : e
+    if (multiline && !allowNewLines) text = text.replace(/\n/g, "")
+    setValue(text)
+  }
+
   return (
     <View style={[
       styles.container,
-      { width: width }
+      { width: width },
     ]}>
-      <Text style={[
+      {labelText && <Text style={[
         styles.labelText,
         {
           color: adaptToTheme ? textColor : "#fff"
         }
       ]}>
         {labelText}
-      </Text>
-      <View style={styles.inputContainer}>
-        <TextInput ref={ref} multiline={multiline} numberOfLines={multiline ? 2 : 1} keyboardType={isPassword && !hidePassword ? "visible-password" : keyboardType} autoCorrect={!disableAutoCorrect} autoCapitalize={forceLowercase ? "none" : autoCapitalize} readOnly={setValue == null} secureTextEntry={isPassword && hidePassword} onFocus={handleFocus} onBlur={handleBlur} style={[
-          styles.input,
-          {
-            borderColor: inputMode === "normal" ? focused ? (!useLessProminentColors ? Colors.light.vibrantButton : Colors.light.vibrantBackground) : "transparent" :
-              inputMode === "warn" ? "red" :
-                "green",
-            backgroundColor: adaptToTheme ? fadedBackgroundColor : Colors.dark.fadedBackground,
-            color: adaptToTheme ? textColor : Colors.light.text,
-          }
-        ]}
+      </Text>}
+      <View style={[styles.inputContainer, customStyle]}>
+        <TextInput
+          ref={ref}
+          onSubmitEditing={onSubmitEditing}
+          multiline={multiline}
+          numberOfLines={multiline && allowNewLines ? 2 : undefined}
+          scrollEnabled={multiline && allowNewLines}
+          keyboardType={isPassword && !hidePassword ? "visible-password" : keyboardType}
+          autoCorrect={!disableAutoCorrect}
+          autoCapitalize={forceLowercase ? "none" : autoCapitalize}
+          readOnly={setValue == null}
+          secureTextEntry={isPassword && hidePassword}
+          onFocus={() => {
+            handleFocus()
+            if (onFocus) {
+              onFocus()
+            }
+          }}
+          onBlur={() => {
+            handleBlur()
+            if (onBlur) {
+              onBlur()
+            }
+          }}
+          submitBehavior="blurAndSubmit"
+          returnKeyType={multiline && !allowNewLines ? "done" : undefined}
+          style={[
+            styles.input,
+            {
+              borderColor: hideActiveBorders ? "transparent" : inputMode === "normal" ? focused ? (!useLessProminentColors ? Colors.light.vibrantButton : Colors.light.vibrantBackground) : "transparent" :
+                inputMode === "warn" ? "red" :
+                  "green",
+              backgroundColor: adaptToTheme ? fadedBackgroundColor : Colors.dark.fadedBackground,
+              color: adaptToTheme ? textColor : Colors.light.text,
+            },
+            customInputStyle
+          ]}
           value={value}
-          onChangeText={setValue ? e => setValue(forceLowercase ? e.toLowerCase() : e) : e => { }} />
+          onChangeText={handleChangeText}
+        />
 
         {isPassword && <TouchableOpacity style={styles.showToggle} onPress={() => { setHidePassword(hidePassword ? false : true) }}>
           {<Image style={styles.inputToggle} source={

@@ -1,7 +1,9 @@
 import { MediaData } from "@/constants/media";
+import { useDropZone } from "@/hooks/useDropZone";
+import { useGesture } from "@/hooks/useGestures";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
   Image,
@@ -9,8 +11,11 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomImageButton from "../buttons/CustomImageButton";
+import DeleteZone from "../editor/DeleteZone";
+import DraggableTextOverlay from "../editor/DraggableTextOverlay";
 
 type PreviewScreenProps = {
   mediaItems: MediaData[];
@@ -89,17 +94,26 @@ function Thumbnail({
 }
 
 function CustomImage({ media }: { media: MediaData }) {
-
   return (
     <>
-      {media.resizeMode === "contain" && <Image src={media.uri}
-        style={styles.previewMedia}
-        resizeMode="contain" />}
-      {media.resizeMode === "cover" && <Image src={media.uri}
-        style={styles.previewMedia}
-        resizeMode="cover" />}
+      {media.resizeMode === "contain" && (
+        <Image
+          key={media.uri}
+          src={media.uri}
+          style={styles.previewMedia}
+          resizeMode="contain"
+        />
+      )}
+      {media.resizeMode === "cover" && (
+        <Image
+          key={media.uri}
+          src={media.uri}
+          style={styles.previewMedia}
+          resizeMode="cover"
+        />
+      )}
     </>
-  )
+  );
 }
 
 export default function PreviewScreen({
@@ -107,13 +121,33 @@ export default function PreviewScreen({
   onRetake,
   onSave,
 }: PreviewScreenProps) {
-  const { setShowMediaPreviews, setCurrentMediaIndex, currentMediaIndex } = useMediaStore()
+  const {
+    editing,
+    setShowMediaPreviews,
+    setCurrentMediaIndex,
+    currentMediaIndex,
+    addTextOverlayToCurrentMedia,
+    removeTextOverlayFromCurrentMedia,
+  } = useMediaStore();
   const currentMedia = mediaItems[currentMediaIndex];
-  const insets = useSafeAreaInsets()
+  const currentOverlayDragId = useRef<string | null>(null)
+  const insets = useSafeAreaInsets();
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const focusIndex = useRef(-1)
+  const deleteZone = useDropZone({
+    hitSlop: 20,
+    onDrop: () => removeTextOverlayFromCurrentMedia(currentOverlayDragId.current ?? ""),
+  });
 
-  const handleSave = useCallback(() => {
-    onSave(currentMediaIndex);
-  }, [onSave, currentMediaIndex]);
+  const { gesture } = useGesture({
+    onTap: ({ x, y }) => {
+      if (editing) return;
+      focusIndex.current = currentMedia.overlays?.length ?? 0
+      const centerRelativeX = x - containerSize.width / 2;
+      const centerRelativeY = y - containerSize.height / 2;
+      addTextOverlayToCurrentMedia("", centerRelativeX, centerRelativeY)
+    },
+  });
 
   const renderThumbnail = useCallback(
     ({ item, index }: { item: MediaData; index: number }) => (
@@ -121,32 +155,82 @@ export default function PreviewScreen({
         item={item}
         isSelected={index === currentMediaIndex}
         onPress={() => {
-          setCurrentMediaIndex(index)
+          setCurrentMediaIndex(index);
         }}
       />
     ),
-    [currentMediaIndex],
+    [currentMediaIndex]
   );
 
   if (!currentMedia) {
     return null;
   }
 
-  console.log(currentMediaIndex)
-
   return (
-    <View style={[styles.previewContainer]}>
-      <CustomImageButton type="text" customStyle={styles.backButton} handleClick={() => setShowMediaPreviews(false)} src={require("../../assets/images/icons/camera_sel_light.png")} size={35} />
-      <View style={[styles.previewMediaWrapper, {marginTop: insets.top}]}>
-        {currentMedia.type === "photo" ? (
-          <CustomImage media={currentMedia} />
-        ) : (
-          <VideoPreview uri={currentMedia.uri} isActive={true} />
-        )}
-      </View>
+    <View style={styles.previewContainer}>
 
+      <CustomImageButton
+        type="text"
+        customStyle={styles.backButton}
+        handleClick={() => setShowMediaPreviews(false)}
+        src={require("../../assets/images/icons/camera_sel_light.png")}
+        size={35}
+      />
+
+      <GestureDetector gesture={gesture}>
+        <View
+          style={[styles.previewMediaWrapper, { marginTop: insets.top }]}
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setContainerSize({ width, height });
+          }}
+        >
+          {currentMedia.type === "photo" ? (
+            <CustomImage media={currentMedia} />
+          ) : (
+            <VideoPreview uri={currentMedia.uri} isActive={true} />
+          )}
+        </View>
+      </GestureDetector>
+
+      {/* Text overlays */}
+      {currentMedia.overlays && (
+        <View
+          style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}
+          pointerEvents="box-none"
+        >
+          {currentMedia.overlays.map((overlay, index) => {
+            if (overlay.type === "text") {
+              return (
+                <DraggableTextOverlay handleRemoveOverlay={() => removeTextOverlayFromCurrentMedia(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id} onBlur={() => {
+                  focusIndex.current = -1
+                }} onDragEnd={(x, y) => {
+                  deleteZone.handleDragEnd(x, y)
+                  // currentOverlayDragId.current = null
+                }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
+                  deleteZone.handleDragStart()
+                  currentOverlayDragId.current = overlay.id
+                }} />
+              );
+            }
+
+            if (focusIndex.current === index) {
+              focusIndex.current = -1
+            }
+            return null;
+          })}
+        </View>
+      )}
+
+      <DeleteZone
+        visible={deleteZone.isVisible}
+        active={deleteZone.isActive}
+        onLayout={deleteZone.onLayout}
+      />
+
+      {/* Thumbnail strip */}
       {mediaItems.length > 1 && (
-        <View style={styles.thumbnailContainer}>
+        <View style={styles.previewControls}>
           <FlatList
             data={mediaItems}
             renderItem={renderThumbnail}
@@ -167,7 +251,7 @@ const styles = StyleSheet.create({
     top: 75,
     left: 15,
     zIndex: 100,
-    padding: 8
+    padding: 8,
   },
   previewContainer: {
     flex: 1,
@@ -210,7 +294,7 @@ const styles = StyleSheet.create({
   thumbnailImage: {
     width: "100%",
     height: "100%",
-    borderRadius: 6
+    borderRadius: 6,
   },
   thumbnailVideo: {
     width: "100%",
@@ -239,12 +323,29 @@ const styles = StyleSheet.create({
   },
   previewControls: {
     position: "absolute",
-    bottom: 30,
+    bottom: 10,
     left: 0,
     right: 0,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+  },
+  textInputOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+  },
+  textInput: {
+    color: "white",
+    width: "100%",
+    textAlign: "center",
+    borderRadius: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
 });

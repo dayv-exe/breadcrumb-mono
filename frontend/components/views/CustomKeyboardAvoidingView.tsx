@@ -1,23 +1,26 @@
 import { Colors } from "@/constants/Colors";
 import { PropsWithChildren } from "react";
-import { DimensionValue, KeyboardAvoidingView, StyleSheet } from "react-native";
+import { DimensionValue, KeyboardAvoidingView, StyleProp, StyleSheet, ViewStyle } from "react-native";
 
 type ckavProps = {
   backgroundColor?: string
   verticalAlign?: "center" | "flex-start" | "flex-end" | "space-between" | "space-around" | "space-evenly" | undefined
   horizontalPadding?: DimensionValue
   verticalOffset?: number
+  customStyle?: StyleProp<ViewStyle>
+  pointerEvents?: "auto" | "box-none" | "none" | "box-only" | undefined
 }
 
-export default function CustomKeyboardAvoidingView({ children, backgroundColor = "#FFF", verticalAlign = "flex-start", horizontalPadding = 30, verticalOffset = 100 }: PropsWithChildren<ckavProps>) {
+export default function CustomKeyboardAvoidingView({ children, backgroundColor = "#FFF", verticalAlign = "flex-start", horizontalPadding = 30, verticalOffset = 100, customStyle, pointerEvents }: PropsWithChildren<ckavProps>) {
   return (
-    <KeyboardAvoidingView style={[
+    <KeyboardAvoidingView pointerEvents={pointerEvents} style={[
       styles.container,
       {
         backgroundColor: backgroundColor,
         justifyContent: verticalAlign,
         paddingHorizontal: horizontalPadding
-      }
+      },
+      customStyle
     ]} behavior="padding"
       keyboardVerticalOffset={verticalOffset}>
       {children}

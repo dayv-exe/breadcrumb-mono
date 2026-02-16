@@ -25,7 +25,7 @@ export default function CustomFloatingSquare({ handleClick, children, allowWidth
         paddingVertical: fitToContent ? 0 : allowWidthExpansion ? 10 : 0,
         paddingHorizontal: fitToContent ? 0 : allowWidthExpansion ? 15 : 0,
       }
-    , customStyle]} onPress={handleClick}>
+      , customStyle]} onPress={handleClick}>
       {children}
     </TouchableOpacity>
   )
@@ -36,11 +36,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 15,
-    elevation: 6,
+    elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: .3,
-    shadowRadius: 5,
+    shadowRadius: 10,
+    zIndex: 10
   },
   flatContainer: {
     alignItems: "center",

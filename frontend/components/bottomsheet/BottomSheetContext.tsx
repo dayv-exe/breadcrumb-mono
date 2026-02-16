@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 
-type BottomSheetOptions = {
+export type BottomSheetOptions = {
   content: ReactNode
   snapPoints?: (string | number)[]
   dynamicHeight?: boolean

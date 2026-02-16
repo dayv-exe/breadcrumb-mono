@@ -7,7 +7,7 @@ export const MAX_USERNAME_LEN = 15;
 export const MIN_USERNAME_LEN = 3;
 export const MAX_FULLNAME_LEN = 20;
 export const MAX_BIO_CHARS = 50;
-export const MAX_RIDICULOUS_AGE = 120;
+export const MAX_RIDICULOUS_AGE = 200;
 export const MIN_RIDICULOUS_AGE = -21;
 export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 32;
@@ -29,7 +29,7 @@ export enum FRIENDSHIP_STATUS {
   NOT_FRIENDS = STATUS_NOT_FRIENDS,
 }
 
-export const MAX_PREVIEW_MEDIA = 15;
+export const MAX_PREVIEW_MEDIA = 10;
 
 export enum FRIENDSHIP_ACTIONS {
   REQUEST = "request",

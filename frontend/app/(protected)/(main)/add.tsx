@@ -1,44 +1,15 @@
-import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
 import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
+import { useModal } from "@/components/modals/ModalContext";
+import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
-import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const TopButtons = () => {
-  const { pickFromGallery, image } = useImagePicker();
-  const router = useRouter();
-
-  return (
-    <View style={[styles.topControls, {}]}>
-      <CustomImageButton
-        fitToContent
-        type="text"
-        src={require("../../../assets/images/icons/searchfriends_sel_light.png")}
-        size={24.5}
-        handleClick={() => router.push("/find-friends")}
-      />
-      <CustomImageButton
-        handleClick={() => {
-          pickFromGallery({
-            allowsEditing: false,
-            mediaTypes: ["images", "videos"],
-          });
-        }}
-        type="text"
-        src={require("../../../assets/images/icons/gallery_unsel_light.png")}
-        size={30}
-      />
-    </View>
-  );
-};
 
 function handleRetake() { }
 
@@ -57,13 +28,20 @@ export default function AddScreen() {
     useFlash,
     flipCamera,
   } = useCamera();
-  const { isRecording, mediaPreview, showMediaPreviews } = useMediaStore();
+  const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews } = useMediaStore();
+  const { showModal, hideModal } = useModal()
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
 
+  useEffect(() => {
+    if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
+      setShowMediaPreviews(true)
+    }
+  }, [mediaPreview])
+
   return (
     <>
-      {(!showMediaPreviews && mediaPreview.length < 15) && (
+      {(!showMediaPreviews) && (
         <View
           style={{ flex: 1, backgroundColor: "black", paddingTop: insets.top }}
         >
@@ -85,7 +63,6 @@ export default function AddScreen() {
               </CameraView>
               {activeCamera && (
                 <>
-                  {!isRecording && <TopButtons />}
                   <CameraControls
                     flipCamera={flipCamera}
                     setUseFlash={setUseFlash}
@@ -97,7 +74,7 @@ export default function AddScreen() {
           )}
         </View>
       )}
-      {(showMediaPreviews || mediaPreview.length > 14) && (
+      {(showMediaPreviews) && (
         <PreviewScreen
           mediaItems={mediaPreview}
           onRetake={handleRetake}
@@ -123,6 +100,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     top: 15,
     paddingHorizontal: 20,
-    paddingRight: 15,
+    paddingRight: 5,
   },
 });

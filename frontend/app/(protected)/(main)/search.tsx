@@ -131,7 +131,7 @@ export default function SearchScreen() {
     data: searchResult,
     isPending: searchResPending,
     error: searchResultErr
-  } = useSearchUser(debouncedSearchStr)
+  } = useSearchUser(debouncedSearchStr.trim())
 
   function handleSearchInputChange(e: string) {
     setSearchStr(e)

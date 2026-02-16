@@ -1,6 +1,8 @@
+import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { Friend, useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
+import { useModal } from "../modals/ModalContext";
 import RecordingProgressRing from "../posts/recordingProgressRing";
 import FriendCarousel from "./FriendCarousel";
 
@@ -20,11 +22,36 @@ type shutterProps = {
 }
 
 export default function ShutterButton({ recordingProgress, startRecording, stopRecording, takePhoto }: shutterProps) {
-  const { isRecording, setSelectedFriend } = useMediaStore()
+  const { isRecording, setSelectedFriend, mediaPreview, setShowMediaPreviews } = useMediaStore()
+  const { showModal, hideModal } = useModal()
   const handleTouchEnd = () => {
     if (isRecording) {
       stopRecording()
     }
+  }
+
+  const handleCaptureMedia = (captureFunc: () => void) => {
+    if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
+      showModal({
+        message: `Only ${MAX_PREVIEW_MEDIA} items max allowed per crumb!`,
+        showCancelBtn: false,
+        primaryBtnText: "Okay",
+        onPrimary: () => {
+          setShowMediaPreviews(true)
+          hideModal()
+        }
+      })
+    } else {
+      captureFunc()
+    }
+  }
+
+  const handleTakePhoto = () => {
+    handleCaptureMedia(takePhoto)
+  }
+
+  const handleStartRecording = () => {
+    handleCaptureMedia(startRecording)
   }
 
   return (
@@ -40,8 +67,8 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
       <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
         <TouchableOpacity
           delayLongPress={150}
-          onPress={takePhoto}
-          onLongPress={startRecording}
+          onPress={handleTakePhoto}
+          onLongPress={handleStartRecording}
           style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#FFF", backgroundColor: isRecording ? "transparent" : "transparent" }]}
         >
         </TouchableOpacity>
@@ -57,7 +84,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    bottom: 15,
+    bottom: 30,
     width: "100%",
   },
   photoShutter: {

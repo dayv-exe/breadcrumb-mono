@@ -49,8 +49,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       {modalOptions && <CustomModal
         show={modalVisible}
         message={modalOptions.message}
-        primaryBtnText={modalOptions.primaryBtnText || "Cancel"}
-        secondaryBtnText={modalOptions.secondaryBtnText || "OK"}
+        primaryBtnText={modalOptions.primaryBtnText}
+        secondaryBtnText={modalOptions.secondaryBtnText}
         handleClose={hideModal}
         handlePrimaryAction={handlePrimaryAction}
         handleSecondaryAction={handleSecondaryAction}

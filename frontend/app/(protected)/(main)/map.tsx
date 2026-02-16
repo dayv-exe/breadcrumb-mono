@@ -1,9 +1,10 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
-import CustomSearchInput from "@/components/inputs/CustomSearchInput";
-import CustomMap, { mapMethods } from "@/components/map/CustomMap";
+import CustomLabel from "@/components/CustomLabel";
+import CustomMap from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
+import { Colors } from "@/constants/Colors";
 import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
@@ -38,9 +39,13 @@ const icons = {
     light: require("../../../assets/images/icons/maptoggle_sel_light.png"),
     dark: require("../../../assets/images/icons/maptoggle_sel_dark.png")
   },
+  satellite: {
+    light: require("../../../assets/images/icons/satellite_sel_light.png"),
+    dark: require("../../../assets/images/icons/satellite_sel_dark.png")
+  },
   search: {
-    light: require("../../../assets/images/icons/thicksearch_unsel_light.png"),
-    dark: require("../../../assets/images/icons/thicksearch_unsel_dark.png")
+    light: require("../../../assets/images/icons/search_unsel_light.png"),
+    dark: require("../../../assets/images/icons/search_unsel_dark.png")
   },
   addCrumb: {
     light: require("../../../assets/images/icons/add_sel_light.png"),
@@ -68,8 +73,8 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 export default function MapScreen() {
   const mode = useColorScheme() ?? "light";
   const mapRef = useRef<Mapbox.MapView>(null);
+  const mapCamRef = useRef<Mapbox.Camera>(null)
   const bgCol = useThemeColor({}, "background")
-  const [mapMethods, setMapMethods] = useState<mapMethods | null>(null)
   const router = useRouter()
   const { coordinates } = useLocationStore()
   const [selPlace, setSelPlace] = useState<{ name?: string, type?: string } | null>(null)
@@ -80,6 +85,7 @@ export default function MapScreen() {
   const [pageName, setPageName] = useState("map")
   const [search, setSearch] = useState("")
   const searchRef = useRef(null)
+  const [useSat, setUseSat] = useState(false)
 
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -96,9 +102,27 @@ export default function MapScreen() {
     })
   }
 
-  function focusOnUserLocation() {
+  async function focusOnUserLocation() {
     const curCoord = useLocationStore.getState().coordinates
-    mapMethods?.moveTo([curCoord?.longitude ?? 0, curCoord?.latitude ?? 0], 13)
+    mapCamRef?.current?.setCamera({
+      centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
+      zoomLevel: 12.5,
+      animationDuration: 1000,
+      pitch: 0,
+      heading: 0,
+    })
+  }
+
+  async function getMapCenter() {
+    try {
+      const center = await mapRef?.current?.getCenter();
+      const zoom = await mapRef?.current?.getZoom()
+      if (!center || !zoom) return null
+      return { position: center, zoomLevel: zoom };
+    } catch (error) {
+      console.error("Error getting map center:", error);
+      return null;
+    }
   }
 
   useFocusEffect(
@@ -118,10 +142,12 @@ export default function MapScreen() {
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
       <SafeAreaView pointerEvents="box-none" style={[styles.headerWrapper]}>
-        <CustomSearchInput value={search} handleChange={setSearch} ref={searchRef} solidAppearance placeholder="Search map..." customStyle={styles.searchBar} />
+        <View style={[styles.headerTextContainer, { backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background }]}>
+          <CustomLabel bold adaptToTheme fade labelText={pageName} />
+        </View>
       </SafeAreaView>
 
-      <CustomMap setMapMethods={setMapMethods} mapRef={mapRef} zoomLevel={12.5} useSatellite={false} handleCancelPress={() => closeSheet()} handlePress={async e => {
+      <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} handleCancelPress={() => closeSheet()} handlePress={async e => {
         const result = await getPressedLocationInfo(e, mapRef);
         console.log(result)
       }} />
@@ -167,11 +193,11 @@ export default function MapScreen() {
       </View>
 
       <View style={styles.mapControls}>
-        <CustomImageButton src={getIconImage("search", mode === "light")} />
+        <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />
         <Spacer size="small" />
-        <CustomImageButton src={getIconImage("frameMap", mode === "light")} />
+        <CustomImageButton size={23} src={getIconImage("satellite", mode === "light")} handleClick={() => setUseSat(s => !s)} />
         <Spacer size="small" />
-        <CustomImageButton handleClick={() => {
+        <CustomImageButton size={21} handleClick={() => {
           focusOnUserLocation()
         }} src={getIconImage("focusUserLoc", mode === "light")} />
         <Spacer size="small" />
@@ -189,14 +215,14 @@ const styles = StyleSheet.create({
     left: 15,
     right: 15,
     alignItems: "flex-start",
-    justifyContent: "space-between",
+    justifyContent: "center",
     flexDirection: "row",
     zIndex: 10,
   },
   headerText: {
     fontSize: 16
   },
-  mapControls:{
+  mapControls: {
     position: "absolute",
     bottom: 70,
     right: 10,
@@ -207,8 +233,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: .275,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: .3,
     shadowRadius: 10,
     zIndex: 10
   },
@@ -222,7 +248,7 @@ const styles = StyleSheet.create({
     shadowOpacity: .1,
     elevation: 4,
   },
-  searchBar:{
+  searchBar: {
     opacity: .8,
     elevation: 6,
     shadowColor: "#000",

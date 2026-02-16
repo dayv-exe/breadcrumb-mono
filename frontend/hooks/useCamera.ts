@@ -110,7 +110,7 @@ export function useCamera(): useCameraReturnType {
             addMediaPreview({
               type: "video",
               uri: `${video.path}`,
-              resizeMode: "cover"
+              resizeMode: "cover",
             });
           },
           onRecordingError: (error) => {
