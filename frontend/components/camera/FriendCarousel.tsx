@@ -1,5 +1,5 @@
-import { Friend } from '@/utils/mediaStore';
-import React, { useRef } from 'react';
+import { Friend, useMediaStore } from '@/utils/mediaStore';
+import React, { useEffect, useRef } from 'react';
 import { Dimensions, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -17,7 +17,6 @@ const ITEM_SPACING = (SCREEN_WIDTH - ITEM_WIDTH) / 2;
 
 type FriendCarouselProps = {
   friends: Friend[];
-  onFriendChange: (friend: Friend | null) => void;
   customStyle?: StyleProp<ViewStyle>;
 };
 
@@ -25,13 +24,26 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export default function FriendCarousel({
   friends,
-  onFriendChange,
   customStyle,
 }: FriendCarouselProps) {
+  const setSelectedFriend = useMediaStore((s) => s.setSelectedFriend);
+  const selectedFriend = useMediaStore((s) => s.selectedFriend);
   const scrollX = useSharedValue(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const totalItems = friends.length + 1;
+
+  // Scroll to the selected friend on mount or when selectedFriend changes
+  useEffect(() => {
+    const index = selectedFriend
+      ? friends.findIndex((f) => f.id === selectedFriend.id) + 1
+      : 0;
+
+    scrollViewRef.current?.scrollTo({
+      x: index * ITEM_WIDTH,
+      animated: true,
+    });
+  }, [selectedFriend?.id]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -45,9 +57,9 @@ export default function FriendCarousel({
     const clampedIndex = Math.max(0, Math.min(index, totalItems - 1));
 
     if (clampedIndex === 0) {
-      onFriendChange(null);
+      setSelectedFriend(null)
     } else {
-      onFriendChange(friends[clampedIndex - 1]);
+      setSelectedFriend(friends[clampedIndex - 1])
     }
   };
 
