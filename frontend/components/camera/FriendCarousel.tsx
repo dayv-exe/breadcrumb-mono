@@ -1,6 +1,6 @@
 import { Friend } from '@/utils/mediaStore';
 import React, { useRef } from 'react';
-import { Dimensions, Image, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Dimensions, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -9,6 +9,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import CustomProfilePictureCircle from '../profile/CustomProfilePictureCircle';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ITEM_WIDTH = 80;
@@ -30,7 +31,6 @@ export default function FriendCarousel({
   const scrollX = useSharedValue(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Total items = 1 placeholder + friends
   const totalItems = friends.length + 1;
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -68,12 +68,12 @@ export default function FriendCarousel({
       >
         {/* Empty placeholder item at index 0 */}
         <PlaceholderItem index={0} scrollX={scrollX} />
-        
+
         {friends.map((friend, index) => (
           <FriendItem
             key={friend.id}
             friend={friend}
-            index={index + 1} // Offset by 1 for placeholder
+            index={index + 1}
             scrollX={scrollX}
           />
         ))}
@@ -148,7 +148,7 @@ function FriendItem({ friend, index, scrollX }: FriendItemProps) {
     const opacity = interpolate(
       scrollX.value,
       inputRange,
-      [0.5, 1, 0.5],
+      [1, 1, 1],
       Extrapolation.CLAMP
     );
 
@@ -161,9 +161,10 @@ function FriendItem({ friend, index, scrollX }: FriendItemProps) {
   return (
     <View style={styles.friendItemContainer}>
       <Animated.View style={[styles.friendItem, animatedStyle]}>
-        <Image
-          source={{ uri: friend.avatar }}
-          style={styles.avatar}
+        <CustomProfilePictureCircle
+          size={64}
+          imgUrl={friend.avatar}
+          nickname={friend.name}
         />
       </Animated.View>
     </View>
@@ -189,11 +190,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-  },
   placeholderAvatar: {
     width: 64,
     height: 64,
@@ -202,23 +198,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.4)',
     borderStyle: 'dashed',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  onlineIndicator: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#4ADE80',
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  friendName: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 8,
-    textAlign: 'center',
   },
 });
