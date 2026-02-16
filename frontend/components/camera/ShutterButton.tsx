@@ -4,7 +4,6 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { useModal } from "../modals/ModalContext";
 import RecordingProgressRing from "../posts/recordingProgressRing";
-import FriendCarousel from "./FriendCarousel";
 
 const friends: Friend[] = [
   { id: '1', name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=1', isOnline: true },
@@ -56,14 +55,13 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
 
   return (
     <View style={styles.shutterContainer}>
-      {!isRecording && <FriendCarousel
+      {/* {!isRecording && <FriendCarousel
         friends={friends}
-        onFriendChange={f => { setSelectedFriend(f) }}
         customStyle={{
           position: "absolute",
           width: "100%",
         }}
-      />}
+      />} */}
       <View style={[styles.videoShutter, { backgroundColor: isRecording ? "red" : "transparent" }]} onTouchEnd={handleTouchEnd}>
         <TouchableOpacity
           delayLongPress={150}

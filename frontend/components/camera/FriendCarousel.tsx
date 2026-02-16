@@ -1,6 +1,6 @@
 import { Friend, useMediaStore } from '@/utils/mediaStore';
 import React, { useEffect, useRef } from 'react';
-import { Dimensions, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Dimensions, ScrollView, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -100,6 +100,7 @@ type PlaceholderItemProps = {
 };
 
 function PlaceholderItem({ index, scrollX }: PlaceholderItemProps) {
+  const setSelectedFriend = useMediaStore((s) => s.setSelectedFriend);
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
       (index - 1) * ITEM_WIDTH,
@@ -128,11 +129,13 @@ function PlaceholderItem({ index, scrollX }: PlaceholderItemProps) {
   });
 
   return (
-    <View style={styles.friendItemContainer}>
+    <TouchableOpacity onPress={() => {
+      setSelectedFriend(null)
+    }} style={styles.friendItemContainer}>
       <Animated.View style={[styles.friendItem, animatedStyle]}>
         <View style={styles.placeholderAvatar} />
       </Animated.View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -170,6 +173,8 @@ function FriendItem({ friend, index, scrollX }: FriendItemProps) {
     };
   });
 
+  const setSelectedFriend = useMediaStore((s) => s.setSelectedFriend);
+
   return (
     <View style={styles.friendItemContainer}>
       <Animated.View style={[styles.friendItem, animatedStyle]}>
@@ -177,6 +182,9 @@ function FriendItem({ friend, index, scrollX }: FriendItemProps) {
           size={64}
           imgUrl={friend.avatar}
           nickname={friend.name}
+          handleClick={() => {
+            setSelectedFriend(friend)
+          }}
         />
       </Animated.View>
     </View>

@@ -18,6 +18,7 @@ import RecordingIndicator from "../recordingIndicator";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
 import PreviewCard from "./PreviewCard";
+import QuickSend from "./QuickSend";
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera);
 
@@ -163,6 +164,8 @@ export default function CameraView({
       >
         {children}
       </CameraComponent>
+
+      {selectedFriend && <QuickSend friend={selectedFriend} />}
 
       {!isRecording && (
         <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
