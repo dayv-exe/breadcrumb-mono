@@ -129,7 +129,7 @@ const darkToastConfig = {
 export default function RootLayout() {
   const { isLoggedIn, checkAuthStatus } = useAuthStore()
   const mode = useColorScheme()
-  
+
   useEffect(() => {
     checkAuthStatus()
   }, [])
@@ -147,8 +147,8 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <BottomSheetProvider>
-          <ModalProvider>
+        <ModalProvider>
+          <BottomSheetProvider>
             <Stack screenOptions={{
               headerShown: false,
             }}>
@@ -161,8 +161,8 @@ export default function RootLayout() {
               </Stack.Protected>
 
             </Stack>
-          </ModalProvider>
-        </BottomSheetProvider>
+          </BottomSheetProvider>
+        </ModalProvider>
         <Toast config={mode === "light" ? darkToastConfig : toastConfig} />
       </QueryClientProvider>
     </GestureHandlerRootView>

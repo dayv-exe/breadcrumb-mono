@@ -5,15 +5,17 @@ import CustomModal from "@/components/modals/CustomModal";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
-import { Colors } from "@/constants/Colors";
 import { inputMode } from "@/constants/customInputModeTypes";
 import { emailRegex } from "@/constants/regexes";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import Toast from "react-native-toast-message";
 
 export default function ResetPasswordHomeScreen() {
+  const bgColor = useThemeColor({}, "background")
+
   function showToast(message: string) {
     Toast.show({
       text1: message,
@@ -117,31 +119,33 @@ export default function ResetPasswordHomeScreen() {
   }
 
   return (
-    <CustomKeyboardAvoidingView backgroundColor={Colors.light.vibrantBackground}>
-      <CustomModal show={modalDetails.isVisible} message={modalDetails.message} handleClose={() => setModalDetails({ ...modalDetails, isVisible: false })} closeBtnText="Try again" />
+    <CustomKeyboardAvoidingView backgroundColor={bgColor}>
+      <CustomModal show={modalDetails.isVisible} message={modalDetails.message} handleClose={() => setModalDetails({ ...modalDetails, isVisible: false })} />
       <CustomScrollView>
         {step === 1 &&
           <>
-            <CustomLabel bold fade labelText="Step 1 of 3" textAlign="center" />
-            <CustomInput labelText="Email: " infoText={getEmailInfoText()} value={email} setValue={e => setEmail(e)} keyboardType="email-address" inputMode={getEmailInputMode()} showInfoTextAlways forceLowercase />
+            <CustomLabel bold fade labelText="Step 1 of 3" textAlign="center" adaptToTheme />
+            <CustomInput labelText="Email: " infoText={getEmailInfoText()} value={email} setValue={e => setEmail(e)} keyboardType="email-address" inputMode={getEmailInputMode()} showInfoTextAlways forceLowercase adaptToTheme />
           </>
         }
         {step === 2 &&
           <>
-            <CustomLabel bold fade labelText="Step 2 of 3" textAlign="center" />
-            <CustomInput labelText="Verification code: " infoText="enter the verification code we sent you" value={code} setValue={setCode} showInfoTextAlways />
+            <CustomLabel bold fade labelText="Step 2 of 3" textAlign="center" adaptToTheme />
+            <CustomInput labelText="Verification code: " infoText="enter the verification code we sent you" value={code} setValue={setCode} showInfoTextAlways adaptToTheme />
           </>
         }
         {step === 3 &&
           <>
-            <CustomLabel bold fade labelText="Step 3 of 3" textAlign="center" />
-            <CustomInput labelText="New password: " infoText="" value={newPassword} setValue={setNewPassword} isPassword />
-            <CustomInput labelText="Confirm new password: " infoText={handleConfirmPasswordInfo()} inputMode={handleConfirmPasswordMode()} value={cNewPassword} setValue={setCNewPassword} isPassword showInfoTextAlways />
+            <CustomLabel bold fade labelText="Step 3 of 3" textAlign="center" adaptToTheme />
+            <Spacer />
+            <CustomInput labelText="New password: " infoText="" value={newPassword} setValue={setNewPassword} isPassword adaptToTheme />
+            <Spacer />
+            <CustomInput labelText="Confirm new password: " infoText={handleConfirmPasswordInfo()} inputMode={handleConfirmPasswordMode()} value={cNewPassword} setValue={setCNewPassword} isPassword showInfoTextAlways adaptToTheme />
           </>
         }
       </CustomScrollView>
 
-      <CustomButton labelText={getProceedBtnText()} type="prominent" handleClick={handleNextStep} disabled={handleProceedBtnDisabled()} isPending={activityIndicator} />
+      <CustomButton labelText={getProceedBtnText()} type="less-prominent" handleClick={handleNextStep} disabled={handleProceedBtnDisabled()} isPending={activityIndicator} />
       <Spacer size="big" />
     </CustomKeyboardAvoidingView>
   )

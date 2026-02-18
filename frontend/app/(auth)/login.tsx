@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 export default function LoginScreen() {
   const router = useRouter()
   const bgCol = useThemeColor({}, "background")
+  const themeFaded = useThemeColor({}, "backgroundOverlay")
 
   const [loginDetails, setLoginDetails] = useState<loginDetails>({
     email: "",
@@ -64,7 +65,7 @@ export default function LoginScreen() {
 
   return (
     <CustomKeyboardAvoidingView backgroundColor={bgCol}>
-      <CustomModal show={popupDetails.isVisible} message={popupDetails.message} closeBtnText="Okay" handleClose={handleClosePopup} />
+      <CustomModal show={popupDetails.isVisible} message={popupDetails.message} handleClose={handleClosePopup} />
       <CustomScrollView>
         <Spacer />
         <CustomInput adaptToTheme keyboardType="email-address" value={loginDetails.email} setValue={e => setLoginDetails({ ...loginDetails, email: e })} labelText="Email:" infoText="" forceLowercase />

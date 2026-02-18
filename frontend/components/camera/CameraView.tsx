@@ -96,6 +96,7 @@ function CameraComponent({
           video={true}
           format={format}
           photoQualityBalance="speed"
+          outputOrientation={"preview"}
         />
         {children}
       </View>

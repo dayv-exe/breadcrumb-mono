@@ -1,4 +1,5 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 type props = {
@@ -14,7 +15,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, im
   const fgColLight = "#555"
   const fgColDark = "#fff"
 
-  const bgCol = "gray"
+  const bgCol = useThemeColor({}, "fadedBackground")
 
   nickname = nickname ?? ""
   const parts = nickname.split(/[._]/);

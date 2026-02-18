@@ -1,6 +1,6 @@
 import Toast from "react-native-toast-message";
 
-export const SUGGESTED_EMAIL_DOMAINS = ["@gmail.com", "@icloud.com"];
+export const SUGGESTED_EMAIL_DOMAINS = ["@gmail.com", "@icloud.com", "@solent.ac.uk"];
 export const MAX_AGE = 120;
 export const MIN_AGE = 13;
 export const MAX_USERNAME_LEN = 15;
@@ -29,7 +29,17 @@ export enum FRIENDSHIP_STATUS {
   NOT_FRIENDS = STATUS_NOT_FRIENDS,
 }
 
-export const MAX_PREVIEW_MEDIA = 10;
+export const MAX_PREVIEW_MEDIA = 5;
+
+export const PRESET_COLORS = [
+  "#FFFFFF", "#000000", "#FF3B30", "#FF9500", "#FFCC00",
+  "#34C759", "#007AFF", "#5856D6", "#AF52DE", "#FF2D55",
+  "#8E8E93", "#F2F2F7", "#1C1C1E", "#2C2C2E", "#48484A",
+  "#D1D1D6", "#E5E5EA", "#C7C7CC", "#AEAEB2", "#636366",
+];
+
+export const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 42, 48, 56, 64, 72];
+
 
 export enum FRIENDSHIP_ACTIONS {
   REQUEST = "request",

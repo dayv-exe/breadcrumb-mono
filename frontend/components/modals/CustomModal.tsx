@@ -11,8 +11,8 @@ type mTypes = {
   secondaryBtnText?: string
   showCancelBtn?: boolean
 
-  handlePrimaryAction: () => void
-  handleSecondaryAction: () => void
+  handlePrimaryAction?: () => void
+  handleSecondaryAction?: () => void
   handleClose?: () => void
 }
 
@@ -47,13 +47,13 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
           <Spacer />
           <View style={styles.buttonContainer}>
             {primaryBtnText && <CustomButton labelText={primaryBtnText} handleClick={() => {
-              handlePrimaryAction()
+              handlePrimaryAction?.()
             }} type="less-prominent" />}
             {secondaryBtnText && <Spacer />}
             {secondaryBtnText && <CustomButton labelText={secondaryBtnText} handleClick={() => {
-              handleSecondaryAction()
+              handleSecondaryAction?.()
             }} type='theme-faded' />}
-            {showCancelBtn || (!secondaryBtnText && !primaryBtnText) &&
+            {showCancelBtn &&
               <>
                 <Spacer size='small' />
                 <CustomButton customTextStyle={{ color: "red" }} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />

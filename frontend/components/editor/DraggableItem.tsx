@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -127,15 +126,15 @@ export default function DraggableItem({
     .onStart(() => {
       savedTranslateX.value = translateX.value;
       savedTranslateY.value = translateY.value;
-      if (onDragStart) runOnJS(onDragStart)();
+      if (onDragStart) scheduleOnRN(onDragStart)
     })
     .onUpdate((e) => {
       if (!lockX) translateX.value = savedTranslateX.value + e.translationX;
       if (!lockY) translateY.value = savedTranslateY.value + e.translationY;
-      if (onDragMove) runOnJS(onDragMove)(e.absoluteX, e.absoluteY);
+      if (onDragMove) scheduleOnRN(onDragMove, e.absoluteX, e.absoluteY);
     })
     .onEnd((e) => {
-      if (onDragEnd) runOnJS(onDragEnd)(e.absoluteX, e.absoluteY);
+      if (onDragEnd) scheduleOnRN(onDragEnd, e.absoluteX, e.absoluteY);
       scheduleOnRN(
         emitTransformEnd,
         translateX.value,

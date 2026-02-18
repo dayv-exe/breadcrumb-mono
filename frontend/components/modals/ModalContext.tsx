@@ -1,5 +1,6 @@
 import CustomModal from '@/components/modals/CustomModal';
 import React, { createContext, ReactNode, useContext, useState } from 'react';
+import CustomPopup from './CustomPopup';
 
 type ModalOptions = {
   message?: string;
@@ -8,6 +9,7 @@ type ModalOptions = {
   showCancelBtn?: boolean
   onPrimary?: () => void
   onSecondary?: () => void
+  content?: ReactNode
 };
 
 type ModalContextType = {
@@ -19,7 +21,7 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalOptions, setModalOptions] = useState<ModalOptions|null>(null);
+  const [modalOptions, setModalOptions] = useState<ModalOptions | null>(null);
   const [resolver, setResolver] = useState<((value: boolean) => void) | null>(null);
 
   const showModal = (options: ModalOptions): Promise<boolean> => {
@@ -46,7 +48,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ModalContext.Provider value={{ showModal, hideModal }}>
       {children}
-      {modalOptions && <CustomModal
+      {modalOptions && !modalOptions.content && <CustomModal
         show={modalVisible}
         message={modalOptions.message}
         primaryBtnText={modalOptions.primaryBtnText}
@@ -56,6 +58,12 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         handleSecondaryAction={handleSecondaryAction}
         showCancelBtn={modalOptions.showCancelBtn}
       />}
+      {
+        modalOptions && modalOptions.content &&
+        <CustomPopup handleClose={hideModal} show={modalVisible}>
+          {modalOptions.content}
+        </CustomPopup>
+      }
     </ModalContext.Provider>
   );
 };

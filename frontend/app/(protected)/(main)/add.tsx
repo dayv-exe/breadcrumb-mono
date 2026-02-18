@@ -1,8 +1,12 @@
+import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
+import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
 import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
+import TextEditor from "@/components/editor/TextEditor";
 import { useModal } from "@/components/modals/ModalContext";
+import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
@@ -11,9 +15,20 @@ import React, { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function handleRetake() { }
-
-function handleSave() { }
+function CrumbTypePicker({ open }: { open: () => void }) {
+  return (
+    <View style={{
+      position: "absolute",
+      left: 10,
+    }}>
+      <CustomImageButton size={27} type="text" src={require("../../../assets/images/icons/textcrumb_sel_light.png")} handleClick={() => {
+        open()
+      }} />
+      <Spacer />
+      <CustomImageButton size={27} type="text" src={require("../../../assets/images/icons/audiocrumb_sel_light.png")} />
+    </View>
+  );
+}
 
 export default function AddScreen() {
   const {
@@ -32,6 +47,7 @@ export default function AddScreen() {
   const { showModal, hideModal } = useModal()
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
+  const { openSheet, closeSheet } = useBottomSheet()
 
   useEffect(() => {
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
@@ -68,6 +84,16 @@ export default function AddScreen() {
                     setUseFlash={setUseFlash}
                     useFlash={useFlash}
                   />
+                  {!isRecording && <CrumbTypePicker open={() => {
+                    openSheet({
+                      content: (
+                        <TextEditor />
+                      ),
+                      snapPoints: ["100%"],
+                      showHandle: false,
+                      reduceAnimations: true
+                    })
+                  }} />}
                 </>
               )}
             </View>
@@ -77,8 +103,8 @@ export default function AddScreen() {
       {(showMediaPreviews) && (
         <PreviewScreen
           mediaItems={mediaPreview}
-          onRetake={handleRetake}
-          onSave={handleRetake}
+          onRetake={() => { }}
+          onSave={() => { }}
         />
       )}
     </>

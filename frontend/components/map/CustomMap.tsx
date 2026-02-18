@@ -7,7 +7,7 @@ import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import React, { useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import CustomLabel from "../CustomLabel";
 import CustomButton from "../buttons/CustomButton";
 
@@ -115,7 +115,7 @@ export default function CustomMap({
         onDidFinishLoadingMap={() => {
           setMapReady(true)
         }}
-        styleURL={useSatellite ? satelliteUrl : mode === "light" ? Platform.OS === "android" ? lightUrl : lightUrl : Platform.OS === "android" ? darkUrl : darkUrl}
+        styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
 
         onPress={e => {
           handlePress(e)

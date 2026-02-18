@@ -122,7 +122,7 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
         handleForgotPassword &&
         <View style={{ alignSelf: "flex-start", flexDirection: "column" }}>
           <Spacer size="small" />
-          <CustomButton squashed labelText="forgot password?" type="faded" handleClick={handleForgotPassword} />
+          <CustomButton squashed labelText="forgot password?" type="theme-faded" handleClick={handleForgotPassword} />
         </View>
       }
 
