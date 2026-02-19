@@ -4,15 +4,14 @@ import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
 import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
-import TextEditor from "@/components/editor/TextEditor";
-import { useModal } from "@/components/modals/ModalContext";
+import WriteCrumb from "@/components/editor/WriteCrumb";
 import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function CrumbTypePicker({ open }: { open: () => void }) {
@@ -44,10 +43,11 @@ export default function AddScreen() {
     flipCamera,
   } = useCamera();
   const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews } = useMediaStore();
-  const { showModal, hideModal } = useModal()
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
   const { openSheet, closeSheet } = useBottomSheet()
+  const {height} = useWindowDimensions()
+  const maxHeight = height - insets.top
 
   useEffect(() => {
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
@@ -87,11 +87,12 @@ export default function AddScreen() {
                   {!isRecording && <CrumbTypePicker open={() => {
                     openSheet({
                       content: (
-                        <TextEditor />
+                        <WriteCrumb handleCancel={closeSheet} />
                       ),
-                      snapPoints: ["100%"],
+                      snapPoints: [maxHeight], 
                       showHandle: false,
-                      reduceAnimations: true
+                      reduceAnimations: true,
+                      borderRadius: 25
                     })
                   }} />}
                 </>

@@ -1,6 +1,7 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
 import React, { PropsWithChildren } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
+import CustomKeyboardAvoidingView from '../views/CustomKeyboardAvoidingView';
 
 type props = {
   show: boolean
@@ -18,7 +19,7 @@ export default function CustomPopup({ show, handleClose, children }: PropsWithCh
       visible={show}
       onRequestClose={handleClose}
     >
-      <View style={[
+      <CustomKeyboardAvoidingView verticalOffset={-200} customStyle={[
         styles.modalBackground,
         { backgroundColor: bgOverlay }
       ]}>
@@ -30,7 +31,7 @@ export default function CustomPopup({ show, handleClose, children }: PropsWithCh
         ]}>
           {children}
         </View>
-      </View>
+      </CustomKeyboardAvoidingView>
     </Modal>
   );
 };

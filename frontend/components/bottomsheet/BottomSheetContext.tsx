@@ -9,7 +9,7 @@ import {
   useRef,
   useState
 } from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { AnimatableNumericValue, StyleSheet, ViewStyle } from 'react-native';
 
 export type BottomSheetOptions = {
   content: ReactNode
@@ -23,6 +23,7 @@ export type BottomSheetOptions = {
   showHandle?: boolean
   reduceAnimations?: boolean
   fullExpansionOnOpen?: boolean
+  borderRadius?: string | AnimatableNumericValue | undefined
 };
 
 type BottomSheetContextType = {
@@ -57,7 +58,8 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
       tapOutsideDismiss: options.tapOutsideDismiss ?? true,
       showHandle: options.showHandle ?? true,
       reduceAnimations: options.reduceAnimations,
-      fullExpansionOnOpen: options.fullExpansionOnOpen ?? true
+      fullExpansionOnOpen: options.fullExpansionOnOpen ?? true,
+      borderRadius: options.borderRadius ?? 35
     })
     setIsSheetOpen(true)
     switch (options.fullExpansionOnOpen) {
@@ -113,7 +115,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
-        backgroundStyle={[sheetOptions.backgroundStyle, { backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow]}
+        backgroundStyle={[sheetOptions.backgroundStyle, { backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow, {
+          borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
+          borderTopRightRadius: sheetOptions.borderRadius ?? 35
+        }]}
         animationConfigs={!sheetOptions.reduceAnimations ? {
           stiffness: 500,
           damping: 20,
@@ -141,12 +146,10 @@ export const useBottomSheet = () => {
 
 const styles = StyleSheet.create({
   sheet: {
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
+
   },
   sheetWithShadow: {
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
+    
     shadowRadius: 10,
     shadowOpacity: .15,
     elevation: 5,

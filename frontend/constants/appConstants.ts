@@ -17,6 +17,7 @@ export const USERNAME_CHANGE_DELAY = 3; //days
 export const NAME_CHANGE_DELAY = 3; //days
 export const BIRTHDATE_CHANGE_DELAY = 3; //days
 export const EMAIL_CHANGE_DELAY = 21; //days
+export const TEXT_CRUMB_LIMIT = 150//chars
 
 export const STATUS_FRIENDS = "true";
 export const STATUS_REQUESTED = "requested";

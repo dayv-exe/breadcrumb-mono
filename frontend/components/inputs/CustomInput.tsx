@@ -15,6 +15,7 @@ type iProps = {
   setValue?: (e: string) => void
   width?: DimensionValue
   infoText?: string
+  placeholder?: string
   forceLowercase?: boolean
   showInfoTextOnFocus?: boolean
   showInfoTextAlways?: boolean
@@ -38,7 +39,7 @@ type iProps = {
   onSubmitEditing?: () => void
 }
 
-export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors = true, multiline = false, allowNewLines = true, customStyle, customInputStyle, hideActiveBorders, onFocus, onBlur, onSubmitEditing }: iProps) {
+export default function CustomInput({ value, setValue, labelText = "Label:", infoText = "", showInfoTextOnFocus = false, isPassword = false, disableAutoCorrect = false, autoCapitalize, inputMode = "normal", showInfoTextAlways = false, keyboardType = "default", width = "100%", forceLowercase = false, adaptToTheme = false, handleForgotPassword, ref, useLessProminentColors = true, multiline = false, allowNewLines = true, customStyle, customInputStyle, hideActiveBorders, onFocus, onBlur, onSubmitEditing, placeholder }: iProps) {
   const [focused, setFocused] = useState(false)
   const [hidePassword, setHidePassword] = useState(true)
 
@@ -57,10 +58,7 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
   }
 
   return (
-    <View style={[
-      styles.container,
-      { width: width },
-    ]}>
+    <>
       {labelText && <Text style={[
         styles.labelText,
         {
@@ -72,6 +70,7 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
       <View style={[styles.inputContainer, customStyle]}>
         <TextInput
           ref={ref}
+          placeholder={placeholder}
           onSubmitEditing={onSubmitEditing}
           multiline={multiline}
           numberOfLines={multiline && allowNewLines ? 2 : undefined}
@@ -144,13 +143,13 @@ export default function CustomInput({ value, setValue, labelText = "Label:", inf
           <CustomEmailSuggestion useTheme={adaptToTheme} inputVal={value} setInputVal={setValue} />
         </View>
       }
-    </View>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: "auto",
     alignItems: "center",
     justifyContent: "center"
   },
