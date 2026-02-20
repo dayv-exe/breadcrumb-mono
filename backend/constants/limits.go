@@ -2,7 +2,7 @@ package constants
 
 const (
 	MIN_AGE                  = 13
-	MAX_AGE                  = 99
+	MAX_AGE                  = 120
 	MIN_USERNAME_CHARS       = 3
 	MAX_USERNAME_CHARS       = 15
 	MAX_FULLNAME_CHARS       = 20

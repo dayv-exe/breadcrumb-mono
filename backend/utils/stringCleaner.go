@@ -170,6 +170,9 @@ func getBannedSubStr(input, bannedWord string, strictEval bool) (string, string)
 			if j == 0 && correctPosCount == inputLen {
 				// if banned is alone
 				bannedSubStr = input
+			} else if allCharsMatch(input[:j]) && allCharsMatch(input[bannedWordEnd:]) {
+				// if the first and last chars are just repetitions
+				bannedSubStr = input
 			} else if bannedWordLen >= minStrictBanLen {
 				// if banned is long enough
 				bannedSubStr = inputSubStr[:inputPointer]
