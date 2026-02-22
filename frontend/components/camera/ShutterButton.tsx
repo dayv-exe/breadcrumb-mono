@@ -2,6 +2,7 @@ import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { Friend, useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
+import { useShallow } from "zustand/shallow";
 import { useModal } from "../modals/ModalContext";
 import RecordingProgressRing from "../posts/recordingProgressRing";
 
@@ -21,7 +22,13 @@ type shutterProps = {
 }
 
 export default function ShutterButton({ recordingProgress, startRecording, stopRecording, takePhoto }: shutterProps) {
-  const { isRecording, setSelectedFriend, mediaPreview, setShowMediaPreviews } = useMediaStore()
+  const { isRecording, mediaPreview, setShowMediaPreviews } = useMediaStore(
+    useShallow(s => ({
+      isRecording: s.isRecording,
+      mediaPreview: s.mediaPreview,
+      setShowMediaPreviews: s.setShowMediaPreviews
+    }))
+  )
   const { showModal, hideModal } = useModal()
   const handleTouchEnd = () => {
     if (isRecording) {

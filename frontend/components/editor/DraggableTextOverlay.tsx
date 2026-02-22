@@ -4,6 +4,7 @@ import { useMediaStore } from "@/utils/mediaStore";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
+import { useShallow } from "zustand/shallow";
 import CustomInput from "../inputs/CustomInput";
 import DraggableItem from "./DraggableItem";
 
@@ -22,7 +23,10 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
   const inputRef = useRef<TextInput>(null)
   const [center, setCenter] = useState(false)
   const [hide, setHide] = useState(false)
-  const { setEditing, updateCurrentMediaOverlay } = useMediaStore()
+  const { setEditing, updateCurrentMediaOverlay } = useMediaStore(useShallow(s => ({
+    setEditing: s.setEditing,
+    updateCurrentMediaOverlay: s.updateCurrentMediaOverlay,
+  })))
   const newTrans = useRef(overlay.transform)
 
   const saveChanges = () => {
@@ -50,8 +54,9 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
     }
 
     onBlur()
-    setEditing(false)
     saveChanges()
+
+    setEditing(false)
   }
 
   const handleFocus = () => {

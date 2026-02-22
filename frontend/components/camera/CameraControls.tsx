@@ -21,7 +21,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
-  const { isRecording } = useMediaStore()
+  const isRecording = useMediaStore(s => s.isRecording)
   const { pickFromGallery } = useImagePicker()
 
   return (

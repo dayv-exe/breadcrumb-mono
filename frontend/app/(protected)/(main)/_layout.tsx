@@ -7,6 +7,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { Tabs, useSegments } from "expo-router";
 import { ColorValue, Image, StyleSheet, Text, View } from "react-native";
+import { useShallow } from "zustand/shallow";
 
 const icons = {
   map: {
@@ -208,7 +209,14 @@ function RecordingActionButtons() {
 
 export default function MainScreen() {
   const { isRecording, mediaPreview, addMediaPreview, discardAllMediaPreview } =
-    useMediaStore();
+    useMediaStore(
+      useShallow(s => ({
+        isRecording: s.isRecording,
+        mediaPreview: s.mediaPreview,
+        addMediaPreview: s.addMediaPreview,
+        discardAllMediaPreview: s.discardAllMediaPreview
+      }))
+    );
   const segments = useSegments();
   const mode = useColorScheme();
   const textColor = useThemeColor({}, "text");

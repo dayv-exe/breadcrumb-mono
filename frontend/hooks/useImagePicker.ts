@@ -37,7 +37,7 @@ function getImageResizeMode(imageWidth: number, imageHeight: number, screenDimen
 export const useImagePicker = (): UseImagePickerReturn => {
   const [image, setImage] = useState<MediaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { addMediaPreview } = useMediaStore();
+  const addMediaPreview = useMediaStore(s => s.addMediaPreview);
   const screenDimensions = useWindowDimensions();
   const { requestImagePickerCamera, requestImagePickerGallery } = useMediaPermissions()
 

@@ -55,6 +55,7 @@ export default function SignupVerifyScreen() {
         })
         showModal({
           message: "Something went wrong while we were trying to create your account, please try again after a while. Side note: make sure your full name does NOT contain any swear words as this could prevent us from creating your account.",
+          primaryBtnText: "Okay",
           onPrimary() {
             hideModal()
           },

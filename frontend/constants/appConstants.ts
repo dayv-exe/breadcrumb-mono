@@ -12,6 +12,7 @@ export const MIN_RIDICULOUS_AGE = -21;
 export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 32;
 export const MAX_VIDEO_DURATION_MILLISECONDS = 15000;
+export const MAX_AUDIO_DURATION_MILLISECONDS = 30000;
 export const MAX_SEARCH_STRING_CHARS = 20;
 export const USERNAME_CHANGE_DELAY = 3; //days
 export const NAME_CHANGE_DELAY = 3; //days

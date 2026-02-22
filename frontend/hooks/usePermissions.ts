@@ -1,4 +1,5 @@
 import { showSettingsAlert } from "@/utils/helpers";
+import { AudioModule } from "expo-audio";
 import * as ImagePicker from "expo-image-picker";
 import { useCameraPermission, useMicrophonePermission } from "react-native-vision-camera";
 
@@ -50,11 +51,27 @@ export function useMediaPermissions() {
     }
   }
 
+  async function requestRecordingPermission() {
+    try {
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+
+      if (!status.granted) {
+        showSettingsAlert("Microphone");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Permission error:", error);
+      return false;
+    }
+  }
+
   return {
     requestMediaPermissions,
     hasCameraPermissions,
     hasMicPermissions,
     requestImagePickerCamera,
-    requestImagePickerGallery
+    requestImagePickerGallery,
+    requestRecordingPermission,
   }
 }

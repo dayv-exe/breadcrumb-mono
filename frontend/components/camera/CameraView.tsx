@@ -1,23 +1,20 @@
 import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
 import React, { PropsWithChildren, useMemo } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
   Extrapolation,
   interpolate,
   SharedValue,
   useAnimatedProps,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring
+  useSharedValue
 } from "react-native-reanimated";
 import { Camera, CameraDevice, CameraProps } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
 import RecordingIndicator from "../recordingIndicator";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
-import PreviewCard from "./PreviewCard";
 import QuickSend from "./QuickSend";
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera);
@@ -86,7 +83,7 @@ function CameraComponent({
           enableZoomGesture
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: "black", borderRadius: 25,  overflow: "hidden" },
+            { backgroundColor: "black", borderRadius: 25, overflow: "hidden" },
           ]}
           device={activeCamera!}
           isActive={true}
@@ -97,6 +94,7 @@ function CameraComponent({
           format={format}
           photoQualityBalance="speed"
           outputOrientation={"preview"}
+          
         />
         {children}
       </View>
@@ -115,21 +113,7 @@ export default function CameraView({
   const { hasCameraPermissions, hasMicPermissions, requestMediaPermissions } =
     useMediaPermissions();
 
-  const { mediaPreview, setShowMediaPreviews, selectedFriend } = useMediaStore();
-  const previewContainerStyle = useAnimatedStyle(() => {
-    return {
-      bottom: withSpring(!selectedFriend ? 95 : 180, {
-        damping: 25,
-        stiffness: 250,
-        mass: 1
-      }),
-      left: withSpring(!selectedFriend ? 70 : 45, {
-        damping: 25,
-        stiffness: 250,
-        mass: 1,
-      }),
-    };
-  }, [selectedFriend]);
+  const selectedFriend = useMediaStore(s => s.selectedFriend);
 
   if (!hasCameraPermissions || !hasMicPermissions) {
     let missingPermissions = [];
@@ -167,31 +151,6 @@ export default function CameraView({
       </CameraComponent>
 
       {selectedFriend && <QuickSend friend={selectedFriend} />}
-
-      {!isRecording && (
-        <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
-          <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={styles.previewTouchable}>
-            {mediaPreview.map((media, index) => {
-              return <PreviewCard index={index} src={media.uri} key={index} active />;
-            })}
-          </TouchableOpacity>
-        </Reanimated.View>
-      )}
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  previewContainer: {
-    position: "absolute",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "auto",
-  },
-  previewTouchable: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

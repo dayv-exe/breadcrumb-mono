@@ -48,10 +48,12 @@ export const useMediaStore = create<MediaState>((set) => ({
     set({ selectedFriend: friend })
   },
   setCurrentMediaIndex: (index) => {
+    console.log("set index")
     set({ currentMediaIndex: index })
   },
   addMediaPreview: (media) =>
     set((state) => {
+      console.log("add preview")
       if (state.mediaPreview.length >= MAX_PREVIEW_MEDIA) {
         return { mediaPreview: [...state.mediaPreview] };
       }
@@ -59,6 +61,7 @@ export const useMediaStore = create<MediaState>((set) => ({
     }),
   discardMediaPreview: () =>
     set((state) => {
+      console.log("discard preview")
       const nextPreview = state.mediaPreview.filter(
         (_, i) => i !== state.currentMediaIndex
       );
@@ -82,6 +85,7 @@ export const useMediaStore = create<MediaState>((set) => ({
   }),
   addTextOverlayToCurrentMedia: (defaultText, x, y) =>
     set((state) => {
+      console.log("add overlay")
       const index = state.currentMediaIndex;
       const media = state.mediaPreview[index];
 
@@ -97,6 +101,7 @@ export const useMediaStore = create<MediaState>((set) => ({
     }),
   removeTextOverlayFromCurrentMedia: (overlayId) =>
     set((state) => {
+      console.log("remove overlay")
       const mediaIndex = state.currentMediaIndex;
       const media = state.mediaPreview[mediaIndex];
 
@@ -116,6 +121,7 @@ export const useMediaStore = create<MediaState>((set) => ({
     }),
   updateCurrentMediaOverlay: (overlayId, overlay) =>
     set((state) => {
+      console.log("update overlay")
       const mediaIndex = state.currentMediaIndex;
       const media = state.mediaPreview[mediaIndex];
       if (!media?.overlays) return state;

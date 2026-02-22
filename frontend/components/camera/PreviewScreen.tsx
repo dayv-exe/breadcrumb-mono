@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useShallow } from "zustand/shallow";
 import CustomImageButton from "../buttons/CustomImageButton";
 import DeleteZone from "../editor/DeleteZone";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
@@ -128,7 +129,16 @@ export default function PreviewScreen({
     currentMediaIndex,
     addTextOverlayToCurrentMedia,
     removeTextOverlayFromCurrentMedia,
-  } = useMediaStore();
+  } = useMediaStore(
+    useShallow(s => ({
+      editing: s.editing,
+      setShowMediaPreviews: s.setShowMediaPreviews,
+      setCurrentMediaIndex: s.setCurrentMediaIndex,
+      currentMediaIndex: s.currentMediaIndex,
+      addTextOverlayToCurrentMedia: s.addTextOverlayToCurrentMedia,
+      removeTextOverlayFromCurrentMedia: s.removeTextOverlayFromCurrentMedia
+    }))
+  );
   const currentMedia = mediaItems[currentMediaIndex];
   const currentOverlayDragId = useRef<string | null>(null)
   const insets = useSafeAreaInsets();

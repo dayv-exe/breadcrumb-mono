@@ -2,29 +2,54 @@ import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
+import PreviewBunch from "@/components/camera/PreviewBunch";
 import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
+import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
 import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useShallow } from "zustand/shallow";
 
-function CrumbTypePicker({ open }: { open: () => void }) {
+type recMode = "image" | "audio"
+
+function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeight: number, recMode: recMode, setRecMode: (m: recMode) => void }) {
+  const { openSheet, closeSheet } = useBottomSheet()
+
+  function getImage() {
+    if (recMode === "image") {
+      return require("../../../assets/images/icons/audiocrumb_sel_light.png")
+    }
+
+    return require("../../../assets/images/icons/switchtocamera_unsel_light.png")
+  }
+
   return (
     <View style={{
       position: "absolute",
       left: 10,
     }}>
       <CustomImageButton size={27} type="text" src={require("../../../assets/images/icons/textcrumb_sel_light.png")} handleClick={() => {
-        open()
+        openSheet({
+          content: (
+            <WriteCrumb handleCancel={closeSheet} />
+          ),
+          snapPoints: [maxSheetHeight],
+          showHandle: false,
+          reduceAnimations: true,
+          borderRadius: 25
+        })
       }} />
       <Spacer />
-      <CustomImageButton size={27} type="text" src={require("../../../assets/images/icons/audiocrumb_sel_light.png")} />
+      <CustomImageButton size={27} type="text" src={getImage()} handleClick={() => {
+        setRecMode(recMode === "audio" ? "image" : "audio")
+      }} />
     </View>
   );
 }
@@ -33,6 +58,7 @@ export default function AddScreen() {
   const {
     activeCamera,
     recordingProgress,
+    audioRecordingProgress,
     startRecording,
     stopRecording,
     takePhoto,
@@ -41,16 +67,26 @@ export default function AddScreen() {
     setUseFlash,
     useFlash,
     flipCamera,
+    startAudioRecording,
+    stopAudioRecording,
   } = useCamera();
-  const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews } = useMediaStore();
+  const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews } = useMediaStore(
+    useShallow((s) => ({
+      isRecording: s.isRecording,
+      mediaPreview: s.mediaPreview,
+      showMediaPreviews: s.showMediaPreviews,
+      setShowMediaPreviews: s.setShowMediaPreviews
+    }))
+  );
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
-  const { openSheet, closeSheet } = useBottomSheet()
-  const {height} = useWindowDimensions()
+  const { height } = useWindowDimensions()
   const maxHeight = height - insets.top
+  const [recMode, setRecMode] = useState<recMode>("image")
 
   useEffect(() => {
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
+      if (showMediaPreviews) return;
       setShowMediaPreviews(true)
     }
   }, [mediaPreview])
@@ -63,7 +99,10 @@ export default function AddScreen() {
         >
           {isFocused && (
             <View style={styles.container}>
-              <CameraView
+              {recMode === "audio" &&
+                <RecordCrumb recordingProgress={audioRecordingProgress} startRecording={startAudioRecording} stopRecording={stopAudioRecording} cancelRecording={stopAudioRecording} />
+              }
+              {recMode === "image" && <CameraView
                 activeCamera={activeCamera}
                 cameraRef={cameraRef}
                 isRecording={isRecording}
@@ -76,29 +115,20 @@ export default function AddScreen() {
                   stopRecording={stopRecording}
                   takePhoto={takePhoto}
                 />
-              </CameraView>
+              </CameraView>}
               {activeCamera && (
                 <>
-                  <CameraControls
+                  {recMode === "image" && <CameraControls
                     flipCamera={flipCamera}
                     setUseFlash={setUseFlash}
                     useFlash={useFlash}
-                  />
-                  {!isRecording && <CrumbTypePicker open={() => {
-                    openSheet({
-                      content: (
-                        <WriteCrumb handleCancel={closeSheet} />
-                      ),
-                      snapPoints: [maxHeight], 
-                      showHandle: false,
-                      reduceAnimations: true,
-                      borderRadius: 25
-                    })
-                  }} />}
+                  />}
+                  {!isRecording && <CrumbTypePicker maxSheetHeight={maxHeight} recMode={recMode} setRecMode={setRecMode} />}
                 </>
               )}
             </View>
           )}
+          <PreviewBunch />
         </View>
       )}
       {(showMediaPreviews) && (
