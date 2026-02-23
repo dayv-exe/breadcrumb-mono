@@ -1,5 +1,5 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { ColorValue, DimensionValue, StyleSheet, Text, TextStyle } from "react-native";
+import { ColorValue, DimensionValue, StyleProp, StyleSheet, Text, TextStyle } from "react-native";
 
 type tAlign = "left" | "right" | "center"
 
@@ -15,9 +15,10 @@ type lProps = {
   adaptToTheme?: boolean
   fitContent?: boolean
   textColor?: ColorValue
+  customStyle?: StyleProp<TextStyle>
 }
 
-export default function CustomLabel({ labelText = "Label", textAlign = "left", adaptToTheme = false, bold = false, fade = false, fitContent = false, width = "100%", fontSize = 17, italic = false, padding = 5, textColor }: lProps) {
+export default function CustomLabel({ labelText = "Label", textAlign = "left", adaptToTheme = false, bold = false, fade = false, fitContent = false, width = "100%", fontSize = 17, italic = false, padding = 5, textColor, customStyle }: lProps) {
   const textCol = useThemeColor({}, "text")
   return (
     <Text style={[
@@ -32,7 +33,7 @@ export default function CustomLabel({ labelText = "Label", textAlign = "left", a
         fontStyle: italic ? "italic" : "normal",
         padding: padding,
       }
-    ]}>{labelText}</Text>
+      , customStyle]}>{labelText}</Text>
   )
 }
 

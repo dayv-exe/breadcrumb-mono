@@ -68,7 +68,8 @@ export default function AddScreen() {
     useFlash,
     flipCamera,
     startAudioRecording,
-    stopAudioRecording,
+    finishAudioRecording,
+    cancelAudioRecording
   } = useCamera();
   const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews } = useMediaStore(
     useShallow((s) => ({
@@ -100,7 +101,7 @@ export default function AddScreen() {
           {isFocused && (
             <View style={styles.container}>
               {recMode === "audio" &&
-                <RecordCrumb recordingProgress={audioRecordingProgress} startRecording={startAudioRecording} stopRecording={stopAudioRecording} cancelRecording={stopAudioRecording} />
+                <RecordCrumb recordingProgress={audioRecordingProgress} startRecording={startAudioRecording} finishAudioRecording={finishAudioRecording} cancelAudioRecording={cancelAudioRecording} />
               }
               {recMode === "image" && <CameraView
                 activeCamera={activeCamera}

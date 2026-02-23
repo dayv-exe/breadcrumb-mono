@@ -45,6 +45,7 @@ export function useDropZone({
 
   const handleDragStart = useCallback(() => {
     setIsVisible(true);
+    setIsActive(false)
     wasInsideRef.current = false;
   }, []);
 

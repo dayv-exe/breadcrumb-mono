@@ -6,6 +6,7 @@ import {
   useAudioRecorder,
   useAudioRecorderState
 } from 'expo-audio';
+import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   cancelAnimation,
@@ -33,7 +34,8 @@ type useCameraReturnType = {
   stopRecording: () => void;
 
   startAudioRecording: () => void
-  stopAudioRecording: () => void
+  finishAudioRecording: () => void
+  cancelAudioRecording: () => void
 
   recordingProgress: SharedValue<number>;
   audioRecordingProgress: SharedValue<number>;
@@ -102,6 +104,7 @@ export function useCamera(): useCameraReturnType {
 
   async function stopRecording(autoRestart = false) {
     if (!cameraRef.current) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
     try {
       autoRestart = autoRestart && mediaPrevLen.current + 1 < MAX_PREVIEW_MEDIA
       if (!autoRestart) {
@@ -119,6 +122,7 @@ export function useCamera(): useCameraReturnType {
 
   async function startRecording() {
     if (cameraRef.current) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
       try {
         setIsRecording(true);
         recordingProgress.value = 0;
@@ -164,6 +168,7 @@ export function useCamera(): useCameraReturnType {
 
   async function takePhoto() {
     if (cameraRef.current) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
       try {
         const photo = await cameraRef.current.takePhoto({
           flash: useFlash,
@@ -201,20 +206,26 @@ export function useCamera(): useCameraReturnType {
       },
       (finished) => {
         if (finished) {
-          scheduleOnRN(stopAudioRecording);
+          scheduleOnRN(finishAudioRecording);
         }
       },
     );
 
     setIsRecording(true)
     audioRecorder.record();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
   }
 
-  async function stopAudioRecording() {
+  async function cancelAudioRecording() {
+    setIsRecording(false)
     await audioRecorder.stop();
     cancelAnimation(audioRecordingProgress);
     audioRecordingProgress.value = 0;
-    setIsRecording(false)
+  }
+
+  async function finishAudioRecording(addToPreview = false) {
+    await cancelAudioRecording()
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
     console.log('Recording saved at:', audioRecorder.uri);
   }
 
@@ -231,7 +242,8 @@ export function useCamera(): useCameraReturnType {
     startRecording,
     stopRecording,
     startAudioRecording,
-    stopAudioRecording,
+    finishAudioRecording,
+    cancelAudioRecording,
     audioRecordingProgress
   };
 }
