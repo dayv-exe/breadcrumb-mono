@@ -30,6 +30,9 @@ type MediaState = {
   addTextOverlayToCurrentMedia: (s: string, x: number, y: number) => void;
   removeTextOverlayFromCurrentMedia: (overlayId: string) => void;
   updateCurrentMediaOverlay: (overlayId: string, overlay: EditOverlay) => void
+  updateCurrentMediaText: (text: string) => void
+  goToPreviousPreview: () => void
+  goToNextPreview: () => void
 };
 
 export const useMediaStore = create<MediaState>((set) => ({
@@ -140,4 +143,25 @@ export const useMediaStore = create<MediaState>((set) => ({
 
       return { mediaPreview: nextMediaPreview };
     }),
+
+  updateCurrentMediaText: (text) => {
+    set(state => {
+      state.mediaPreview[state.currentMediaIndex].text = text
+      return { mediaPreview: state.mediaPreview }
+    })
+  },
+
+  goToPreviousPreview: () => {
+    set(state => {
+      const prevIndex = state.currentMediaIndex - 1 < 0 ? 0 : state.currentMediaIndex--
+      return { currentMediaIndex: prevIndex }
+    })
+  },
+
+  goToNextPreview: () => {
+    set(state => {
+      const nextIndex = state.currentMediaIndex + 1 >= state.mediaPreview.length ? 0 : state.currentMediaIndex++
+      return { currentMediaIndex: nextIndex }
+    })
+  },
 }));

@@ -226,7 +226,16 @@ export function useCamera(): useCameraReturnType {
   async function finishAudioRecording(addToPreview = false) {
     await cancelAudioRecording()
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-    console.log('Recording saved at:', audioRecorder.uri);
+    if (audioRecorder.uri) {
+      addMediaPreview({
+        resizeMode: "contain",
+        type: "audio",
+        uri: audioRecorder.uri
+      })
+      console.log('Recording saved at:', audioRecorder.uri);
+    } else {
+      console.error("Failed to find recording!")
+    }
   }
 
   return {

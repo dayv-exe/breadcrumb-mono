@@ -1,8 +1,11 @@
+import { useModal } from "@/components/modals/ModalContext";
+import { MAX_PREVIEW_MEDIA, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
 import { MediaData } from "@/constants/media";
 import { useMediaStore } from "@/utils/mediaStore";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Alert, ScaledSize, useWindowDimensions } from "react-native";
+import { useShallow } from "zustand/shallow";
 import { useMediaPermissions } from "./usePermissions";
 
 interface ImagePickerOptions {
@@ -37,9 +40,16 @@ function getImageResizeMode(imageWidth: number, imageHeight: number, screenDimen
 export const useImagePicker = (): UseImagePickerReturn => {
   const [image, setImage] = useState<MediaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const addMediaPreview = useMediaStore(s => s.addMediaPreview);
+  const { addMediaPreview, mediaPreviews, setShowMediaPreviews } = useMediaStore(useShallow(
+    s => ({
+      addMediaPreview: s.addMediaPreview,
+      mediaPreviews: s.mediaPreview,
+      setShowMediaPreviews: s.setShowMediaPreviews
+    })
+  ));
   const screenDimensions = useWindowDimensions();
   const { requestImagePickerCamera, requestImagePickerGallery } = useMediaPermissions()
+  const {showModal, hideModal} = useModal()
 
   const processImageResult = (
     result: ImagePicker.ImagePickerResult,
@@ -66,6 +76,19 @@ export const useImagePicker = (): UseImagePickerReturn => {
     options?: ImagePickerOptions,
     addToMediaPreview: boolean = true
   ): Promise<void> => {
+    if (mediaPreviews.length >= MAX_PREVIEW_MEDIA) {
+      showModal({
+        message: MEDIA_FULL_MESSAGE,
+        showCancelBtn: false,
+        primaryBtnText: "Okay",
+        onPrimary: () => {
+          setShowMediaPreviews(true)
+          hideModal()
+        }
+      })
+
+      return
+    }
     setIsLoading(true);
     try {
       const hasPermission = await requestImagePickerGallery();

@@ -7,8 +7,9 @@ import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
+import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
-import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
+import { MAX_PREVIEW_MEDIA, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
@@ -21,6 +22,9 @@ type recMode = "image" | "audio"
 
 function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeight: number, recMode: recMode, setRecMode: (m: recMode) => void }) {
   const { openSheet, closeSheet } = useBottomSheet()
+  const { showModal, hideModal } = useModal()
+  const addToPreview = useMediaStore(s => s.addMediaPreview)
+  const mediaPreviews = useMediaStore(s => s.mediaPreview)
 
   function getImage() {
     if (recMode === "image") {
@@ -36,9 +40,33 @@ function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeig
       left: 10,
     }}>
       <CustomImageButton size={27} type="text" src={require("../../../assets/images/icons/textcrumb_sel_light.png")} handleClick={() => {
+        if (mediaPreviews.length >= MAX_PREVIEW_MEDIA) {
+          showModal({
+            message: MEDIA_FULL_MESSAGE,
+            showCancelBtn: false,
+            primaryBtnText: "Okay",
+            onPrimary: () => {
+              //setShowMediaPreviews(true)
+              hideModal()
+            }
+          })
+
+          return;
+        }
         openSheet({
           content: (
-            <WriteCrumb handleCancel={closeSheet} />
+            <WriteCrumb
+              handleCancel={closeSheet}
+              handleSave={crumb => {
+                addToPreview({
+                  resizeMode: "contain",
+                  type: "text",
+                  uri: "",
+                  text: crumb
+                })
+                closeSheet()
+              }}
+            />
           ),
           snapPoints: [maxSheetHeight],
           showHandle: false,

@@ -9,11 +9,17 @@ import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
 import Spacer from "../Spacer";
 
 type props = {
+  text?: string
+  handleSave: (crumb: string) => void
   handleCancel: () => void
 }
 
-export default function WriteCrumb({ handleCancel }: props) {
-  const [crumb, setCrumb] = useState("")
+export default function WriteCrumb({ text, handleCancel, handleSave }: props) {
+  const [crumb, setCrumb] = useState(text ?? "")
+
+  const handleAdd = () => {
+    handleSave(crumb)
+  }
 
   return (
     <View style={[style.container]}>
@@ -21,7 +27,7 @@ export default function WriteCrumb({ handleCancel }: props) {
       <View style={style.topButtons}>
         <CustomButton labelText="Cancel" type="less-vibrant-text" handleClick={handleCancel} customTextStyle={style.cancelButton} slim />
 
-        <CustomButton labelText="Add" type="less-prominent" customStyle={style.postButton} slim disabled={countVisibleCharacters(crumb) < 1} />
+        <CustomButton labelText={text ? "Save" : "Add"} type="less-prominent" customStyle={style.postButton} slim disabled={countVisibleCharacters(crumb) < 1} handleClick={handleAdd} />
       </View>
       <Spacer />
       <View style={style.typingArea}>

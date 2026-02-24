@@ -1,4 +1,4 @@
-export type MediaType = "photo" | "video" | null;
+export type MediaType = "photo" | "video" | "audio" | "text" | null;
 
 // --- Edit Overlay Types ---
 
@@ -56,6 +56,7 @@ export type MediaData = {
   fileName?: string;
   fileSize?: number;
   resizeMode: "cover" | "contain";
+  text?: string
   overlays?: EditOverlay[];
 };
 

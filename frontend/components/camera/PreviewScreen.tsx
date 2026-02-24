@@ -17,6 +17,8 @@ import { useShallow } from "zustand/shallow";
 import CustomImageButton from "../buttons/CustomImageButton";
 import DeleteZone from "../editor/DeleteZone";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
+import AudioPreview from "./AudioPreview";
+import TextPreview from "./TextPreview";
 
 type PreviewScreenProps = {
   mediaItems: MediaData[];
@@ -150,13 +152,14 @@ export default function PreviewScreen({
   });
 
   const { gesture } = useGesture({
-    onTap: ({ x, y }) => {
-      if (editing) return;
-      focusIndex.current = currentMedia.overlays?.length ?? 0
-      const centerRelativeX = x - containerSize.width / 2;
-      const centerRelativeY = y - containerSize.height / 2;
-      addTextOverlayToCurrentMedia("", centerRelativeX, centerRelativeY)
-    },
+    // onTap: ({ x, y }) => {
+    //   if (editing) return;
+    //   if (currentMedia.type !== "photo" && currentMedia.type !== "video") return
+    //   focusIndex.current = currentMedia.overlays?.length ?? 0
+    //   const centerRelativeX = x - containerSize.width / 2;
+    //   const centerRelativeY = y - containerSize.height / 2;
+    //   addTextOverlayToCurrentMedia("", centerRelativeX, centerRelativeY)
+    // },
   });
 
   const renderThumbnail = useCallback(
@@ -171,6 +174,26 @@ export default function PreviewScreen({
     ),
     [currentMediaIndex]
   );
+
+  const getPreviewComponent = () => {
+    if (currentMedia.type === "photo") {
+      return (
+        <CustomImage media={currentMedia} />
+      )
+    } else if (currentMedia.type === "video") {
+      return (
+        <VideoPreview uri={currentMedia.uri} isActive={true} />
+      )
+    } else if (currentMedia.type === "text") {
+      return (
+        <TextPreview media={currentMedia} />
+      )
+    } else if (currentMedia.type === "audio") {
+      return (
+        <AudioPreview media={currentMedia} />
+      )
+    }
+  }
 
   if (!currentMedia) {
     return null;
@@ -195,11 +218,7 @@ export default function PreviewScreen({
             setContainerSize({ width, height });
           }}
         >
-          {currentMedia.type === "photo" ? (
-            <CustomImage media={currentMedia} />
-          ) : (
-            <VideoPreview uri={currentMedia.uri} isActive={true} />
-          )}
+          {getPreviewComponent()}
         </View>
       </GestureDetector>
 

@@ -41,6 +41,7 @@ export const PRESET_COLORS = [
 ];
 
 export const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 42, 48, 56, 64, 72];
+export const MEDIA_FULL_MESSAGE = `Only ${MAX_PREVIEW_MEDIA} items max allowed at a time!`
 
 
 export enum FRIENDSHIP_ACTIONS {
