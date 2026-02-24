@@ -14,7 +14,6 @@ import {
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
-import CustomImageButton from "../buttons/CustomImageButton";
 import DeleteZone from "../editor/DeleteZone";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
 import AudioPreview from "./AudioPreview";
@@ -131,6 +130,8 @@ export default function PreviewScreen({
     currentMediaIndex,
     addTextOverlayToCurrentMedia,
     removeTextOverlayFromCurrentMedia,
+    nextPreview,
+    previousPreview
   } = useMediaStore(
     useShallow(s => ({
       editing: s.editing,
@@ -138,7 +139,9 @@ export default function PreviewScreen({
       setCurrentMediaIndex: s.setCurrentMediaIndex,
       currentMediaIndex: s.currentMediaIndex,
       addTextOverlayToCurrentMedia: s.addTextOverlayToCurrentMedia,
-      removeTextOverlayFromCurrentMedia: s.removeTextOverlayFromCurrentMedia
+      removeTextOverlayFromCurrentMedia: s.removeTextOverlayFromCurrentMedia,
+      nextPreview: s.goToNextPreview,
+      previousPreview: s.goToPreviousPreview,
     }))
   );
   const currentMedia = mediaItems[currentMediaIndex];
@@ -152,14 +155,14 @@ export default function PreviewScreen({
   });
 
   const { gesture } = useGesture({
-    // onTap: ({ x, y }) => {
-    //   if (editing) return;
-    //   if (currentMedia.type !== "photo" && currentMedia.type !== "video") return
-    //   focusIndex.current = currentMedia.overlays?.length ?? 0
-    //   const centerRelativeX = x - containerSize.width / 2;
-    //   const centerRelativeY = y - containerSize.height / 2;
-    //   addTextOverlayToCurrentMedia("", centerRelativeX, centerRelativeY)
-    // },
+    onTap: ({ x, y }) => {
+      if (editing) return;
+      if (currentMedia.type !== "photo" && currentMedia.type !== "video") return
+      focusIndex.current = currentMedia.overlays?.length ?? 0
+      const centerRelativeX = x - containerSize.width / 2;
+      const centerRelativeY = y - containerSize.height / 2;
+      addTextOverlayToCurrentMedia("", centerRelativeX, centerRelativeY)
+    },
   });
 
   const renderThumbnail = useCallback(
@@ -201,14 +204,6 @@ export default function PreviewScreen({
 
   return (
     <View style={styles.previewContainer}>
-
-      <CustomImageButton
-        type="text"
-        customStyle={styles.backButton}
-        handleClick={() => setShowMediaPreviews(false)}
-        src={require("../../assets/images/icons/camera_sel_light.png")}
-        size={35}
-      />
 
       <GestureDetector gesture={gesture}>
         <View

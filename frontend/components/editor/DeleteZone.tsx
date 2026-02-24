@@ -55,5 +55,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 59, 48, 0.85)",
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 100000,
   },
 });

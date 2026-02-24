@@ -144,24 +144,24 @@ export const useMediaStore = create<MediaState>((set) => ({
       return { mediaPreview: nextMediaPreview };
     }),
 
-  updateCurrentMediaText: (text) => {
-    set(state => {
-      state.mediaPreview[state.currentMediaIndex].text = text
-      return { mediaPreview: state.mediaPreview }
-    })
-  },
+  updateCurrentMediaText: (text) =>
+    set((state) => {
+      const i = state.currentMediaIndex;
+      const media = state.mediaPreview[i];
+      if (!media) return state;
 
-  goToPreviousPreview: () => {
-    set(state => {
-      const prevIndex = state.currentMediaIndex - 1 < 0 ? 0 : state.currentMediaIndex--
-      return { currentMediaIndex: prevIndex }
-    })
-  },
+      const next = [...state.mediaPreview];
+      next[i] = { ...media, text };
+      return { mediaPreview: next };
+    }),
 
-  goToNextPreview: () => {
-    set(state => {
-      const nextIndex = state.currentMediaIndex + 1 >= state.mediaPreview.length ? 0 : state.currentMediaIndex++
-      return { currentMediaIndex: nextIndex }
-    })
-  },
+  goToPreviousPreview: () =>
+    set((state) => ({
+      currentMediaIndex: Math.max(0, state.currentMediaIndex - 1),
+    })),
+
+  goToNextPreview: () =>
+    set((state) => ({
+      currentMediaIndex: Math.min(state.mediaPreview.length - 1, state.currentMediaIndex + 1),
+    })),
 }));

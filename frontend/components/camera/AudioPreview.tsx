@@ -52,7 +52,7 @@ export default function AudioPreview({ media }: Props) {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={onPress}>
+      <Pressable onPressIn={() => player.pause()} onPressOut={playProperly}>
         <AudioWaveIcon size={250} animating={status.playing} />
       </Pressable>
     </View>

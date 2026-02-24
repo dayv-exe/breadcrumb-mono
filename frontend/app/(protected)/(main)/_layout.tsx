@@ -165,24 +165,30 @@ function MediaActionButtons({
         alignItems: "center",
         justifyContent: "center",
         paddingBottom: 12,
+        paddingHorizontal: 20
       }}
     >
-      <CustomButton
-        type="text"
-        slim
-        customTextStyle={{ color: showMediaPreviews ? "white" : "red" }}
-        labelText={showMediaPreviews ? "Delete" : "Discard"}
-        handleClick={() => {
-          if (!showMediaPreviews) {
-            discardAllMedia()
-            return
-          }
+      {!showMediaPreviews &&
+        <>
+          <CustomButton
+            type="text"
+            slim
+            customTextStyle={{ color: showMediaPreviews ? "red" : "red" }}
+            labelText={showMediaPreviews ? "Delete" : "Discard"}
+            handleClick={() => {
+              if (!showMediaPreviews) {
+                discardAllMedia()
+                return
+              }
 
-          discardMediaPreview()
-        }}
-      />
+              discardMediaPreview()
+            }}
+          />
+        </>
+      }
+      {showMediaPreviews && <CustomButton type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
-      {showMediaPreviews && <CustomButton type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" />}
+      {showMediaPreviews && <CustomButton type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} />}
       {!showMediaPreviews && <CustomButton slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );

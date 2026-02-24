@@ -93,7 +93,7 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
       onDragStart={onDragStart}
     >
       <View style={styles.background}>
-        <CustomInput ref={inputRef} customStyle={styles.input} customInputStyle={{ backgroundColor: "transparent", color: "white", width: "100%", textAlign: "center" }} hideActiveBorders multiline allowNewLines={false} labelText="" value={text} setValue={setText} onBlur={handleBlur} onFocus={handleFocus} />
+        <CustomInput ref={inputRef} customStyle={styles.input} customInputStyle={{ backgroundColor: "transparent", color: "white", width: "100%", textAlign: "center", padding: 10 }} hideActiveBorders multiline allowNewLines={false} labelText="" value={text} setValue={setText} onBlur={handleBlur} onFocus={handleFocus} />
       </View>
     </DraggableItem>
   );
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   background: {
     width: "100%",
     height: "auto",
-    backgroundColor: "rgba(0, 0, 0, .5)",
+    backgroundColor: "rgba(0, 0, 0, .7)",
   },
   input: {
     backgroundColor: "transparent",
