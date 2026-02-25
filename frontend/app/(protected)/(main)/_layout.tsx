@@ -2,10 +2,13 @@ import CustomButton from "@/components/buttons/CustomButton";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
 import { MediaData } from "@/constants/media";
+import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useAuthStore } from "@/utils/authStore";
 import { useMediaStore } from "@/utils/mediaStore";
 import { Tabs, useSegments } from "expo-router";
+import { useEffect } from "react";
 import { ColorValue, Image, StyleSheet, Text, View } from "react-native";
 import { useShallow } from "zustand/shallow";
 
@@ -226,6 +229,16 @@ export default function MainScreen() {
   const segments = useSegments();
   const mode = useColorScheme();
   const textColor = useThemeColor({}, "text");
+
+  const { data: currentUser } = useGetUser("")
+  const { setUserDetails } = useAuthStore()
+
+  useEffect(() => {
+    if (currentUser && currentUser.message) {
+      setUserDetails(currentUser.message.nickname, currentUser.message.name, currentUser.message.dpUrl)
+      console.log(currentUser)
+    }
+  }, [currentUser])
 
   const isAddActive = () => {
     if (segments[2] === "add") return true;

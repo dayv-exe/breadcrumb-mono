@@ -1,8 +1,10 @@
 import { MediaData } from "@/constants/media";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useAuthStore } from "@/utils/authStore";
 import { useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useShallow } from "zustand/shallow";
 import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -21,6 +23,11 @@ export default function TextPreview({ media }: props) {
   const { height } = useWindowDimensions()
   const maxSheetHeight = height - top
   const updateText = useMediaStore(s => s.updateCurrentMediaText)
+  const {nickname, fullname, dpUrl} = useAuthStore(useShallow(s => ({
+      nickname: s.userNickname,
+      fullname: s.userFullname,
+      dpUrl: s.userDpUrl,
+    })))
 
   function Crumb() {
     return (
@@ -28,12 +35,11 @@ export default function TextPreview({ media }: props) {
         backgroundColor: bg
       }]}>
         <View style={styles.header}>
-          <CustomProfilePictureCircle size={65} />
+          <CustomProfilePictureCircle size={65} nickname={nickname} imgUrl={dpUrl ?? ""} />
           <Spacer size="small" />
           <View>
-            <CustomLabel labelText="your name" adaptToTheme bold padding={0} />
-            <Spacer size="tiny" />
-            <CustomLabel labelText="username" adaptToTheme fade padding={0} />
+            <CustomLabel labelText={fullname ?? nickname ?? "<not found>"} adaptToTheme bold padding={0} fontSize={16} />
+            <CustomLabel labelText={nickname ?? "<not found>"} adaptToTheme fade padding={0} fontSize={15} />
           </View>
         </View>
         <Spacer size="small" />

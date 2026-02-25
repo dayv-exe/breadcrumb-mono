@@ -50,3 +50,7 @@ export const getUser = async (idOrNickname: string): Promise<apiResponse<UserDet
     return { message: null, error: (error as AxiosError).message }
   }
 }
+
+export const getMyProfile = async (): Promise<apiResponse<UserDetails | null>> => {
+  return getUser("")
+}

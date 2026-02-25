@@ -1,7 +1,9 @@
 import { TEXT_CRUMB_LIMIT } from "@/constants/appConstants";
+import { useAuthStore } from "@/utils/authStore";
 import { countVisibleCharacters } from "@/utils/graphemeCluster";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { useShallow } from "zustand/shallow";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 import CustomInput from "../inputs/CustomInput";
@@ -16,6 +18,11 @@ type props = {
 
 export default function WriteCrumb({ text, handleCancel, handleSave }: props) {
   const [crumb, setCrumb] = useState(text ?? "")
+  const {nickname, fullname, dpUrl} = useAuthStore(useShallow(s => ({
+    nickname: s.userNickname,
+    fullname: s.userFullname,
+    dpUrl: s.userDpUrl,
+  })))
 
   const handleAdd = () => {
     handleSave(crumb)
@@ -34,7 +41,7 @@ export default function WriteCrumb({ text, handleCancel, handleSave }: props) {
         <View style={{
           height: "100%"
         }}>
-          <CustomProfilePictureCircle size={55} />
+          <CustomProfilePictureCircle size={55} imgUrl={dpUrl ?? ""} nickname={nickname} />
         </View>
         <CustomInput
           value={crumb}

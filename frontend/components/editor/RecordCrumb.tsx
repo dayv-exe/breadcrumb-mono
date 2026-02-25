@@ -26,9 +26,7 @@ export default function RecordCrumb({ startRecording, finishAudioRecording, canc
   const handleTouchEnd = (t: GestureStateChangeEvent<PanGestureHandlerEventPayload>) => {
     if (deleteZone.isActive) {
       cancelAudioRecording()
-      console.log("rec canceled")
     } else {
-      console.log("rec finished")
       finishAudioRecording()
     }
   }

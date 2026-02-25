@@ -17,8 +17,9 @@ type UserState = {
   userId: string
   userEmail: string
   userPassword: string
-  userFullname: string
-  userNickname: string
+  userFullname: string | null
+  userNickname: string | null
+  userDpUrl: string | null
   login: (email: string, password: string, userDetails: SignInOutput | null) => Promise<iResponse>
   logout: () => Promise<iResponse>
   signUp: (userDetails: signupDetails) => Promise<iResponse>
@@ -29,6 +30,7 @@ type UserState = {
   cancelSignup: () => Promise<void>
   resendSignUp: () => Promise<iResponse>
   clearUserDetails: () => Promise<void>
+  setUserDetails: (nickname: string | null, fullname: string | null, dpUrl: string | null) => void
 }
 
 export const useAuthStore = create(
@@ -40,6 +42,7 @@ export const useAuthStore = create(
     userId: "",
     userFullname: "",
     userNickname: "",
+    userDpUrl: "",
     clearUserDetails: async () => {
       set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userNickname: "", userFullname: "" })
     },
@@ -188,6 +191,10 @@ export const useAuthStore = create(
         return { isSuccess: false, info: error }
       }
     },
+
+    setUserDetails: async (nickname: string | null, fullname: string | null, dpUrl: string | null) => {
+      set({ userNickname: nickname, userFullname: fullname, userDpUrl: dpUrl })
+    }
   }), {
     name: "auth-store",
     storage: createJSONStorage(() => ({
