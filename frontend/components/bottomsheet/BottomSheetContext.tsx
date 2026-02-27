@@ -1,5 +1,5 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import {
   createContext,
   ReactNode,
@@ -24,6 +24,9 @@ export type BottomSheetOptions = {
   reduceAnimations?: boolean
   fullExpansionOnOpen?: boolean
   borderRadius?: string | AnimatableNumericValue | undefined
+  isScrollableContent?: boolean
+  useRawComponent?: boolean
+  onChange?: (position: number) => void
 };
 
 type BottomSheetContextType = {
@@ -44,6 +47,8 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
     showHandle: true,
     reduceAnimations: false,
     fullExpansionOnOpen: true,
+    isScrollableContent: false,
+    useRawComponent: false,
   })
 
   const openSheet = useCallback((options: BottomSheetOptions) => {
@@ -59,7 +64,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
       showHandle: options.showHandle ?? true,
       reduceAnimations: options.reduceAnimations,
       fullExpansionOnOpen: options.fullExpansionOnOpen ?? true,
-      borderRadius: options.borderRadius ?? 35
+      borderRadius: options.borderRadius ?? 35,
+      isScrollableContent: options.isScrollableContent ?? false,
+      useRawComponent: options.useRawComponent ?? false,
+      onChange: options.onChange
     })
     setIsSheetOpen(true)
     switch (options.fullExpansionOnOpen) {
@@ -109,9 +117,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         snapPoints={snapPoints}
         enableDynamicSizing={sheetOptions.dynamicHeight}
         enableOverDrag={sheetOptions.allowDrag ?? true}
-        enableContentPanningGesture={sheetOptions.allowDrag ?? true}
+        enableContentPanningGesture={true}
         enableHandlePanningGesture={sheetOptions.allowDrag ?? true}
         handleIndicatorStyle={{ backgroundColor: handleCol }}
+        handleStyle={{ backgroundColor: "transparent" }}
         handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
@@ -129,10 +138,21 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
           mass: 0.5,
         }}
         onClose={handleSheetClose}
+        onChange={(index, pos, type) => {
+
+          sheetOptions.onChange?.(pos)
+        }}
       >
-        <BottomSheetView>
+        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={{ flex: 1 }}>
           {isSheetOpen && sheetOptions.content}
-        </BottomSheetView>
+        </BottomSheetView>}
+        {!sheetOptions.useRawComponent && sheetOptions.isScrollableContent &&
+          <BottomSheetScrollView>
+            {isSheetOpen && sheetOptions.content}
+          </BottomSheetScrollView>
+        }
+
+        {sheetOptions.useRawComponent && isSheetOpen && sheetOptions.content}
       </BottomSheet>
     </BottomSheetContext.Provider>
   )
@@ -149,7 +169,7 @@ const styles = StyleSheet.create({
 
   },
   sheetWithShadow: {
-    
+
     shadowRadius: 10,
     shadowOpacity: .15,
     elevation: 5,

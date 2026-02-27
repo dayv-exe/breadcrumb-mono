@@ -75,6 +75,19 @@ export const createDefaultTextOverlay = (defaultText: string, x: number, y: numb
   },
 });
 
+export const createDefaultStickerOverlay = (sticker: string, x: number, y: number): StickerOverlay => ({
+  id: `${Date.now()}-${Math.random()}`,
+  emoji: sticker,
+  size: 100,
+  type: "sticker",
+  transform: {
+    x: x,
+    y: y,
+    scale: 1,
+    rotation: 0,
+  },
+});
+
 export type FontStyle = "normal" | "italic";
 export type FontWeight =
   | "normal"

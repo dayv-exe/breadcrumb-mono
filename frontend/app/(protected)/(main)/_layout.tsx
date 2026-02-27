@@ -1,4 +1,5 @@
 import CustomButton from "@/components/buttons/CustomButton";
+import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
 import { MediaData } from "@/constants/media";
@@ -154,6 +155,7 @@ function MediaActionButtons({
   discardAllMedia: () => void;
 }) {
   const { showMediaPreviews, discardMediaPreview, setShowMediaPreviews } = useMediaStore()
+  const { showModal, hideModal } = useModal()
   return (
     <View
       style={{
@@ -179,20 +181,24 @@ function MediaActionButtons({
             customTextStyle={{ color: showMediaPreviews ? "red" : "red" }}
             labelText={showMediaPreviews ? "Delete" : "Discard"}
             handleClick={() => {
-              if (!showMediaPreviews) {
-                discardAllMedia()
-                return
-              }
-
-              discardMediaPreview()
+              showModal({
+                message: "Are you sure?",
+                primaryBtnText: "No, keep",
+                secondaryBtnText: "Yes, discard",
+                onPrimary: hideModal,
+                onSecondary: () => {
+                  discardAllMedia()
+                  hideModal()
+                }
+              })
             }}
           />
         </>
       }
-      {showMediaPreviews && <CustomButton type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
+      {showMediaPreviews && <CustomButton slim customStyle={{minWidth: 100}} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
-      {showMediaPreviews && <CustomButton type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} />}
-      {!showMediaPreviews && <CustomButton slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
+      {showMediaPreviews && <CustomButton customStyle={{minWidth: 100}} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} />}
+      {!showMediaPreviews && <CustomButton customStyle={{minWidth: 100}} slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );
 }
@@ -217,13 +223,14 @@ function RecordingActionButtons() {
 }
 
 export default function MainScreen() {
-  const { isRecording, mediaPreview, addMediaPreview, discardAllMediaPreview } =
+  const { isRecording, mediaPreview, addMediaPreview, discardAllMediaPreview, editing } =
     useMediaStore(
       useShallow(s => ({
         isRecording: s.isRecording,
         mediaPreview: s.mediaPreview,
         addMediaPreview: s.addMediaPreview,
-        discardAllMediaPreview: s.discardAllMediaPreview
+        discardAllMediaPreview: s.discardAllMediaPreview,
+        editing: s.editing
       }))
     );
   const segments = useSegments();
@@ -231,7 +238,7 @@ export default function MainScreen() {
   const textColor = useThemeColor({}, "text");
 
   const { data: currentUser } = useGetUser("")
-  const { setUserDetails } = useAuthStore()
+  const setUserDetails = useAuthStore(s => s.setUserDetails)
 
   useEffect(() => {
     if (currentUser && currentUser.message) {
@@ -406,14 +413,14 @@ export default function MainScreen() {
         />
       </Tabs>
 
-      {mediaPreview && mediaPreview.length > 0 && isAddActive() && (
+      {!editing && mediaPreview && mediaPreview.length > 0 && isAddActive() && (
         <MediaActionButtons
           addMediaPreview={addMediaPreview}
           discardAllMedia={discardAllMediaPreview}
         />
       )}
 
-      {isRecording && isAddActive() && <RecordingActionButtons />}
+      {(editing || (isRecording && isAddActive())) && <RecordingActionButtons />}
     </View>
   );
 }

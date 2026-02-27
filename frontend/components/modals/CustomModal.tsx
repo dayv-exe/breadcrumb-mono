@@ -38,18 +38,20 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
             backgroundColor: bgCol
           }
         ]}>
-          <Text style={[
-            styles.modalText,
-            {
-              color: textCol
-            }
-          ]}>{message}</Text>
+          <View style={styles.textContainer}>
+            <Text style={[
+              styles.modalText,
+              {
+                color: textCol
+              }
+            ]}>{message}</Text>
+          </View>
           <Spacer />
           <View style={styles.buttonContainer}>
             {primaryBtnText && <CustomButton labelText={primaryBtnText} handleClick={() => {
               handlePrimaryAction?.()
             }} type="less-prominent" />}
-            {secondaryBtnText && <Spacer />}
+            {secondaryBtnText && <Spacer size='small' />}
             {secondaryBtnText && <CustomButton labelText={secondaryBtnText} handleClick={() => {
               handleSecondaryAction?.()
             }} type='theme-faded' />}
@@ -60,6 +62,7 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
               </>
             }
           </View>
+          <Spacer  />
         </View>
       </View>
     </Modal>
@@ -99,4 +102,9 @@ const styles = StyleSheet.create({
     opacity: 1,
     lineHeight: 25
   },
+  textContainer: {
+    paddingHorizontal: 20,
+    opacity: 1,
+    fontWeight: "bold"
+  }
 });

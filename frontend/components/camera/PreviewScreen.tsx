@@ -1,3 +1,4 @@
+import { EmojiCategory } from "@/constants/appConstants";
 import { MediaData } from "@/constants/media";
 import { useDropZone } from "@/hooks/useDropZone";
 import { useGesture } from "@/hooks/useGestures";
@@ -15,8 +16,10 @@ import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import DeleteZone from "../editor/DeleteZone";
+import DraggableStickerOverlay from "../editor/DraggableStickerOverlay";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
 import AudioPreview from "./AudioPreview";
+import PreviewControls from "./PreviewControls";
 import TextPreview from "./TextPreview";
 
 type PreviewScreenProps = {
@@ -27,6 +30,188 @@ type PreviewScreenProps = {
 
 const THUMBNAIL_SIZE = 60;
 const THUMBNAIL_SPACING = 8;
+
+// ── Generated emoji sets (module-level, runs once) ─────────────
+
+// People base set (you can expand this over time)
+const BASE_PEOPLE = [
+  "👶", "🧒", "👦", "👧", "🧑", "👨", "👩",
+  "🧔", "👱", "👴", "👵", "🧓", "👲", "👳", "👮", "🕵️", "💂",
+  "👷", "🤴", "👸", "👰", "🤵", "🫅", "🫃", "🫄", "👼",
+  "🧝", "🧙", "🧛", "🧟", "🧞", "🧜", "🧚"
+];
+
+// Profession “role” codes used in ZWJ sequences like 🧑‍💻
+const PROFESSION_ROLES = [
+  "⚕️", "🎓", "🏫", "💻", "🔧", "🍳", "🌾", "🚒", "✈️", "🚀",
+  "⚖️", "🎨", "🎤", "🏭", "🔬", "💼", "🔍", "🍼"
+];
+
+function generateProfessionVariants(): string[] {
+  const people = ["🧑", "👨", "👩"];
+  const out: string[] = [];
+
+  for (const role of PROFESSION_ROLES) {
+    for (const p of people) {
+      out.push(`${p}‍${role}`); // ZWJ joiner
+    }
+  }
+  return out;
+}
+
+const PEOPLE_EMOJIS: string[] = [
+  ...BASE_PEOPLE,
+  ...generateProfessionVariants(),
+];
+
+// ISO 3166-1 alpha-2 country codes (official set is bigger; this is your current list)
+const ISO_COUNTRY_CODES = [
+  "AF", "AL", "DZ", "AD", "AO", "AG", "AR", "AM", "AU", "AT", "AZ",
+  "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BT", "BO", "BA", "BW", "BR", "BN", "BG", "BF", "BI",
+  "CV", "KH", "CM", "CA", "CF", "TD", "CL", "CN", "CO", "KM", "CG", "CR", "CI", "HR", "CU", "CY", "CZ",
+  "DK", "DJ", "DM", "DO",
+  "EC", "EG", "SV", "GQ", "ER", "EE", "SZ", "ET",
+  "FJ", "FI", "FR",
+  "GA", "GM", "GE", "DE", "GH", "GR", "GD", "GT", "GN", "GW", "GY",
+  "HT", "HN", "HU",
+  "IS", "IN", "ID", "IR", "IQ", "IE", "IL", "IT",
+  "JM", "JP", "JO",
+  "KZ", "KE", "KI", "KR", "KW", "KG",
+  "LA", "LV", "LB", "LS", "LR", "LY", "LI", "LT", "LU",
+  "MG", "MW", "MY", "MV", "ML", "MT", "MH", "MR", "MU", "MX", "FM", "MD", "MC", "MN", "ME", "MA", "MZ", "MM",
+  "NA", "NR", "NP", "NL", "NZ", "NI", "NE", "NG", "MK", "NO",
+  "OM",
+  "PK", "PW", "PA", "PG", "PY", "PE", "PH", "PL", "PT",
+  "QA",
+  "RO", "RU", "RW",
+  "KN", "LC", "VC", "WS", "SM", "ST", "SA", "SN", "RS", "SC", "SL", "SG", "SK", "SI", "SB", "SO", "ZA", "ES", "LK", "SD", "SR", "SE", "CH", "SY",
+  "TW", "TJ", "TZ", "TH", "TL", "TG", "TO", "TT", "TN", "TR", "TM", "TV",
+  "UG", "UA", "AE", "GB", "US", "UY", "UZ",
+  "VU", "VA", "VE", "VN",
+  "YE",
+  "ZM", "ZW"
+];
+
+function countryCodeToFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .split("")
+    .map((ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)))
+    .join("");
+}
+
+const FLAG_EMOJIS: string[] = ISO_COUNTRY_CODES.map(countryCodeToFlag);
+
+export const CATEGORIES: EmojiCategory[] = [
+  {
+    id: "smileys",
+    label: "Smileys & Emotion",
+    emojis: [
+      "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃",
+      "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙",
+      "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🫢",
+      "🫣", "🤫", "🤔", "🫡", "🤐", "🤨", "😐", "😑", "😶", "🫥",
+      "😏", "😒", "🙄", "😬", "🤥", "🫠", "😌", "😔", "😪", "🤤",
+      "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🥵", "🥶", "🥴", "😵",
+      "🤯", "🤠", "🥳", "🥸", "😎", "🤓", "🧐", "😕", "🫤", "😟",
+      "🙁", "☹️", "😮", "😯", "😲", "😳", "🥺", "😦", "😧", "😨",
+      "😰", "😥", "😢", "😭", "😱", "😖", "😣", "😞", "😓", "😩",
+      "😫", "🥱", "😤", "😡", "😠", "🤬", "😈", "👿", "💀", "☠️",
+      "👻", "👽", "🤖", "💩", "🤡", "👹", "👺"
+    ],
+  },
+  {
+    id: "gestures",
+    label: "Hands & Gestures",
+    emojis: [
+      "👋", "🤚", "🖐️", "✋", "🖖", "🫱", "🫲", "🫳", "🫴", "🫷",
+      "🫸", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟", "🤘", "🤙",
+      "👈", "👉", "👆", "🖕", "👇", "☝️", "🫵", "👍", "👎", "✊",
+      "👊", "🤛", "🤜", "👏", "🙌", "🫶", "👐", "🤲", "🤝", "🙏",
+      "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃", "🧠", "🫀",
+      "🫁", "👀", "👁️", "👅", "👄", "🦷", "🦴"
+    ],
+  },
+  {
+    id: "animals",
+    label: "Animals & Nature",
+    emojis: [
+      "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨",
+      "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊",
+      "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉",
+      "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🪱", "🐛", "🦋", "🐌",
+      "🐞", "🐜", "🪰", "🪲", "🪳", "🦟", "🦗", "🕷️", "🦂", "🐢",
+      "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡",
+      "🐠", "🐟", "🐬", "🐳", "🐋", "🦭", "🦈", "🌵", "🌲", "🌴",
+      "🌳", "🌸", "🌼", "🌻", "🌺", "🍀", "🌿", "🍁", "🍂", "🌎"
+    ],
+  },
+  {
+    id: "food",
+    label: "Food & Drink",
+    emojis: [
+      "🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐",
+      "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑",
+      "🫛", "🥦", "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄",
+      "🧅", "🥔", "🍠", "🫘", "🥐", "🥖", "🍞", "🧀", "🥚", "🍳",
+      "🧈", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🌭", "🍔", "🍟",
+      "🍕", "🫓", "🥪", "🥙", "🧆", "🌮", "🌯", "🫔", "🥗", "🥘",
+      "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🍤", "🍙", "🍚", "🍘",
+      "🍥", "🥟", "🥠", "🥡", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂",
+      "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛",
+      "☕", "🫖", "🍵", "🍶", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸"
+    ],
+  },
+  {
+    id: "travel",
+    label: "Travel & Places",
+    emojis: [
+      "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐",
+      "🛻", "🚚", "🚛", "🚜", "🏍️", "🛵", "🚲", "🛴", "🛹", "🛼",
+      "✈️", "🛫", "🛬", "🚀", "🛸", "🚁", "⛵", "🚤", "🛥️", "🛳️",
+      "⛴️", "🚢", "🚂", "🚆", "🚄", "🚅", "🚇", "🚉", "🚊", "🚝",
+      "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪",
+      "🏫", "🏬", "🏭", "🏯", "🏰", "💒", "🗼", "🗽", "⛰️", "🏔️",
+      "🏖️", "🏝️", "🏜️", "🌋", "🌁", "🌆", "🌃", "🌇", "🌉"
+    ],
+  },
+  {
+    id: "objects",
+    label: "Objects",
+    emojis: [
+      "⌚", "📱", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "💾", "💿",
+      "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠",
+      "📺", "📻", "🎙️", "🎚️", "🎛️", "🧭", "⏱️", "⏲️", "⏰", "🕰️",
+      "💡", "🔦", "🕯️", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷",
+      "🪙", "💰", "💳", "💎", "⚖️", "🧰", "🔧", "🔨", "⚒️", "🛠️",
+      "🧱", "🪛", "🔩", "⚙️", "🧲", "🪜", "🪑", "🛏️", "🚪", "🪞",
+      "🧴", "🧷", "🧹", "🧺", "🪣", "🧻", "🪥", "🧼", "🧽", "🛒"
+    ],
+  },
+  {
+    id: "symbols",
+    label: "Symbols",
+    emojis: [
+      "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔",
+      "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝",
+      "⭐", "🌟", "✨", "⚡", "🔥", "💫", "🎵", "🎶", "💤", "💢",
+      "💬", "👁️‍🗨️", "🗯️", "💭", "🕳️", "✅", "☑️", "✔️", "❌", "❎",
+      "➕", "➖", "➗", "✖️", "♾️", "‼️", "⁉️", "❓", "❔", "❕",
+      "🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚪", "⚫", "🟥", "🟦",
+      "🔺", "🔻", "🔸", "🔹", "🔷", "🔶", "🔳", "🔲", "©️", "®️", "™️"
+    ],
+  },
+  {
+    id: "people",
+    label: "People & Professions",
+    emojis: PEOPLE_EMOJIS,
+  },
+  {
+    id: "flags",
+    label: "Flags",
+    emojis: FLAG_EMOJIS,
+  },
+];
 
 function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
   const player = useVideoPlayer(uri, (player) => {
@@ -129,7 +314,7 @@ export default function PreviewScreen({
     setCurrentMediaIndex,
     currentMediaIndex,
     addTextOverlayToCurrentMedia,
-    removeTextOverlayFromCurrentMedia,
+    removeOverlay,
     nextPreview,
     previousPreview
   } = useMediaStore(
@@ -139,7 +324,7 @@ export default function PreviewScreen({
       setCurrentMediaIndex: s.setCurrentMediaIndex,
       currentMediaIndex: s.currentMediaIndex,
       addTextOverlayToCurrentMedia: s.addTextOverlayToCurrentMedia,
-      removeTextOverlayFromCurrentMedia: s.removeTextOverlayFromCurrentMedia,
+      removeOverlay: s.removeOverlayFromCurrentMedia,
       nextPreview: s.goToNextPreview,
       previousPreview: s.goToPreviousPreview,
     }))
@@ -150,9 +335,14 @@ export default function PreviewScreen({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const focusIndex = useRef(-1)
   const deleteZone = useDropZone({
-    hitSlop: 20,
-    onDrop: () => removeTextOverlayFromCurrentMedia(currentOverlayDragId.current ?? ""),
+    hitSlop: 10,
+    onDrop: () => removeOverlay(currentOverlayDragId.current ?? ""),
   });
+
+  const spawnTextOverlay = () => {
+    focusIndex.current = currentMedia.overlays?.length ?? 0
+    addTextOverlayToCurrentMedia("", 0, 0)
+  }
 
   const { gesture } = useGesture({
     onTap: ({ x, y }) => {
@@ -226,7 +416,7 @@ export default function PreviewScreen({
           {currentMedia.overlays.map((overlay, index) => {
             if (overlay.type === "text") {
               return (
-                <DraggableTextOverlay handleRemoveOverlay={() => removeTextOverlayFromCurrentMedia(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id} onBlur={() => {
+                <DraggableTextOverlay handleRemoveOverlay={() => removeOverlay(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id} onBlur={() => {
                   focusIndex.current = -1
                 }} onDragEnd={(x, y) => {
                   deleteZone.handleDragEnd(x, y)
@@ -236,6 +426,19 @@ export default function PreviewScreen({
                   currentOverlayDragId.current = overlay.id
                 }} />
               );
+            } else if (overlay.type === "sticker") {
+              return (
+                <DraggableStickerOverlay
+                  key={overlay.id}
+                  overlay={overlay}
+                  onDragEnd={(x, y) => {
+                    deleteZone.handleDragEnd(x, y)
+                  }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
+                    deleteZone.handleDragStart()
+                    currentOverlayDragId.current = overlay.id
+                  }}
+                />
+              )
             }
 
             if (focusIndex.current === index) {
@@ -251,6 +454,8 @@ export default function PreviewScreen({
         active={deleteZone.isActive}
         onLayout={deleteZone.onLayout}
       />
+
+      {!editing && <PreviewControls media={currentMedia} spawnTextOverlay={spawnTextOverlay} />}
 
       {/* Thumbnail strip */}
       {mediaItems.length > 1 && (
@@ -310,7 +515,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "transparent",
+    borderColor: "black",
   },
   thumbnailSelected: {
     borderColor: "white",

@@ -38,12 +38,13 @@ export default function TextPreview({ media }: props) {
           <CustomProfilePictureCircle size={65} nickname={nickname} imgUrl={dpUrl ?? ""} />
           <Spacer size="small" />
           <View>
-            <CustomLabel labelText={fullname ?? nickname ?? "<not found>"} adaptToTheme bold padding={0} fontSize={16} />
-            <CustomLabel labelText={nickname ?? "<not found>"} adaptToTheme fade padding={0} fontSize={15} />
+            <CustomLabel labelText={nickname ?? "<not found>"} adaptToTheme bold padding={0} fontSize={16} />
+            <Spacer size="tiny" />
+            <CustomLabel labelText={fullname ?? nickname ?? "<not found>"} adaptToTheme fade padding={0} fontSize={15} />
           </View>
         </View>
         <Spacer size="small" />
-        <CustomLabel labelText={media.text} adaptToTheme customStyle={{ paddingHorizontal: 10, opacity: 1 }} />
+        <CustomLabel labelText={media.text} adaptToTheme customStyle={{ paddingHorizontal: 10, lineHeight: 24 }} />
         <Spacer size="small" />
         <View style={{
           width: "auto",

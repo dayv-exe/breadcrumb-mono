@@ -1,5 +1,5 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
-import { createDefaultTextOverlay, EditOverlay, MediaData } from "@/constants/media";
+import { createDefaultStickerOverlay, createDefaultTextOverlay, EditOverlay, MediaData } from "@/constants/media";
 import { create } from "zustand";
 
 export type Friend = {
@@ -28,7 +28,8 @@ type MediaState = {
   discardAllMediaPreview: () => void;
   setIsRecording: (s: boolean) => void;
   addTextOverlayToCurrentMedia: (s: string, x: number, y: number) => void;
-  removeTextOverlayFromCurrentMedia: (overlayId: string) => void;
+  addStickerOverlayToCurrentMedia: (s: string, x: number, y: number) => void;
+  removeOverlayFromCurrentMedia: (overlayId: string) => void;
   updateCurrentMediaOverlay: (overlayId: string, overlay: EditOverlay) => void
   updateCurrentMediaText: (text: string) => void
   goToPreviousPreview: () => void
@@ -88,7 +89,6 @@ export const useMediaStore = create<MediaState>((set) => ({
   }),
   addTextOverlayToCurrentMedia: (defaultText, x, y) =>
     set((state) => {
-      console.log("add overlay")
       const index = state.currentMediaIndex;
       const media = state.mediaPreview[index];
 
@@ -102,7 +102,22 @@ export const useMediaStore = create<MediaState>((set) => ({
 
       return { mediaPreview: nextMediaPreview };
     }),
-  removeTextOverlayFromCurrentMedia: (overlayId) =>
+  addStickerOverlayToCurrentMedia: (defaultSticker, x, y) =>
+    set((state) => {
+      const index = state.currentMediaIndex;
+      const media = state.mediaPreview[index];
+
+      if (!media) return state;
+
+      const nextMediaPreview = [...state.mediaPreview];
+      nextMediaPreview[index] = {
+        ...media,
+        overlays: [...media.overlays ?? [], createDefaultStickerOverlay(defaultSticker, x, y)],
+      };
+
+      return { mediaPreview: nextMediaPreview };
+    }),
+  removeOverlayFromCurrentMedia: (overlayId) =>
     set((state) => {
       console.log("remove overlay")
       const mediaIndex = state.currentMediaIndex;
@@ -116,7 +131,7 @@ export const useMediaStore = create<MediaState>((set) => ({
         ...media,
         overlays: media.overlays.filter(
           (overlay) =>
-            !(overlay.type === "text" && overlay.id === overlayId)
+            !(overlay.id === overlayId)
         ),
       };
 

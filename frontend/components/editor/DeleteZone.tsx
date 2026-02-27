@@ -1,3 +1,4 @@
+import { useMediaStore } from "@/utils/mediaStore";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, ViewStyle } from "react-native";
@@ -14,7 +15,7 @@ type DeleteZoneProps = {
   style?: ViewStyle;
 };
 
-const ZONE_SIZE = 64;
+const ZONE_SIZE = 45;
 
 export default function DeleteZone({
   visible,
@@ -22,22 +23,25 @@ export default function DeleteZone({
   onLayout,
   style,
 }: DeleteZoneProps) {
+  const previews = useMediaStore(s => s.mediaPreview)
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible ? 1 : 0, { duration: 200 }),
     transform: [
-      { scale: withSpring(active ? 1.4 : 1, { damping: 12, stiffness: 180 }) },
+      { scale: withSpring(active ? 1.5 : 1, { damping: 12, stiffness: 180 }) },
     ],
   }));
 
   return (
     <Animated.View
       onLayout={onLayout}
-      style={[styles.zone, style, animatedStyle]}
+      style={[{
+        bottom: previews.length > 1 ? 90 : 20
+      }, styles.zone, style, animatedStyle]}
       pointerEvents="none"
     >
       <Ionicons
         name={active ? "trash" : "trash-outline"}
-        size={28}
+        size={23}
         color="#fff"
       />
     </Animated.View>
@@ -47,7 +51,7 @@ export default function DeleteZone({
 const styles = StyleSheet.create({
   zone: {
     position: "absolute",
-    bottom: 100,
+    bottom: 90,
     alignSelf: "center",
     width: ZONE_SIZE,
     height: ZONE_SIZE,
