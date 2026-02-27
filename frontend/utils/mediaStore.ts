@@ -12,14 +12,16 @@ export type Friend = {
 // current overlay item and save transform
 // current overlay item save value
 
+type editingMode = "none" | "crop" | "text"
+
 type MediaState = {
   mediaPreview: MediaData[];
   showMediaPreviews: boolean
   isRecording: boolean;
   currentMediaIndex: number
   selectedFriend: Friend | null;
-  editing: boolean
-  setEditing: (s: boolean) => void
+  editing: editingMode
+  setEditing: (s: editingMode) => void
   setSelectedFriend: (f: Friend | null) => void;
   setCurrentMediaIndex: (i: number) => void;
   setShowMediaPreviews: (s: boolean) => void;
@@ -42,7 +44,7 @@ export const useMediaStore = create<MediaState>((set) => ({
   showMediaPreviews: false,
   currentMediaIndex: 0,
   selectedFriend: null,
-  editing: false,
+  editing: "none",
 
   setEditing: (s) => {
     set({ editing: s })
@@ -85,7 +87,7 @@ export const useMediaStore = create<MediaState>((set) => ({
   discardAllMediaPreview: () => set({ mediaPreview: [], showMediaPreviews: false }),
   setIsRecording: (isRec) => set({ isRecording: isRec }),
   setShowMediaPreviews: (show) => set(state => {
-    return { currentMediaIndex: state.mediaPreview.length - 1, showMediaPreviews: show, editing: false }
+    return { currentMediaIndex: state.mediaPreview.length - 1, showMediaPreviews: show, editing: "none" }
   }),
   addTextOverlayToCurrentMedia: (defaultText, x, y) =>
     set((state) => {

@@ -15,8 +15,9 @@ type props = {
 
 export default function DraggableStickerOverlay({ overlay, onDragEnd, onDragMove, onDragStart }: props) {
   const [hide, setHide] = useState(false)
-  const { updateCurrentMediaOverlay } = useMediaStore(useShallow(s => ({
+  const { updateCurrentMediaOverlay, editing } = useMediaStore(useShallow(s => ({
     updateCurrentMediaOverlay: s.updateCurrentMediaOverlay,
+    editing: s.editing
   })))
   const newTrans = useRef(overlay.transform)
 
@@ -42,6 +43,7 @@ export default function DraggableStickerOverlay({ overlay, onDragEnd, onDragMove
 
   return (
     <DraggableItem
+      pointerEvents={ editing !== "none" && editing !== "text" ? "none" : undefined}
       locks={{}}
       style={{ opacity: hide ? 0 : 1, zIndex: 9 }}
       key={overlay.id}
@@ -54,11 +56,11 @@ export default function DraggableStickerOverlay({ overlay, onDragEnd, onDragMove
       onDragMove={onDragMove}
       onDragStart={onDragStart}
     >
-      <Text style={{fontSize: overlay.size, backgroundColor: "Red"}}>{overlay.emoji}</Text>
+      <Text style={{ fontSize: overlay.size, backgroundColor: "Red" }}>{overlay.emoji}</Text>
     </DraggableItem>
   );
 }
 
 const styles = StyleSheet.create({
-  
+
 })

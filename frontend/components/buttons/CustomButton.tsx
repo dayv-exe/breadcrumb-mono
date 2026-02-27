@@ -19,6 +19,7 @@ type bProps = {
   isPending?: boolean
   squashed?: boolean
   borderRadius?: string | AnimatableNumericValue
+  useMinWidth?: boolean
   slim?: boolean
   bold?: boolean
   paddingHorizontal?: DimensionValue
@@ -28,7 +29,7 @@ type bProps = {
   customTextStyle?: StyleProp<TextStyle>
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle }: bProps) {
+export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth }: bProps) {
   const theme = useThemeColor
   const mode = useColorScheme()
   const [clicked, setClicked] = useState(false)
@@ -92,6 +93,7 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+        minWidth: useMinWidth ? 100 : 0
       },
       customStyle
     ]}>

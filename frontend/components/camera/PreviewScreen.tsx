@@ -15,6 +15,7 @@ import {
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
+import CustomButton from "../buttons/CustomButton";
 import DeleteZone from "../editor/DeleteZone";
 import DraggableStickerOverlay from "../editor/DraggableStickerOverlay";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
@@ -315,11 +316,13 @@ export default function PreviewScreen({
     currentMediaIndex,
     addTextOverlayToCurrentMedia,
     removeOverlay,
+    setEditing,
     nextPreview,
     previousPreview
   } = useMediaStore(
     useShallow(s => ({
       editing: s.editing,
+      setEditing: s.setEditing,
       setShowMediaPreviews: s.setShowMediaPreviews,
       setCurrentMediaIndex: s.setCurrentMediaIndex,
       currentMediaIndex: s.currentMediaIndex,
@@ -346,7 +349,7 @@ export default function PreviewScreen({
 
   const { gesture } = useGesture({
     onTap: ({ x, y }) => {
-      if (editing) return;
+      if (editing !== "none") return;
       if (currentMedia.type !== "photo" && currentMedia.type !== "video") return
       focusIndex.current = currentMedia.overlays?.length ?? 0
       const centerRelativeX = x - containerSize.width / 2;
@@ -455,7 +458,11 @@ export default function PreviewScreen({
         onLayout={deleteZone.onLayout}
       />
 
-      {!editing && <PreviewControls media={currentMedia} spawnTextOverlay={spawnTextOverlay} />}
+      {editing === "none" && <PreviewControls media={currentMedia} spawnTextOverlay={spawnTextOverlay} />}
+
+      {editing !== "none" && editing !== "text" && 
+        <CustomButton slim labelText="Cancel" customTextStyle={{color: "white"}} handleClick={() => setEditing("none")} customStyle={{position: "absolute", top: insets.top + 10, left: 10, backgroundColor: "red"}} />
+      }
 
       {/* Thumbnail strip */}
       {mediaItems.length > 1 && (

@@ -25,12 +25,13 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
   const inputRef = useRef<TextInput>(null)
   const [center, setCenter] = useState(false)
   const [hide, setHide] = useState(false)
-  const { setEditing, updateCurrentMediaOverlay } = useMediaStore(useShallow(s => ({
+  const { editing, setEditing, updateCurrentMediaOverlay } = useMediaStore(useShallow(s => ({
+    editing: s.editing,
     setEditing: s.setEditing,
     updateCurrentMediaOverlay: s.updateCurrentMediaOverlay,
   })))
   const newTrans = useRef(overlay.transform)
-  const {top, right} = useSafeAreaInsets()
+  const { top, right } = useSafeAreaInsets()
 
   const saveChanges = () => {
     if (text.trim().length < 1) return;
@@ -59,11 +60,11 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
     onBlur()
     saveChanges()
 
-    setEditing(false)
+    setEditing("none")
   }
 
   const handleFocus = () => {
-    setEditing(true)
+    setEditing("text")
   }
 
   useKeyboardListener({
@@ -83,6 +84,7 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
   return (
     <>
       <DraggableItem
+        pointerEvents={editing !== "none" && editing !== "text" ? "none" : undefined}
         locks={{ lockX: true, lockScale: true, lockRotation: true }}
         style={{ width: "100%", opacity: hide ? 0 : 1, zIndex: 10 }}
         key={overlay.id}
@@ -100,7 +102,7 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
           <CustomInput ref={inputRef} customStyle={styles.input} customInputStyle={{ backgroundColor: "transparent", color: "white", width: "100%", textAlign: "center", padding: 10 }} hideActiveBorders multiline allowNewLines={false} labelText="" value={text} setValue={setText} onBlur={handleBlur} onFocus={handleFocus} />
         </View>
       </DraggableItem>
-      {center && <CustomButton type="less-prominent" customStyle={{position: "absolute", top: top + 10, right: 10, paddingHorizontal: 20}} handleClick={() => {
+      {center && <CustomButton type="less-prominent" customStyle={{ position: "absolute", top: top + 10, right: 10, paddingHorizontal: 20 }} handleClick={() => {
         inputRef.current?.blur()
       }} labelText="Done" slim />}
     </>

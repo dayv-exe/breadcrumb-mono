@@ -29,9 +29,10 @@ function DownloadButton({ media }: { media: MediaData }) {
 
 export default function PreviewControls({ media, spawnTextOverlay }: props) {
   const { top } = useSafeAreaInsets()
-  const { deleteCurrentMedia, spawnSticker, } = useMediaStore(useShallow(s => ({
+  const { deleteCurrentMedia, spawnSticker, setEditing } = useMediaStore(useShallow(s => ({
     deleteCurrentMedia: s.discardMediaPreview,
-    spawnSticker: s.addStickerOverlayToCurrentMedia
+    spawnSticker: s.addStickerOverlayToCurrentMedia,
+    setEditing: s.setEditing
   })))
   const {closeSheet, openSheet} = useBottomSheet()
 
@@ -65,7 +66,7 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
             <Spacer size="small" />
             {media.type === "photo" &&
               <>
-                <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/croppreview_unsel_light.png")} type="text" />
+                <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/croppreview_unsel_light.png")} type="text" handleClick={() => setEditing("crop")} />
               </>
             }
           </>}

@@ -158,20 +158,7 @@ function MediaActionButtons({
   const { showModal, hideModal } = useModal()
   return (
     <View
-      style={{
-        backgroundColor: "#000",
-        height: 90,
-        borderColor: "transparent",
-        position: "absolute",
-        bottom: 0,
-        width: "100%",
-        zIndex: 100,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingBottom: 12,
-        paddingHorizontal: 20
-      }}
+      style={styles.navbar}
     >
       {!showMediaPreviews &&
         <>
@@ -195,10 +182,10 @@ function MediaActionButtons({
           />
         </>
       }
-      {showMediaPreviews && <CustomButton slim customStyle={{minWidth: 100}} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
+      {showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
-      {showMediaPreviews && <CustomButton customStyle={{minWidth: 100}} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} />}
-      {!showMediaPreviews && <CustomButton customStyle={{minWidth: 100}} slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
+      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} />}
+      {!showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );
 }
@@ -206,20 +193,19 @@ function MediaActionButtons({
 function RecordingActionButtons() {
   return (
     <View
-      style={{
-        backgroundColor: "#000",
-        height: 90,
-        borderColor: "transparent",
-        position: "absolute",
-        bottom: 0,
-        width: "100%",
-        zIndex: 100,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      style={styles.navbar}
     ></View>
   );
+}
+
+function CroppingActionButtons() {
+  return (
+    <View style={styles.navbar}>
+      <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} slim useMinWidth />
+      <Spacer size="small" />
+      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" />
+    </View>
+  )
 }
 
 export default function MainScreen() {
@@ -413,14 +399,18 @@ export default function MainScreen() {
         />
       </Tabs>
 
-      {!editing && mediaPreview && mediaPreview.length > 0 && isAddActive() && (
+      {editing === "none" && mediaPreview && mediaPreview.length > 0 && isAddActive() && (
         <MediaActionButtons
           addMediaPreview={addMediaPreview}
           discardAllMedia={discardAllMediaPreview}
         />
       )}
 
-      {(editing || (isRecording && isAddActive())) && <RecordingActionButtons />}
+      {((editing !== "none" && editing !== "crop") || (isRecording && isAddActive())) && <RecordingActionButtons />}
+
+      {editing === "crop" &&
+        <CroppingActionButtons />
+      }
     </View>
   );
 }
@@ -430,4 +420,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 10,
   },
+  navbar: {
+    backgroundColor: "#000",
+    height: 90,
+    borderColor: "transparent",
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    zIndex: 100,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 12,
+    paddingHorizontal: 20
+  }
 });

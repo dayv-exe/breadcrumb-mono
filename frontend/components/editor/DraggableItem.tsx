@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -42,9 +43,11 @@ type DraggableItemProps = {
   style?: ViewStyle;
   children: React.ReactNode;
   centerMode?: boolean;
+  pointerEvents?: "box-none" | "none" | "box-only" | "auto" | SharedValue<"box-none" | "none" | "box-only" | "auto" | undefined> | undefined
 };
 
 export default function DraggableItem({
+  pointerEvents,
   initialTransform,
   onTransformEnd,
   onTap,
@@ -229,6 +232,7 @@ export default function DraggableItem({
   return (
     <GestureDetector gesture={composedGesture}>
       <Animated.View
+        pointerEvents={pointerEvents}
         onLayout={onLayout}
         style={[
           styles.container,
