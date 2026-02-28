@@ -1,5 +1,5 @@
 import { EmojiCategory } from "@/constants/appConstants";
-import { MediaData } from "@/constants/media";
+import { createDefaultCropTransform, MediaData } from "@/constants/media";
 import { useDropZone } from "@/hooks/useDropZone";
 import { useGesture } from "@/hooks/useGestures";
 import { useMediaStore } from "@/utils/mediaStore";
@@ -19,6 +19,7 @@ import CustomButton from "../buttons/CustomButton";
 import DeleteZone from "../editor/DeleteZone";
 import DraggableStickerOverlay from "../editor/DraggableStickerOverlay";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
+import CropGestureContainer from "../inputs/CropGestureContainer";
 import AudioPreview from "./AudioPreview";
 import PreviewControls from "./PreviewControls";
 import TextPreview from "./TextPreview";
@@ -281,26 +282,28 @@ function Thumbnail({
   );
 }
 
-function CustomImage({ media }: { media: MediaData }) {
+function CustomImage({ media, ignoreCrop=false }: { media: MediaData, ignoreCrop?: boolean }) {
+  const crop = media.cropTransform;
+  const hasCrop = crop && (crop.scale !== 1 || crop.translateX !== 0 || crop.translateY !== 0);
+
   return (
-    <>
-      {media.resizeMode === "contain" && (
-        <Image
-          key={media.uri}
-          src={media.uri}
-          style={styles.previewMedia}
-          resizeMode="contain"
-        />
-      )}
-      {media.resizeMode === "cover" && (
-        <Image
-          key={media.uri}
-          src={media.uri}
-          style={styles.previewMedia}
-          resizeMode="cover"
-        />
-      )}
-    </>
+    <View style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+      <Image
+        key={media.uri}
+        src={media.uri}
+        style={[
+          styles.previewMedia,
+          hasCrop && !ignoreCrop && {
+            transform: [
+              { translateX: crop.translateX },
+              { translateY: crop.translateY },
+              { scale: crop.scale },
+            ],
+          },
+        ]}
+        resizeMode={media.resizeMode}
+      />
+    </View>
   );
 }
 
@@ -371,8 +374,26 @@ export default function PreviewScreen({
     [currentMediaIndex]
   );
 
-  const getPreviewComponent = () => {
+  const GetPreviewComponent = ({ containerHeight, containerWidth }: { containerHeight: number, containerWidth: number }) => {
     if (currentMedia.type === "photo") {
+      if (editing === "crop") {
+        return (
+          <CropGestureContainer
+            containerHeight={containerHeight}
+            containerWidth={containerWidth}
+            imageHeight={currentMedia.height ?? containerHeight}
+            imageWidth={currentMedia.width ?? containerWidth}
+            cropTransform={currentMedia.cropTransform ?? createDefaultCropTransform()}
+            resizeMode={currentMedia.resizeMode}
+            onCropChange={(crop) => {
+              currentMedia.pendingCropTransform = crop
+            }}
+          >
+            <CustomImage media={currentMedia} ignoreCrop />
+          </CropGestureContainer>
+        );
+      }
+
       return (
         <CustomImage media={currentMedia} />
       )
@@ -406,7 +427,7 @@ export default function PreviewScreen({
             setContainerSize({ width, height });
           }}
         >
-          {getPreviewComponent()}
+          {GetPreviewComponent({ containerHeight: containerSize.height, containerWidth: containerSize.width })}
         </View>
       </GestureDetector>
 
@@ -460,8 +481,8 @@ export default function PreviewScreen({
 
       {editing === "none" && <PreviewControls media={currentMedia} spawnTextOverlay={spawnTextOverlay} />}
 
-      {editing !== "none" && editing !== "text" && 
-        <CustomButton slim labelText="Cancel" customTextStyle={{color: "white"}} handleClick={() => setEditing("none")} customStyle={{position: "absolute", top: insets.top + 10, left: 10, backgroundColor: "red"}} />
+      {editing !== "none" && editing !== "text" &&
+        <CustomButton slim labelText="Cancel" customTextStyle={{ color: "white" }} handleClick={() => setEditing("none")} customStyle={{ position: "absolute", top: insets.top + 10, left: 10, backgroundColor: "red" }} />
       }
 
       {/* Thumbnail strip */}

@@ -1,5 +1,11 @@
 export type MediaType = "photo" | "video" | "audio" | "text" | null;
 
+export type CropTransform = {
+  scale: number;      // 1 = no zoom, >1 = zoomed in
+  translateX: number; // pan offset X
+  translateY: number; // pan offset Y
+};
+
 // --- Edit Overlay Types ---
 
 export type OverlayType = "text" | "sticker" | "drawing";
@@ -58,7 +64,15 @@ export type MediaData = {
   resizeMode: "cover" | "contain";
   text?: string
   overlays?: EditOverlay[];
+  cropTransform?: CropTransform
+  pendingCropTransform?: CropTransform
 };
+
+export const createDefaultCropTransform = (): CropTransform => ({
+  scale: 1,
+  translateX: 0,
+  translateY: 0,
+});
 
 export const createDefaultTextOverlay = (defaultText: string, x: number, y: number): TextOverlay => ({
   id: `${Date.now()}-${Math.random()}`,

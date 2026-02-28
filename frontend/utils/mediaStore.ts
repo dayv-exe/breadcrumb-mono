@@ -1,5 +1,5 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
-import { createDefaultStickerOverlay, createDefaultTextOverlay, EditOverlay, MediaData } from "@/constants/media";
+import { createDefaultCropTransform, createDefaultStickerOverlay, createDefaultTextOverlay, EditOverlay, MediaData } from "@/constants/media";
 import { create } from "zustand";
 
 export type Friend = {
@@ -36,6 +36,8 @@ type MediaState = {
   updateCurrentMediaText: (text: string) => void
   goToPreviousPreview: () => void
   goToNextPreview: () => void
+  applyCurrentMediaCrop: () => void
+  revertCurrentMediaCrop: () => void
 };
 
 export const useMediaStore = create<MediaState>((set) => ({
@@ -54,12 +56,10 @@ export const useMediaStore = create<MediaState>((set) => ({
     set({ selectedFriend: friend })
   },
   setCurrentMediaIndex: (index) => {
-    console.log("set index")
     set({ currentMediaIndex: index })
   },
   addMediaPreview: (media) =>
     set((state) => {
-      console.log("add preview")
       if (state.mediaPreview.length >= MAX_PREVIEW_MEDIA) {
         return { mediaPreview: [...state.mediaPreview] };
       }
@@ -67,7 +67,6 @@ export const useMediaStore = create<MediaState>((set) => ({
     }),
   discardMediaPreview: () =>
     set((state) => {
-      console.log("discard preview")
       const nextPreview = state.mediaPreview.filter(
         (_, i) => i !== state.currentMediaIndex
       );
@@ -121,7 +120,6 @@ export const useMediaStore = create<MediaState>((set) => ({
     }),
   removeOverlayFromCurrentMedia: (overlayId) =>
     set((state) => {
-      console.log("remove overlay")
       const mediaIndex = state.currentMediaIndex;
       const media = state.mediaPreview[mediaIndex];
 
@@ -141,7 +139,6 @@ export const useMediaStore = create<MediaState>((set) => ({
     }),
   updateCurrentMediaOverlay: (overlayId, overlay) =>
     set((state) => {
-      console.log("update overlay")
       const mediaIndex = state.currentMediaIndex;
       const media = state.mediaPreview[mediaIndex];
       if (!media?.overlays) return state;
@@ -181,4 +178,28 @@ export const useMediaStore = create<MediaState>((set) => ({
     set((state) => ({
       currentMediaIndex: Math.min(state.mediaPreview.length - 1, state.currentMediaIndex + 1),
     })),
+  applyCurrentMediaCrop: () => {
+    set(state => {
+      const i = state.currentMediaIndex;
+      const media = state.mediaPreview[i];
+      if (!media || media.type !== "photo") return state;
+
+      const mod = [...state.mediaPreview];
+      mod[i] = { ...media, cropTransform: media.pendingCropTransform };
+      state.editing = "none"
+      return { mediaPreview: mod }
+    })
+  },
+  revertCurrentMediaCrop: () => {
+    set(state => {
+      const i = state.currentMediaIndex;
+      const media = state.mediaPreview[i];
+      if (!media || media.type !== "photo") return state;
+
+      const mod = [...state.mediaPreview];
+      mod[i] = { ...media, cropTransform: createDefaultCropTransform(), pendingCropTransform: undefined };
+      state.editing = "none"
+      return { mediaPreview: mod }
+    })
+  },
 }));

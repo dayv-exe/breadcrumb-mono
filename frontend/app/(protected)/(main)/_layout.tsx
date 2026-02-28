@@ -199,11 +199,16 @@ function RecordingActionButtons() {
 }
 
 function CroppingActionButtons() {
+  const { applyCrop, revertCrop } = useMediaStore(useShallow(s => ({
+    applyCrop: s.applyCurrentMediaCrop,
+    revertCrop: s.revertCurrentMediaCrop,
+  })))
+
   return (
     <View style={styles.navbar}>
-      <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} slim useMinWidth />
+      <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} slim useMinWidth handleClick={revertCrop} />
       <Spacer size="small" />
-      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" />
+      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" handleClick={applyCrop} />
     </View>
   )
 }

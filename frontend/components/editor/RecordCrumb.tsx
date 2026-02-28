@@ -50,7 +50,6 @@ export default function RecordCrumb({ startRecording, finishAudioRecording, canc
     <GestureDetector gesture={gesture}>
       <View style={style.container} onTouchEnd={() => {
         if (!isRecording) return
-        console.log("rec finished by touch end!")
         finishAudioRecording()
       }}>
         <CustomLabel labelText="Record a crumb" fontSize={18} />

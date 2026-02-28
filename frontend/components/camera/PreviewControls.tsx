@@ -34,7 +34,12 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
     spawnSticker: s.addStickerOverlayToCurrentMedia,
     setEditing: s.setEditing
   })))
-  const {closeSheet, openSheet} = useBottomSheet()
+  const { closeSheet, openSheet } = useBottomSheet()
+
+  const handleCrop = () => {
+    media.pendingCropTransform = media.cropTransform
+    setEditing("crop")
+  }
 
   const handleShowSticker = useCallback(() => {
     openSheet({
@@ -46,7 +51,7 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
         }} />
       ),
       snapPoints: ["80%"],
-      isScrollableContent: true, 
+      isScrollableContent: true,
     })
   }, [spawnSticker])
 
@@ -66,7 +71,7 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
             <Spacer size="small" />
             {media.type === "photo" &&
               <>
-                <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/croppreview_unsel_light.png")} type="text" handleClick={() => setEditing("crop")} />
+                <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/croppreview_unsel_light.png")} type="text" handleClick={handleCrop} />
               </>
             }
           </>}

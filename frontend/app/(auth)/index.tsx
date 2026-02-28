@@ -18,7 +18,6 @@ export default function AuthChoiceScreen() {
       <Image style={styles.image} source={require("../../assets/images/bread-no-bg.png")} />
       <Spacer />
       <CustomButton handleClick={() => {
-        console.log("clicked")
         router.push("/login")
       }} labelText="Login" type="prominent" />
       <Spacer />

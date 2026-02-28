@@ -232,7 +232,6 @@ export function useCamera(): useCameraReturnType {
         type: "audio",
         uri: audioRecorder.uri
       })
-      console.log('Recording saved at:', audioRecorder.uri);
     } else {
       console.error("Failed to find recording!")
     }
