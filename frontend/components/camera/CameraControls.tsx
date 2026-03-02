@@ -1,6 +1,8 @@
+import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, View } from "react-native";
+import { useShallow } from "zustand/shallow";
 import CustomImageButton from "../buttons/CustomImageButton";
 
 type ctrlProps = {
@@ -21,8 +23,11 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
-  const isRecording = useMediaStore(s => s.isRecording)
-  const { pickFromGallery } = useImagePicker()
+  const { isRecording, previews } = useMediaStore(useShallow(s => ({
+    isRecording: s.isRecording,
+    previews: s.mediaPreview
+  })))
+  const { pickFromGallery, isLoading } = useImagePicker()
 
   return (
     <View style={[styles.cameraControls, {
@@ -33,6 +38,8 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
           pickFromGallery({
             allowsEditing: false,
             mediaTypes: ["images", "videos"],
+            allowMultipleSel: true,
+            selectionLimit: MAX_PREVIEW_MEDIA - previews.length
           });
         }}
         customStyle={styles.imageButtons}

@@ -1,10 +1,11 @@
+import { useBigActivityIndicator } from "@/components/modals/BigActivityIndicatorContext";
 import { useModal } from "@/components/modals/ModalContext";
-import { MAX_PREVIEW_MEDIA, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
+import { MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
 import { MediaData } from "@/constants/media";
 import { useMediaStore } from "@/utils/mediaStore";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { Alert, ScaledSize, useWindowDimensions } from "react-native";
+import { Alert, Platform, ScaledSize, useWindowDimensions } from "react-native";
 import { useShallow } from "zustand/shallow";
 import { useMediaPermissions } from "./usePermissions";
 
@@ -13,6 +14,8 @@ interface ImagePickerOptions {
   aspect?: [number, number];
   quality?: number;
   mediaTypes?: ImagePicker.MediaType[];
+  allowMultipleSel?: boolean
+  selectionLimit?: number
   onPictureChosen?: () => void;
 }
 
@@ -28,6 +31,8 @@ const DEFAULT_OPTIONS: ImagePickerOptions = {
   allowsEditing: true,
   quality: 0.8,
   mediaTypes: ["images"],
+  allowMultipleSel: false,
+  selectionLimit: 5,
 };
 
 function getImageResizeMode(imageWidth: number, imageHeight: number, screenDimensions: ScaledSize): "cover" | "contain" {
@@ -49,25 +54,39 @@ export const useImagePicker = (): UseImagePickerReturn => {
   ));
   const screenDimensions = useWindowDimensions();
   const { requestImagePickerCamera, requestImagePickerGallery } = useMediaPermissions()
-  const {showModal, hideModal} = useModal()
+  const { showModal, hideModal } = useModal()
+  const { hideActivity, showActivity } = useBigActivityIndicator()
 
   const processImageResult = (
     result: ImagePicker.ImagePickerResult,
-  ): MediaData | null => {
+  ): MediaData[] | null => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      return {
-        uri: asset.uri,
-        width: asset.width,
-        height: asset.height,
-        type:
-          asset.type === "image" || asset.type === "livePhoto"
-            ? "photo"
-            : "video",
-        fileName: asset.fileName ?? "",
-        fileSize: asset.fileSize,
-        resizeMode: getImageResizeMode(asset.width, asset.height, screenDimensions)
-      };
+      const asset = result.assets;
+      let processed: MediaData[] = []
+      asset.map(asset => {
+        if (asset.duration && asset.duration > MAX_VIDEO_DURATION_MILLISECONDS) {
+          showModal({
+            message: `Oops! That video is a little too long. Videos can be up to ${(MAX_VIDEO_DURATION_MILLISECONDS - 1000) / 1000} seconds.`,
+            primaryBtnText: "Okay",
+            onPrimary: hideModal
+          })
+
+          return
+        }
+        processed.push({
+          uri: asset.uri,
+          width: asset.width,
+          height: asset.height,
+          type:
+            asset.type === "image" || asset.type === "livePhoto"
+              ? "photo"
+              : "video",
+          fileName: asset.fileName ?? "",
+          fileSize: asset.fileSize,
+          resizeMode: getImageResizeMode(asset.width, asset.height, screenDimensions)
+        })
+      })
+      return processed
     }
     return null;
   };
@@ -98,21 +117,33 @@ export const useImagePicker = (): UseImagePickerReturn => {
       }
 
       const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+      showActivity({
+        message: "Importing selected media"
+      })
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: mergedOptions.mediaTypes,
         allowsEditing: mergedOptions.allowsEditing,
         aspect: mergedOptions.aspect,
         quality: mergedOptions.quality,
-        videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality
-      });
+        allowsMultipleSelection: mergedOptions.allowMultipleSel,
+        videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality,
+        ...(Platform.OS === "ios"
+          ? { shouldDownloadFromNetwork: true }
+          : {}),
+        selectionLimit: mergedOptions.selectionLimit,
+      })
 
       const processedImage = processImageResult(result);
       if (processedImage) {
-        setImage(processedImage);
+        setImage(processedImage[processedImage.length - 1]);
         if (addToMediaPreview) {
-          addMediaPreview(processedImage);
+          processedImage.map(m => {
+            addMediaPreview(m);
+          })
         }
       }
+
+      hideActivity()
     } catch (error) {
       console.error("Error picking image from gallery:", error);
       Alert.alert("Error", "Failed to pick image from gallery");
@@ -140,7 +171,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
 
       const processedImage = processImageResult(result);
       if (processedImage) {
-        setImage(processedImage);
+        setImage(processedImage[processedImage.length - 1]);
       }
     } catch (error) {
       console.error("Error taking photo:", error);

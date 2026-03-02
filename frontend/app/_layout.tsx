@@ -1,4 +1,5 @@
 import { BottomSheetProvider } from '@/components/bottomsheet/BottomSheetContext';
+import { BigActivityIndicatorProvider } from '@/components/modals/BigActivityIndicatorContext';
 import { ModalProvider } from '@/components/modals/ModalContext';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { useAuthStore } from '@/utils/authStore';
@@ -147,22 +148,24 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <ModalProvider>
-          <BottomSheetProvider>
-            <Stack screenOptions={{
-              headerShown: false,
-            }}>
-              <Stack.Protected guard={!isLoggedIn}>
-                <Stack.Screen name="(auth)" />
-              </Stack.Protected>
+        <BigActivityIndicatorProvider>
+          <ModalProvider>
+            <BottomSheetProvider>
+              <Stack screenOptions={{
+                headerShown: false,
+              }}>
+                <Stack.Protected guard={!isLoggedIn}>
+                  <Stack.Screen name="(auth)" />
+                </Stack.Protected>
 
-              <Stack.Protected guard={isLoggedIn}>
-                <Stack.Screen name="(protected)" />
-              </Stack.Protected>
+                <Stack.Protected guard={isLoggedIn}>
+                  <Stack.Screen name="(protected)" />
+                </Stack.Protected>
 
-            </Stack>
-          </BottomSheetProvider>
-        </ModalProvider>
+              </Stack>
+            </BottomSheetProvider>
+          </ModalProvider>
+        </BigActivityIndicatorProvider>
         <Toast config={mode === "light" ? darkToastConfig : toastConfig} />
       </QueryClientProvider>
     </GestureHandlerRootView>

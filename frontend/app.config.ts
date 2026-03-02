@@ -52,7 +52,7 @@ export default {
       [
         "@rnmapbox/maps",
         {
-          RNMapboxMapsDownloadToken: process.env.SECRET_MAPBOX_KEY,
+          RNMAPBOX_MAPS_DOWNLOAD_TOKEN: process.env.SECRET_MAPBOX_KEY,
         },
       ],
       [

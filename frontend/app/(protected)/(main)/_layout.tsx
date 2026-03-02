@@ -208,7 +208,7 @@ function CroppingActionButtons() {
     <View style={styles.navbar}>
       <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} slim useMinWidth handleClick={revertCrop} />
       <Spacer size="small" />
-      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" handleClick={applyCrop} />
+      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{backgroundColor: "#00c04b"}} />
     </View>
   )
 }
