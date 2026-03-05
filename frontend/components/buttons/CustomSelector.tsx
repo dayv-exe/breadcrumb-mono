@@ -36,8 +36,8 @@ export default function CustomSelector({ options, borderRadius = 15, onSelect, d
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled">
       {options.map(option => (
-        <View key={option} style={{ flexDirection: "row" }}>
-          <CustomButton borderRadius={borderRadius} imgSize={13} imgSrc={sel === option ? getIconImage("check", mode === "light") : ""} adaptToTheme squashed type="theme-faded" labelText={option} handleClick={() => handleSel(option)} />
+        <View key={option} style={{ flexDirection: "row", paddingHorizontal: 0 }}>
+          <CustomButton borderRadius={borderRadius} imgSize={13} imgSrc={sel === option ? getIconImage("check", mode === "light") : ""} adaptToTheme squashed type={sel === option ? "theme-faded" : "text"} labelText={option} handleClick={() => handleSel(option)} customTextStyle={{opacity: sel === option ? 1 : .5}} />
         </View>
       ))}
     </ScrollView>

@@ -34,6 +34,9 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
   const mode = useColorScheme()
   const [clicked, setClicked] = useState(false)
   const bgCol = () => {
+    const fadedBg = theme({}, "fadedBackground")
+    const darkenVib = theme({}, "darkenVibrant")
+    const bg = theme({}, "background")
     switch (type) {
       case "prominent":
         return Colors.light.vibrantButton
@@ -45,13 +48,13 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         return Colors.light.text
 
       case "theme-faded":
-        return theme({}, "fadedBackground")
+        return fadedBg
 
       case "less-prominent":
-        return theme({}, "darkenVibrant")
+        return darkenVib
 
       case "themed":
-        return theme({}, "background")
+        return bg
 
       default:
         return "transparent"
