@@ -172,12 +172,16 @@ export const useMediaStore = create<MediaState>((set) => ({
   goToPreviousPreview: () =>
     set((state) => ({
       currentMediaIndex: Math.max(0, state.currentMediaIndex - 1),
+      //
     })),
 
   goToNextPreview: () =>
-    set((state) => ({
-      currentMediaIndex: Math.min(state.mediaPreview.length - 1, state.currentMediaIndex + 1),
-    })),
+    set((state) => {
+      if (state.currentMediaIndex >= state.mediaPreview.length - 1) {
+        return { currentMediaIndex: 0 }
+      }
+      return { currentMediaIndex: Math.min(state.mediaPreview.length - 1, state.currentMediaIndex + 1) }
+    }),
   applyCurrentMediaCrop: () => {
     set(state => {
       const i = state.currentMediaIndex;

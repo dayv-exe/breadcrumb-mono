@@ -1,15 +1,17 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 
 type props = {
   size?: number
   imgUrl?: string
   nickname?: string | null | undefined
+  customStyle?: StyleProp<ViewStyle>
+  customTextStyle?: StyleProp<TextStyle>
   handleClick?: (src: string,) => void
 }
 
-export default function CustomProfilePictureCircle({ size = 100, handleClick, imgUrl, nickname }: props) {
+export default function CustomProfilePictureCircle({ size = 100, handleClick, imgUrl, nickname, customStyle, customTextStyle }: props) {
   const mode = useColorScheme()
 
   const fgColLight = "#555"
@@ -22,23 +24,23 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, im
   const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "")
 
   return (
-    <TouchableOpacity style={{
+    <TouchableOpacity style={[{
       backgroundColor: bgCol,
       width: size,
       height: size,
       alignItems: "center",
       justifyContent: "center",
       borderRadius: "100%",
-    }} onPress={() => {
+    }, customStyle]} onPress={() => {
       if (handleClick) {
         handleClick(imgUrl ?? "")
       }
     }}>
-      <Text style={{
+      <Text style={[{
         fontSize: size * .35,
         fontWeight: "300",
         color: mode === "light" ? fgColLight : fgColDark
-      }}>{initials.toUpperCase()}</Text>
+      }, customTextStyle]}>{initials.toUpperCase()}</Text>
     </TouchableOpacity>
   )
 }

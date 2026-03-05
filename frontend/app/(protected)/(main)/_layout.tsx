@@ -1,4 +1,6 @@
+import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
+import ShareScreen from "@/components/inputs/ShareScreen";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
@@ -10,7 +12,7 @@ import { useAuthStore } from "@/utils/authStore";
 import { useMediaStore } from "@/utils/mediaStore";
 import { Tabs, useSegments } from "expo-router";
 import { useEffect } from "react";
-import { ColorValue, Image, StyleSheet, Text, View } from "react-native";
+import { ColorValue, Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useShallow } from "zustand/shallow";
 
 const icons = {
@@ -78,7 +80,7 @@ const icons = {
   },
 };
 
-export function getIconImage(
+function getIconImage(
   name: keyof typeof icons,
   focused: boolean,
   darkMode: boolean,
@@ -154,8 +156,14 @@ function MediaActionButtons({
   addMediaPreview: (m: MediaData) => void;
   discardAllMedia: () => void;
 }) {
-  const { showMediaPreviews, discardMediaPreview, setShowMediaPreviews } = useMediaStore()
+  const { previews, showMediaPreviews, setShowMediaPreviews } = useMediaStore(useShallow(s => ({
+    showMediaPreviews: s.showMediaPreviews,
+    setShowMediaPreviews: s.setShowMediaPreviews,
+    previews: s.mediaPreview
+  })))
   const { showModal, hideModal } = useModal()
+  const {openSheet, closeSheet} = useBottomSheet()
+  const {height} = useWindowDimensions()
   return (
     <View
       style={styles.navbar}
@@ -184,7 +192,17 @@ function MediaActionButtons({
       }
       {showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
-      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} />}
+      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
+        openSheet({
+          content: (
+            <ShareScreen handleClose={closeSheet} title={previews.length > 1 ? "Send crumbs to..." : "Send crumb to..."} height={height} />
+          ),
+          reduceAnimations: true,
+          fullExpansionOnOpen: true,
+          snapPoints: [height],
+          showHandle: false
+        })
+      }} />}
       {!showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );
@@ -221,7 +239,7 @@ export default function MainScreen() {
         mediaPreview: s.mediaPreview,
         addMediaPreview: s.addMediaPreview,
         discardAllMediaPreview: s.discardAllMediaPreview,
-        editing: s.editing
+        editing: s.editing,
       }))
     );
   const segments = useSegments();

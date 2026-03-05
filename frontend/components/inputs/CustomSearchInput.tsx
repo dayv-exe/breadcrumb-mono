@@ -69,6 +69,7 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
         autoCapitalize="none"
         autoComplete="off"
         autoCorrect={false}
+
         onFocus={() => {
           if (handleOnFocus) {
             handleOnFocus()

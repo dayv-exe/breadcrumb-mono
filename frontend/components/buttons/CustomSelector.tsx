@@ -1,7 +1,6 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useState } from "react";
 import { AnimatableNumericValue, ScrollView, StyleSheet, View } from "react-native";
-import Spacer from "../Spacer";
 import CustomButton from "./CustomButton";
 
 type props = {
@@ -38,7 +37,6 @@ export default function CustomSelector({ options, borderRadius = 15, onSelect, d
       keyboardShouldPersistTaps="handled">
       {options.map(option => (
         <View key={option} style={{ flexDirection: "row" }}>
-          <Spacer size="small" />
           <CustomButton borderRadius={borderRadius} imgSize={13} imgSrc={sel === option ? getIconImage("check", mode === "light") : ""} adaptToTheme squashed type="theme-faded" labelText={option} handleClick={() => handleSel(option)} />
         </View>
       ))}
@@ -48,6 +46,7 @@ export default function CustomSelector({ options, borderRadius = 15, onSelect, d
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 15,
     flexDirection: "row",
     width: "100%",
     alignItems: "center",

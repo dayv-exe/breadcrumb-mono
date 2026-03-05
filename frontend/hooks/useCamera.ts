@@ -47,12 +47,17 @@ type useCameraReturnType = {
   useFlash: "on" | "off";
 };
 
+function normalizeFileUri(path: string) {
+  return path.startsWith("file://") ? path : `file://${path}`;
+}
+
 export function useCamera(): useCameraReturnType {
-  const { addMediaPreview, setIsRecording, mediaPreview } = useMediaStore(
+  const { addMediaPreview, setIsRecording, mediaPreview, setShowMediaPreview } = useMediaStore(
     useShallow(s => ({
       addMediaPreview: s.addMediaPreview,
       setIsRecording: s.setIsRecording,
-      mediaPreview: s.mediaPreview
+      mediaPreview: s.mediaPreview,
+      setShowMediaPreview: s.setShowMediaPreviews
     }))
   );
   const mediaPrevLen = useRef(mediaPreview.length)
@@ -145,13 +150,15 @@ export function useCamera(): useCameraReturnType {
           onRecordingFinished: (video: VideoFile) => {
             addMediaPreview({
               type: "video",
-              uri: `${video.path}`,
+              uri: normalizeFileUri(video.path),
               resizeMode: "cover",
             });
 
             if (shouldAutoRestart.current) {
               shouldAutoRestart.current = false
               startRecording()
+            } else {
+              setShowMediaPreview(true)
             }
           },
           onRecordingError: (error) => {
@@ -167,6 +174,10 @@ export function useCamera(): useCameraReturnType {
   const cameraRef = useRef<Camera>(null);
 
   async function takePhoto() {
+    if (useFlash === "off") {
+      // take cheat photo
+      return;
+    }
     if (cameraRef.current) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
       try {
@@ -175,9 +186,10 @@ export function useCamera(): useCameraReturnType {
         });
         addMediaPreview({
           type: "photo",
-          uri: `${photo.path}`,
+          uri: normalizeFileUri(photo.path),
           resizeMode: "cover"
         });
+        setShowMediaPreview(true)
       } catch (error) {
         console.error("Error taking photo:", error);
       }
@@ -230,8 +242,9 @@ export function useCamera(): useCameraReturnType {
       addMediaPreview({
         resizeMode: "contain",
         type: "audio",
-        uri: audioRecorder.uri
+        uri: normalizeFileUri(audioRecorder.uri)
       })
+      setShowMediaPreview(true)
     } else {
       console.error("Failed to find recording!")
     }

@@ -25,6 +25,7 @@ function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeig
   const { showModal, hideModal } = useModal()
   const addToPreview = useMediaStore(s => s.addMediaPreview)
   const mediaPreviews = useMediaStore(s => s.mediaPreview)
+  const setShowMediaPreviews = useMediaStore(s => s.setShowMediaPreviews)
 
   function getImage() {
     if (recMode === "image") {
@@ -65,6 +66,7 @@ function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeig
                   text: crumb
                 })
                 closeSheet()
+                setShowMediaPreviews(true)
               }}
             />
           ),

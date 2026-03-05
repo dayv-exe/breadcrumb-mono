@@ -216,6 +216,7 @@ export const CATEGORIES: EmojiCategory[] = [
 ];
 
 function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
+  const nextPreview = useMediaStore(s => s.goToNextPreview)
   const player = useVideoPlayer(uri, (player) => {
     player.loop = true;
     player.currentTime = 0;
@@ -223,6 +224,11 @@ function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
       player.play();
     }
   });
+
+  player.addListener("playToEnd", () => {
+    console.log("next")
+    nextPreview()
+  })
 
   useEffect(() => {
     if (isActive) {
@@ -239,8 +245,35 @@ function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
       style={styles.previewMedia}
       contentFit="cover"
       nativeControls={false}
+      onTouchStart={() => player.pause()}
+      onTouchEnd={() => player.play()}
     />
   );
+}
+
+function getThumbnail(item: MediaData) {
+  if (item.type === "photo") {
+    return (
+      <Image
+        source={{ uri: item.uri }}
+        style={styles.thumbnailImage}
+        resizeMode="cover"
+      />
+    )
+  } else if (item.type === "video") {
+    return (
+      <View style={styles.thumbnailVideo}>
+        <Image
+          source={{ uri: "" }}
+          style={styles.thumbnailImage}
+          resizeMode="cover"
+        />
+        <View style={styles.videoIndicator}>
+          <View style={styles.playIcon} />
+        </View>
+      </View>
+    )
+  }
 }
 
 function Thumbnail({
@@ -282,7 +315,7 @@ function Thumbnail({
   );
 }
 
-function CustomImage({ media, ignoreCrop=false }: { media: MediaData, ignoreCrop?: boolean }) {
+function CustomImage({ media, ignoreCrop = false }: { media: MediaData, ignoreCrop?: boolean }) {
   const crop = media.cropTransform;
   const hasCrop = crop && (crop.scale !== 1 || crop.translateX !== 0 || crop.translateY !== 0);
 
@@ -314,25 +347,19 @@ export default function PreviewScreen({
 }: PreviewScreenProps) {
   const {
     editing,
-    setShowMediaPreviews,
     setCurrentMediaIndex,
     currentMediaIndex,
     addTextOverlayToCurrentMedia,
     removeOverlay,
     setEditing,
-    nextPreview,
-    previousPreview
   } = useMediaStore(
     useShallow(s => ({
       editing: s.editing,
       setEditing: s.setEditing,
-      setShowMediaPreviews: s.setShowMediaPreviews,
       setCurrentMediaIndex: s.setCurrentMediaIndex,
       currentMediaIndex: s.currentMediaIndex,
       addTextOverlayToCurrentMedia: s.addTextOverlayToCurrentMedia,
       removeOverlay: s.removeOverlayFromCurrentMedia,
-      nextPreview: s.goToNextPreview,
-      previousPreview: s.goToPreviousPreview,
     }))
   );
   const currentMedia = mediaItems[currentMediaIndex];
@@ -417,88 +444,92 @@ export default function PreviewScreen({
   }
 
   return (
-    <View style={styles.previewContainer}>
+    <>
+      <View style={styles.previewContainer}>
 
-      <GestureDetector gesture={gesture}>
-        <View
-          style={[styles.previewMediaWrapper, { marginTop: insets.top }]}
-          onLayout={(e) => {
-            const { width, height } = e.nativeEvent.layout;
-            setContainerSize({ width, height });
-          }}
-        >
-          {GetPreviewComponent({ containerHeight: containerSize.height, containerWidth: containerSize.width })}
-        </View>
-      </GestureDetector>
+        <View style={styles.viewShot}>
+          <GestureDetector gesture={gesture}>
+            <View
+              style={[styles.previewMediaWrapper, { marginTop: insets.top }]}
+              onLayout={(e) => {
+                const { width, height } = e.nativeEvent.layout;
+                setContainerSize({ width, height });
+              }}
+            >
+              {GetPreviewComponent({ containerHeight: containerSize.height, containerWidth: containerSize.width })}
+            </View>
+          </GestureDetector>
 
-      {/* Text overlays */}
-      {currentMedia.overlays && (
-        <View
-          style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}
-          pointerEvents="box-none"
-        >
-          {currentMedia.overlays.map((overlay, index) => {
-            if (overlay.type === "text") {
-              return (
-                <DraggableTextOverlay handleRemoveOverlay={() => removeOverlay(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id} onBlur={() => {
+          {/* Text overlays */}
+          {currentMedia.overlays && (
+            <View
+              style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}
+              pointerEvents="box-none"
+            >
+              {currentMedia.overlays.map((overlay, index) => {
+                if (overlay.type === "text") {
+                  return (
+                    <DraggableTextOverlay handleRemoveOverlay={() => removeOverlay(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id} onBlur={() => {
+                      focusIndex.current = -1
+                    }} onDragEnd={(x, y) => {
+                      deleteZone.handleDragEnd(x, y)
+                      // currentOverlayDragId.current = null
+                    }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
+                      deleteZone.handleDragStart()
+                      currentOverlayDragId.current = overlay.id
+                    }} />
+                  );
+                } else if (overlay.type === "sticker") {
+                  return (
+                    <DraggableStickerOverlay
+                      key={overlay.id}
+                      overlay={overlay}
+                      onDragEnd={(x, y) => {
+                        deleteZone.handleDragEnd(x, y)
+                      }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
+                        deleteZone.handleDragStart()
+                        currentOverlayDragId.current = overlay.id
+                      }}
+                    />
+                  )
+                }
+
+                if (focusIndex.current === index) {
                   focusIndex.current = -1
-                }} onDragEnd={(x, y) => {
-                  deleteZone.handleDragEnd(x, y)
-                  // currentOverlayDragId.current = null
-                }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
-                  deleteZone.handleDragStart()
-                  currentOverlayDragId.current = overlay.id
-                }} />
-              );
-            } else if (overlay.type === "sticker") {
-              return (
-                <DraggableStickerOverlay
-                  key={overlay.id}
-                  overlay={overlay}
-                  onDragEnd={(x, y) => {
-                    deleteZone.handleDragEnd(x, y)
-                  }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
-                    deleteZone.handleDragStart()
-                    currentOverlayDragId.current = overlay.id
-                  }}
-                />
-              )
-            }
-
-            if (focusIndex.current === index) {
-              focusIndex.current = -1
-            }
-            return null;
-          })}
+                }
+                return null;
+              })}
+            </View>
+          )}
         </View>
-      )}
 
-      <DeleteZone
-        visible={deleteZone.isVisible}
-        active={deleteZone.isActive}
-        onLayout={deleteZone.onLayout}
-      />
+        <DeleteZone
+          visible={deleteZone.isVisible}
+          active={deleteZone.isActive}
+          onLayout={deleteZone.onLayout}
+        />
 
-      {editing === "none" && <PreviewControls media={currentMedia} spawnTextOverlay={spawnTextOverlay} />}
+        {editing === "none" && <PreviewControls media={currentMedia} spawnTextOverlay={spawnTextOverlay} />}
 
-      {editing !== "none" && editing !== "text" &&
-        <CustomButton slim labelText="Cancel" customTextStyle={{ color: "white" }} handleClick={() => setEditing("none")} customStyle={{ position: "absolute", top: insets.top + 10, left: 10, backgroundColor: "red" }} />
-      }
+        {editing !== "none" && editing !== "text" &&
+          <CustomButton slim labelText="Cancel" customTextStyle={{ color: "white" }} handleClick={() => setEditing("none")} customStyle={{ position: "absolute", top: insets.top + 10, left: 10, backgroundColor: "red" }} />
+        }
 
-      {/* Thumbnail strip */}
-      {mediaItems.length > 1 && (
-        <View style={styles.previewControls}>
-          <FlatList
-            data={mediaItems}
-            renderItem={renderThumbnail}
-            keyExtractor={(_, index) => index.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.thumbnailList}
-          />
-        </View>
-      )}
-    </View>
+        {/* Thumbnail strip */}
+        {mediaItems.length > 1 && (
+          <View style={styles.previewControls}>
+            <FlatList
+              data={mediaItems}
+              renderItem={renderThumbnail}
+              keyExtractor={(_, index) => index.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.thumbnailList}
+            />
+          </View>
+        )}
+      </View>
+    </>
   );
 }
 
@@ -511,6 +542,12 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   previewContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    borderColor: "green",
+    borderWidth: 0,
+  },
+  viewShot: {
     flex: 1,
     backgroundColor: "black",
     borderColor: "green",
@@ -543,7 +580,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "black",
+    borderColor: "transparent",
   },
   thumbnailSelected: {
     borderColor: "white",
