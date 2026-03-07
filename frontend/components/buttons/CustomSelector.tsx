@@ -1,4 +1,5 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useState } from "react";
 import { AnimatableNumericValue, ScrollView, StyleSheet, View } from "react-native";
 import CustomButton from "./CustomButton";
@@ -24,6 +25,8 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 
 export default function CustomSelector({ options, borderRadius = 15, onSelect, defaultSelectedIndex = 0 }: props) {
   const [sel, setSel] = useState(options[defaultSelectedIndex])
+  const textCol = useThemeColor({}, "text")
+  const vibCol = useThemeColor({}, "darkenVibrant")
   const mode = useColorScheme()
   function handleSel(s: string) {
     setSel(s)
@@ -35,9 +38,15 @@ export default function CustomSelector({ options, borderRadius = 15, onSelect, d
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled">
-      {options.map(option => (
-        <View key={option} style={{ flexDirection: "row", paddingHorizontal: 0 }}>
-          <CustomButton borderRadius={borderRadius} imgSize={13} imgSrc={sel === option ? getIconImage("check", mode === "light") : ""} adaptToTheme squashed type={sel === option ? "theme-faded" : "text"} labelText={option} handleClick={() => handleSel(option)} customTextStyle={{opacity: sel === option ? 1 : .5}} />
+      {options.map((option, index) => (
+        <View key={option} style={{ flexDirection: "row", paddingLeft: index === 0 ? 15 : 0, }}>
+          <CustomButton imgSrc={
+            sel === option && false ?
+              getIconImage("check", mode === "light") : ""
+          } borderRadius={borderRadius} adaptToTheme squashed type={sel === option ? "theme-faded" : "text"} customStyle={{
+            backgroundColor: sel === option ? vibCol + "44" : "transparent",
+            paddingHorizontal: sel === option ? 15 : 7
+          }} labelText={option} handleClick={() => handleSel(option)} customTextStyle={{ opacity: sel === option ? .75 : .5, fontWeight: sel === option ? "bold" : "regular" }} />
         </View>
       ))}
     </ScrollView>
@@ -46,9 +55,8 @@ export default function CustomSelector({ options, borderRadius = 15, onSelect, d
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 15,
-    flexDirection: "row",
     width: "100%",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
   }

@@ -23,3 +23,27 @@ export const toTransparent = (color: string) => {
   // fallback
   return 'transparent';
 };
+
+export function withAlpha(color: string, alpha: number) {
+  // rgb/rgba
+  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i)
+  if (rgbMatch) {
+    const r = Number(rgbMatch[1])
+    const g = Number(rgbMatch[2])
+    const b = Number(rgbMatch[3])
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
+  // hex #RGB or #RRGGBB
+  let hex = color.replace("#", "").trim()
+  if (hex.length === 3) hex = hex.split("").map(c => c + c).join("")
+  if (hex.length === 6) {
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
+  // fallback: if it's something like "white" and we can't parse it
+  return `rgba(0,0,0,0)`
+}

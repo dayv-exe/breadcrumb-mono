@@ -1,6 +1,6 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
-import ShareScreen from "@/components/inputs/ShareScreen";
+import NewShareScreen from "@/components/inputs/NewShareScreen";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
@@ -162,8 +162,8 @@ function MediaActionButtons({
     previews: s.mediaPreview
   })))
   const { showModal, hideModal } = useModal()
-  const {openSheet, closeSheet} = useBottomSheet()
-  const {height} = useWindowDimensions()
+  const { openSheet, closeSheet } = useBottomSheet()
+  const { height } = useWindowDimensions()
   return (
     <View
       style={styles.navbar}
@@ -195,7 +195,9 @@ function MediaActionButtons({
       {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
         openSheet({
           content: (
-            <ShareScreen handleClose={closeSheet} title={previews.length > 1 ? "Send crumbs to..." : "Send crumb to..."} height={height} />
+            <NewShareScreen height={height}
+              usePlural={previews.length > 1}
+              handleClose={closeSheet} />
           ),
           reduceAnimations: true,
           fullExpansionOnOpen: true,
@@ -226,7 +228,7 @@ function CroppingActionButtons() {
     <View style={styles.navbar}>
       <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} slim useMinWidth handleClick={revertCrop} />
       <Spacer size="small" />
-      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{backgroundColor: "#00c04b"}} />
+      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{ backgroundColor: "#00c04b" }} />
     </View>
   )
 }

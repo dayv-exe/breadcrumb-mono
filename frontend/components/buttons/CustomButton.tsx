@@ -87,7 +87,7 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
     }} style={[
       styles.button,
       {
-        backgroundColor: disabled ? Colors.dark.tabIconDefault : backgroundColor,
+        backgroundColor: disabled ? mode === "light" ? Colors.dark.tabIconDefault : Colors.light.tabIconDefault : backgroundColor,
         height: slim ? 43 : "auto",
         width: width,
         padding: squashed ? 6 : slim ? 10 : 15,
@@ -109,11 +109,11 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
       {imgSrc && <>
         <Image source={imgSrc} style={{
           width: imgSize ?? fontSize,
-          height: imgSize ?? fontSize
+          height: imgSize ?? fontSize,
         }} />
         {labelText && <Spacer size="small" />}
       </>}
-      {labelText && <Text style={[
+      {labelText && <Text numberOfLines={1} ellipsizeMode="tail" style={[
         styles.text,
         {
           color: getTextColor(),

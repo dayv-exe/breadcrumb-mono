@@ -85,7 +85,7 @@ function FriendItem({ userId, nickname, name, dpUrl, onChange, locationStr }: fr
       onChange(!selected)
       setSelected(!selected)
     }}>
-      <CustomProfilePictureCircle size={50} imgUrl={dpUrl ?? undefined} nickname={nickname} customTextStyle={{ fontWeight: selected ? "bold" : "normal" }} />
+      <CustomProfilePictureCircle size={50} imgUrl={dpUrl ?? undefined} nickname={nickname} customTextStyle={{ fontWeight: selected ? "normal" : "normal" }} />
       <View style={style.profileNames}>
         <CustomLabel allowTruncate labelText={name ?? nickname} adaptToTheme bold={selected} customStyle={{ paddingVertical: 2, }} />
         <CustomLabel allowTruncate labelText={selected ? `${locationStr === sendOpt[0] ? `keep at ${address ?? "this location"}` :
@@ -118,7 +118,7 @@ export default function ShareScreen({ handleClose, title, height }: props) {
 
   useEffect(() => {
     if (data && data.message) {
-      setFriends([...data.message])
+      setFriends([...data.message, ...data.message,...data.message, ...data.message,...data.message, ...data.message,])
     }
   }, [data])
 
@@ -133,20 +133,16 @@ export default function ShareScreen({ handleClose, title, height }: props) {
 
         <Spacer size="small" />
 
-        <View style={{ paddingHorizontal: 15 }}>
+        <View style={{ paddingHorizontal: 15, marginBottom: 15 }}>
           <CustomSearchInput ref={searchRef} value={search} handleChange={setSearch} placeholder="Search friends" />
-          <Spacer />
         </View>
 
         <View>
           <CustomSelector options={listOpt} onSelect={s => console.log(s)} />
         </View>
 
-        <Spacer />
-
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, marginTop: 15, }}>
           <FlashList
-            style={{}}
             data={friends}
             renderItem={item => <FriendItem name={item.item.name ?? ""} nickname={item.item.nickname ?? "<unknown>"} locationStr={crumbLocation} dpUrl={item.item.dpUrl ?? ""} onChange={s => {
               if (s) {
@@ -158,14 +154,14 @@ export default function ShareScreen({ handleClose, title, height }: props) {
           />
           {/* Top fade */}
           <LinearGradient
-            colors={[bgCol, withAlpha(bgCol, 0)]}
-            style={{ position: "absolute", top: 0, left: 0, right: 0, height: 20, pointerEvents: "none" }}
+            colors={["rgba(0, 0, 0, .075)", withAlpha(bgCol, 0)]}
+            style={{ position: "absolute", top: 0, left: 0, right: 0, height: 30, pointerEvents: "none" }}
           />
 
           {/* Bottom fade */}
           <LinearGradient
-            colors={[withAlpha(bgCol, 0), bgCol]}
-            style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 20, pointerEvents: "none" }}
+            colors={[withAlpha(bgCol, 0), "rgba(0, 0, 0, .075)"]}
+            style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 10, pointerEvents: "none" }}
           />
         </View>
       </View>
@@ -175,6 +171,7 @@ export default function ShareScreen({ handleClose, title, height }: props) {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
+          paddingTop: 5,
         }}>
           <CustomLabel fontSize={14} adaptToTheme fade labelText="Crumb location: " customStyle={{ paddingHorizontal: 20}} />
           <CustomButton customStyle={{padding: 0}} type="less-vibrant-text" labelText="" imgSrc={require("../../assets/images/icons/help_unsel_vib.png")} imgSize={17} handleClick={() => {

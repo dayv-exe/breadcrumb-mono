@@ -1,4 +1,4 @@
-const tintColorLight = '#70B8FF';
+export const tintColorLight = '#70b7ff';
 const darkTintColorLight = "#3D9FFF"
 const tintColorDark = '#fff';
 
@@ -15,7 +15,9 @@ export const Colors = {
     vibrantButton: "#7070FF",
     fadedBackground: "rgba(0, 0, 0, .1)",
     backgroundOverlay: 'rgba(0,0,0,0.7)',
-    fadedVibrant: "rgba(112, 112, 238, .1)"
+    fadedVibrant: "rgba(112, 112, 238, .1)",
+    lightBackground: "#FFFFFF",
+    darkBackground: "#F4F5F7"
   },
   dark: {
     text: 'rgba(255, 255, 255, 1)',
@@ -29,6 +31,8 @@ export const Colors = {
     vibrantButton: "#7070FF",
     fadedBackground: "rgba(255, 255, 255, .1)",
     backgroundOverlay: 'rgba(0,0,0,0.7)',
-     fadedVibrant: "rgba(112, 112, 238, .1)"
+    fadedVibrant: "rgba(112, 112, 238, .1)",
+    lightBackground: "#242424",
+    darkBackground: "#181818"
   },
 };
