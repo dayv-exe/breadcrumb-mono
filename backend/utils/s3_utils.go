@@ -2,46 +2,37 @@ package utils
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
+	"strings"
 )
 
-func IsValidImageExtension(ext string) bool {
-	validExtensions := map[string]bool{
-		"jpg":  true,
-		"jpeg": true,
-		"png":  true,
-		"gif":  true,
-		"webp": true,
-	}
-	return validExtensions[ext]
+var allowedMimeTypes = map[string]string{
+	"image/jpeg":      "jpg",
+	"video/mp4":       "mp4",
+	"video/quicktime": "mov",
+	"video/webm":      "webm",
+	"audio/mpeg":      "mp3",
+	"audio/wav":       "wav",
+	"audio/ogg":       "ogg",
+	"audio/mp4":       "m4a",
+	"audio/aac":       "aac",
 }
 
-func GenerateUniqueImageKey(userID, extension string) string {
-	timestamp := time.Now().Unix()
-	uniqueID := uuid.New().String()[:8]
-
-	// format: images/{userID}/{timestamp}_{uniqueID}.{ext}
-	return fmt.Sprintf("images/%s/%d_%s.%s", userID, timestamp, uniqueID, extension)
+func NormalizeContentType(contentType string) string {
+	return strings.ToLower(strings.TrimSpace(contentType))
 }
 
-func GenerateImageKey(userID, extension string) string {
-	// format: images/{userID}.{ext}
-	return fmt.Sprintf("images/%s.%s", userID, extension)
+func IsAllowedMimeType(contentType string) bool {
+	_, ok := allowedMimeTypes[NormalizeContentType(contentType)]
+	return ok
 }
 
-func GetContentType(extension string) string {
-	contentTypes := map[string]string{
-		"jpg":  "image/jpeg",
-		"jpeg": "image/jpeg",
-		"png":  "image/png",
-		"gif":  "image/gif",
-		"webp": "image/webp",
+func GetExtensionFromMimeType(contentType string) string {
+	if ext, ok := allowedMimeTypes[NormalizeContentType(contentType)]; ok {
+		return ext
 	}
+	return ""
+}
 
-	if ct, ok := contentTypes[extension]; ok {
-		return ct
-	}
-	return "fake"
+func GenerateUniqueMediaKey(fileName string) string {
+	return fmt.Sprintf("media/unprocessed/%s", fileName)
 }

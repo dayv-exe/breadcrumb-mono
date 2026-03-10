@@ -5,6 +5,9 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
+	"encoding/json"
+	"mime"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -13,43 +16,106 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type response struct {
-	UploadUrl string `json:"uploadUrl"`
-	ImageKey  string `json:"imageKey"`
+type presignRequest struct {
+	FileNames []string `json:"fileNames"`
 }
 
-func HandleGeneratePresignedUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	userid := utils.GetAuthUserId(req)
-	if userid == "" {
+type validPresignedFile struct {
+	FileName    string `json:"fileName"`
+	ContentType string `json:"contentType"`
+	MediaKey    string `json:"mediaKey"`
+	UploadUrl   string `json:"uploadUrl"`
+}
+
+type invalidPresignedFile struct {
+	FileName string `json:"fileName"`
+	Reason   string `json:"reason"`
+}
+
+type presignResponse struct {
+	ValidFiles   []validPresignedFile   `json:"validFiles"`
+	InvalidFiles []invalidPresignedFile `json:"invalidFiles"`
+}
+
+func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	userID := utils.GetAuthUserId(req)
+	if userID == "" {
 		return models.UnauthorizedErrorResponse("User id not found"), nil
 	}
 
-	fileExtension := req.QueryStringParameters["ext"]
-
-	fileExtension = strings.ToLower(strings.TrimPrefix(fileExtension, "."))
-
-	if !utils.IsValidImageExtension(fileExtension) {
-		return models.InvalidRequestErrorResponse("Invalid image file extension. Only jpg, jpeg, png, gif, and webp are allowed!"), nil
+	var body presignRequest
+	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
+		return models.InvalidRequestErrorResponse("Invalid request body"), nil
 	}
 
-	imageKey := utils.GenerateUniqueImageKey(userid, fileExtension)
+	if len(body.FileNames) == 0 {
+		return models.InvalidRequestErrorResponse("At least one file is required"), nil
+	}
 
-	// presign
+	if len(body.FileNames) > 10 {
+		return models.InvalidRequestErrorResponse("Too many files to be uploaded at once!"), nil
+	}
+
 	presignClient := s3.NewPresignClient(utils.GetDependencies().S3Client)
-	presignedReq, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
-		Bucket:      &utils.GetDependencies().BucketName,
-		Key:         &imageKey,
-		ContentType: aws.String(utils.GetContentType(fileExtension)),
-	}, func(po *s3.PresignOptions) {
-		po.Expires = constants.PRESIGNED_URL_EXPIRY * time.Minute
-	})
-	if err != nil {
-		return models.ServerSideErrorResponse("Failed to generate presigned url", err), nil
+
+	validFiles := make([]validPresignedFile, 0, len(body.FileNames))
+	invalidFiles := make([]invalidPresignedFile, 0)
+
+	for _, fileName := range body.FileNames {
+		ext := strings.ToLower(filepath.Ext(fileName))
+		if ext == "" {
+			invalidFiles = append(invalidFiles, invalidPresignedFile{
+				FileName: fileName,
+				Reason:   "File has no extension",
+			})
+			continue
+		}
+
+		contentType := mime.TypeByExtension(ext)
+		if contentType == "" {
+			invalidFiles = append(invalidFiles, invalidPresignedFile{
+				FileName: fileName,
+				Reason:   "Unrecognized file extension",
+			})
+			continue
+		}
+
+		if !utils.IsAllowedMimeType(contentType) {
+			invalidFiles = append(invalidFiles, invalidPresignedFile{
+				FileName: fileName,
+				Reason:   "File type not allowed",
+			})
+			continue
+		}
+
+		mediaKey := utils.GenerateUniqueMediaKey(userID)
+
+		presignedReq, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
+			Bucket:      aws.String(utils.GetDependencies().BucketName),
+			Key:         aws.String(mediaKey),
+			ContentType: aws.String(contentType),
+		}, func(po *s3.PresignOptions) {
+			po.Expires = constants.PRESIGNED_URL_EXPIRY * time.Minute
+		})
+		if err != nil {
+			invalidFiles = append(invalidFiles, invalidPresignedFile{
+				FileName: fileName,
+				Reason:   "Failed to generate presigned URL",
+			})
+			continue
+		}
+
+		validFiles = append(validFiles, validPresignedFile{
+			FileName:    fileName,
+			ContentType: contentType,
+			MediaKey:    mediaKey,
+			UploadUrl:   presignedReq.URL,
+		})
 	}
 
-	res := response{
-		UploadUrl: presignedReq.URL,
-		ImageKey:  imageKey,
+	res := presignResponse{
+		ValidFiles:   validFiles,
+		InvalidFiles: invalidFiles,
 	}
 
 	return models.SuccessfulGetRequestResponse(res, nil), nil
