@@ -12,5 +12,5 @@ func init() {
 }
 
 func main() {
-	lambda.Start(handlers.HandleGeneratePresignedUrl)
+	lambda.Start(handlers.HandleGeneratePresignedUrls)
 }
