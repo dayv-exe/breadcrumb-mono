@@ -238,7 +238,7 @@ Resources:
           Type: HttpApi
           Properties:
             Path: /presigned_url
-            Method: GET
+            Method: POST
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
