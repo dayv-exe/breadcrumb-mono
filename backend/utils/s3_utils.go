@@ -7,6 +7,7 @@ import (
 
 var allowedMimeTypes = map[string]string{
 	"image/jpeg":      "jpg",
+	"image/png":       "png",
 	"video/mp4":       "mp4",
 	"video/quicktime": "mov",
 	"video/webm":      "webm",
