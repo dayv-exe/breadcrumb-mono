@@ -95,7 +95,7 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		if hashErr != nil {
 			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", hashErr)
 		}
-		mediaKey := utils.GenerateUniqueMediaKey(randHash.String())
+		mediaKey := utils.GenerateUniqueMediaKey(randHash.String() + "." + ext)
 
 		presignedReq, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 			Bucket:      aws.String(utils.GetDependencies().BucketName),
