@@ -247,7 +247,7 @@ Resources:
             Effect: Allow
             Action:
               - s3:PutObject
-            Resource: !Sub "${MediaBucket.Arn}/uploads/*"
+            Resource: !Sub "${MediaBucket.Arn}/*"
 
       # ill remove this later we dont need to use cloud front secrets
         - Statement:
