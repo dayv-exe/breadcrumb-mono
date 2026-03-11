@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"encoding/json"
+	"log"
 	"mime"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/google/uuid"
 )
 
 type presignRequest struct {
@@ -88,7 +90,12 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 			continue
 		}
 
-		mediaKey := utils.GenerateUniqueMediaKey(userID)
+		// using random file name for now
+		randHash, hashErr := uuid.NewRandom()
+		if hashErr != nil {
+			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", hashErr)
+		}
+		mediaKey := utils.GenerateUniqueMediaKey(randHash.String())
 
 		presignedReq, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 			Bucket:      aws.String(utils.GetDependencies().BucketName),
