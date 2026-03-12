@@ -16,7 +16,7 @@ const (
 	BIRTHDATE_CHANGE_DELAY   = 3                // days
 	EMAIL_CHANGE_DELAY       = 21               // days
 	MAX_FRIENDS              = 258              // friends
-	MAX_UPLOAD_SIZE          = 50 * 1024 * 1024 // 50 MB
+	MAX_UPLOAD_SIZE          = 15 * 1024 * 1024 // 50 MB
 )
 
 var ALLOWED_FILE_TYPES = map[string]struct{}{
