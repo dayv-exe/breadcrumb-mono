@@ -23,10 +23,11 @@ type presignRequest struct {
 }
 
 type validPresignedFile struct {
-	FileName    string `json:"fileName"`
-	ContentType string `json:"contentType"`
-	MediaKey    string `json:"mediaKey"`
-	UploadUrl   string `json:"uploadUrl"`
+	FileName    string            `json:"fileName"`
+	ContentType string            `json:"contentType"`
+	MediaKey    string            `json:"mediaKey"`
+	UploadUrl   string            `json:"uploadUrl"`
+	Fields      map[string]string `json:"fields"`
 }
 
 type invalidPresignedFile struct {
@@ -97,12 +98,15 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		}
 		mediaKey := utils.GenerateUniqueMediaKey(randHash.String() + ext)
 
-		presignedReq, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
+		presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 			Bucket:      aws.String(utils.GetDependencies().BucketName),
 			Key:         aws.String(mediaKey),
 			ContentType: aws.String(contentType),
-		}, func(po *s3.PresignOptions) {
+		}, func(po *s3.PresignPostOptions) {
 			po.Expires = constants.PRESIGNED_URL_EXPIRY * time.Minute
+			po.Conditions = []any{
+				[]any{"content-length-range", 0, constants.MAX_UPLOAD_SIZE},
+			}
 		})
 		if err != nil {
 			invalidFiles = append(invalidFiles, invalidPresignedFile{
@@ -117,6 +121,7 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 			ContentType: contentType,
 			MediaKey:    mediaKey,
 			UploadUrl:   presignedReq.URL,
+			Fields:      presignedReq.Values,
 		})
 	}
 

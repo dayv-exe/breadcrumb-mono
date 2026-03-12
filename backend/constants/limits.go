@@ -12,10 +12,11 @@ const (
 	MAX_CHUNKABLE_LEN        = 10 // max length a nickname or name can be for creating search index
 	MAX_SEARCH_STRING_CHARS  = 20
 	PRESIGNED_URL_EXPIRY     = 15
-	NAME_CHANGE_DELAY        = 3   // days
-	BIRTHDATE_CHANGE_DELAY   = 3   // days
-	EMAIL_CHANGE_DELAY       = 21  // days
-	MAX_FRIENDS              = 258 // friends
+	NAME_CHANGE_DELAY        = 3                // days
+	BIRTHDATE_CHANGE_DELAY   = 3                // days
+	EMAIL_CHANGE_DELAY       = 21               // days
+	MAX_FRIENDS              = 258              // friends
+	MAX_UPLOAD_SIZE          = 50 * 1024 * 1024 // 50 MB
 )
 
 var ALLOWED_FILE_TYPES = map[string]struct{}{
