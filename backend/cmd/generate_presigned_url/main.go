@@ -15,6 +15,7 @@ func init() {
 	mime.AddExtensionType(".heif", "image/heif")
 	mime.AddExtensionType(".avif", "image/avif")
 	mime.AddExtensionType(".mp4", "video/mp4")
+	mime.AddExtensionType(".m4a", "audio/mp4")
 }
 
 func main() {
