@@ -1,0 +1,64 @@
+crumb db item:
+id
+sender
+receiver [] *
+raw_location *
+raw_location_accuracy *
+location_type *: "my location", "friends location", "selected on map"
+place_ids []
+text *
+media [] *: {index, base, overlay, type}
+media_urls []
+time
+status
+error
+
+media db item:
+file_name
+crumb_id
+index
+type: "thumbnail | big_thumbnail | overlay | base"
+sender
+receiver []
+status
+thumbnail_small
+thumbnail_mid
+error
+
+functions:
+- db stream handler (write to the main crumb db item)
+- s3:puItem handler
+- media_convert event bridge handler
+
+client -> bucket(unprocessed) -> media_convert -> bucket(processed)
+
+images (that are not overlays):
+  client(upload) -> bucket(unprocessed) -> lambda(decide) -> bucket(processed) -> lambda(thumbnail)
+
+audio:
+  client(upload) -> bucket(unprocessed) -> lambda(decide) -> bucket(processed)
+
+videos & overlays:
+  client(upload) -> bucket(unprocessed) -> lambda(decide) -> media_convert(merge) -> bucket(processed) -> lambda(thumbnail)
+
+-upload media to bucket (unprocessed)
+trigger lambda on upload complete
+change status from uploading to processing in db metadata
+if is overlay get base and merge(send to media_convert)
+else if is base overlay and merge(send to media_convert)
+else if other layer not ready kill process
+else if only one layer, send to processed
+  change status of media from processing to processed
+
+-handle merge (aws media_convert)
+try merge
+send outcome to event bridge
+
+-event bridge
+if successful do nothing, processed bucket lambda will handle thumbnail
+else set media metadata error to error message, add to queue
+
+-upload to bucket (processed)
+if no thumbnails in metadata
+trigger thumbnail lambda
+create thumbnails and send to thumbnail dir

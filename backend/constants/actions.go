@@ -12,3 +12,13 @@ const (
 	QUEUE_ACTION_UPDATE_FRIENDS_DISPLAY_INFO  = "update_friends_display_info"
 	QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO = "update_requests_display_info"
 )
+
+type LOCATION_TYPE string
+
+const (
+	MY_LOCATION      LOCATION_TYPE = "mine"
+	FRIENDS_LOCATION LOCATION_TYPE = "friends"
+	SELECT_ON_MAP    LOCATION_TYPE = "map"
+)
+
+type CRUMB_STATUS string
