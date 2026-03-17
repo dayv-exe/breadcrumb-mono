@@ -1,4 +1,5 @@
 import { MediaItem } from "@/api/getPresignedUrl";
+import { ShowToast } from "@/constants/appConstants";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -218,6 +219,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
       setShareIsPending(false)
       hideModal()
       resetMediaStore()
+      ShowToast("✅ Done")
     },
     onError: (err) => {
       console.log("Share failed:", err);
