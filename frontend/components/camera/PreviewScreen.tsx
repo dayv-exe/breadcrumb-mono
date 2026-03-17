@@ -381,6 +381,9 @@ export default function PreviewScreen({
   const viewShotRef = useRef<View>(null);
   const overlayViewShotRef = useRef<View>(null);
   const { height } = useWindowDimensions()
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const shotWidth = Math.floor(screenWidth);
+  const shotHeight = Math.floor((shotWidth * 16) / 9);
   const deleteZone = useDropZone({
     hitSlop: 10,
     onDrop: () => removeOverlay(currentOverlayDragId.current ?? ""),
@@ -445,11 +448,16 @@ export default function PreviewScreen({
             format: "png",
             quality: 1,
           }) : ""
+          const thumb = await captureRef(viewShotRef, {
+            format: "jpg",
+            quality: 1
+          })
           processed.push({
             index: i,
             media: item.uri,
             type: "video",
-            overlay: overlayUri ?? null
+            overlay: overlayUri ?? null,
+            thumbnail: thumb
           })
           break;
         }
@@ -553,7 +561,10 @@ export default function PreviewScreen({
     <>
       <View style={[styles.previewContainer, { paddingTop: insets.top }]}>
 
-        <View collapsable={false} ref={viewShotRef} style={styles.viewShot}>
+        <View collapsable={false} ref={viewShotRef} style={[styles.viewShot, {
+          width: shotWidth,
+          height: shotHeight
+        }]}>
           <GestureDetector gesture={gesture}>
             <View
               style={[styles.previewMediaWrapper]}
@@ -656,21 +667,13 @@ const styles = StyleSheet.create({
   previewContainer: {
     flex: 1,
     backgroundColor: "black",
-    borderColor: "green",
-    borderWidth: 0,
     justifyContent: "center",
+    alignItems: "center",
   },
   viewShot: {
-    flex: 1,
     backgroundColor: "black",
-    borderColor: "green",
-    aspectRatio: 9 / 16
   },
   previewMediaWrapper: {
-    flex: 1,
-    width: "100%",
-    borderColor: "orange",
-    borderWidth: 0,
   },
   previewMedia: {
     width: "100%",

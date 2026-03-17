@@ -138,7 +138,6 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     set({
       mediaPreview: [...state.mediaPreview, nextMedia],
       currentMediaIndex: newIndex,
-      showMediaPreviews: true,
     });
 
     return newIndex;
