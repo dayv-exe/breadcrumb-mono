@@ -226,7 +226,7 @@ Resources:
   GeneratePresignedUrl:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-S3ActionFunction
+      FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-GeneratePresignedUrl
       CodeUri: bin/generate_presigned_url/generate_presigned_url.zip
       Handler: bootstrap
       Description: to presign url for uploads

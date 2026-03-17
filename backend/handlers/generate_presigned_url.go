@@ -100,9 +100,9 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 
 		validFiles = append(validFiles, ValidPresignedMediaItem{
 			Index:         file.Index,
-			MediaFile:     *media,
-			OverlayFile:   *overlay,
-			ThumbnailFile: *thumbnail,
+			MediaFile:     media,
+			OverlayFile:   overlay,
+			ThumbnailFile: thumbnail,
 			Type:          file.Type,
 		})
 	}
@@ -115,14 +115,14 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	return models.SuccessfulGetRequestResponse(res, nil), nil
 }
 
-func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, mediaLayerType string) (*validPresignedFile, *invalidPresignedFile) {
+func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, mediaLayerType string) (validPresignedFile, *invalidPresignedFile) {
 	if strings.TrimSpace(fileName) == "" {
-		return nil, nil
+		return validPresignedFile{}, nil
 	}
 
 	ext := strings.ToLower(filepath.Ext(fileName))
 	if ext == "" {
-		return nil, &invalidPresignedFile{
+		return validPresignedFile{}, &invalidPresignedFile{
 			FileName: fileName,
 			Reason:   "File has no extension",
 		}
@@ -130,7 +130,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 
 	contentType := mime.TypeByExtension(ext)
 	if contentType == "" {
-		return nil, &invalidPresignedFile{
+		return validPresignedFile{}, &invalidPresignedFile{
 			FileName: fileName,
 			Reason:   "Unrecognized file extension",
 		}
@@ -139,14 +139,14 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 	switch mediaLayerType {
 	case "overlay":
 		if !utils.IsAllowedOverlayMimeType(contentType) {
-			return nil, &invalidPresignedFile{
+			return validPresignedFile{}, &invalidPresignedFile{
 				FileName: fileName,
 				Reason:   "File type not allowed for overlays",
 			}
 		}
 	case "thumbnail":
 		if !utils.IsAllowedThumbnailMimeType(contentType) {
-			return nil, &invalidPresignedFile{
+			return validPresignedFile{}, &invalidPresignedFile{
 				FileName: fileName,
 				Reason:   "File type not allowed for thumbnails",
 			}
@@ -154,7 +154,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 	}
 
 	if !utils.IsAllowedMimeType(contentType) {
-		return nil, &invalidPresignedFile{
+		return validPresignedFile{}, &invalidPresignedFile{
 			FileName: fileName,
 			Reason:   "File type not allowed",
 		}
@@ -179,13 +179,13 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 	})
 	if err != nil {
 		log.Printf("An error occurred while trying to generate presigned url. file name: %s ERROR: %v", fileName, err)
-		return nil, &invalidPresignedFile{
+		return validPresignedFile{}, &invalidPresignedFile{
 			FileName: fileName,
 			Reason:   "Failed to generate presigned URL",
 		}
 	}
 
-	return &validPresignedFile{
+	return validPresignedFile{
 		FileName:    fileName,
 		ContentType: contentType,
 		MediaKey:    mediaKey,
