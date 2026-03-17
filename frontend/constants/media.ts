@@ -51,8 +51,8 @@ export type DrawingOverlay = {
 export type EditOverlay = TextOverlay | StickerOverlay | DrawingOverlay;
 
 // --- Media Data ---
-
 export type MediaData = {
+  id: string
   uri: string;
   type: MediaType;
   duration?: number;
@@ -66,6 +66,7 @@ export type MediaData = {
   overlays?: EditOverlay[];
   cropTransform?: CropTransform
   pendingCropTransform?: CropTransform
+  isPlaceholder?: boolean
 };
 
 export const createDefaultCropTransform = (): CropTransform => ({
@@ -92,7 +93,7 @@ export const createDefaultTextOverlay = (defaultText: string, x: number, y: numb
 export const createDefaultStickerOverlay = (sticker: string, x: number, y: number): StickerOverlay => ({
   id: `${Date.now()}-${Math.random()}`,
   emoji: sticker,
-  size: 100,
+  size: 75,
   type: "sticker",
   transform: {
     x: x,

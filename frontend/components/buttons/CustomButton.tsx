@@ -102,18 +102,21 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
     ]}>
       {isPending &&
         <>
-          <ActivityIndicator color={getTextColor()} />
+          <ActivityIndicator style={{
+            width: fontSize,
+            height: fontSize,
+          }} color={getTextColor()} />
           <Spacer size="small" />
         </>
       }
-      {imgSrc && <>
+      {!isPending && imgSrc && <>
         <Image source={imgSrc} style={{
           width: imgSize ?? fontSize,
           height: imgSize ?? fontSize,
         }} />
-        {labelText && <Spacer size="small" />}
+        {!isPending && labelText && <Spacer size="small" />}
       </>}
-      {labelText && <Text numberOfLines={1} ellipsizeMode="tail" style={[
+      {!isPending && labelText && <Text numberOfLines={1} ellipsizeMode="tail" style={[
         styles.text,
         {
           color: getTextColor(),

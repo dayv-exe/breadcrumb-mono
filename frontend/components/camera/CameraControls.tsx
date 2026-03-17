@@ -31,9 +31,9 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
 
   return (
     <View style={[styles.cameraControls, {
-      justifyContent: isRecording ? "flex-end" : "space-between"
+      justifyContent: isRecording ? "center" : "center"
     }]}>
-      {!isRecording && <CustomImageButton
+      {<CustomImageButton
         handleClick={() => {
           pickFromGallery({
             allowsEditing: false,
@@ -42,13 +42,17 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
             selectionLimit: MAX_PREVIEW_MEDIA - previews.length
           });
         }}
-        customStyle={styles.imageButtons}
+        customStyle={[styles.imageButtons, {
+          opacity: isRecording ? 0 : 1
+        }]}
         type="text"
         src={icons.gallery}
         size={27}
       />}
-      {!isRecording && <CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={25} type="text" customStyle={styles.imageButtons} handleClick={toggleFlash} />}
-      <CustomImageButton src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={25} type="text" customStyle={styles.imageButtons} handleClick={flipCamera} />
+      {<CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={27} type="text" customStyle={[styles.imageButtons, {
+        opacity: isRecording ? 0 : 1
+      }]} handleClick={toggleFlash} />}
+      <CustomImageButton src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={27} type="text" customStyle={styles.imageButtons} handleClick={flipCamera} />
     </View>
   )
 }
@@ -56,15 +60,15 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
 const styles = StyleSheet.create({
   cameraControls: {
     position: "absolute",
-    width: "100%",
-    top: 10,
+    height: "100%",
+    left: 0,
     zIndex: 100,
-    flexDirection: "row",
+    flexDirection: "column-reverse",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 10
+    justifyContent: "center",
+    paddingHorizontal: 5
   },
   imageButtons: {
-
+    marginVertical: 10
   }
 })

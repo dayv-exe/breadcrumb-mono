@@ -36,18 +36,26 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
   })))
   const { closeSheet, openSheet } = useBottomSheet()
 
-  const handleCrop = () => {
-    media.pendingCropTransform = media.cropTransform
-    setEditing("crop")
+  const handleDelCurMedia = () => {
+    if (media.isPlaceholder) return
+    deleteCurrentMedia()
+  }
+
+  const handleSpawnText = () => {
+    if (media.isPlaceholder) return
+    spawnTextOverlay()
   }
 
   const handleShowSticker = useCallback(() => {
+    if (media.isPlaceholder) return
+    setEditing("sticker")
     openSheet({
       dynamicHeight: false,
       content: (
         <EmojiPicker onSelect={s => {
           spawnSticker(s, 0, 0)
           closeSheet()
+          setEditing("none")
         }} />
       ),
       snapPoints: ["80%"],
@@ -55,17 +63,23 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
     })
   }, [spawnSticker])
 
+  const handleCrop = () => {
+    if (media.isPlaceholder) return
+    media.pendingCropTransform = media.cropTransform
+    setEditing("crop")
+  }
+
   return (
     <View style={[style.container, {
       top: top + 10
     }]} pointerEvents="box-none">
       <DownloadButton media={media} />
       <View>
-        <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/deletepreview_unsel_light.png")} type="text" handleClick={deleteCurrentMedia} />
+        <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/deletepreview_unsel_light.png")} type="text" handleClick={handleDelCurMedia} />
         <Spacer />
         {(media.type === "photo" || media.type === "video") &&
           <>
-            <CustomImageButton customStyle={style.buttons} size={25} src={require("../../assets/images/icons/textoverlay_sel_light.png")} type="text" handleClick={spawnTextOverlay} />
+            <CustomImageButton customStyle={style.buttons} size={25} src={require("../../assets/images/icons/textoverlay_sel_light.png")} type="text" handleClick={handleSpawnText} />
             <Spacer size="small" />
             <CustomImageButton customStyle={style.buttons} size={25} src={require("../../assets/images/icons/stickeroverlay_unsel_light.png")} type="text" handleClick={handleShowSticker} />
             <Spacer size="small" />

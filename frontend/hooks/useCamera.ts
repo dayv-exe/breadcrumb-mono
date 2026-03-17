@@ -7,7 +7,7 @@ import {
   useAudioRecorderState
 } from 'expo-audio';
 import * as Haptics from "expo-haptics";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   cancelAnimation,
   Easing,
@@ -19,10 +19,12 @@ import {
   Camera,
   CameraDevice,
   CameraDeviceFormat,
+  PhotoFile,
   useCameraDevice,
   VideoFile,
 } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
+import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
 import { useMediaPermissions } from "./usePermissions";
 
@@ -52,12 +54,13 @@ function normalizeFileUri(path: string) {
 }
 
 export function useCamera(): useCameraReturnType {
-  const { addMediaPreview, setIsRecording, mediaPreview, setShowMediaPreview } = useMediaStore(
+  const { addMediaPreview, setIsRecording, mediaPreview, setShowMediaPreview, replaceMediaPreview } = useMediaStore(
     useShallow(s => ({
       addMediaPreview: s.addMediaPreview,
+      replaceMediaPreview: s.replaceMediaPreview,
       setIsRecording: s.setIsRecording,
       mediaPreview: s.mediaPreview,
-      setShowMediaPreview: s.setShowMediaPreviews
+      setShowMediaPreview: s.setShowMediaPreviews,
     }))
   );
   const mediaPrevLen = useRef(mediaPreview.length)
@@ -81,6 +84,7 @@ export function useCamera(): useCameraReturnType {
     return cams;
   }, [frontCamera, backCamera]);
 
+  const vidPlaceHolderFrame = useRef<PhotoFile | null>(null)
   const recordingProgress = useSharedValue(0);
   const zoomLevel = useSharedValue(activeCamera?.neutralZoom ?? 1);
   const format = useMemo(() => {
@@ -115,6 +119,7 @@ export function useCamera(): useCameraReturnType {
       if (!autoRestart) {
         setIsRecording(false);
         zoomLevel.value = activeCamera?.neutralZoom ?? 1;
+
       }
       await cameraRef.current.stopRecording();
       cancelAnimation(recordingProgress);
@@ -149,6 +154,7 @@ export function useCamera(): useCameraReturnType {
           flash: useFlash,
           onRecordingFinished: (video: VideoFile) => {
             addMediaPreview({
+              id: uuidv4(),
               type: "video",
               uri: normalizeFileUri(video.path),
               resizeMode: "cover",
@@ -173,18 +179,55 @@ export function useCamera(): useCameraReturnType {
 
   const cameraRef = useRef<Camera>(null);
 
-  async function takePhoto() {
-    if (useFlash === "off") {
-      // take cheat photo
-      return;
+  async function takeQuickPhoto() {
+    const camera = cameraRef.current;
+    let placeholderIndex = -1
+    if (camera) {
+      try {
+        const photoPromise = camera.takePhoto({
+          flash: useFlash,
+          enableShutterSound: false
+        })
+
+        const snapshotPromise = camera.takeSnapshot({
+          quality: 0,
+        })
+
+        const snapshot = await snapshotPromise
+        placeholderIndex = addMediaPreview({
+          id: uuidv4(),
+          type: "photo",
+          uri: normalizeFileUri(snapshot.path),
+          resizeMode: "cover",
+          isPlaceholder: true,
+        });
+        setShowMediaPreview(true)
+
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid).catch(() => { });
+        const photo = await photoPromise
+        replaceMediaPreview(placeholderIndex, {
+          id: uuidv4(),
+          type: "photo",
+          uri: normalizeFileUri(photo.path),
+          resizeMode: "cover",
+          isPlaceholder: false
+        });
+      } catch (error) {
+        console.error("Error taking photo:", error);
+      }
     }
+  }
+
+  async function takeNormalPhoto() {
     if (cameraRef.current) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
       try {
         const photo = await cameraRef.current.takePhoto({
           flash: useFlash,
+          enableShutterSound: false
         });
         addMediaPreview({
+          id: uuidv4(),
           type: "photo",
           uri: normalizeFileUri(photo.path),
           resizeMode: "cover"
@@ -193,6 +236,15 @@ export function useCamera(): useCameraReturnType {
       } catch (error) {
         console.error("Error taking photo:", error);
       }
+    }
+  }
+
+  async function takePhoto() {
+    if (useFlash === "on") {
+      takeNormalPhoto()
+    } else {
+      takeQuickPhoto()
+      // takeNormalPhoto()
     }
   }
 
@@ -240,6 +292,7 @@ export function useCamera(): useCameraReturnType {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
     if (audioRecorder.uri) {
       addMediaPreview({
+        id: uuidv4(),
         resizeMode: "contain",
         type: "audio",
         uri: normalizeFileUri(audioRecorder.uri)
@@ -265,6 +318,6 @@ export function useCamera(): useCameraReturnType {
     startAudioRecording,
     finishAudioRecording,
     cancelAudioRecording,
-    audioRecordingProgress
+    audioRecordingProgress,
   };
 }

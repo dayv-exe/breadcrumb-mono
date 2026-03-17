@@ -78,24 +78,25 @@ function CameraComponent({
   return (
     <GestureDetector gesture={gesture}>
       <View style={StyleSheet.absoluteFill}>
-        <ReanimatedCamera
-          ref={cameraRef}
-          enableZoomGesture
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: "black", borderRadius: 25, overflow: "hidden" },
-          ]}
-          device={activeCamera!}
-          isActive={true}
-          animatedProps={animatedProps}
-          audio={true}
-          photo={true}
-          video={true}
-          format={format}
-          photoQualityBalance="speed"
-          outputOrientation={"preview"}
-          
-        />
+        <View style={StyleSheet.absoluteFill}>
+          <ReanimatedCamera
+            ref={cameraRef}
+            enableZoomGesture
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "black", borderTopLeftRadius: 25, borderTopRightRadius: 25, overflow: "hidden" },
+            ]}
+            device={activeCamera!}
+            isActive={true}
+            animatedProps={animatedProps}
+            audio={true}
+            photo={true}
+            video={true}
+            format={format}
+            photoQualityBalance="balanced"
+            outputOrientation={"preview"}
+          />
+        </View>
         {children}
       </View>
     </GestureDetector>

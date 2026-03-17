@@ -6,6 +6,7 @@ import { useMediaStore } from "@/utils/mediaStore";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Alert, Platform, ScaledSize, useWindowDimensions } from "react-native";
+import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
 import { useMediaPermissions } from "./usePermissions";
 
@@ -29,7 +30,7 @@ interface UseImagePickerReturn {
 
 const DEFAULT_OPTIONS: ImagePickerOptions = {
   allowsEditing: true,
-  quality: 0.8,
+  quality: 1,
   mediaTypes: ["images"],
   allowMultipleSel: false,
   selectionLimit: 5,
@@ -64,9 +65,9 @@ export const useImagePicker = (): UseImagePickerReturn => {
       const asset = result.assets;
       let processed: MediaData[] = []
       asset.map(asset => {
-        if (asset.duration && asset.duration > MAX_VIDEO_DURATION_MILLISECONDS) {
+        if (asset.duration && asset.duration > MAX_VIDEO_DURATION_MILLISECONDS + 1000) {
           showModal({
-            message: `Oops! That video is a little too long. Videos can be up to ${(MAX_VIDEO_DURATION_MILLISECONDS - 1000) / 1000} seconds.`,
+            message: `Oops! That video is a little too long. Videos can be up to ${(MAX_VIDEO_DURATION_MILLISECONDS) / 1000} seconds.`,
             primaryBtnText: "Okay",
             onPrimary: hideModal
           })
@@ -74,6 +75,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
           return
         }
         processed.push({
+          id: uuidv4(),
           uri: asset.uri,
           width: asset.width,
           height: asset.height,
@@ -124,7 +126,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
         mediaTypes: mergedOptions.mediaTypes,
         allowsEditing: mergedOptions.allowsEditing,
         aspect: mergedOptions.aspect,
-        quality: mergedOptions.quality,
+        quality: 1,
         allowsMultipleSelection: mergedOptions.allowMultipleSel,
         videoExportPreset: ImagePicker.VideoExportPreset.MediumQuality,
         ...(Platform.OS === "ios"
@@ -166,7 +168,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
         mediaTypes: mergedOptions.mediaTypes,
         allowsEditing: mergedOptions.allowsEditing,
         aspect: mergedOptions.aspect,
-        quality: mergedOptions.quality,
+        quality: 1,
       });
 
       const processedImage = processImageResult(result);

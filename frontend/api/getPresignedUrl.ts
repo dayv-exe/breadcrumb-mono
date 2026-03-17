@@ -1,18 +1,57 @@
 import axiosInstance from "@/constants/axios";
+import { MediaType } from "@/constants/media";
 import { AxiosError } from "axios";
 import { apiResponse } from "./models/apiResponse";
 
-export type signedUrlResponse = {
-  imageKey: string
-  uploadUrl: string
+export type MediaItem = {
+  index: number
+  media: string
+  overlay?: string
+  thumbnail?: string
+  type: MediaType
 }
 
-export const getPresignedUrl = async (fileExtension: string): Promise<apiResponse<signedUrlResponse | null>> => {
-  try {
-    const { data } = await axiosInstance.get<{ message: signedUrlResponse }>(`/presigned_url?ext=${fileExtension}`)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: null, error: (error as AxiosError).message }
-  }
+export type PresignedMediaItem = {
+  index: number
+  media: validPresignedMediaItemFile
+  overlay: validPresignedMediaItemFile | null
+  thumbnail: validPresignedMediaItemFile | null
+  type: MediaType
 }
+
+export type validPresignedMediaItemFile = {
+  fileName: string;
+  contentType: string;
+  mediaKey: string;
+  uploadUrl: string;
+  fields: Record<string, string>
+};
+
+export type invalidPresignedFile = {
+  fileName: string;
+  reason: string;
+};
+
+export type presignedUrlResponse = {
+  validFiles: PresignedMediaItem[];
+  invalidFiles: invalidPresignedFile[];
+};
+
+export const getPresignedUrls = async (
+  files: MediaItem[]
+): Promise<apiResponse<presignedUrlResponse | null>> => {
+  try {
+    const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
+      "/presigned_url",
+      { files }
+    );
+    return { message: data.message, error: null };
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    const backendMessage = axiosError.response?.data?.message
+      ?? axiosError.message; // fallback to generic Axios message
+      console.log(backendMessage)
+    return { message: null, error: backendMessage };
+    
+  }
+};

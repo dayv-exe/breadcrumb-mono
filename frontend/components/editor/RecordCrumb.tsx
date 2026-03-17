@@ -52,7 +52,7 @@ export default function RecordCrumb({ startRecording, finishAudioRecording, canc
         if (!isRecording) return
         finishAudioRecording()
       }}>
-        <CustomLabel labelText="Record a crumb" fontSize={18} />
+        <CustomLabel labelText="Record a crumb" fontSize={18} customStyle={{opacity: 0}} />
         <Image style={style.image} source={require("../../assets/images/icons/recording_sel_light.png")} />
         <CustomLabel labelText="" />
         <DeleteZone

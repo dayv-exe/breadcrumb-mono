@@ -1,18 +1,20 @@
 import { TextOverlay as overlayType } from "@/constants/media";
 import { useKeyboardListener } from "@/hooks/useKeyboardListiner";
 import { useMediaStore } from "@/utils/mediaStore";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import CustomButton from "../buttons/CustomButton";
 import CustomInput from "../inputs/CustomInput";
+import ElevatedView from "../views/ElevatedView";
 import DraggableItem from "./DraggableItem";
 
 type props = {
   overlay: overlayType
   handleRemoveOverlay: () => void
+  onFocus: (ref: React.RefObject<TextInput | null>) => void
   onBlur: () => void
   focusOnMount: boolean
   onDragStart?: () => void;
@@ -20,7 +22,7 @@ type props = {
   onDragEnd?: (absoluteX: number, absoluteY: number) => void;
 }
 
-export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, focusOnMount, onBlur, onDragEnd, onDragMove, onDragStart }: props) {
+export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, focusOnMount, onBlur, onDragEnd, onDragMove, onDragStart, onFocus }: props) {
   const [text, setText] = useState(overlay.text)
   const inputRef = useRef<TextInput>(null)
   const [center, setCenter] = useState(false)
@@ -65,15 +67,25 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
 
   const handleFocus = () => {
     setEditing("text")
+    onFocus(inputRef)
   }
 
-  useKeyboardListener({
-    onShow: () => {
+  const handleKeyboardShown = () => {
+    setTimeout(() => {
       if (inputRef.current?.isFocused()) {
         setCenter(true);
       } else {
         setHide(true)
       }
+    }, 100)
+  }
+
+  useKeyboardListener({
+    onShow: () => {
+      //handleKeyboardShown()
+    },
+    onWillShow: () => {
+      handleKeyboardShown()
     },
     onWillHide: () => {
       setCenter(false);
@@ -101,10 +113,14 @@ export default function DraggableTextOverlay({ overlay, handleRemoveOverlay, foc
         <View style={styles.background}>
           <CustomInput ref={inputRef} customStyle={styles.input} customInputStyle={{ backgroundColor: "transparent", color: "white", width: "100%", textAlign: "center", padding: 10 }} hideActiveBorders multiline allowNewLines={false} labelText="" value={text} setValue={setText} onBlur={handleBlur} onFocus={handleFocus} />
         </View>
+        {center && false &&
+          <ElevatedView style={[styles.toolbar, {}]}>
+            <CustomButton type="less-prominent" handleClick={() => {
+              inputRef.current?.blur()
+            }} labelText="Done" slim useMinWidth />
+          </ElevatedView>
+        }
       </DraggableItem>
-      {center && <CustomButton type="less-prominent" customStyle={{ position: "absolute", top: top + 10, right: 10, paddingHorizontal: 20 }} handleClick={() => {
-        inputRef.current?.blur()
-      }} labelText="Done" slim />}
     </>
   );
 }
@@ -118,4 +134,16 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "transparent",
   },
+  toolbar: {
+    alignSelf: "flex-end",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    padding: 15,
+    width: "auto",
+    marginTop: 10,
+    borderRadius: 25,
+    shadowOpacity: .5,
+    backgroundColor: "transparent"
+  }
 })

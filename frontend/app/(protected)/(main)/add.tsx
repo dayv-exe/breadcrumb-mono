@@ -1,4 +1,5 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
+import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
@@ -7,6 +8,7 @@ import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
+import SnapCarousel from "@/components/inputs/SnapCarousel";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
@@ -16,6 +18,7 @@ import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
 
 type recMode = "image" | "audio"
@@ -60,6 +63,7 @@ function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeig
               handleCancel={closeSheet}
               handleSave={crumb => {
                 addToPreview({
+                  id: uuidv4(),
                   resizeMode: "contain",
                   type: "text",
                   uri: "",
@@ -99,21 +103,29 @@ export default function AddScreen() {
     flipCamera,
     startAudioRecording,
     finishAudioRecording,
-    cancelAudioRecording
+    cancelAudioRecording,
   } = useCamera();
-  const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews } = useMediaStore(
+  const { isRecording, mediaPreview, showMediaPreviews, setShowMediaPreviews, addPreview } = useMediaStore(
     useShallow((s) => ({
       isRecording: s.isRecording,
       mediaPreview: s.mediaPreview,
       showMediaPreviews: s.showMediaPreviews,
-      setShowMediaPreviews: s.setShowMediaPreviews
+      setShowMediaPreviews: s.setShowMediaPreviews,
+      addPreview: s.addMediaPreview,
     }))
   );
   const isFocused = useIsFocused();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions()
+  const { openSheet, closeSheet } = useBottomSheet()
   const maxHeight = height - insets.top
   const [recMode, setRecMode] = useState<recMode>("image")
+  const [modeIndex, setModeIndex] = useState(0)
+
+  const handleCloseTextCrumb = () => {
+    closeSheet()
+    setModeIndex(recMode === "image" ? 0 : 1)
+  }
 
   useEffect(() => {
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
@@ -128,6 +140,50 @@ export default function AddScreen() {
         <View
           style={{ flex: 1, backgroundColor: "black", paddingTop: insets.top }}
         >
+          {!isRecording && <View style={{
+            width: "100%",
+            position: "absolute",
+            top: insets.top,
+            zIndex: 10000,
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <SnapCarousel style={{ height: "auto" }} onSelect={mi => {
+              if (mi === 0) {
+                setRecMode("image")
+              } else if (mi === 1) {
+                setRecMode("audio")
+              } else if (mi === 2) {
+                openSheet({
+                  content: (
+                    <WriteCrumb
+                      handleCancel={handleCloseTextCrumb}
+                      handleSave={crumb => {
+                        addPreview({
+                          id: uuidv4(),
+                          resizeMode: "contain",
+                          type: "text",
+                          uri: "",
+                          text: crumb
+                        })
+                        handleCloseTextCrumb()
+                        setShowMediaPreviews(true)
+                      }}
+                    />
+                  ),
+                  snapPoints: [maxHeight],
+                  showHandle: false,
+                  reduceAnimations: true,
+                  borderRadius: 25
+                })
+                return
+              }
+            }} selectedIndex={modeIndex}>
+              <CustomButton fontSize={18} bold labelText="Photo" type="text" handleClick={() => setModeIndex(0)} />
+              <CustomButton fontSize={18} bold labelText="Audio" type="text" handleClick={() => setModeIndex(1)} />
+              <CustomButton fontSize={18} bold labelText="Text" type="text" handleClick={() => setModeIndex(2)} />
+            </SnapCarousel>
+          </View>}
           {isFocused && (
             <View style={styles.container}>
               {recMode === "audio" &&
@@ -154,7 +210,7 @@ export default function AddScreen() {
                     setUseFlash={setUseFlash}
                     useFlash={useFlash}
                   />}
-                  {!isRecording && <CrumbTypePicker maxSheetHeight={maxHeight} recMode={recMode} setRecMode={setRecMode} />}
+                  {!isRecording && false && <CrumbTypePicker maxSheetHeight={maxHeight} recMode={recMode} setRecMode={setRecMode} />}
                 </>
               )}
             </View>

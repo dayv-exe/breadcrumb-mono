@@ -1,209 +1,307 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
-import { createDefaultCropTransform, createDefaultStickerOverlay, createDefaultTextOverlay, EditOverlay, MediaData } from "@/constants/media";
+import {
+  createDefaultCropTransform,
+  createDefaultStickerOverlay,
+  createDefaultTextOverlay,
+  EditOverlay,
+  MediaData,
+} from "@/constants/media";
 import { create } from "zustand";
 
 export type Friend = {
   id: string;
   name: string;
   avatar: string;
-  isOnline: boolean
+  isOnline: boolean;
 };
 
-// current overlay item and save transform
-// current overlay item save value
-
-type editingMode = "none" | "crop" | "text"
+export type EditingMode = "none" | "crop" | "text" | "sticker";
 
 type MediaState = {
   mediaPreview: MediaData[];
-  showMediaPreviews: boolean
+  showMediaPreviews: boolean;
   isRecording: boolean;
-  currentMediaIndex: number
+  currentMediaIndex: number;
   selectedFriend: Friend | null;
-  editing: editingMode
-  setEditing: (s: editingMode) => void
-  setSelectedFriend: (f: Friend | null) => void;
-  setCurrentMediaIndex: (i: number) => void;
-  setShowMediaPreviews: (s: boolean) => void;
-  addMediaPreview: (media: MediaData) => void;
+  editing: EditingMode;
+  sharing: boolean;
+
+  reset: () => void;
+
+  setSharing: (sharing: boolean) => void;
+  setEditing: (editing: EditingMode) => void;
+  setSelectedFriend: (friend: Friend | null) => void;
+  setCurrentMediaIndex: (index: number) => void;
+  setShowMediaPreviews: (show: boolean) => void;
+  setIsRecording: (isRecording: boolean) => void;
+
+  addMediaPreview: (media: MediaData) => number;
+  replaceMediaPreview: (index: number, media: MediaData) => void;
   discardMediaPreview: () => void;
   discardAllMediaPreview: () => void;
-  setIsRecording: (s: boolean) => void;
-  addTextOverlayToCurrentMedia: (s: string, x: number, y: number) => void;
-  addStickerOverlayToCurrentMedia: (s: string, x: number, y: number) => void;
+
+  addTextOverlayToCurrentMedia: (text: string, x: number, y: number) => void;
+  addStickerOverlayToCurrentMedia: (sticker: string, x: number, y: number) => void;
   removeOverlayFromCurrentMedia: (overlayId: string) => void;
-  updateCurrentMediaOverlay: (overlayId: string, overlay: EditOverlay) => void
-  updateCurrentMediaText: (text: string) => void
-  goToPreviousPreview: () => void
-  goToNextPreview: () => void
-  applyCurrentMediaCrop: () => void
-  revertCurrentMediaCrop: () => void
+  updateCurrentMediaOverlay: (overlayId: string, overlay: EditOverlay) => void;
+  updateCurrentMediaText: (text: string) => void;
+
+  goToPreviousPreview: () => void;
+  goToNextPreview: () => void;
+
+  applyCurrentMediaCrop: () => void;
+  revertCurrentMediaCrop: () => void;
 };
 
-export const useMediaStore = create<MediaState>((set) => ({
+const normalizeMedia = (media: MediaData): MediaData => ({
+  ...media,
+  overlays: media.overlays ?? [],
+});
+
+const clampIndex = (index: number, length: number): number => {
+  if (length <= 0) return 0;
+  return Math.min(Math.max(0, index), length - 1);
+};
+
+const updateCurrentMedia = (
+  state: MediaState,
+  updater: (media: MediaData) => MediaData
+): Partial<MediaState> | MediaState => {
+  const index = clampIndex(state.currentMediaIndex, state.mediaPreview.length);
+  const currentMedia = state.mediaPreview[index];
+
+  if (!currentMedia) {
+    return state;
+  }
+
+  const nextMediaPreview = [...state.mediaPreview];
+  nextMediaPreview[index] = updater(currentMedia);
+
+  return {
+    mediaPreview: nextMediaPreview,
+    currentMediaIndex: index,
+  };
+};
+
+const initialState = {
   mediaPreview: [],
-  isRecording: false,
   showMediaPreviews: false,
+  isRecording: false,
   currentMediaIndex: 0,
   selectedFriend: null,
-  editing: "none",
+  editing: "none" as EditingMode,
+  sharing: false,
+};
 
-  setEditing: (s) => {
-    set({ editing: s })
-  },
+export const useMediaStore = create<MediaState>((set, get) => ({
+  ...initialState,
 
-  setSelectedFriend: (friend) => {
-    set({ selectedFriend: friend })
-  },
-  setCurrentMediaIndex: (index) => {
-    set({ currentMediaIndex: index })
-  },
-  addMediaPreview: (media) =>
+  reset: () => set(initialState),
+
+
+  setSharing: (sharing) => set({ sharing }),
+
+  setEditing: (editing) => set({ editing }),
+
+  setSelectedFriend: (friend) => set({ selectedFriend: friend }),
+
+  setCurrentMediaIndex: (index) =>
+    set((state) => ({
+      currentMediaIndex: clampIndex(index, state.mediaPreview.length),
+    })),
+
+  setShowMediaPreviews: (show) =>
     set((state) => {
-      if (state.mediaPreview.length >= MAX_PREVIEW_MEDIA) {
-        return { mediaPreview: [...state.mediaPreview] };
-      }
-      return { mediaPreview: [...state.mediaPreview, { ...media, overlays: media.overlays ?? [] }] };
-    }),
-  discardMediaPreview: () =>
-    set((state) => {
-      const nextPreview = state.mediaPreview.filter(
-        (_, i) => i !== state.currentMediaIndex
-      );
-
-      // Clamp index so it always stays in range
-      const nextIndex = Math.min(
-        state.currentMediaIndex,
-        Math.max(0, nextPreview.length - 1)
-      );
+      const hasMedia = state.mediaPreview.length > 0;
 
       return {
-        mediaPreview: nextPreview,
-        currentMediaIndex: nextIndex,
-        showMediaPreviews: nextPreview.length > 0,
+        showMediaPreviews: show && hasMedia,
+        currentMediaIndex: hasMedia
+          ? clampIndex(state.currentMediaIndex, state.mediaPreview.length)
+          : 0,
+        editing: "none",
       };
     }),
-  discardAllMediaPreview: () => set({ mediaPreview: [], showMediaPreviews: false }),
-  setIsRecording: (isRec) => set({ isRecording: isRec }),
-  setShowMediaPreviews: (show) => set(state => {
-    return { currentMediaIndex: state.mediaPreview.length - 1, showMediaPreviews: show, editing: "none" }
-  }),
-  addTextOverlayToCurrentMedia: (defaultText, x, y) =>
-    set((state) => {
-      const index = state.currentMediaIndex;
-      const media = state.mediaPreview[index];
 
-      if (!media) return state;
+  setIsRecording: (isRecording) => set({ isRecording }),
+
+  addMediaPreview: (media) => {
+    const state = get();
+
+    if (state.mediaPreview.length >= MAX_PREVIEW_MEDIA) {
+      return -1;
+    }
+
+    const newIndex = state.mediaPreview.length;
+    const nextMedia = normalizeMedia(media);
+
+    set({
+      mediaPreview: [...state.mediaPreview, nextMedia],
+      currentMediaIndex: newIndex,
+      showMediaPreviews: true,
+    });
+
+    return newIndex;
+  },
+
+  replaceMediaPreview: (index, media) =>
+    set((state) => {
+      if (index < 0 || index >= state.mediaPreview.length) {
+        return state;
+      }
 
       const nextMediaPreview = [...state.mediaPreview];
-      nextMediaPreview[index] = {
-        ...media,
-        overlays: [...media.overlays ?? [], createDefaultTextOverlay(defaultText, x, y)],
+      nextMediaPreview[index] = normalizeMedia(media);
+
+      return {
+        mediaPreview: nextMediaPreview,
+        currentMediaIndex: clampIndex(state.currentMediaIndex, nextMediaPreview.length),
       };
-
-      return { mediaPreview: nextMediaPreview };
     }),
-  addStickerOverlayToCurrentMedia: (defaultSticker, x, y) =>
-    set((state) => {
-      const index = state.currentMediaIndex;
-      const media = state.mediaPreview[index];
 
-      if (!media) return state;
+  discardMediaPreview: () => set(initialState),
 
-      const nextMediaPreview = [...state.mediaPreview];
-      nextMediaPreview[index] = {
+  discardAllMediaPreview: () =>
+    set({
+      mediaPreview: [],
+      showMediaPreviews: false,
+      currentMediaIndex: 0,
+      editing: "none",
+      sharing: false,
+      selectedFriend: null,
+    }),
+
+  addTextOverlayToCurrentMedia: (text, x, y) =>
+    set((state) =>
+      updateCurrentMedia(state, (media) => ({
         ...media,
-        overlays: [...media.overlays ?? [], createDefaultStickerOverlay(defaultSticker, x, y)],
-      };
+        overlays: [
+          ...(media.overlays ?? []),
+          createDefaultTextOverlay(text, x, y),
+        ],
+      }))
+    ),
 
-      return { mediaPreview: nextMediaPreview };
-    }),
+  addStickerOverlayToCurrentMedia: (sticker, x, y) =>
+    set((state) =>
+      updateCurrentMedia(state, (media) => ({
+        ...media,
+        overlays: [
+          ...(media.overlays ?? []),
+          createDefaultStickerOverlay(sticker, x, y),
+        ],
+      }))
+    ),
+
   removeOverlayFromCurrentMedia: (overlayId) =>
-    set((state) => {
-      const mediaIndex = state.currentMediaIndex;
-      const media = state.mediaPreview[mediaIndex];
-
-      if (!media || !media.overlays) return state;
-
-      const nextMediaPreview = [...state.mediaPreview];
-
-      nextMediaPreview[mediaIndex] = {
+    set((state) =>
+      updateCurrentMedia(state, (media) => ({
         ...media,
-        overlays: media.overlays.filter(
-          (overlay) =>
-            !(overlay.id === overlayId)
-        ),
-      };
+        overlays: (media.overlays ?? []).filter((overlay) => overlay.id !== overlayId),
+      }))
+    ),
 
-      return { mediaPreview: nextMediaPreview };
-    }),
   updateCurrentMediaOverlay: (overlayId, overlay) =>
-    set((state) => {
-      const mediaIndex = state.currentMediaIndex;
-      const media = state.mediaPreview[mediaIndex];
-      if (!media?.overlays) return state;
+    set((state) =>
+      updateCurrentMedia(state, (media) => {
+        const overlays = media.overlays ?? [];
+        const overlayIndex = overlays.findIndex((item) => item.id === overlayId);
 
-      const overlayIndex = media.overlays.findIndex((o) => o.id === overlayId);
-      if (overlayIndex === -1) return state;
+        if (overlayIndex === -1) {
+          return media;
+        }
 
-      const nextOverlays = [...media.overlays];
-      nextOverlays[overlayIndex] = overlay; // ✅ replace whole object
+        const nextOverlays = [...overlays];
+        nextOverlays[overlayIndex] = overlay;
 
-      const nextMediaPreview = [...state.mediaPreview];
-      nextMediaPreview[mediaIndex] = {
-        ...media,
-        overlays: nextOverlays, // ✅ rewrite entire overlays property
-      };
-
-      return { mediaPreview: nextMediaPreview };
-    }),
+        return {
+          ...media,
+          overlays: nextOverlays,
+        };
+      })
+    ),
 
   updateCurrentMediaText: (text) =>
-    set((state) => {
-      const i = state.currentMediaIndex;
-      const media = state.mediaPreview[i];
-      if (!media) return state;
-
-      const next = [...state.mediaPreview];
-      next[i] = { ...media, text };
-      return { mediaPreview: next };
-    }),
+    set((state) =>
+      updateCurrentMedia(state, (media) => ({
+        ...media,
+        text,
+      }))
+    ),
 
   goToPreviousPreview: () =>
-    set((state) => ({
-      currentMediaIndex: Math.max(0, state.currentMediaIndex - 1),
-      //
-    })),
+    set((state) => {
+      const length = state.mediaPreview.length;
+      if (length === 0) return state;
+
+      return {
+        currentMediaIndex:
+          state.currentMediaIndex <= 0
+            ? length - 1
+            : state.currentMediaIndex - 1,
+      };
+    }),
 
   goToNextPreview: () =>
     set((state) => {
-      if (state.currentMediaIndex >= state.mediaPreview.length - 1) {
-        return { currentMediaIndex: 0 }
-      }
-      return { currentMediaIndex: Math.min(state.mediaPreview.length - 1, state.currentMediaIndex + 1) }
+      const length = state.mediaPreview.length;
+      if (length === 0) return state;
+
+      return {
+        currentMediaIndex:
+          state.currentMediaIndex >= length - 1
+            ? 0
+            : state.currentMediaIndex + 1,
+      };
     }),
-  applyCurrentMediaCrop: () => {
-    set(state => {
-      const i = state.currentMediaIndex;
-      const media = state.mediaPreview[i];
-      if (!media || media.type !== "photo") return state;
 
-      const mod = [...state.mediaPreview];
-      mod[i] = { ...media, cropTransform: media.pendingCropTransform };
-      state.editing = "none"
-      return { mediaPreview: mod }
-    })
-  },
-  revertCurrentMediaCrop: () => {
-    set(state => {
-      const i = state.currentMediaIndex;
-      const media = state.mediaPreview[i];
-      if (!media || media.type !== "photo") return state;
+  applyCurrentMediaCrop: () =>
+    set((state) => {
+      const index = clampIndex(state.currentMediaIndex, state.mediaPreview.length);
+      const media = state.mediaPreview[index];
 
-      const mod = [...state.mediaPreview];
-      mod[i] = { ...media, cropTransform: createDefaultCropTransform(), pendingCropTransform: undefined };
-      state.editing = "none"
-      return { mediaPreview: mod }
-    })
-  },
+      if (!media || media.type !== "photo") {
+        return state;
+      }
+
+      if (!media.pendingCropTransform) {
+        return { editing: "none" };
+      }
+
+      const nextMediaPreview = [...state.mediaPreview];
+      nextMediaPreview[index] = {
+        ...media,
+        cropTransform: media.pendingCropTransform,
+        pendingCropTransform: undefined,
+      };
+
+      return {
+        mediaPreview: nextMediaPreview,
+        currentMediaIndex: index,
+        editing: "none",
+      };
+    }),
+
+  revertCurrentMediaCrop: () =>
+    set((state) => {
+      const index = clampIndex(state.currentMediaIndex, state.mediaPreview.length);
+      const media = state.mediaPreview[index];
+
+      if (!media || media.type !== "photo") {
+        return state;
+      }
+
+      const nextMediaPreview = [...state.mediaPreview];
+      nextMediaPreview[index] = {
+        ...media,
+        cropTransform: createDefaultCropTransform(),
+        pendingCropTransform: undefined,
+      };
+
+      return {
+        mediaPreview: nextMediaPreview,
+        currentMediaIndex: index,
+        editing: "none",
+      };
+    }),
 }));

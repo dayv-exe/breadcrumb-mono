@@ -1,6 +1,4 @@
-import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
-import NewShareScreen from "@/components/inputs/NewShareScreen";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import { Colors } from "@/constants/Colors";
@@ -156,13 +154,13 @@ function MediaActionButtons({
   addMediaPreview: (m: MediaData) => void;
   discardAllMedia: () => void;
 }) {
-  const { previews, showMediaPreviews, setShowMediaPreviews } = useMediaStore(useShallow(s => ({
+  const { previews, showMediaPreviews, setShowMediaPreviews, setSharing } = useMediaStore(useShallow(s => ({
     showMediaPreviews: s.showMediaPreviews,
     setShowMediaPreviews: s.setShowMediaPreviews,
-    previews: s.mediaPreview
+    previews: s.mediaPreview,
+    setSharing: s.setSharing,
   })))
   const { showModal, hideModal } = useModal()
-  const { openSheet, closeSheet } = useBottomSheet()
   const { height } = useWindowDimensions()
   return (
     <View
@@ -193,17 +191,7 @@ function MediaActionButtons({
       {showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
       {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
-        openSheet({
-          content: (
-            <NewShareScreen height={height}
-              usePlural={previews.length > 1}
-              handleClose={closeSheet} />
-          ),
-          reduceAnimations: true,
-          fullExpansionOnOpen: true,
-          snapPoints: [height],
-          showHandle: false
-        })
+        setSharing(true)
       }} />}
       {!showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
@@ -273,19 +261,17 @@ export default function MainScreen() {
   const isDarkMode = mode === "dark" || isAddActive(); // to force navbar into dark mode when showing add screen with camera active because it looks better
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, }}>
       <Tabs
         initialRouteName="add"
         screenOptions={{
           headerShown: false,
-          tabBarStyle: {
+          tabBarStyle: [styles.tabBar, {
             backgroundColor: isDarkMode
               ? Colors.dark.background
               : Colors.light.background,
-            height: 90,
-            paddingTop: 14,
             borderColor: "transparent",
-          },
+          }],
           tabBarShowLabel: false,
         }}
       >
@@ -304,14 +290,12 @@ export default function MainScreen() {
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Map" focused={focused} />
             ),
-            tabBarStyle: {
+            tabBarStyle: [styles.tabBar, {
               backgroundColor: isDarkMode
                 ? Colors.dark.background
                 : Colors.light.background,
-              height: 90,
-              paddingTop: 14,
               borderColor: isDarkMode ? "#444" : "#ccc",
-            },
+            }],
           }}
         />
 
@@ -334,14 +318,12 @@ export default function MainScreen() {
                 focused={focused}
               />
             ),
-            tabBarStyle: {
+            tabBarStyle: [styles.tabBar, {
               backgroundColor: isDarkMode
                 ? Colors.dark.background
                 : Colors.light.background,
-              height: 90,
-              paddingTop: 14,
               borderColor: isDarkMode ? "#444" : "#ccc",
-            },
+            }],
           }}
         />
 
@@ -364,12 +346,12 @@ export default function MainScreen() {
                 focused={focused}
               />
             ),
-            tabBarStyle: {
-              backgroundColor: "#000",
-              height: 90,
-              paddingTop: 14,
+            tabBarStyle: [styles.tabBar, {
+              backgroundColor: isDarkMode
+                ? Colors.dark.background
+                : Colors.light.background,
               borderColor: "transparent",
-            },
+            }],
           }}
         />
 
@@ -387,14 +369,12 @@ export default function MainScreen() {
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Chat" focused={focused} />
             ),
-            tabBarStyle: {
+            tabBarStyle: [styles.tabBar, {
               backgroundColor: isDarkMode
                 ? Colors.dark.background
                 : Colors.light.background,
-              height: 90,
-              paddingTop: 14,
               borderColor: isDarkMode ? "#444" : "#ccc",
-            },
+            }],
           }}
         />
 
@@ -412,14 +392,12 @@ export default function MainScreen() {
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Me" focused={focused} />
             ),
-            tabBarStyle: {
+            tabBarStyle: [styles.tabBar, {
               backgroundColor: isDarkMode
                 ? Colors.dark.background
                 : Colors.light.background,
-              height: 90,
-              paddingTop: 14,
               borderColor: isDarkMode ? "#444" : "#ccc",
-            },
+            }],
           }}
         />
       </Tabs>
@@ -441,12 +419,17 @@ export default function MainScreen() {
 }
 
 const styles = StyleSheet.create({
+  tabBar: {
+    height: 90,
+    paddingTop: 14,
+    paddingHorizontal: 7,
+  },
   tabLabel: {
     marginTop: 2,
     fontSize: 10,
   },
   navbar: {
-    backgroundColor: "#000",
+    backgroundColor: Colors.dark.background,
     height: 90,
     borderColor: "transparent",
     position: "absolute",

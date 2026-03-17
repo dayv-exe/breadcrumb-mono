@@ -1,3 +1,4 @@
+import { MediaItem } from "@/api/getPresignedUrl";
 import { EmojiCategory } from "@/constants/appConstants";
 import { createDefaultCropTransform, MediaData } from "@/constants/media";
 import { useDropZone } from "@/hooks/useDropZone";
@@ -9,17 +10,22 @@ import {
   FlatList,
   Image,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View
 } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { captureRef } from "react-native-view-shot";
 import { useShallow } from "zustand/shallow";
+import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
 import DeleteZone from "../editor/DeleteZone";
 import DraggableStickerOverlay from "../editor/DraggableStickerOverlay";
 import DraggableTextOverlay from "../editor/DraggableTextOverlay";
 import CropGestureContainer from "../inputs/CropGestureContainer";
+import NewShareScreen from "../inputs/NewShareScreen";
 import AudioPreview from "./AudioPreview";
 import PreviewControls from "./PreviewControls";
 import TextPreview from "./TextPreview";
@@ -217,6 +223,7 @@ export const CATEGORIES: EmojiCategory[] = [
 
 function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
   const nextPreview = useMediaStore(s => s.goToNextPreview)
+  const isEditing = useMediaStore(s => s.editing)
   const player = useVideoPlayer(uri, (player) => {
     player.loop = true;
     player.currentTime = 0;
@@ -226,18 +233,17 @@ function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
   });
 
   player.addListener("playToEnd", () => {
-    console.log("next")
     nextPreview()
   })
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive && isEditing === "none") {
       player.currentTime = 0;
       player.play();
     } else {
       player.pause();
     }
-  }, [isActive, player]);
+  }, [isActive, player, isEditing]);
 
   return (
     <VideoView
@@ -352,6 +358,8 @@ export default function PreviewScreen({
     addTextOverlayToCurrentMedia,
     removeOverlay,
     setEditing,
+    isSharing,
+    setSharing,
   } = useMediaStore(
     useShallow(s => ({
       editing: s.editing,
@@ -360,17 +368,107 @@ export default function PreviewScreen({
       currentMediaIndex: s.currentMediaIndex,
       addTextOverlayToCurrentMedia: s.addTextOverlayToCurrentMedia,
       removeOverlay: s.removeOverlayFromCurrentMedia,
+      isSharing: s.sharing,
+      setSharing: s.setSharing,
     }))
   );
   const currentMedia = mediaItems[currentMediaIndex];
   const currentOverlayDragId = useRef<string | null>(null)
+  const focusedTextOverlay = useRef<TextInput | null>(null)
   const insets = useSafeAreaInsets();
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const focusIndex = useRef(-1)
+  const viewShotRef = useRef<View>(null);
+  const overlayViewShotRef = useRef<View>(null);
+  const { height } = useWindowDimensions()
   const deleteZone = useDropZone({
     hitSlop: 10,
     onDrop: () => removeOverlay(currentOverlayDragId.current ?? ""),
   });
+  const { openSheet, closeSheet } = useBottomSheet()
+
+  useEffect(() => {
+
+    if (isSharing) {
+      openSheet({
+        content: (
+          <NewShareScreen height={height}
+            usePlural={mediaItems.length > 1}
+            handleClose={closeSheet}
+            getProcessedMedia={processMedia}
+          />
+        ),
+        onSheetDismissed: () => setSharing(false),
+        reduceAnimations: true,
+        fullExpansionOnOpen: true,
+        snapPoints: [height],
+        showHandle: false
+      })
+    }
+
+    return () => {
+      closeSheet();
+    };
+
+  }, [isSharing])
+
+  const processMedia = async (): Promise<MediaItem[]> => {
+    const processed: MediaItem[] = [] //id: {index, uri, overlay}
+    const previousIndex = currentMediaIndex;
+
+    for (let i = 0; i < mediaItems.length; i++) {
+      const item = mediaItems[i];
+      setCurrentMediaIndex(i);
+      // Let the UI render the new media + overlays
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      switch (item.type) {
+        case "photo": {
+          // Capture image + all overlays merged into one image
+          const uri = await captureRef(viewShotRef, {
+            format: "jpg",
+            quality: 1,
+          })
+          if (uri) {
+            processed.push({
+              index: i,
+              media: uri,
+              type: "photo"
+            })
+          }
+          break;
+        }
+
+        case "video": {
+          // If it has overlays, screenshot them on a transparent background
+          const overlayUri = item.overlays?.length && item.overlays?.length > 0 ? await captureRef(overlayViewShotRef, {
+            format: "png",
+            quality: 1,
+          }) : ""
+          processed.push({
+            index: i,
+            media: item.uri,
+            type: "video",
+            overlay: overlayUri ?? null
+          })
+          break;
+        }
+
+        case "text":
+        case "audio":
+          processed.push({
+            index: i,
+            media: item.uri,
+            type: "audio",
+          })
+          break;
+      }
+    }
+
+    // Restore original index
+    setCurrentMediaIndex(previousIndex);
+    return processed;
+  };
 
   const spawnTextOverlay = () => {
     focusIndex.current = currentMedia.overlays?.length ?? 0
@@ -379,7 +477,15 @@ export default function PreviewScreen({
 
   const { gesture } = useGesture({
     onTap: ({ x, y }) => {
-      if (editing !== "none") return;
+      if (currentMedia.isPlaceholder) return;
+      if (editing !== "none") {
+        if (editing === "text") {
+          // unfocus from text overlay
+          focusedTextOverlay?.current?.blur()
+          focusedTextOverlay.current = null
+        }
+        return
+      }
       if (currentMedia.type !== "photo" && currentMedia.type !== "video") return
       focusIndex.current = currentMedia.overlays?.length ?? 0
       const centerRelativeX = x - containerSize.width / 2;
@@ -445,12 +551,12 @@ export default function PreviewScreen({
 
   return (
     <>
-      <View style={styles.previewContainer}>
+      <View style={[styles.previewContainer, { paddingTop: insets.top }]}>
 
-        <View style={styles.viewShot}>
+        <View collapsable={false} ref={viewShotRef} style={styles.viewShot}>
           <GestureDetector gesture={gesture}>
             <View
-              style={[styles.previewMediaWrapper, { marginTop: insets.top }]}
+              style={[styles.previewMediaWrapper]}
               onLayout={(e) => {
                 const { width, height } = e.nativeEvent.layout;
                 setContainerSize({ width, height });
@@ -463,21 +569,27 @@ export default function PreviewScreen({
           {/* Text overlays */}
           {currentMedia.overlays && (
             <View
+              collapsable={false}
               style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}
               pointerEvents="box-none"
+              ref={overlayViewShotRef}
             >
               {currentMedia.overlays.map((overlay, index) => {
                 if (overlay.type === "text") {
                   return (
-                    <DraggableTextOverlay handleRemoveOverlay={() => removeOverlay(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id} onBlur={() => {
-                      focusIndex.current = -1
-                    }} onDragEnd={(x, y) => {
-                      deleteZone.handleDragEnd(x, y)
-                      // currentOverlayDragId.current = null
-                    }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
-                      deleteZone.handleDragStart()
-                      currentOverlayDragId.current = overlay.id
-                    }} />
+                    <DraggableTextOverlay handleRemoveOverlay={() => removeOverlay(overlay.id)} focusOnMount={focusIndex.current === index} overlay={overlay} key={overlay.id}
+                      onFocus={ref => {
+                        focusedTextOverlay.current = ref.current
+                      }}
+                      onBlur={() => {
+                        focusIndex.current = -1
+                      }} onDragEnd={(x, y) => {
+                        deleteZone.handleDragEnd(x, y)
+                        // currentOverlayDragId.current = null
+                      }} onDragMove={deleteZone.handleDragMove} onDragStart={() => {
+                        deleteZone.handleDragStart()
+                        currentOverlayDragId.current = overlay.id
+                      }} />
                   );
                 } else if (overlay.type === "sticker") {
                   return (
@@ -546,12 +658,13 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     borderColor: "green",
     borderWidth: 0,
+    justifyContent: "center",
   },
   viewShot: {
     flex: 1,
     backgroundColor: "black",
     borderColor: "green",
-    borderWidth: 0,
+    aspectRatio: 9 / 16
   },
   previewMediaWrapper: {
     flex: 1,
@@ -634,6 +747,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 2000,
+    backgroundColor: "green"
   },
   textInput: {
     color: "white",

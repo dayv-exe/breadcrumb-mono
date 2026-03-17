@@ -6,6 +6,8 @@ import ProfileItem from "@/components/profile/ProfileItem";
 import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
 import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
+import ElevatedView from "@/components/views/ElevatedView";
+import SunkenView from "@/components/views/SunkenView";
 import { MAX_SEARCH_STRING_CHARS } from "@/constants/appConstants";
 import { useSearchUser } from "@/hooks/queries/useUserApi";
 import { debounce } from "@/utils/debounce";
@@ -15,7 +17,7 @@ import * as Contacts from "expo-contacts";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, ListRenderItem, StyleSheet, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 const icons = {
@@ -91,6 +93,10 @@ function MatchingContacts({ searchStr, contacts }: matchingContactsProps) {
   )
 }
 
+const HISTORY = [
+  { id: "1", nickname: "mad.max", name: "maxwell" }
+]
+
 export default function SearchScreen() {
   const [searchStr, setSearchStr] = useState("")
   const router = useRouter()
@@ -100,6 +106,7 @@ export default function SearchScreen() {
   const [contactPermission, setContactPermission] = useState(false)
   const inputRef = useRef<TextInput>(null)
   const isInFocus = useIsFocused()
+  const insets = useSafeAreaInsets()
 
   async function getContacts() {
     const { granted } = await Contacts.requestPermissionsAsync();
@@ -152,53 +159,83 @@ export default function SearchScreen() {
   );
 
   return (
-    <CustomView adaptToTheme horizontalPadding={10}>
-      <SafeAreaView style={{
-        width: '100%'
-      }}>
-        <View style={styles.header}>
-          <CustomLabel labelText="Search" width="100%" textAlign="center" adaptToTheme bold />
-        </View>
-        <Spacer size="small" />
-        <View style={{
-          width: "100%",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-start"
+    <>
+      {<CustomView adaptToTheme horizontalPadding={10}>
+        <SafeAreaView style={{
+          width: '100%'
         }}>
-          <CustomSearchInput ref={inputRef} value={searchStr} handleChange={e => {
-            handleSearchInputChange(e)
-          }} placeholder="find people you know" borderRadius={17} useRedBorders={searchStr.length > MAX_SEARCH_STRING_CHARS} handleOnFocus={() => setShowCancel(true)} handleOnBlur={() => setShowCancel(false)} />
-          {showCancel && <CustomButton adaptToTheme type="text" labelText="Cancel" paddingHorizontal={0} squashed handleClick={() => {
-            setSearchStr("")
-            handleSearchInputChange("")
-            inputRef.current?.blur()
-          }} />}
-        </View>
-        <Spacer size="tiny" />
-        {searchStr.length > MAX_SEARCH_STRING_CHARS && <CustomLabel textColor="red" fontSize={14} labelText={`🚫 ${MAX_SEARCH_STRING_CHARS} characters max!`} />}
-        <View style={{
-          paddingHorizontal: 5
+          <View style={styles.header}>
+            <CustomLabel labelText="Search" width="100%" textAlign="center" adaptToTheme bold />
+          </View>
+          <Spacer size="small" />
+          <View style={{
+            width: "100%",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-start"
+          }}>
+            <CustomSearchInput ref={inputRef} value={searchStr} handleChange={e => {
+              handleSearchInputChange(e)
+            }} placeholder="find people you know" borderRadius={17} useRedBorders={searchStr.length > MAX_SEARCH_STRING_CHARS} handleOnFocus={() => setShowCancel(true)} handleOnBlur={() => setShowCancel(false)} />
+            {showCancel && <CustomButton adaptToTheme type="text" labelText="Cancel" paddingHorizontal={0} squashed handleClick={() => {
+              setSearchStr("")
+              handleSearchInputChange("")
+              inputRef.current?.blur()
+            }} />}
+          </View>
+          <Spacer size="tiny" />
+          {searchStr.length > MAX_SEARCH_STRING_CHARS && <CustomLabel textColor="red" fontSize={14} labelText={`🚫 ${MAX_SEARCH_STRING_CHARS} characters max!`} />}
+          <View style={{
+            paddingHorizontal: 5
+          }}>
+            <Spacer />
+            {(searchResPending && !searchResultErr && searchStr.length > 1) &&
+              <LoadingView />
+            }
+            {searchResult?.error && <SearchErrorView />}
+            {searchResult && !searchResult?.message && !searchResult?.error && <NoResult />}
+            {(!searchResPending && !searchResultErr && searchResult?.message) && <FlatList
+              data={searchResult?.message}
+              renderItem={renderUser}
+              keyExtractor={item => item.userId ?? ""}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              ItemSeparatorComponent={() => (<Spacer size="small" />)}
+              keyboardDismissMode="interactive"
+              keyboardShouldPersistTaps="handled"
+            />}
+          </View>
+        </SafeAreaView>
+      </CustomView>}
+      {false && <SunkenView>
+        <ElevatedView style={{
+          paddingTop: insets.top,
+          borderRadius: 0,
+          paddingBottom: 15,
+          paddingHorizontal: 15,
+          marginBottom: 15,
         }}>
-          <Spacer />
-          {(searchResPending && !searchResultErr && searchStr.length > 1) &&
-            <LoadingView />
-          }
-          {searchResult?.error && <SearchErrorView />}
-          {searchResult && !searchResult.message && !searchResult.error && <NoResult />}
-          {(!searchResPending && !searchResultErr && searchResult.message) && <FlatList
-            data={searchResult.message}
-            renderItem={renderUser}
-            keyExtractor={item => item.userId ?? ""}
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-            ItemSeparatorComponent={() => (<Spacer size="small" />)}
-            keyboardDismissMode="interactive"
-            keyboardShouldPersistTaps="handled"
-          />}
-        </View>
-      </SafeAreaView>
-    </CustomView>
+          <CustomLabel bold labelText="Search" adaptToTheme textAlign="center" />
+          <Spacer size="small" />
+          <View style={{
+            width: "100%",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-start"
+          }}>
+            <CustomSearchInput ref={inputRef} value={searchStr} handleChange={e => {
+              handleSearchInputChange(e)
+            }} placeholder="find people you know" useRedBorders={searchStr.length > MAX_SEARCH_STRING_CHARS} handleOnFocus={() => setShowCancel(true)} handleOnBlur={() => setShowCancel(false)} />
+            {showCancel && <CustomButton adaptToTheme type="text" labelText="Cancel" paddingHorizontal={0} squashed handleClick={() => {
+              setSearchStr("")
+              handleSearchInputChange("")
+              inputRef.current?.blur()
+            }} />}
+          </View>
+        </ElevatedView>
+        
+      </SunkenView>}
+    </>
   )
 }
 
@@ -231,5 +268,13 @@ const styles = StyleSheet.create({
   searchInputImg: {
     width: 15,
     height: 15,
-  }
+  },
+  profile: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 7,
+    paddingHorizontal: 15,
+    borderTopWidth: 0,
+  },
 })

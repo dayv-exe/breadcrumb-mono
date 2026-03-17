@@ -1,6 +1,6 @@
 import { buttonTypes } from "@/constants/buttonTypes";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { ActivityIndicator, Image, ViewStyle } from "react-native";
+import { ActivityIndicator, Image, StyleProp, ViewStyle } from "react-native";
 import CustomFloatingSquare from "./CustomFloatingSquare";
 
 type props = {
@@ -11,7 +11,7 @@ type props = {
   fitToContent?: boolean
   isPending?: boolean
   handleClick?: () => void
-  customStyle?: ViewStyle
+  customStyle?: StyleProp<ViewStyle>
 }
 
 export default function CustomImageButton({ size = 23, src, handleClick, flat = false, type = "themed", fitToContent = false, isPending = false, customStyle }: props) {

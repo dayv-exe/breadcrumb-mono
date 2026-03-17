@@ -53,6 +53,7 @@ export default function SnapCarousel({
     const index = Math.round(offsetX / itemWidth);
     const clampedIndex = Math.max(0, Math.min(index, childArray.length - 1));
     onSelect(clampedIndex);
+    console.log(clampedIndex)
   };
 
   return (

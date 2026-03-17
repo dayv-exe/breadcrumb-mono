@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { formatAddress } from './locationFormatter';
@@ -8,6 +9,7 @@ import { formatAddress } from './locationFormatter';
 export interface Coordinates {
   latitude: number;
   longitude: number;
+  accuracy: number | null;
 }
 
 interface LocationState {
@@ -17,130 +19,129 @@ interface LocationState {
   error: string | null;
   isTracking: boolean;
   lastUpdated: number | null;
+  lastGeocodedCoords: Coordinates | null;
 }
 
 interface LocationActions {
   startTracking: () => Promise<void>;
   stopTracking: () => void;
-  getCleanAddress: (coords?: Coordinates) => Promise<string | null>;
-  getCoordinates: () => Promise<Coordinates>;
-  setCoordinates: (coords: Coordinates) => void;
-  setAddress: (address: string | null) => void;
+  reverseGeocode: (coords: Coordinates) => Promise<string | null>;
   setError: (error: string | null) => void;
-  setIsLoading: (isLoading: boolean) => void;
 }
 
 const LOCATION_CONFIG = {
   ACCURACY: Location.Accuracy.BestForNavigation,
   DISTANCE_INTERVAL: 10,
-  TIME_INTERVAL: 15000,
+  TIME_INTERVAL: 15_000,
+  GEOCODE_DISTANCE_THRESHOLD: 25,
 } as const;
+
+/** Haversine distance in metres between two coordinates. */
+function distanceMetres(a: Coordinates, b: Coordinates): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const R = 6_371_000; // Earth radius in metres
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const sinHalf = (x: number) => Math.sin(x / 2);
+  const h =
+    sinHalf(dLat) ** 2 +
+    Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * sinHalf(dLon) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/** Request foreground permission once; throws on denial. */
+async function ensurePermission(): Promise<void> {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') {
+    throw new Error('Location permission denied');
+  }
+}
+
+/**
+ * On Android, prompt the user to enable the network/GPS provider if it's off.
+ * This is a no-op on iOS.
+ */
+async function enableHighAccuracyIfNeeded(): Promise<void> {
+  if (Platform.OS === 'android') {
+    try {
+      await Location.enableNetworkProviderAsync();
+    } catch {
+      // User declined or API unavailable – we can still try with GPS-only.
+    }
+  }
+}
+
+/** Fetch current position once and return normalised Coordinates. */
+async function fetchCurrentPosition(): Promise<Coordinates> {
+  const location = await Location.getCurrentPositionAsync({
+    accuracy: LOCATION_CONFIG.ACCURACY,
+  });
+  return {
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    accuracy: location.coords.accuracy,
+  };
+}
 
 let locationSubscription: Location.LocationSubscription | null = null;
 
 export const useLocationStore = create<LocationState & LocationActions>()(
   persist(
     (set, get) => ({
+      // -- state --
       coordinates: null,
       address: null,
       isLoading: false,
       error: null,
       isTracking: false,
       lastUpdated: null,
+      lastGeocodedCoords: null,
 
-      setCoordinates: (coords) => set({ coordinates: coords, lastUpdated: Date.now() }),
-      setAddress: (address) => set({ address }),
+      // -- actions --
+
       setError: (error) => set({ error }),
-      setIsLoading: (isLoading) => set({ isLoading }),
 
-      getCoordinates: async (): Promise<Coordinates> => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-
-        if (status !== 'granted') {
-          throw new Error('Location permission denied');
-        }
-
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: LOCATION_CONFIG.ACCURACY,
-        });
-
-        return {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        };
-      },
-
-      getCleanAddress: async (coords?: Coordinates): Promise<string | null> => {
+      reverseGeocode: async (coords) => {
         try {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-
-          if (status !== 'granted') {
-            throw new Error('Location permission denied');
-          }
-
-          let latitude: number;
-          let longitude: number;
-
-          if (coords) {
-            latitude = coords.latitude;
-            longitude = coords.longitude;
-          } else {
-            const position = await Location.getCurrentPositionAsync({
-              accuracy: LOCATION_CONFIG.ACCURACY,
-            });
-            latitude = position.coords.latitude;
-            longitude = position.coords.longitude;
-          }
-
-          const [location] = await Location.reverseGeocodeAsync({
-            latitude,
-            longitude,
+          const [result] = await Location.reverseGeocodeAsync({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
           });
 
-          if (!location) {
-            console.error('Unable to fetch location!');
-            return null;
-          }
+          if (!result) return null;
 
-          let cleanAddress = formatAddress(location)
-          return cleanAddress;
-        } catch (error) {
-          console.error('Error getting clean address:', error);
+          const address = formatAddress(result);
+          set({ address, lastGeocodedCoords: coords });
+          return address;
+        } catch (err) {
+          console.warn('Reverse-geocode failed:', err);
           return null;
         }
       },
 
       startTracking: async () => {
-        const state = get();
-        if (state.isTracking) {
-          console.log('Already tracking location');
-          return;
-        }
+        if (get().isTracking) return;
+
+        set({ isLoading: true, error: null });
 
         try {
-          set({ isLoading: true, error: null });
+          await ensurePermission();
+          await enableHighAccuracyIfNeeded();
 
-          const { status } = await Location.requestForegroundPermissionsAsync();
-
-          if (status !== 'granted') {
-            set({
-              error: 'Location permission denied',
-              isLoading: false,
-            });
-            return;
-          }
-
-          const initialCoords = await get().getCoordinates();
-          const initialAddress = await get().getCleanAddress(initialCoords);
+          // Single location fetch for both coords and address.
+          const coords = await fetchCurrentPosition();
+          const address = await get().reverseGeocode(coords);
 
           set({
-            coordinates: initialCoords,
-            address: initialAddress,
+            coordinates: coords,
+            address,
             isLoading: false,
             isTracking: true,
             lastUpdated: Date.now(),
+            lastGeocodedCoords: coords,
           });
 
+          // Begin watching.
           locationSubscription = await Location.watchPositionAsync(
             {
               accuracy: LOCATION_CONFIG.ACCURACY,
@@ -151,16 +152,24 @@ export const useLocationStore = create<LocationState & LocationActions>()(
               const newCoords: Coordinates = {
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
+                accuracy: location.coords.accuracy,
               };
 
-              const newAddress = await get().getCleanAddress(newCoords);
+              const { lastGeocodedCoords } = get();
 
-              set({
-                coordinates: newCoords,
-                address: newAddress,
-                lastUpdated: Date.now(),
-              });
-            }
+              // Always update coordinates so the map / UI stays fresh.
+              set({ coordinates: newCoords, lastUpdated: Date.now() });
+
+              // Only re-geocode if we've moved a meaningful distance.
+              const shouldGeocode =
+                !lastGeocodedCoords ||
+                distanceMetres(lastGeocodedCoords, newCoords) >=
+                  LOCATION_CONFIG.GEOCODE_DISTANCE_THRESHOLD;
+
+              if (shouldGeocode) {
+                await get().reverseGeocode(newCoords);
+              }
+            },
           );
         } catch (error) {
           set({
@@ -187,20 +196,26 @@ export const useLocationStore = create<LocationState & LocationActions>()(
         address: state.address,
         lastUpdated: state.lastUpdated,
       }),
-    }
-  )
+    },
+  ),
 );
 
-export const useInitializeLocationTracking = () => {
-  const { startTracking, stopTracking, isTracking } = useLocationStore();
+export function useInitializeLocationTracking() {
+  const startTracking = useLocationStore((s) => s.startTracking);
+  const stopTracking = useLocationStore((s) => s.stopTracking);
+
+  // Ref guards against React 18 Strict Mode double-invoking the effect.
+  const started = useRef(false);
 
   useEffect(() => {
-    if (!isTracking) {
-      startTracking();
-    }
+    if (started.current) return;
+    started.current = true;
+
+    startTracking();
 
     return () => {
       stopTracking();
+      started.current = false;
     };
-  }, []);
-};
+  }, [startTracking, stopTracking]);
+}

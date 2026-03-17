@@ -16,7 +16,7 @@ type PreviewScreenProps = {
 
 export default function PreviewScreen({ media, onRetake, onSave }: PreviewScreenProps) {
   const player = useVideoPlayer(
-    media.type === 'video' ? media.uri : '', 
+    media.type === 'video' ? media.uri : '',
     (player) => {
       if (media.type === 'video') {
         player.loop = true;
