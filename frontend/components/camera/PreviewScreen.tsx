@@ -224,6 +224,7 @@ export const CATEGORIES: EmojiCategory[] = [
 function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
   const nextPreview = useMediaStore(s => s.goToNextPreview)
   const isEditing = useMediaStore(s => s.editing)
+  const sharing = useMediaStore(s => s.sharing)
   const player = useVideoPlayer(uri, (player) => {
     player.loop = true;
     player.currentTime = 0;
@@ -237,13 +238,13 @@ function VideoPreview({ uri, isActive }: { uri: string; isActive: boolean }) {
   })
 
   useEffect(() => {
-    if (isActive && isEditing === "none") {
+    if (isActive && isEditing === "none" && !sharing) {
       player.currentTime = 0;
       player.play();
     } else {
       player.pause();
     }
-  }, [isActive, player, isEditing]);
+  }, [isActive, player, isEditing, sharing]);
 
   return (
     <VideoView
