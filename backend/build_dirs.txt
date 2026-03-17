@@ -5,3 +5,4 @@ signup_unfinished_remover
 custom_email
 queue_actions
 media_access
+process_upload

@@ -7,7 +7,7 @@ raw_location_accuracy *
 location_type *: "my location", "friends location", "selected on map"
 place_ids []
 text *
-media [] *: {index, base, overlay, type}
+media [] *: {index, key, overlay_key, thumbnail_key, type}
 media_urls []
 time
 status

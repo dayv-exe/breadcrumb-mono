@@ -146,6 +146,9 @@ Resources:
             Status: Enabled
             AbortIncompleteMultipartUpload:
               DaysAfterInitiation: 1
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
 
   CloudFrontOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -470,6 +473,39 @@ Resources:
               - cognito-idp:AdminGetUser
               - cognito-idp:AdminUserGlobalSignOut
             Resource: "*"
+
+  ProcessMediaUploads:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-process-media-upload"
+      CodeUri: bin/process_upload/process_upload.zip
+      Handler: bootstrap
+      Description: Triggered when a file upload completes in the media bucket
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          MEDIA_BUCKET: !Ref MediaBucket
+      Events:
+        S3Upload:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source:
+                - aws.s3
+              detail-type:
+                - "Object Created"
+              detail:
+                bucket:
+                  name:
+                    - !Ref MediaBucket
+                object:
+                  key:
+                    - prefix: "uploads/"
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref MediaBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
 
   UsersTable:
     Type: AWS::DynamoDB::Table
