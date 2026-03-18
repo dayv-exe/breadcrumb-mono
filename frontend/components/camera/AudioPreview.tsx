@@ -1,4 +1,5 @@
 import { MediaData } from "@/constants/media";
+import { useMediaStore } from "@/utils/mediaStore";
 import { AudioModule, useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -17,6 +18,7 @@ export default function AudioPreview({ media }: Props) {
   })
   const player = useAudioPlayer(null, { updateInterval: 250 });
   const status = useAudioPlayerStatus(player);
+  const sharing = useMediaStore(s => s.sharing)
 
   const playProperly = () => {
     player.play();
@@ -41,8 +43,6 @@ export default function AudioPreview({ media }: Props) {
       return;
     }
 
-    // expo-audio does NOT auto-rewind when it finishes
-    // so if we're at/near the end, seek to 0 before playing again
     const nearEnd =
       status.duration > 0 && status.currentTime >= status.duration - 0.05;
 

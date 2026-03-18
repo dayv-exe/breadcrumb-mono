@@ -158,17 +158,29 @@ export const useMediaStore = create<MediaState>((set, get) => ({
       };
     }),
 
-  discardMediaPreview: () => set(initialState),
+  discardMediaPreview: () =>
+    set((state) => {
+      if (state.mediaPreview.length === 0) {
+        return state;
+      }
 
-  discardAllMediaPreview: () =>
-    set({
-      mediaPreview: [],
-      showMediaPreviews: false,
-      currentMediaIndex: 0,
-      editing: "none",
-      sharing: false,
-      selectedFriend: null,
+      const nextMediaPreview = state.mediaPreview.filter(
+        (_, index) => index !== state.currentMediaIndex
+      );
+
+      const hasMedia = nextMediaPreview.length > 0;
+
+      return {
+        mediaPreview: nextMediaPreview,
+        currentMediaIndex: hasMedia
+          ? clampIndex(state.currentMediaIndex, nextMediaPreview.length)
+          : 0,
+        showMediaPreviews: hasMedia,
+        editing: "none",
+      };
     }),
+
+  discardAllMediaPreview: () => set(initialState),
 
   addTextOverlayToCurrentMedia: (text, x, y) =>
     set((state) =>

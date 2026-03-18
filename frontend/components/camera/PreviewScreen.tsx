@@ -433,11 +433,16 @@ export default function PreviewScreen({
             format: "jpg",
             quality: 1,
           })
+          const thumb = await captureRef(viewShotRef, {
+            format: "jpg",
+            quality: 0,
+          })
           if (uri) {
             processed.push({
               index: i,
               media: uri,
-              type: "photo"
+              type: "photo",
+              thumbnail: thumb
             })
           }
           break;
@@ -451,7 +456,7 @@ export default function PreviewScreen({
           }) : ""
           const thumb = await captureRef(viewShotRef, {
             format: "jpg",
-            quality: 1
+            quality: 0
           })
           processed.push({
             index: i,
@@ -673,8 +678,12 @@ const styles = StyleSheet.create({
   },
   viewShot: {
     backgroundColor: "black",
+    alignItems: "center",
+    justifyContent: "center"
   },
   previewMediaWrapper: {
+    height: "100%",
+    width: "100%",
   },
   previewMedia: {
     width: "100%",
