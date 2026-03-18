@@ -15,12 +15,13 @@ import (
 )
 
 type Crumb struct {
-	Pk          string   `json:"-" dynamodbav:"pk"`
-	Sk          string   `json:"-" dynamodbav:"sk"`
-	Id          string   `json:"id" dynamodbav:"id"`
-	Sender      string   `json:"sender" dynamodbav:"sender"`
-	Coordinates string   `json:"coordinates" dynamodbav:"coordinates"`
-	MediaKeys   []string `json:"mediaKeys" dynamodbav:"mediaKeys"`
+	Pk        string   `json:"-" dynamodbav:"pk"`
+	Sk        string   `json:"-" dynamodbav:"sk"`
+	Id        string   `json:"id" dynamodbav:"id"`
+	Sender    string   `json:"sender" dynamodbav:"sender"`
+	Lat       string   `json:"lat" dynamodbav:"lat"`
+	Lon       string   `json:"lon" dynamodbav:"lon"`
+	MediaKeys []string `json:"mediaKeys" dynamodbav:"mediaKeys"`
 }
 
 func HandleCrumbActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
