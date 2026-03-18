@@ -34,6 +34,8 @@ func HandleHandlers(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		return HandleUserActions(ctx, req)
 	case "search":
 		return HandleSearchActions(ctx, req)
+	case "crumbs":
+		return HandleCrumbActions(ctx, req)
 
 	default:
 		return models.ServerSideErrorResponse("Invalid resource path!", fmt.Errorf("Invalid path. Request context: %v \n raw path: %v", req.RequestContext.HTTP.Path, req.RawPath)), nil

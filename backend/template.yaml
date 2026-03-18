@@ -458,6 +458,25 @@ Resources:
             Path: /search/{str}
             Method: POST
             ApiId: !Ref BreadApi
+        
+        # for crumbs stuff
+        GetCrumbs:
+          Type: HttpApi
+          Properties:
+            Path: /crumbs
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+        ShareCrumb:
+          Type: HttpApi
+          Properties:
+            Path: /crumbs
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
 
       Policies:
         - DynamoDBCrudPolicy:
