@@ -16,6 +16,7 @@ Globals:
         CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
         CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
         QUEUE_URL: !GetAtt BreadQueue.QueueName
+        CF_PRIVATE_KEY_SECRET_ARN: !Ref CloudFrontKeysSecret
 
 Parameters:
   EnvironmentName:
@@ -269,7 +270,6 @@ Resources:
       Environment:
         Variables:
           CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
-          CF_PRIVATE_KEY_SECRET_ARN: !Ref CloudFrontKeysSecret
           USERS_TABLE: !Ref UsersTable 
       Events:
         ApiRequest:
