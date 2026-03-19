@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"path"
 	"strings"
 	"time"
@@ -54,20 +55,24 @@ func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 	}
 
 	privateKeyPEM := normalizePEM(secret.PrivateKey)
+	if privateKeyPEM == "" || strings.TrimSpace(secret.KeyPairID) == "" {
+		return models.ServerSideErrorResponse("CloudFront signing secret is incomplete", nil), nil
+	}
 
-	rsaPrivateKey, err := cfsign.LoadPEMPrivKey(strings.NewReader(privateKeyPEM))
+	cfSigner, err := cfsign.LoadPEMPrivKeyPKCS8AsSigner(strings.NewReader(privateKeyPEM))
 	if err != nil {
+		log.Printf("Invalid CloudFront private key: %v", err)
 		return models.ServerSideErrorResponse("Invalid CloudFront private key", err), nil
 	}
 
 	rawURL := fmt.Sprintf("https://%s/%s", utils.GetDependencies().CloudFrontDomainName, objectKey)
 	expiresAt := time.Now().UTC().Add(15 * time.Minute)
 
-	signer := cfsign.NewURLSigner(secret.KeyPairID, rsaPrivateKey)
+	signer := cfsign.NewURLSigner(secret.KeyPairID, cfSigner)
 
 	signedURL, err := signer.Sign(rawURL, expiresAt)
 	if err != nil {
-		return models.ServerSideErrorResponse("Failed to sign media URL", err), nil
+		return models.ServerSideErrorResponse("Failed to sign media URL", nil), nil
 	}
 
 	resp := mediaAccessResponse{
@@ -127,7 +132,6 @@ func sanitizeObjectKey(key string) (string, error) {
 
 func normalizePEM(s string) string {
 	s = strings.TrimSpace(s)
-	// Handles secrets stored with escaped newlines.
 	s = strings.ReplaceAll(s, `\n`, "\n")
 	return s
 }
