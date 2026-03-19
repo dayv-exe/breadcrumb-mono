@@ -243,8 +243,8 @@ export function useCamera(): useCameraReturnType {
     if (useFlash === "on") {
       takeNormalPhoto()
     } else {
-      takeQuickPhoto()
-      // takeNormalPhoto()
+      // takeQuickPhoto()
+      takeNormalPhoto()
     }
   }
 

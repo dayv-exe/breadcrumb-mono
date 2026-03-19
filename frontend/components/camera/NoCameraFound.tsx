@@ -4,7 +4,7 @@ import CustomLabel from "../CustomLabel";
 export default function NoCameraFound() {
   return (
     <View style={styles.container}>
-      <CustomLabel textAlign="center" labelText="🤔" fontSize={21} />
+      <CustomLabel textAlign="center" labelText="🤔" fontSize={30} />
       <CustomLabel width={"80%"} labelText="it appears that this device does not have a camera." textAlign="center" />
     </View>
   )
