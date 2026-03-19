@@ -50,7 +50,7 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	randHash, err := uuid.NewRandom()
 	body.Id = randHash.String()
 	body.Pk = "CRUMB#"
-	body.Sk = randHash.String()
+	body.Sk = "something"
 	body.Sender = userId
 
 	crumb, err := attributevalue.MarshalMap(body)
