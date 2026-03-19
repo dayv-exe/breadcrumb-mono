@@ -1,8 +1,8 @@
-import { MediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
+import { MediaItem, PresignedMediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
 
 interface UseMediaUploadOptions {
-  onSuccess?: () => void;
+  onSuccess?: (files: PresignedMediaItem[]) => void;
   onError?: (error: unknown) => void;
 }
 
@@ -61,7 +61,7 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
 
             await Promise.all(uploads.map(uploadFile));
 
-            options?.onSuccess?.();
+            options?.onSuccess?.(validFiles);
           } catch (err) {
             console.log("Upload error:", err);
             options?.onError?.(err);

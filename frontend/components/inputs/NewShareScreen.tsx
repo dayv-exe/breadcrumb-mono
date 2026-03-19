@@ -1,5 +1,6 @@
 import { MediaItem } from "@/api/getPresignedUrl";
 import { ShowToast } from "@/constants/appConstants";
+import { useShareCrumb } from "@/hooks/queries/useCrumbsApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -208,27 +209,42 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const searchRef = useRef(null);
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
-  const { address } = useLocationStore();
+  const { address, coordinates } = useLocationStore();
   const [shareIsPending, setShareIsPending] = useState(false)
   const { showModal, hideModal } = useModal()
   const resetMediaStore = useMediaStore(s => s.reset)
 
+  const handleNotifyErr = (err: any) => {
+    console.log("Share failed:", err);
+    setShareIsPending(false)
+    showModal({
+      message: "Something went wrong, try again.",
+      primaryBtnText: "Ok",
+      onPrimary: hideModal
+    })
+  }
+
   const { upload } = useMediaUpload({
-    onSuccess: () => {
-      // TODO: send metadata to dynamo, close screen, etc.
-      setShareIsPending(false)
-      hideModal()
-      resetMediaStore()
-      ShowToast("✅ Done")
+    onSuccess: files => {
+      console.log(files[0].media.mediaKey)
+      shareCrumb({
+        lat: coordinates?.latitude.toString() ?? "0",
+        lon: coordinates?.longitude.toString() ?? "0",
+        mediaKeys: [files[0].media.mediaKey]
+      }, {
+        onSuccess: () => {
+          setShareIsPending(false)
+          hideModal()
+          resetMediaStore()
+          ShowToast("✅ Done")
+        },
+        onError: err => {
+          handleNotifyErr(err)
+        }
+      })
     },
     onError: (err) => {
-      console.log("Share failed:", err);
-      setShareIsPending(false)
-      showModal({
-        message: "Something went wrong, try again.",
-        primaryBtnText: "Ok",
-        onPrimary: hideModal
-      })
+      handleNotifyErr(err)
     },
   });
 
@@ -238,8 +254,11 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
     else return `📍custom location`;
   };
 
+  const { mutate: shareCrumb } = useShareCrumb()
+
   const handleShare = async () => {
     setShareIsPending(true)
+
     showModal({
       content: (
         <View style={{
