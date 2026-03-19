@@ -20,6 +20,7 @@ const (
 	CLOUDFRONT_DOMAIN_NAME = "CLOUDFRONT_DOMAIN"
 	MEDIA_BUCKET           = "MEDIA_BUCKET"
 	QUEUE                  = "QUEUE_URL"
+	SECRET_ARN             = "CF_PRIVATE_KEY_SECRET_ARN"
 )
 
 type handlerDependenciesType struct {
@@ -33,6 +34,7 @@ type handlerDependenciesType struct {
 	UserPoolId           string
 	CloudFrontDomainName string
 	QueueUrl             string
+	SecretArn            string
 }
 
 var handlerDependencies handlerDependenciesType //
@@ -110,6 +112,7 @@ func InitHandlerDependencies(opts ...option) {
 
 	// init cloudfront always
 	handlerDependencies.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
+	handlerDependencies.SecretArn = getEnvironmentVariable(SECRET_ARN)
 
 	for _, opt := range opts {
 		opt(&handlerDependencies, cfg)

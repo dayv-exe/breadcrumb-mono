@@ -1,11 +1,16 @@
 package main
 
-import "backend/utils"
+import (
+	"backend/handlers"
+	"backend/utils"
+
+	"github.com/aws/aws-lambda-go/lambda"
+)
 
 func init() {
-	utils.InitHandlerDependencies(utils.WithBucket(), utils.WithDatabase())
+	utils.InitHandlerDependencies()
 }
 
 func main() {
-	// como esta?
+	lambda.Start(handlers.HandleMediaAccess)
 }
