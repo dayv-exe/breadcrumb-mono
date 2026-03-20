@@ -121,11 +121,17 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 	}
 
 	ext := strings.ToLower(filepath.Ext(fileName))
-	if ext == "" {
+	if ext == "" && mediaLayerType != "thumbnail" {
 		return validPresignedFile{}, &invalidPresignedFile{
 			FileName: fileName,
 			Reason:   "File has no extension",
 		}
+	}
+
+	if ext == "" {
+		// vid thumbnail from app does not have ext in file name
+		// it is always jpg
+		ext = "jpg"
 	}
 
 	contentType := mime.TypeByExtension(ext)
