@@ -81,19 +81,27 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	invalidFiles := make([]invalidPresignedFile, 0)
 
 	for _, file := range body.Files {
-		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, "")
+		// using random file name for now
+		randHash, hashErr := uuid.NewRandom()
+		if hashErr != nil {
+			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", hashErr)
+		}
+
+		mediaId := randHash.String()
+
+		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, mediaId, "")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 			// dont attempt to sign anything else if base media is invalid
 			continue
 		}
 
-		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, "overlay")
+		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, mediaId, "overlay")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
 
-		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, "thumbnail")
+		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, mediaId, "thumbnail")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
@@ -115,7 +123,7 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	return models.SuccessfulGetRequestResponse(res, nil), nil
 }
 
-func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, mediaLayerType string) (validPresignedFile, *invalidPresignedFile) {
+func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, mediaId, mediaLayerType string) (validPresignedFile, *invalidPresignedFile) {
 	if strings.TrimSpace(fileName) == "" {
 		return validPresignedFile{}, nil
 	}
@@ -166,12 +174,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 		}
 	}
 
-	// using random file name for now
-	randHash, hashErr := uuid.NewRandom()
-	if hashErr != nil {
-		log.Fatalf("Failed to gen random hash for media upload. ERR: %v", hashErr)
-	}
-	mediaKey := utils.GenerateUniqueMediaKey(userId, randHash.String()+ext)
+	mediaKey := utils.GenerateUniqueMediaKey(userId, "_"+mediaId+"_"+mediaLayerType+ext)
 
 	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(utils.GetDependencies().BucketName),

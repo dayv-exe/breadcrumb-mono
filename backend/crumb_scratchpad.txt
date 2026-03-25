@@ -2,28 +2,26 @@ crumb db item:
 id
 sender
 receiver [] *
-raw_location *
+lat *
+lon *
 raw_location_accuracy *
-location_type *: "my location", "friends location", "selected on map"
+location_type *: "mine", "friends", "map"
 place_ids []
-text *
-media [] *: {index, key, overlay_key, thumbnail_key, type}
-media_urls []
+text [] * {index, content}
+media [] *: {index, mediaKey, overlayKey, thumbnailKey}
 time
-status
-error
 
-media db item:
-file_name
-crumb_id
-index
-type: "thumbnail | big_thumbnail | overlay | base"
-sender
-receiver []
-status
-thumbnail_small
-thumbnail_mid
-error
+access patterns:
+- all sent to you
+- all sent to you by a specific friend
+- all sent to you on map view port
+- all sent to you by specific individual on map view port
+
+
+pk: CRUMB#{receiver[i]} sk: SENDER#{sender}#{crumb_id} gsi: {crumb_id}
+pk: CRUMB#{receiver[i]}#BIG_HASH#{hash} sk: SENDER#{sender}#{crumb_id}
+pk: CRUMB#{receiver[i]}#MED_HASH#{hash} sk: SENDER#{sender}#{crumb_id}
+pk: CRUMB#{receiver[i]}#SMALL_HASH#{hash} sk: SENDER#{sender}#{crumb_id}
 
 functions:
 - db stream handler (write to the main crumb db item)
