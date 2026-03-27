@@ -1,24 +1,19 @@
 package models
 
 import (
-	"backend/constants"
 	"backend/utils"
-	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/uber/h3-go/v4"
+	"github.com/mmcloughlin/geohash"
 )
 
 const (
-	CrumbPkPrefix        = "CRUMB#"
-	CrumbSkPrefix        = "SENDER#"
-	CrumbIdPrefix        = "CRUMB_ID#"
-	CrumbTimePrefix      = "TIME#"
-	CrumbHashSmallPrefix = "GEOS#"
-	CrumbHashMidPrefix   = "GEOM#"
-	CrumbHashBigPrefix   = "GEOB#"
-	CrumbHashVBigPrefix  = "GEOV#"
+	CrumbPkPrefix   = "CRUMB#"
+	CrumbSkPrefix   = "SENDER#"
+	CrumbIdPrefix   = "CRUMB_ID#"
+	CrumbTimePrefix = "TIME#"
+	CrumbHashPrefix = "HASH#"
 )
 
 type crumbText struct {
@@ -54,14 +49,12 @@ type Crumb struct {
 	PlaceId          []string     `json:"placeId" dynamodbav:"placeId"`
 	Text             crumbText    `json:"text" dynamodbav:"text"`
 	Media            []crumbMedia `json:"media" dynamodbav:"media"`
+	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 
 	Time string `json:"time" dynamodbav:"lsi"`
 
-	HashSmall string `json:"-" dynamodbav:"gsiGhSmall"`
-	HashMid   string `json:"-" dynamodbav:"gsiGhMid"`
-	HashBig   string `json:"-" dynamodbav:"gsiGhBig"`
-	HashVBig  string `json:"-" dynamodbav:"gsiGhVBig"`
-	HashSk    string `json:"-" dynamodbav:"hashGsiSk"`
+	HashPk string `json:"-" dynamodbav:"gsiHashPk"`
+	HashSk string `json:"-" dynamodbav:"gsiHashSk"`
 
 	PK  string `json:"-" dynamodbav:"pk"`
 	SK  string `json:"-" dynamodbav:"sk"`
@@ -82,6 +75,7 @@ func (b *CrumbBody) GetCrumbs(crumbId, userId string) *[]Crumb {
 			LocationType:     b.LocationType,
 			Text:             b.Text,
 			Media:            b.MediaKeys,
+			Geohash:          geohash.Encode(b.Lat, b.Lon),
 			Time:             utils.GetDateAndTime(),
 		})
 	}
@@ -90,64 +84,17 @@ func (b *CrumbBody) GetCrumbs(crumbId, userId string) *[]Crumb {
 }
 
 func (c *Crumb) ApplyPrefixes() {
-	smallCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_SMALL)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
-	midCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_MID)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
-	bigCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_BIG)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
-	vBigCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_VBIG)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
 	c.PK = CrumbPkPrefix + c.Receiver
 	c.SK = CrumbSkPrefix + c.SenderId + CrumbIdPrefix + c.Id
+	c.Gsi = CrumbIdPrefix + c.Id
 
-	c.HashSmall = CrumbPkPrefix + c.Receiver + "#" + CrumbHashSmallPrefix + smallCell.String()
-	c.HashMid = CrumbPkPrefix + c.Receiver + "#" + CrumbHashMidPrefix + midCell.String()
-	c.HashBig = CrumbPkPrefix + c.Receiver + "#" + CrumbHashBigPrefix + bigCell.String()
-	c.HashVBig = CrumbPkPrefix + c.Receiver + "#" + CrumbHashVBigPrefix + vBigCell.String()
-	c.HashSk = CrumbSkPrefix + c.SenderId + "#" + c.Id
+	c.HashPk = CrumbPkPrefix + c.Receiver + CrumbHashPrefix + c.Geohash[:2]
+	c.HashSk = CrumbHashPrefix + c.Geohash + CrumbSkPrefix + c.SenderId
 
 	c.Time = CrumbTimePrefix + utils.GetDateAndTime()
 }
 
 func (c *Crumb) RemovePrefixes() {
-	c.PK = c.Receiver
-	c.SK = c.SenderId
-
-	c.HashSmall = strings.ReplaceAll(c.HashSmall, CrumbPkPrefix+c.Receiver+"#"+CrumbHashSmallPrefix, "")
-	c.HashMid = strings.ReplaceAll(c.HashMid, CrumbPkPrefix+c.Receiver+"#"+CrumbHashMidPrefix, "")
-	c.HashBig = strings.ReplaceAll(c.HashBig, CrumbPkPrefix+c.Receiver+"#"+CrumbHashBigPrefix, "")
-	c.HashVBig = strings.ReplaceAll(c.HashVBig, CrumbPkPrefix+c.Receiver+"#"+CrumbHashVBigPrefix, "")
-	c.HashSk = c.SenderId
-
 	c.Time = strings.ReplaceAll(c.Time, CrumbTimePrefix, "")
 }
 

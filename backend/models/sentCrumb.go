@@ -1,13 +1,11 @@
 package models
 
 import (
-	"backend/constants"
 	"backend/utils"
-	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/uber/h3-go/v4"
+	"github.com/mmcloughlin/geohash"
 )
 
 const (
@@ -34,6 +32,7 @@ func (s *CrumbBody) GetSentCrumbModels(crumbId, userId string) *[]SentCrumb {
 				LocationType:     s.LocationType,
 				Text:             s.Text,
 				Media:            s.MediaKeys,
+				Geohash:          geohash.Encode(s.Lat, s.Lon),
 				Time:             utils.GetDateAndTime(),
 			},
 		})
@@ -43,65 +42,18 @@ func (s *CrumbBody) GetSentCrumbModels(crumbId, userId string) *[]SentCrumb {
 }
 
 func (c *SentCrumb) ApplyPrefixes() {
-	smallCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_SMALL)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
-	midCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_MID)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
-	bigCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_BIG)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
-	vBigCell, err := h3.LatLngToCell(h3.LatLng{
-		Lat: c.Lat,
-		Lng: c.Lon,
-	}, constants.MAP_ZOOM_VBIG)
-
-	if err != nil {
-		log.Fatalf("Failed to convert lat lng to cell. ERROR: %v", err)
-	}
-
 	c.PK = SentCrumbPkPrefix + c.SenderId
 	c.SK = SentCrumbSkPrefix + c.Receiver + CrumbIdPrefix + c.Id
+	c.Gsi = CrumbIdPrefix + c.Id
 
-	c.HashSmall = SentCrumbPkPrefix + c.SenderId + "#" + CrumbHashSmallPrefix + smallCell.String()
-	c.HashMid = SentCrumbPkPrefix + c.SenderId + "#" + CrumbHashMidPrefix + midCell.String()
-	c.HashBig = SentCrumbPkPrefix + c.SenderId + "#" + CrumbHashBigPrefix + bigCell.String()
-	c.HashVBig = SentCrumbPkPrefix + c.SenderId + "#" + CrumbHashVBigPrefix + vBigCell.String()
-	c.HashSk = SentCrumbSkPrefix + c.Receiver + "#" + c.Id
+	c.HashPk = SentCrumbPkPrefix + c.SenderId + CrumbHashPrefix + c.Geohash[:2]
+	c.HashSk = CrumbHashPrefix + c.Geohash + SentCrumbSkPrefix + c.Receiver
 
 	c.Time = CrumbTimePrefix + utils.GetDateAndTime()
 	// IF THERE IS AN ERROR WE SHOULD MARK MEDIA FOR DELETION
 }
 
 func (c *SentCrumb) RemovePrefixes() {
-	c.PK = c.SenderId
-	c.SK = c.Receiver
-
-	c.HashSmall = strings.ReplaceAll(c.HashSmall, SentCrumbPkPrefix+c.SenderId+"#"+CrumbHashSmallPrefix, "")
-	c.HashMid = strings.ReplaceAll(c.HashMid, SentCrumbPkPrefix+c.SenderId+"#"+CrumbHashMidPrefix, "")
-	c.HashBig = strings.ReplaceAll(c.HashBig, SentCrumbPkPrefix+c.SenderId+"#"+CrumbHashBigPrefix, "")
-	c.HashVBig = strings.ReplaceAll(c.HashVBig, SentCrumbPkPrefix+c.SenderId+"#"+CrumbHashVBigPrefix, "")
-	c.HashSk = c.Receiver
-
 	c.Time = strings.ReplaceAll(c.Time, CrumbTimePrefix, "")
 }
 

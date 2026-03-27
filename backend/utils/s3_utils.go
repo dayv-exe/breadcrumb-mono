@@ -52,6 +52,6 @@ func GetExtensionFromMimeType(contentType string) string {
 	return ""
 }
 
-func GenerateUniqueMediaKey(userId, fileName string) string {
-	return fmt.Sprintf("uploads/unprocessed/%s/%s", userId, fileName)
+func GenerateMediaKey(userId, crumbId, fileName string) string {
+	return fmt.Sprintf("uploads/unprocessed/%s/%s/%s", userId, crumbId, fileName)
 }

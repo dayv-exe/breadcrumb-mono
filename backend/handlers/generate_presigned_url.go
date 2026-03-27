@@ -28,6 +28,7 @@ type MediaItem struct {
 
 type ValidPresignedMediaItem struct {
 	Index         int                `json:"index"`
+	CrumbId       string             `json:"crumbId"`
 	MediaFile     validPresignedFile `json:"media"`
 	OverlayFile   validPresignedFile `json:"overlay,omitempty"`
 	ThumbnailFile validPresignedFile `json:"thumbnail,omitempty"`
@@ -80,34 +81,42 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	validFiles := make([]ValidPresignedMediaItem, 0, len(body.Files))
 	invalidFiles := make([]invalidPresignedFile, 0)
 
+	randHash, err := uuid.NewRandom()
+	if err != nil {
+		log.Fatalf("Failed to generate crumb id. ERR: %v", err)
+	}
+
+	crumbId := randHash.String()
+
 	for _, file := range body.Files {
 		// using random file name for now
-		randHash, hashErr := uuid.NewRandom()
-		if hashErr != nil {
-			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", hashErr)
+		randHash, err := uuid.NewRandom()
+		if err != nil {
+			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", err)
 		}
 
 		mediaId := randHash.String()
 
-		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, mediaId, "")
+		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, crumbId, mediaId, "")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 			// dont attempt to sign anything else if base media is invalid
 			continue
 		}
 
-		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, mediaId, "overlay")
+		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, crumbId, mediaId, "overlay")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
 
-		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, mediaId, "thumbnail")
+		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, crumbId, mediaId, "thumbnail")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
 
 		validFiles = append(validFiles, ValidPresignedMediaItem{
 			Index:         file.Index,
+			CrumbId:       crumbId,
 			MediaFile:     media,
 			OverlayFile:   overlay,
 			ThumbnailFile: thumbnail,
@@ -123,7 +132,7 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	return models.SuccessfulGetRequestResponse(res, nil), nil
 }
 
-func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, mediaId, mediaLayerType string) (validPresignedFile, *invalidPresignedFile) {
+func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, crumbId, mediaId, mediaLayerType string) (validPresignedFile, *invalidPresignedFile) {
 	if strings.TrimSpace(fileName) == "" {
 		return validPresignedFile{}, nil
 	}
@@ -174,7 +183,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 		}
 	}
 
-	mediaKey := utils.GenerateUniqueMediaKey(userId, "_"+mediaId+"_"+mediaLayerType+ext)
+	mediaKey := utils.GenerateMediaKey(userId, crumbId, mediaId+"_"+mediaLayerType+ext)
 
 	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(utils.GetDependencies().BucketName),
