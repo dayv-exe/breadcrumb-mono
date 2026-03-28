@@ -38,7 +38,6 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
       throw new Error(`Upload failed for ${file.mediaKey}`);
     }
 
-    console.log("Uploaded:", file.mediaKey);
   };
 
   const upload =
@@ -50,6 +49,10 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
             if (!validFiles?.length) {
               return;
             }
+
+            s.message?.invalidFiles.map(f => {
+              console.log("Name: " + f.fileName + "\n" + "Reason: " + f.reason)
+            })
 
             const uploads: validPresignedMediaItemFile[] = [];
 

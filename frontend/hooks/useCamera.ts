@@ -8,6 +8,7 @@ import {
 } from 'expo-audio';
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createVideoThumbnail } from "react-native-compressor";
 import {
   cancelAnimation,
   Easing,
@@ -152,11 +153,14 @@ export function useCamera(): useCameraReturnType {
 
         await cameraRef.current.startRecording({
           flash: useFlash,
-          onRecordingFinished: (video: VideoFile) => {
+          onRecordingFinished: async (video: VideoFile) => {
+            const path = normalizeFileUri(video.path)
+            const thumbnail = normalizeFileUri(await (await createVideoThumbnail(path)).path)
             addMediaPreview({
               id: uuidv4(),
               type: "video",
-              uri: normalizeFileUri(video.path),
+              uri: path,
+              thumbnail: thumbnail,
               resizeMode: "cover",
             });
 

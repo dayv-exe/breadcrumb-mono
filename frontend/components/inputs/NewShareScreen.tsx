@@ -41,13 +41,16 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme];
 }
 
-const sendOpt = ["My location", "Friends' location", "Choose on map"];
+const sendOpt = ["My location", "Choose on map"];
 
 const RECENTS = [{ username: "catluvr", name: "meow" }];
+const VISIBILITY = [
+  { username: "All My Friends ", name: "" },
+  { username: "Only Me 🔒", name: "" },
+]
 const FAKE_FRIENDS = [
   { username: "david.arubuike", name: "david" },
   { username: "catluvr", name: "meow" },
-  { username: "johnny.test (me)", name: "jt" },
 ];
 
 const FriendItem = ({
@@ -226,11 +229,14 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
 
   const { upload } = useMediaUpload({
     onSuccess: files => {
-      console.log(files[0].media.mediaKey)
       shareCrumb({
+        id: files[0].crumbId,
         lat: coordinates?.latitude.toString() ?? "0",
         lon: coordinates?.longitude.toString() ?? "0",
-        mediaKeys: [files[0].media.mediaKey]
+        mediaItems: files,
+        locationAccuracy: 0,
+        locationType: "mine",
+        receivers: []
       }, {
         onSuccess: () => {
           setShareIsPending(false)
@@ -286,6 +292,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         flat
         style={{
           paddingTop: insets.top,
+          paddingBottom: 0,
           paddingHorizontal: 0,
           borderRadius: 0,
           backgroundColor: "transparent",
@@ -328,9 +335,9 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         </View>
       </ElevatedView>
 
-      <ScrollView style={{ flex: 1, paddingHorizontal: 15, paddingTop: 15 }}>
+      <ScrollView style={{ flex: 1, paddingHorizontal: 15, paddingTop: 20 }}>
         <ElevatedList
-          title="Leave crumb at"
+          title={`Leave crumb${usePlural ? "s" : ""} at`}
           data={sendOpt}
           keyExtractor={(item) => item}
           renderItem={(item) => (
@@ -341,17 +348,37 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
               selText={
                 item === sendOpt[0]
                   ? `Crumb${usePlural ? "s" : ""} can only be viewed here`
-                  : item === sendOpt[1]
-                    ? `Crumb${usePlural ? "s" : ""} can be viewed immediately`
-                    : `Crumb${usePlural ? "s" : ""} can only be viewed there`
+                  : `Crumb${usePlural ? "s" : ""} can only be viewed there`
               }
             />
           )}
         />
 
+        {VISIBILITY.length > 0 && (
+          <ElevatedList
+            title="Visibility"
+            data={VISIBILITY}
+            keyExtractor={(item) => item.username}
+            renderItem={(friend) => (
+              <FriendItem
+                name={friend.name}
+                username={friend.username}
+                onChange={(s) => {
+                  if (s) {
+                    setSelectedFriends([...selectedFriends, friend.username ?? ""]);
+                  } else {
+                    setSelectedFriends(selectedFriends.filter((f) => f !== friend.username));
+                  }
+                }}
+                selectedTxt={""}
+              />
+            )}
+          />
+        )}
+
         {FAKE_FRIENDS.length > 0 && (
           <ElevatedList
-            title="Share with"
+            title="Or share w/ specific friends"
             data={FAKE_FRIENDS}
             keyExtractor={(item) => item.username}
             renderItem={(friend) => (

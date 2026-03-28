@@ -29,6 +29,9 @@ export default {
     },
     plugins: [
       [
+        "react-native-compressor"
+      ],
+      [
         "react-native-vision-camera",
         {
           "cameraPermissionText": "$(PRODUCT_NAME) needs access to your camera to take photos and videos.",

@@ -16,6 +16,7 @@ export const getURL = async (req: MediaAccessRequest): Promise<apiResponse<Media
     const { data } = await axiosInstance.post<{ message: MediaAccessResponse }>("/media/access", {
       key: req.key
     })
+    console.log(data.message.url)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

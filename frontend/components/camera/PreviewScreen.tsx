@@ -433,16 +433,11 @@ export default function PreviewScreen({
             format: "jpg",
             quality: 1,
           })
-          const thumb = await captureRef(viewShotRef, {
-            format: "jpg",
-            quality: 0,
-          })
           if (uri) {
             processed.push({
               index: i,
               media: uri,
               type: "photo",
-              thumbnail: thumb
             })
           }
           break;
@@ -454,16 +449,12 @@ export default function PreviewScreen({
             format: "png",
             quality: 1,
           }) : ""
-          const thumb = await captureRef(viewShotRef, {
-            format: "jpg",
-            quality: 0
-          })
           processed.push({
             index: i,
             media: item.uri,
             type: "video",
             overlay: overlayUri ?? null,
-            thumbnail: thumb
+            thumbnail: item.thumbnail
           })
           break;
         }

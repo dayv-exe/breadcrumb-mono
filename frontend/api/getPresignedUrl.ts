@@ -13,6 +13,7 @@ export type MediaItem = {
 
 export type PresignedMediaItem = {
   index: number
+  crumbId: string
   media: validPresignedMediaItemFile
   overlay: validPresignedMediaItemFile | null
   thumbnail: validPresignedMediaItemFile | null
@@ -33,6 +34,7 @@ export type invalidPresignedFile = {
 };
 
 export type presignedUrlResponse = {
+  crumbId: string
   validFiles: PresignedMediaItem[];
   invalidFiles: invalidPresignedFile[];
 };

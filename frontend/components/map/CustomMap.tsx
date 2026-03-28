@@ -189,7 +189,7 @@ export default function CustomMap({
                 key={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
                 id={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
                 coordinate={[parseFloat(crumb.lon), parseFloat(crumb.lat)]}
-                onSelected={() => showMed(crumb.mediaKeys[0])}
+                onSelected={() => showMed(crumb.mediaItems[0].media.mediaKey)}
               >
                 <View style={styles.crumbMarker}>
                   <CustomLabel labelText="🍞" fontSize={30} />

@@ -13,12 +13,23 @@ import (
 )
 
 func HandleCrumbActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	action := req.PathParameters["action"]
 	switch strings.ToLower(req.RequestContext.HTTP.Method) {
 	case "post":
 		return handleShareCrumb(ctx, req)
 
+	case "get":
+		switch strings.ToLower(action) {
+		case "sent":
+			return handleGetSentCrumbs(ctx, req)
+		case "opened":
+			return handleGetOpenedCrumbs(ctx, req)
+		default:
+			// return unread crumbs by default
+			return handleGetUnOpenedCrumbs(ctx, req)
+		}
 	default:
-		return handleGetCrumbs(ctx, req)
+		return models.InvalidRequestErrorResponse("Invalid url"), nil
 
 	}
 }
@@ -55,7 +66,7 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	return models.SuccessfulRequestResponse("Crumb sent!", true), nil
 }
 
-func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handleGetUnOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 	if userId == "" {
 		return models.UnauthorizedErrorResponse("You need to login to do this!"), nil
@@ -67,10 +78,28 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	crumbs, lastKey, err := helper.GetCrumbs(userId, senderId, &lastEvalKey, aws.Int32(30))
+	crumbs, lastKey, err := helper.GetUnOpenedCrumbs(userId, senderId, &lastEvalKey, aws.Int32(30))
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get unopened crumbs, try again!", err), nil
 	}
+
+	return models.SuccessfulGetRequestResponse(crumbs, &lastKey), nil
+}
+
+func handleGetOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	userId := utils.GetAuthUserId(req)
+	if userId == "" {
+		return models.UnauthorizedErrorResponse("You need to be logged in to do this!"), nil
+	}
+
+	senderId := req.QueryStringParameters["sender"]
+	lastKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to decode last key, try again!", err), nil
+	}
+
+	helper := helpers.NewCrumbHelper(ctx)
+	crumbs, lastKey, err := helper.GetOpenedCrumbs(userId, senderId, &lastKey, aws.Int32(30))
 
 	return models.SuccessfulGetRequestResponse(crumbs, &lastKey), nil
 }

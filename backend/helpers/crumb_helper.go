@@ -50,7 +50,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 }
 
 // get all unopened crumbs sent to current user. leave sender id blank to get from all senders or provide sender id to only get from given sender
-func (h *crumbHelper) GetCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
+func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
 	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
 	keyCondition := expression.KeyEqual(
 		expression.Key("pk"),

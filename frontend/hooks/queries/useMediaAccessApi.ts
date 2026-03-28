@@ -3,6 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useMediaAccess = (mediaKey: string) => useQuery({
   queryFn: () => getURL({ key: mediaKey }),
-  queryKey: [mediaKey + "access"],
+  queryKey: ["access" + mediaKey],
   staleTime: 14 * (60 * 1000)
 })

@@ -35,7 +35,7 @@ export default function PreviewBunch() {
         <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
           <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={styles.previewTouchable}>
             {mediaPreview.map((media, index) => {
-              return <PreviewCard index={index} src={media.uri} key={index} active />;
+              return <PreviewCard index={index} src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri} key={index} active />;
             })}
           </TouchableOpacity>
         </Reanimated.View>
