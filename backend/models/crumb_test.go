@@ -39,6 +39,7 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 
 func NewTestCrumbBody() CrumbBody {
 	return CrumbBody{
+		Id:               "c1",
 		Receivers:        []string{"r1"},
 		Lat:              50,
 		Lon:              -1,
@@ -54,7 +55,7 @@ func NewTestCrumbBody() CrumbBody {
 
 func TestCrumb_DatabaseFormat(t *testing.T) {
 	body := NewTestCrumbBody()
-	result := (*body.GetCrumbs("c1", "s1"))[0]
+	result := (*body.GetCrumbs("s1"))[0]
 	result.Geohash = "hash"
 	result.PlaceId = []string{"p1"}
 	result.Time = "100"
@@ -67,7 +68,7 @@ func TestCrumb_DatabaseFormat(t *testing.T) {
 
 func TestConvertToCrumbs(t *testing.T) {
 	body := NewTestCrumbBody()
-	expected := (*body.GetCrumbs("c1", "s1"))[0]
+	expected := (*body.GetCrumbs("s1"))[0]
 	expected.Geohash = "hash"
 	expected.PlaceId = []string{"p1"}
 	expected.ApplyPrefixes()

@@ -23,6 +23,9 @@ const (
 	MAP_ZOOM_MID             = 7                // for geo hashing
 	MAP_ZOOM_BIG             = 2                // for geo hashing
 	MAP_ZOOM_VBIG            = 0                // for geo hashing
+	LOCATION_TYPE_MINE       = "mine"
+	LOCATION_TYPE_FRIEND     = "friend"
+	LOCATION_TYPE_GPS        = "gps"
 )
 
 var ALLOWED_FILE_TYPES = map[string]struct{}{

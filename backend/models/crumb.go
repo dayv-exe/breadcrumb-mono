@@ -29,6 +29,7 @@ type crumbMedia struct {
 }
 
 type CrumbBody struct {
+	Id               string       `json:"id"`
 	Receivers        []string     `json:"receivers"`
 	Lat              float64      `json:"lat"`
 	Lon              float64      `json:"lon"`
@@ -62,11 +63,11 @@ type Crumb struct {
 }
 
 // Returns a slice of crumb models one for each receiver
-func (b *CrumbBody) GetCrumbs(crumbId, userId string) *[]Crumb {
+func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 	crumbs := make([]Crumb, 0)
 	for _, receiver := range b.Receivers {
 		crumbs = append(crumbs, Crumb{
-			Id:               crumbId,
+			Id:               b.Id,
 			SenderId:         userId,
 			Receiver:         receiver,
 			Lat:              b.Lat,

@@ -19,12 +19,12 @@ type ViewedCrumb struct {
 }
 
 // Returns a slice of viewed crumb models one for each receiver
-func (s *CrumbBody) GetViewedCrumbModels(crumbId, userId string) *[]ViewedCrumb {
+func (s *CrumbBody) GetViewedCrumbModels(userId string) *[]ViewedCrumb {
 	crumbs := make([]ViewedCrumb, 0)
 	for _, receiver := range s.Receivers {
 		crumbs = append(crumbs, ViewedCrumb{
 			Crumb{
-				Id:               crumbId,
+				Id:               s.Id,
 				SenderId:         userId,
 				Receiver:         receiver,
 				Lat:              s.Lat,
