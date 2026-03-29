@@ -241,7 +241,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /presigned_url
+            Path: /api/v1/presigned_url
             Method: POST
             ApiId: !Ref BreadApi
             Auth:
@@ -275,7 +275,7 @@ Resources:
         ApiRequest:
           Type: HttpApi
           Properties:
-            Path: /media/access
+            Path: /api/v1/media/access
             Method: POST
             ApiId: !Ref BreadApi
             Auth:
@@ -357,7 +357,7 @@ Resources:
         GetFriends:
           Type: HttpApi
           Properties:
-            Path: /friends/{id}
+            Path: /api/v1/friends/{id}
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -365,7 +365,7 @@ Resources:
         AcceptFriendRequest:
           Type: HttpApi
           Properties:
-            Path: /friends
+            Path: /api/v1/friends
             Method: POST
             ApiId: !Ref BreadApi
             Auth:
@@ -373,7 +373,7 @@ Resources:
         RemoveFriend:
           Type: HttpApi
           Properties:
-            Path: /friends/{id}
+            Path: /api/v1/friends/{id}
             Method: DELETE
             ApiId: !Ref BreadApi
             Auth:
@@ -383,7 +383,7 @@ Resources:
         GetFriendRequests:
           Type: HttpApi
           Properties:
-            Path: /friend-requests
+            Path: /api/v1/friend-requests
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -391,7 +391,7 @@ Resources:
         SendFriendRequests:
           Type: HttpApi
           Properties:
-            Path: /friend-requests
+            Path: /api/v1/friend-requests
             Method: POST
             ApiId: !Ref BreadApi
             Auth:
@@ -399,7 +399,7 @@ Resources:
         RejectFriendRequests:
           Type: HttpApi
           Properties:
-            Path: /friend-requests/{id}
+            Path: /api/v1/friend-requests/{id}
             Method: DELETE
             ApiId: !Ref BreadApi
             Auth:
@@ -409,7 +409,7 @@ Resources:
         GetUser:
           Type: HttpApi
           Properties:
-            Path: /users/{id}
+            Path: /api/v1/users/{id}
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -417,13 +417,13 @@ Resources:
         CreateUser:
           Type: HttpApi
           Properties:
-            Path: /users
+            Path: /api/v1/users
             Method: POST
             ApiId: !Ref BreadApi
         DeleteUser:
           Type: HttpApi
           Properties:
-            Path: /users/{id}
+            Path: /api/v1/users/{id}
             Method: DELETE
             ApiId: !Ref BreadApi
             Auth:
@@ -431,7 +431,7 @@ Resources:
         EditUser:
           Type: HttpApi
           Properties:
-            Path: /users/{id}
+            Path: /api/v1/users/{id}
             Method: PUT
             ApiId: !Ref BreadApi
             Auth:
@@ -439,7 +439,7 @@ Resources:
         AbortSignup:
           Type: HttpApi
           Properties:
-            Path: /signup/{id}
+            Path: /api/v1/signup/{id}
             Method: DELETE
             ApiId: !Ref BreadApi
       
@@ -447,7 +447,7 @@ Resources:
         SearchUser:
           Type: HttpApi
           Properties:
-            Path: /search/{str}
+            Path: /api/v1/search/{str}
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -455,7 +455,7 @@ Resources:
         NicknameAvailable:
           Type: HttpApi
           Properties:
-            Path: /search/{str}
+            Path: /api/v1/search/{str}
             Method: POST
             ApiId: !Ref BreadApi
         
@@ -463,7 +463,7 @@ Resources:
         GetCrumbs:
           Type: HttpApi
           Properties:
-            Path: /crumbs/{action}
+            Path: /api/v1/crumbs/{action}
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
@@ -472,7 +472,7 @@ Resources:
         ShareCrumb:
           Type: HttpApi
           Properties:
-            Path: /crumbs
+            Path: /api/v1/crumbs
             Method: POST
             ApiId: !Ref BreadApi
             Auth:
