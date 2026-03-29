@@ -109,7 +109,7 @@ func handleGetSentCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest
 	if userId == "" {
 		return models.UnauthorizedErrorResponse("You need to login to do this!"), nil
 	}
-	recipientId := strings.TrimSpace(req.QueryStringParameters["recipient"])
+	recipientId := strings.TrimSpace(req.QueryStringParameters["to"])
 	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
