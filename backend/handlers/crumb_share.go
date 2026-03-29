@@ -42,7 +42,7 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 
 	var body models.CrumbBody
 	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
-		return models.InvalidRequestErrorResponse("Invalid request body!"), nil
+		return models.ServerSideErrorResponse("Invalid request body!", err), nil
 	}
 
 	if body.Id == "" {
