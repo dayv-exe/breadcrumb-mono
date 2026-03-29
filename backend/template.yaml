@@ -545,7 +545,7 @@ Resources:
         - AttributeName: gsiHashSk
           AttributeType: S
         - AttributeName: lsi
-          AttributeType: S
+          AttributeType: S 
       KeySchema:
         - AttributeName: pk
           KeyType: HASH
