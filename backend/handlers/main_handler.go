@@ -15,8 +15,8 @@ func getResourceName(request events.APIGatewayV2HTTPRequest) string {
 	path = strings.TrimPrefix(path, "/")
 
 	parts := strings.Split(path, "/")
-	if len(parts) > 1 {
-		return parts[1] // since [0] will be "/prod"
+	if len(parts) > 3 {
+		return parts[3] // since [0] will be "/prod", then /api then /version number
 	}
 
 	return ""
