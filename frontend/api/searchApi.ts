@@ -7,7 +7,7 @@ import { UserDetails } from "./models/userDetails";
 export const searchUser = async (searchString: string): Promise<apiResponse<UserDetails[]>> => {
   searchString = searchString.toLowerCase()
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/search/${searchString}?action=user`)
+    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/api/v1/search/${searchString}?action=user`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -23,7 +23,7 @@ export const nicknameAvailable = async (username: string): Promise<apiResponse<b
   }
 
   try {
-    const { data } = await axiosInstance.post<{ message: string }>(`/search/${username}`)
+    const { data } = await axiosInstance.post<{ message: string }>(`/api/v1/search/${username}`)
     const verdict = data.message.toLowerCase() === "true"
     return { message: verdict, error: verdict ? null : `${username} is already in use` }
   } catch (error) {

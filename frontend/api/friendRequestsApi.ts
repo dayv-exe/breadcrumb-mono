@@ -15,7 +15,7 @@ export const acceptFriendRequest = async (senderId: string): Promise<apiResponse
 
 export const getFriendRequests = async (): Promise<apiResponse<UserDetails[]>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/friend-requests`)
+    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/api/v1/friend-requests`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -25,7 +25,7 @@ export const getFriendRequests = async (): Promise<apiResponse<UserDetails[]>> =
 
 export const rejectFriendRequest = async (senderId: string): Promise<apiResponse<string>> => {
   try {
-    const { data } = await axiosInstance.delete<{ message: string }>(`/friend-requests/${senderId}`)
+    const { data } = await axiosInstance.delete<{ message: string }>(`/api/v1/friend-requests/${senderId}`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -35,7 +35,7 @@ export const rejectFriendRequest = async (senderId: string): Promise<apiResponse
 
 export const sendFriendRequest = async (recipientId: string): Promise<apiResponse<string>> => {
   try {
-    const { data } = await axiosInstance.post<{ message: string }>(`/friend-requests`, { recipientId: recipientId })
+    const { data } = await axiosInstance.post<{ message: string }>(`/api/v1/friend-requests`, { recipientId: recipientId })
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -45,7 +45,7 @@ export const sendFriendRequest = async (recipientId: string): Promise<apiRespons
 
 export const unsendFriendRequest = async (recipientId: string): Promise<apiResponse<string>> => {
   try {
-    const { data } = await axiosInstance.delete<{ message: string }>(`/friend-requests/${recipientId}?action=unsend`)
+    const { data } = await axiosInstance.delete<{ message: string }>(`/api/v1/friend-requests/${recipientId}?action=unsend`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

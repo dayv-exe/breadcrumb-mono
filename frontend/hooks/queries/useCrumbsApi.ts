@@ -5,8 +5,8 @@ export const useShareCrumb = () => useMutation({
   mutationFn: shareCrumb
 })
 
-export const useGetCrumbs = () => useQuery({
-  queryFn: () => getCrumbs(),
+export const useGetCrumbs = (from?: string) => useQuery({
+  queryFn: () => getCrumbs(from ?? ""),
   queryKey: ["crumbs"],
   staleTime: 1 * (60 * 1000)
 })

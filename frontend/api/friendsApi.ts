@@ -5,7 +5,7 @@ import { UserDetails } from "./models/userDetails"
 
 export const getFriends = async (id: string): Promise<apiResponse<UserDetails[]>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/friends/${id}`)
+    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/api/v1/friends/${id}`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -15,7 +15,7 @@ export const getFriends = async (id: string): Promise<apiResponse<UserDetails[]>
 
 export const removeFriend = async (id: string): Promise<apiResponse<string>> => {
   try {
-    const { data } = await axiosInstance.delete<{ message: string }>(`/friends/${id}`)
+    const { data } = await axiosInstance.delete<{ message: string }>(`/api/v1/friends/${id}`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

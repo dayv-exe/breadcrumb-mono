@@ -15,7 +15,7 @@ export type crumb = {
 
 export const getCrumbs = async (from: string): Promise<apiResponse<crumb[]>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: crumb[] }>(`/crumbs` + from ? `?sender=${from}` : "")
+    const { data } = await axiosInstance.get<{ message: crumb[] }>(`/api/v1/crumbs` + from ? `?sender=${from}` : "")
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -25,7 +25,7 @@ export const getCrumbs = async (from: string): Promise<apiResponse<crumb[]>> => 
 
 export const shareCrumb = async (crumb: crumb): Promise<apiResponse<crumb[]>> => {
   try {
-    const { data } = await axiosInstance.post<{ message: crumb[] }>(`/crumbs`,
+    const { data } = await axiosInstance.post<{ message: crumb[] }>(`/api/v1/crumbs`,
       {
         id: crumb.id,
         receivers: crumb.receivers,

@@ -22,7 +22,7 @@ export const createUser = async (userDetails: UserInitialDetails): Promise<apiRe
 export const deleteUser = async (): Promise<apiResponse<string>> => {
   try {
     const userId = await GetId()
-    const { data } = await axiosInstance.delete<{ message: string }>(`/users/${userId}?action=delete`)
+    const { data } = await axiosInstance.delete<{ message: string }>(`/api/v1/users/${userId}?action=delete`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -33,7 +33,7 @@ export const deleteUser = async (): Promise<apiResponse<string>> => {
 export const editUser = async (edit: editUserDetailsData): Promise<apiResponse<string>> => {
   try {
     const userId = await GetId()
-    const { data } = await axiosInstance.put<{ message: string }>(`/users/${userId}`, edit)
+    const { data } = await axiosInstance.put<{ message: string }>(`/api/v1/users/${userId}`, edit)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -43,7 +43,7 @@ export const editUser = async (edit: editUserDetailsData): Promise<apiResponse<s
 
 export const getUser = async (idOrNickname: string): Promise<apiResponse<UserDetails | null>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails }>(`/users/${idOrNickname}`)
+    const { data } = await axiosInstance.get<{ message: UserDetails }>(`/api/v1/users/${idOrNickname}`)
     return { message: data.message, error: null }
   } catch (error) {
     console.error((error as AxiosError).message)
