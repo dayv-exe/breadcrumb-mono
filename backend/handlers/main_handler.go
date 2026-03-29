@@ -36,7 +36,14 @@ func HandleHandlers(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		return HandleSearchActions(ctx, req)
 	case "crumbs":
 		return HandleCrumbActions(ctx, req)
-
+	case "signup":
+		method := strings.ToLower(req.RequestContext.HTTP.Method)
+		switch method {
+		case "delete":
+			return handleAbortSignup(ctx, req)
+		default:
+			return models.ServerSideErrorResponse("Invalid signup resource path!", fmt.Errorf("Invalid signup path. Request context: %v \n raw path: %v", req.RequestContext.HTTP.Path, req.RawPath)), nil
+		}
 	default:
 		return models.ServerSideErrorResponse("Invalid resource path!", fmt.Errorf("Invalid path. Request context: %v \n raw path: %v", req.RequestContext.HTTP.Path, req.RawPath)), nil
 	}
