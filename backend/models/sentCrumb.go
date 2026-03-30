@@ -47,7 +47,7 @@ func (c *SentCrumb) ApplyPrefixes() {
 	c.Gsi = CrumbIdPrefix + c.Id
 
 	c.HashPk = SentCrumbPkPrefix + c.SenderId + CrumbHashPrefix + c.Geohash[:2]
-	c.HashSk = CrumbHashPrefix + c.Geohash + SentCrumbSkPrefix + c.Receiver
+	c.HashSk = CrumbHashPrefix + c.Geohash + SentCrumbSkPrefix + c.Receiver + CrumbIdPrefix + c.Id
 
 	c.Time = CrumbTimePrefix + utils.GetDateAndTime()
 	// IF THERE IS AN ERROR WE SHOULD MARK MEDIA FOR DELETION

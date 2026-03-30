@@ -19,9 +19,12 @@ var TestViewedCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"locationType":     &dbTypes.AttributeValueMemberS{Value: "gps"},
 	"placeId":          &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{&dbTypes.AttributeValueMemberS{Value: "p1"}}},
 	"lsi":              &dbTypes.AttributeValueMemberS{Value: "TIME#100"},
-	"text": &dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
-		"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
-		"content": &dbTypes.AttributeValueMemberS{Value: "hello world"},
+	"text": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
+		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
+			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
+			"content": &dbTypes.AttributeValueMemberS{Value: "hello world"},
+		},
+		},
 	}},
 	"media": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
@@ -33,7 +36,7 @@ var TestViewedCrumbDbItem = map[string]dbTypes.AttributeValue{
 	}},
 	"geohash":   &dbTypes.AttributeValueMemberS{Value: "hash"},
 	"gsiHashPk": &dbTypes.AttributeValueMemberS{Value: "VIEWED_CRUMB#r1HASH#ha"},
-	"gsiHashSk": &dbTypes.AttributeValueMemberS{Value: "HASH#hashSENDER#s1"},
+	"gsiHashSk": &dbTypes.AttributeValueMemberS{Value: "HASH#hashSENDER#s1CRUMB_ID#c1"},
 	"gsi":       &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
 }
 
@@ -45,9 +48,11 @@ func NewTestCrumbBodyViewed() CrumbBody {
 		Lon:              -1,
 		LocationAccuracy: 10,
 		LocationType:     "gps",
-		Text: crumbText{
-			Index:   0,
-			Content: "hello world",
+		Text: []crumbText{
+			{
+				Index:   0,
+				Content: "hello world",
+			},
 		},
 		MediaKeys: []crumbMedia{{Index: 0, MediaKey: "img-key-1"}},
 	}

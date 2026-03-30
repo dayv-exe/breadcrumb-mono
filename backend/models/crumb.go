@@ -35,7 +35,7 @@ type CrumbBody struct {
 	Lon              float64      `json:"lon"`
 	LocationAccuracy float32      `json:"locationAccuracy"`
 	LocationType     string       `json:"locationType"`
-	Text             crumbText    `json:"text"`
+	Text             []crumbText  `json:"text"`
 	MediaKeys        []crumbMedia `json:"media"`
 }
 
@@ -48,7 +48,7 @@ type Crumb struct {
 	LocationAccuracy float32      `json:"locationAccuracy" dynamodbav:"locationAccuracy"`
 	LocationType     string       `json:"locationType" dynamodbav:"locationType"`
 	PlaceId          []string     `json:"placeId" dynamodbav:"placeId"`
-	Text             crumbText    `json:"text" dynamodbav:"text"`
+	Text             []crumbText  `json:"text" dynamodbav:"text"`
 	Media            []crumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 
@@ -90,7 +90,7 @@ func (c *Crumb) ApplyPrefixes() {
 	c.Gsi = CrumbIdPrefix + c.Id
 
 	c.HashPk = CrumbPkPrefix + c.Receiver + CrumbHashPrefix + c.Geohash[:2]
-	c.HashSk = CrumbHashPrefix + c.Geohash + CrumbSkPrefix + c.SenderId
+	c.HashSk = CrumbHashPrefix + c.Geohash + CrumbSkPrefix + c.SenderId + CrumbIdPrefix + c.Id
 
 	c.Time = CrumbTimePrefix + utils.GetDateAndTime()
 }
