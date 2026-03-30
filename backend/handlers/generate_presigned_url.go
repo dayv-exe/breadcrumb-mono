@@ -145,18 +145,18 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 		}
 	}
 
-	log.Printf("EXT before: %s", ext)
+	// log.Printf("EXT before: %s", ext)
 
 	if ext == "" {
 		// vid thumbnail from app does not have ext in file name
 		// it is always jpg
-		ext = "jpg"
+		ext = ".jpg"
 	}
 
-	log.Printf("EXT after: %s", ext)
+	// log.Printf("EXT after: %s", ext)
 
 	contentType := mime.TypeByExtension(ext)
-	log.Printf("content type: %s", contentType)
+	// log.Printf("content type: %s", contentType)
 	if contentType == "" {
 		return validPresignedFile{}, &invalidPresignedFile{
 			FileName: fileName,
