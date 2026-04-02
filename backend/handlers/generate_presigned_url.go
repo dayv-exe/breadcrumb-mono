@@ -97,19 +97,19 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 
 		mediaId := randHash.String()
 
-		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, crumbId, mediaId, "")
+		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, crumbId, mediaId, "", int32(file.Index))
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 			// dont attempt to sign anything else if base media is invalid
 			continue
 		}
 
-		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, crumbId, mediaId, "overlay")
+		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, crumbId, mediaId, "overlay", int32(file.Index))
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
 
-		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, crumbId, mediaId, "thumbnail")
+		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, crumbId, mediaId, "thumbnail", int32(file.Index))
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
@@ -132,7 +132,7 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	return models.SuccessfulGetRequestResponse(res, nil), nil
 }
 
-func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, crumbId, mediaId, mediaLayerType string) (validPresignedFile, *invalidPresignedFile) {
+func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, crumbId, mediaId, mediaLayerType string, index int32) (validPresignedFile, *invalidPresignedFile) {
 	if strings.TrimSpace(fileName) == "" {
 		return validPresignedFile{}, nil
 	}
@@ -188,7 +188,8 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 		}
 	}
 
-	mediaKey := utils.GenerateMediaKey(userId, crumbId, mediaId+"_"+mediaLayerType+ext)
+	// media id, media layer, media index
+	mediaKey := utils.GenerateMediaKey(userId, crumbId, mediaId+"_"+mediaLayerType+"_"+string(index)+ext)
 
 	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(utils.GetDependencies().BucketName),

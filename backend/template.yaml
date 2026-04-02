@@ -198,7 +198,7 @@ Resources:
       PublicKeyConfig:
         Name: !Sub "${AWS::StackName}-${EnvironmentName}-cf-public-key"
         CallerReference: !Sub "${AWS::StackName}-${EnvironmentName}-${AWS::Region}"
-        EncodedKey: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvbCZkjWTIT13ljgnfsrEghqPxrK9oCqFKdqSxIWWTs1VGSez90N9/z4kmYDPZbkN/dss+HhaVV+ZgV9bZtKeNzalHyRqYATsa9jWBwOdCnRi25sCY+AJlRgjK/S+fhJHsrwFU668lVBzRrR0PbV6r1Y2y0HwuKZ9TfPIQzgmBwtj7Av6h8dUS96NSA6CvaH8hcjYZPTiZ1fHkxiIipTFBeAN3vUlqR18Ym4Z7zVapf0CBDHir4oOevH3t9lolbTpOkWyy5XAll3ngQS5YR9qYhzgL/IEXwnt2bwLRE9h9QHRdmgK7v0UjxfIqO/IDHQ+AS+WO5rQSkmSd/VnW9vwKwIDAQAB\n-----END PUBLIC KEY-----"
+        EncodedKey: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwln0RxudiZ6N8ibHHeK/kdZMnZebsCD9DJC33nCWcUEoJR7aEOOkcze/1tk9K523xkgWQybq1Frdev2Sg0g41NXGxvd+IH9tuXse8eqi4tqGGFDwVlFDcy8cHIlGS/3xBc1W1L2/lVyDS2ekibPTIce3mrOW6ldYTS0zmncfXTfm34Io1nbBBElNkx3rCDeY7lLKCpXuAG1j2pLiBr+OpSQq/QKeAOapMfozb2JKuK3N17Zu3Xk6GeuWU94P82HTQ0hE1729ILZL+OcArKYoawAxFMHKOOk4VqKSo7z2cxjhqMGgic5lk91R/K0VFm2xnV/M7ILeXwm+uqx7yygOQQIDAQAB\n-----END PUBLIC KEY-----"
 
   CloudFrontKeyGroup:
     Type: AWS::CloudFront::KeyGroup
