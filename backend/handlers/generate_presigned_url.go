@@ -90,7 +90,6 @@ func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	crumbId := randHash.String()
 
 	for _, file := range body.Files {
-		// using random file name for now
 		randHash, err := uuid.NewRandom()
 		if err != nil {
 			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", err)
