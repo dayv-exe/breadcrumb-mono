@@ -11,6 +11,7 @@ const (
 	FRIENDSHIP_ACTION_GET_REQUESTED           = "pending"
 	QUEUE_ACTION_UPDATE_FRIENDS_DISPLAY_INFO  = "update_friends_display_info"
 	QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO = "update_requests_display_info"
+	QUEUE_ACTION_PROCESS_VIDEO                = "process_video"
 )
 
 type LOCATION_TYPE string

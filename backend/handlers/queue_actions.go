@@ -24,6 +24,15 @@ func HandleQueueActions(ctx context.Context, sqs events.SQSEvent) error {
 			continue
 
 		case constants.QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO:
+			continue
+		case constants.QUEUE_ACTION_PROCESS_VIDEO:
+			var payload helpers.ProcessMediaPayload
+			if err := json.Unmarshal(action.Payload, &payload); err != nil {
+				return err
+			}
+
+			processVid(ctx, payload)
+			continue
 
 		default:
 			log.Println("Invalid queue action!")
@@ -55,5 +64,9 @@ func updateFriendDisplayInfo(ctx context.Context, userid string) error {
 		return err
 	}
 
+	return nil
+}
+
+func processVid(ctx context.Context, payload helpers.ProcessMediaPayload) error {
 	return nil
 }

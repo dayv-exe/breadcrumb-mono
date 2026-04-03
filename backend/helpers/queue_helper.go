@@ -12,10 +12,17 @@ import (
 )
 
 type QueueAction struct {
-	SenderId    string `json:"senderId"`
-	RecipientId string `json:"recipientId"`
-	Action      string `json:"action"`
-	Payload     any    `json:"payload"`
+	SenderId    string          `json:"senderId"`
+	RecipientId string          `json:"recipientId"`
+	Action      string          `json:"action"`
+	Payload     json.RawMessage `json:"payload"`
+}
+
+type ProcessMediaPayload struct {
+	CrumbId    string `json:"id"`
+	Path       string `json:"path"`
+	MediaIndex int32  `json:"index"`
+	IsVideo    bool   `json:"isVideo"`
 }
 
 type queueHelper struct {
@@ -39,6 +46,19 @@ func WithUpdateFriendRequestDisplayInfo(userId string) QueueAction {
 	return QueueAction{
 		SenderId: userId,
 		Action:   constants.QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO,
+	}
+}
+
+func WithProcessVideo(crumbId, s3Path string, mediaIndex int32) QueueAction {
+	payload, _ := json.Marshal(ProcessMediaPayload{
+		CrumbId:    crumbId,
+		Path:       s3Path,
+		MediaIndex: mediaIndex,
+		IsVideo:    true,
+	})
+	return QueueAction{
+		Action:  constants.QUEUE_ACTION_PROCESS_VIDEO,
+		Payload: payload,
 	}
 }
 

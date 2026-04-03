@@ -181,7 +181,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 		}
 
 	default:
-		if !utils.IsAllowedThumbnailMimeType(contentType) {
+		if !utils.IsAllowedMimeType(contentType) {
 			return validPresignedFile{}, &invalidPresignedFile{
 				FileName: fileName,
 				Reason:   "File type not allowed",
