@@ -196,8 +196,8 @@ Resources:
     Type: AWS::CloudFront::PublicKey
     Properties:
       PublicKeyConfig:
-        Name: !Sub "${AWS::StackName}-${EnvironmentName}-cf-public-key"
-        CallerReference: !Sub "breadcrumb-public-key-20260403010213"
+        Name: !Sub "breadcrumb-public-key-20260403010213"
+        CallerReference: !Sub "${AWS::StackName}-${EnvironmentName}-${AWS::Region}"
         EncodedKey: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuoOPR1FMvB5FX+eeYnqxK8+sTaNY6H64/6CcBNtqSwW7i27OufbMZmmcjSUkPMBLXR0BMEV9KJHGxt0uAeY4qbJNSc882+5Kx/6ZKlLBCGEXyhduQwnyWzFmPrL6rP9/Gf+PuJPNANWARgKSrVeENaoUOmYzSxdTNZZ3rgnyY5LPOzkhYSLQxcSCnhHL3d5XtdOIUP2HjmEbI+CdI0HEQ5sGk+DBxhwtSPRkDIREJqmhcy0lfQ8FZuFOsaf2lmETC1i2S4HlhCJXMRB60gquBeISYilv79Qej4z60VsrN32bAr3OFHB+QD81hyhmmiFeleaDupBwYJljn67A+xf9jQIDAQAB\n-----END PUBLIC KEY-----"
 
   CloudFrontKeyGroup:
