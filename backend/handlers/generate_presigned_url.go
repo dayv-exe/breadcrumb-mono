@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"mime"
 	"path/filepath"
@@ -19,7 +20,7 @@ import (
 )
 
 type MediaItem struct {
-	Index             int    `json:"index"`
+	Index             int32  `json:"index"`
 	MediaFileName     string `json:"media"`
 	OverlayFileName   string `json:"overlay"`
 	ThumbnailFileName string `json:"thumbnail"`
@@ -27,7 +28,7 @@ type MediaItem struct {
 }
 
 type ValidPresignedMediaItem struct {
-	Index         int                `json:"index"`
+	Index         int32              `json:"index"`
 	CrumbId       string             `json:"crumbId"`
 	MediaFile     validPresignedFile `json:"media"`
 	OverlayFile   validPresignedFile `json:"overlay,omitempty"`
@@ -179,17 +180,25 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 				Reason:   "File type not allowed for thumbnails",
 			}
 		}
-	}
 
-	if !utils.IsAllowedMimeType(contentType) {
-		return validPresignedFile{}, &invalidPresignedFile{
-			FileName: fileName,
-			Reason:   "File type not allowed",
+	default:
+		if !utils.IsAllowedThumbnailMimeType(contentType) {
+			return validPresignedFile{}, &invalidPresignedFile{
+				FileName: fileName,
+				Reason:   "File type not allowed",
+			}
 		}
 	}
 
+	var objectName string
+	if mediaLayerType == "" {
+		objectName = fmt.Sprintf("%s_%d%s", mediaId, index, ext)
+	} else {
+		objectName = fmt.Sprintf("%s_%s_%d%s", mediaId, mediaLayerType, index, ext)
+	}
+
 	// media id, media layer, media index
-	mediaKey := utils.GenerateMediaKey(userId, crumbId, mediaId+"_"+mediaLayerType+"_"+string(index)+ext)
+	mediaKey := utils.GenerateMediaKey(userId, crumbId, objectName)
 
 	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(utils.GetDependencies().BucketName),
