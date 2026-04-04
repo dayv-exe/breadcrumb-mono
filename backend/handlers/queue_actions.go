@@ -67,6 +67,11 @@ func updateFriendDisplayInfo(ctx context.Context, userid string) error {
 	return nil
 }
 
+func updateFriendRequestDisplayInfo(ctx context.Context, userId string) error {
+	// TODO: FIX LATER
+	return nil
+}
+
 func processVid(ctx context.Context, payload helpers.ProcessMediaPayload) error {
 	return nil
 }

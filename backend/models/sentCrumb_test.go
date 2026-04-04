@@ -34,10 +34,10 @@ var TestSentCrumbDbItem = map[string]dbTypes.AttributeValue{
 			"thumbnail": &dbTypes.AttributeValueMemberS{Value: ""},
 		}},
 	}},
-	"geohash":   &dbTypes.AttributeValueMemberS{Value: "hash"},
-	"gsiHashPk": &dbTypes.AttributeValueMemberS{Value: "SENT_CRUMB#s1HASH#ha"},
-	"gsiHashSk": &dbTypes.AttributeValueMemberS{Value: "HASH#hashRECEIVER#r1CRUMB_ID#c1"},
-	"gsi":       &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
+	"geohash": &dbTypes.AttributeValueMemberS{Value: "hash"},
+	"gsi2":    &dbTypes.AttributeValueMemberS{Value: "SENT_CRUMB#s1HASH#ha"},
+	"gsi2Sk":  &dbTypes.AttributeValueMemberS{Value: "HASH#hashRECEIVER#r1CRUMB_ID#c1"},
+	"gsi":     &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
 }
 
 func NewTestCrumbBodySent() CrumbBody {

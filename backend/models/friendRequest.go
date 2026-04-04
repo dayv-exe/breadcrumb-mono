@@ -11,12 +11,16 @@ type friendRequest struct {
 	RecipientId string `dynamodbav:"pk"`
 	SenderId    string `dynamodbav:"sk" json:"userId"`
 	UserDisplayInfoNoId
-	Date string `dynamodbav:"date" json:"date"`
+	Date  string `dynamodbav:"date" json:"date"`
+	Gsi   string `dynamodbav:"gsi2" json:"-"`
+	GsiSk string `dynamodbav:"gsi2Sk" json:"-"`
 }
 
 const (
-	FriendRequestPkPrefix = "USER#"
-	FriendRequestSkPrefix = "FRIEND_REQUEST_FROM#"
+	FriendRequestPkPrefix    = "USER#"
+	FriendRequestSkPrefix    = "FRIEND_REQUEST_FROM#"
+	FriendRequestGsiPrefix   = FriendRequestSkPrefix
+	FriendRequestGsiSkPrefix = FriendRequestPkPrefix
 )
 
 func NewFriendRequest(recipientUserId string, sender *User) *friendRequest {
@@ -45,6 +49,8 @@ func FriendRequestKey(recipientUserId string, senderUserId string) map[string]ty
 func (fr *friendRequest) ApplyPrefixes() {
 	fr.RecipientId = utils.AddPrefix(FriendRequestPkPrefix, fr.RecipientId)
 	fr.SenderId = utils.AddPrefix(FriendRequestSkPrefix, fr.SenderId)
+	fr.Gsi = FriendRequestGsiPrefix + strings.TrimPrefix(fr.SenderId, FriendRequestSkPrefix)
+	fr.GsiSk = FriendRequestGsiSkPrefix + strings.TrimPrefix(fr.RecipientId, FriendRequestPkPrefix)
 }
 
 func FriendRequestItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[]UserDisplayInfo {

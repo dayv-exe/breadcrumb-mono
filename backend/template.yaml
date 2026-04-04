@@ -540,9 +540,13 @@ Resources:
           AttributeType: S
         - AttributeName: gsiSk
           AttributeType: S
-        - AttributeName: gsiHashPk
+        - AttributeName: gsi2
           AttributeType: S
-        - AttributeName: gsiHashSk
+        - AttributeName: gsi2Sk
+          AttributeType: S
+        - AttributeName: gsi3
+          AttributeType: S
+        - AttributeName: gsi3Sk
           AttributeType: S
         - AttributeName: lsi
           AttributeType: S 
@@ -570,11 +574,19 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-        - IndexName: HashGSIndex
+        - IndexName: GSIndex2
           KeySchema:
-            - AttributeName: gsiHashPk
+            - AttributeName: gsi2
               KeyType: HASH
-            - AttributeName: gsiHashSk
+            - AttributeName: gsi2Sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSIndex3
+          KeySchema:
+            - AttributeName: gsi3
+              KeyType: HASH
+            - AttributeName: gsi3Sk
               KeyType: RANGE
           Projection:
             ProjectionType: ALL

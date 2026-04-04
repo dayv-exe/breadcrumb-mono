@@ -177,6 +177,42 @@ func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedK
 	}, nil
 }
 
+type getNewFriendItem func(models.Friend) types.WriteRequest
+type getListOfFriends func() (*listResponse[models.UserDisplayInfo], error)
+
+// TODO: FIX LATER
+func (f *friendshipHelper) updateFriendshipDisplayInfo(currentUser *models.User) error {
+	helper := newHelper(f.Ctx, nil)
+	var lastEvalKey map[string]types.AttributeValue
+
+	for {
+		result, err := f.GetAllFriends(currentUser.Userid, &lastEvalKey, nil)
+		if err != nil {
+			log.Println("Failed to get user friends!")
+			return err
+		}
+
+		var updates []types.WriteRequest
+
+		for _, friend := range result.Items {
+			// gets the friendship key where pk is current user and sk is other user
+			// flips it around to overwrite
+			updatedItem := models.NewFriendship(friend.Userid, currentUser)
+			updates = append(updates, UsePutBatchItem(helper, updatedItem))
+		}
+
+		BatchWriteItems(helper, updates...)
+
+		if result.LastEvalKey == nil {
+			break
+		}
+
+		lastEvalKey = result.LastEvalKey
+	}
+
+	return nil
+}
+
 func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) error {
 	// get user info
 	// get all friendship items

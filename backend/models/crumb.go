@@ -54,8 +54,8 @@ type Crumb struct {
 
 	Time string `json:"time" dynamodbav:"lsi"`
 
-	HashPk string `json:"-" dynamodbav:"gsiHashPk"`
-	HashSk string `json:"-" dynamodbav:"gsiHashSk"`
+	HashPk string `json:"-" dynamodbav:"gsi2"`
+	HashSk string `json:"-" dynamodbav:"gsi2Sk"`
 
 	PK  string `json:"-" dynamodbav:"pk"`
 	SK  string `json:"-" dynamodbav:"sk"`
