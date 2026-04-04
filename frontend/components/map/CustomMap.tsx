@@ -1,4 +1,4 @@
-import { crumb } from "@/api/crumbsApi";
+import { Crumb } from "@/api/crumbsApi";
 import { useGetCrumbs } from "@/hooks/queries/useCrumbsApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useCustomGestures } from "@/hooks/useCustomGestures";
@@ -79,6 +79,10 @@ export default function CustomMap({
   const { data: crumbsResponse, refetch: refetchCrumbs } = useGetCrumbs();
   const crumbs = crumbsResponse?.message ?? [];
 
+  useEffect(() => {
+    console.log(crumbs)
+  }, [crumbs])
+
   const gestures = useCustomGestures(
     {
       onLongPress: (pos) => {
@@ -117,7 +121,7 @@ export default function CustomMap({
       content: (
         <>
           <MediaView style={{
-            aspectRatio: 9 / 16
+            aspectRatio: 9 / 16,
           }} mediaKey={mediaKey} fallback={
             <CustomLabel labelText="Failed to load" adaptToTheme />
           } />
@@ -184,12 +188,12 @@ export default function CustomMap({
           )}
 
           {mapReady &&
-            crumbs.map((crumb: crumb) => (
+            crumbs.map((crumb: Crumb) => (
               <Mapbox.PointAnnotation
                 key={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
                 id={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
-                coordinate={[parseFloat(crumb.lon), parseFloat(crumb.lat)]}
-                onSelected={() => showMed(crumb.mediaItems[0].media.mediaKey)}
+                coordinate={[crumb.lon, crumb.lat]}
+                onSelected={() => showMed(crumb.media[0].media)}
               >
                 <View style={styles.crumbMarker}>
                   <CustomLabel labelText="🍞" fontSize={30} />

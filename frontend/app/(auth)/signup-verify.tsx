@@ -31,6 +31,7 @@ export default function SignupVerifyScreen() {
   const { showModal, hideModal } = useModal()
 
   function handleErrorGracefully(err: string) {
+    console.log(err)
     if (String(err).includes("CodeMismatchException") || String(err).includes("InvalidParameterException")) {
       Toast.show({
         text1: "Invalid verification code!",
@@ -54,7 +55,7 @@ export default function SignupVerifyScreen() {
           type: "info",
         })
         showModal({
-          message: "Something went wrong while we were trying to create your account, please try again after a while. Side note: make sure your full name does NOT contain any swear words as this could prevent us from creating your account.",
+          message: "Something went wrong while we were trying to create your account, please try again after a while.",
           primaryBtnText: "Okay",
           onPrimary() {
             hideModal()

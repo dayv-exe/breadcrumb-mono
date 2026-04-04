@@ -231,14 +231,23 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
     onSuccess: files => {
       shareCrumb({
         id: files[0].crumbId,
-        lat: coordinates?.latitude.toString() ?? "0",
-        lon: coordinates?.longitude.toString() ?? "0",
-        mediaItems: files,
+        lat: coordinates?.latitude ?? 0,
+        lon: coordinates?.longitude ?? 0,
+        mediaItems: files.map(f => ({
+          index: f.index,
+          media: f.media.mediaKey,
+          overlay: f.overlay?.mediaKey,
+          thumbnail: f.thumbnail?.mediaKey,
+        })),
         locationAccuracy: 0,
         locationType: "mine",
-        receivers: []
+        receivers: ["1234567890"],
       }, {
-        onSuccess: () => {
+        onSuccess: (s) => {
+          if (s.error) {
+            handleNotifyErr(s.error)
+            return
+          }
           setShareIsPending(false)
           hideModal()
           resetMediaStore()

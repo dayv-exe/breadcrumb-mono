@@ -44,7 +44,7 @@ export const getPresignedUrls = async (
 ): Promise<apiResponse<presignedUrlResponse | null>> => {
   try {
     const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
-      "/presigned_url",
+      "/api/v1/presigned_url",
       { files }
     );
     return { message: data.message, error: null };

@@ -48,17 +48,17 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
           </View>
           <Spacer />
           <View style={styles.buttonContainer}>
-            {primaryBtnText && <CustomButton labelText={primaryBtnText} handleClick={() => {
+            {primaryBtnText && <CustomButton useMinWidth slim labelText={primaryBtnText} handleClick={() => {
               handlePrimaryAction?.()
             }} type="less-prominent" />}
             {secondaryBtnText && <Spacer size='small' />}
-            {secondaryBtnText && <CustomButton labelText={secondaryBtnText} handleClick={() => {
+            {secondaryBtnText && <CustomButton useMinWidth slim labelText={secondaryBtnText} handleClick={() => {
               handleSecondaryAction?.()
             }} type='theme-faded' />}
             {showCancelBtn &&
               <>
                 <Spacer size='small' />
-                <CustomButton customTextStyle={{ color: "red" }} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />
+                <CustomButton useMinWidth customTextStyle={{ color: "red" }} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />
               </>
             }
           </View>

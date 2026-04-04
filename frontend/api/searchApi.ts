@@ -27,7 +27,7 @@ export const nicknameAvailable = async (username: string): Promise<apiResponse<b
     const verdict = data.message.toLowerCase() === "true"
     return { message: verdict, error: verdict ? null : `${username} is already in use` }
   } catch (error) {
-    console.log((error as AxiosError).response?.status)
+    console.log((error as AxiosError).message)
     if ((error as AxiosError).response?.status === 403) {
       return { message: false, error: "That username is not allowed 📖" }
     }

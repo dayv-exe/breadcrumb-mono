@@ -101,6 +101,8 @@ export const MediaView: React.FC<MediaViewProps> = ({
   const { url } = data.message;
   const mediaType = inferMediaType(url);
 
+  console.log(mediaKey)
+
   switch (mediaType) {
     case "video":
       return (
@@ -126,7 +128,7 @@ export const MediaView: React.FC<MediaViewProps> = ({
       return (
         <Image
           source={{ uri: url }}
-          style={style}
+          style={[style]}
           resizeMode={resizeMode}
         />
       );
