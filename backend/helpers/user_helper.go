@@ -103,7 +103,7 @@ func (this *userHelper) FindByNickname(nickname string) (*models.User, error) {
 		return nil, err
 	}
 
-	if users == nil {
+	if users == nil || len((*users)) < 1 {
 		return nil, nil
 	}
 
