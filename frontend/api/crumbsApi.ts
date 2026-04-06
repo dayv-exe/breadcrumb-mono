@@ -42,10 +42,10 @@ export type crumbText = {
 
 export const getCrumbs = async (from: string): Promise<apiResponse<Crumb[]>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: Crumb[] }>(`/api/v1/crumbs/sent`)
+    const { data } = await axiosInstance.get<{ message: Crumb[] }>(`/api/v1/crumbs/received`)
     return { message: data.message, error: null }
   } catch (error) {
-    console.log((error as AxiosError).name)
+    console.log((error as AxiosError).message)
     return { message: [], error: (error as AxiosError).message }
   }
 }
