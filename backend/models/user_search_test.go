@@ -188,7 +188,6 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 					"userid":   &types.AttributeValueMemberS{Value: "123"},
 					"fullname": &types.AttributeValueMemberS{Value: "johnny test"},
 					"gsi":      &types.AttributeValueMemberS{Value: "j.test"},
-					"dpUrl":    &types.AttributeValueMemberS{Value: ""},
 				},
 				{
 					"pk":       &types.AttributeValueMemberS{Value: "USER_INDEX#jo"},
@@ -196,7 +195,6 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 					"userid":   &types.AttributeValueMemberS{Value: "123"},
 					"fullname": &types.AttributeValueMemberS{Value: "johnny test"},
 					"gsi":      &types.AttributeValueMemberS{Value: "j.test"},
-					"dpUrl":    &types.AttributeValueMemberS{Value: ""},
 				},
 				{
 					"pk":       &types.AttributeValueMemberS{Value: "USER_INDEX#te"},
@@ -204,7 +202,6 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 					"userid":   &types.AttributeValueMemberS{Value: "123"},
 					"fullname": &types.AttributeValueMemberS{Value: "johnny test"},
 					"gsi":      &types.AttributeValueMemberS{Value: "j.test"},
-					"dpUrl":    &types.AttributeValueMemberS{Value: ""},
 				},
 			},
 		},
@@ -219,7 +216,6 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 					"userid":   &types.AttributeValueMemberS{Value: "123"},
 					"fullname": &types.AttributeValueMemberS{Value: ""},
 					"gsi":      &types.AttributeValueMemberS{Value: "j.test"},
-					"dpUrl":    &types.AttributeValueMemberS{Value: ""},
 				},
 			},
 		},
@@ -232,7 +228,6 @@ func TestBuildUserSearchIndexes(t *testing.T) {
 					Userid:   tt.userId,
 					Nickname: tt.nickname,
 					Name:     tt.name,
-					DpUrl:    "",
 				},
 			}
 

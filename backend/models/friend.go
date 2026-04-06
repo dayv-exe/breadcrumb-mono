@@ -60,11 +60,9 @@ func FriendItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[
 	var friends []UserDisplayInfo
 	for _, Friend := range *result {
 		friends = append(friends, UserDisplayInfo{
-			Userid:                  Friend.OtherUserID,
-			Nickname:                Friend.Nickname,
-			Name:                    Friend.Name,
-			DpUrl:                   Friend.DpUrl,
-			DefaultProfilePicColors: Friend.DefaultProfilePicColors,
+			Userid:   Friend.OtherUserID,
+			Nickname: Friend.Nickname,
+			Name:     Friend.Name,
 		})
 	}
 

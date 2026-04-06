@@ -63,10 +63,8 @@ func (u *UserSearch) buildSearchIndexes() []map[string]types.AttributeValue {
 				Sk:     sk,
 				Userid: u.Userid,
 				UserDisplayInfoNoId: UserDisplayInfoNoId{
-					Nickname:                u.Nickname,
-					Name:                    u.Name,
-					DpUrl:                   u.DpUrl,
-					DefaultProfilePicColors: u.DefaultProfilePicColors,
+					Nickname: u.Nickname,
+					Name:     u.Name,
 				},
 			}
 
@@ -121,11 +119,9 @@ func SearchItemsToUserInfoStruct(items []map[string]types.AttributeValue) *[]Use
 	var users []UserDisplayInfo
 	for _, user := range *searchItems {
 		users = append(users, UserDisplayInfo{
-			Userid:                  user.Userid,
-			Nickname:                user.Nickname,
-			Name:                    user.Name,
-			DpUrl:                   user.DpUrl,
-			DefaultProfilePicColors: user.DefaultProfilePicColors,
+			Userid:   user.Userid,
+			Nickname: user.Nickname,
+			Name:     user.Name,
 		})
 	}
 

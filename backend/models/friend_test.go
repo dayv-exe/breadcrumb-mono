@@ -12,17 +12,14 @@ func TestFriendDatabaseFormat(t *testing.T) {
 	d := utils.GetTimeNow()
 
 	expected := map[string]types.AttributeValue{
-		"pk":                 &types.AttributeValueMemberS{Value: "USER#123"},
-		"sk":                 &types.AttributeValueMemberS{Value: "FRIEND#321"},
-		"fullname":           &types.AttributeValueMemberS{Value: "sender"},
-		"gsi":                &types.AttributeValueMemberS{Value: "sndr"},
-		"dpUrl":              &types.AttributeValueMemberS{Value: ""},
-		"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
-		"date":               &types.AttributeValueMemberS{Value: d},
+		"pk":       &types.AttributeValueMemberS{Value: "USER#123"},
+		"sk":       &types.AttributeValueMemberS{Value: "FRIEND#321"},
+		"fullname": &types.AttributeValueMemberS{Value: "sender"},
+		"gsi":      &types.AttributeValueMemberS{Value: "sndr"},
+		"date":     &types.AttributeValueMemberS{Value: d},
 	}
 
 	otherUser := NewUser("321", "sndr", "sender", false)
-	otherUser.DefaultProfilePicColors = ""
 
 	result := utils.ToDatabaseFormat(NewFriendship("123", otherUser))
 
@@ -52,22 +49,18 @@ func TestFriendDatabaseFormat(t *testing.T) {
 func TestFriendToUserInfoStruct(t *testing.T) {
 	friendDbItem := []map[string]types.AttributeValue{
 		{
-			"pk":                 &types.AttributeValueMemberS{Value: "123"},
-			"sk":                 &types.AttributeValueMemberS{Value: "321"},
-			"gsi":                &types.AttributeValueMemberS{Value: "other"},
-			"fullname":           &types.AttributeValueMemberS{Value: "other"},
-			"dpUrl":              &types.AttributeValueMemberS{Value: ""},
-			"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
-			"date":               &types.AttributeValueMemberS{Value: ""},
+			"pk":       &types.AttributeValueMemberS{Value: "123"},
+			"sk":       &types.AttributeValueMemberS{Value: "321"},
+			"gsi":      &types.AttributeValueMemberS{Value: "other"},
+			"fullname": &types.AttributeValueMemberS{Value: "other"},
+			"date":     &types.AttributeValueMemberS{Value: ""},
 		},
 	}
 
 	expect := UserDisplayInfo{
-		Userid:                  "321",
-		Nickname:                "other",
-		Name:                    "other",
-		DpUrl:                   "",
-		DefaultProfilePicColors: "",
+		Userid:   "321",
+		Nickname: "other",
+		Name:     "other",
 	}
 
 	result := FriendItemsToUserDisplayStructs(friendDbItem)

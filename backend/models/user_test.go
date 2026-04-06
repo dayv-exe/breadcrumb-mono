@@ -14,7 +14,6 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"gsi":                   &dbTypes.AttributeValueMemberS{Value: "test"},
 	"fullname":              &dbTypes.AttributeValueMemberS{Value: "test test"},
 	"bio":                   &dbTypes.AttributeValueMemberS{Value: ""},
-	"dpUrl":                 &dbTypes.AttributeValueMemberS{Value: ""},
 	"is_suspended":          &dbTypes.AttributeValueMemberBOOL{Value: false},
 	"is_deactivated":        &dbTypes.AttributeValueMemberBOOL{Value: false},
 	"date":                  &dbTypes.AttributeValueMemberS{Value: utils.GetTimeNow()},
@@ -25,7 +24,6 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"last_login":            &dbTypes.AttributeValueMemberS{Value: utils.GetTimeNow()},
 	"force_change_nickname": &dbTypes.AttributeValueMemberBOOL{Value: false},
 	"suspension_reason":     &dbTypes.AttributeValueMemberS{Value: ""},
-	"default_pic_colors":    &dbTypes.AttributeValueMemberS{Value: ""},
 	"friends":               &dbTypes.AttributeValueMemberS{Value: ""},
 }
 
@@ -38,8 +36,6 @@ func TestUser_DatabaseFormat(t *testing.T) {
 	)
 
 	result := *utils.ToDatabaseFormat(user)
-
-	result["default_pic_colors"] = &dbTypes.AttributeValueMemberS{Value: ""}
 
 	if len(testUserDynamo) != len(result) {
 		t.Errorf("Expected %d keys, got %d", len(testUserDynamo), len(result))
@@ -70,7 +66,6 @@ func TestConvertToUser(t *testing.T) {
 			Userid:   "123",
 			Nickname: "test",
 			Name:     "test",
-			DpUrl:    "",
 		},
 		UserAccountInfo: UserAccountInfo{
 			Bio:           "",
@@ -84,7 +79,6 @@ func TestConvertToUser(t *testing.T) {
 		"gsi":            &dbTypes.AttributeValueMemberS{Value: "test"},
 		"fullname":       &dbTypes.AttributeValueMemberS{Value: "test"},
 		"bio":            &dbTypes.AttributeValueMemberS{Value: ""},
-		"dpUrl":          &dbTypes.AttributeValueMemberS{Value: ""},
 		"is_suspended":   &dbTypes.AttributeValueMemberBOOL{Value: false},
 		"is_deactivated": &dbTypes.AttributeValueMemberBOOL{Value: false},
 	})

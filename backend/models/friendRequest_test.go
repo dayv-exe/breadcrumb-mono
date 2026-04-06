@@ -11,15 +11,13 @@ import (
 func TestFriendRequestDbFormat(t *testing.T) {
 	d := utils.GetTimeNow()
 	expected := map[string]types.AttributeValue{
-		"pk":                 &types.AttributeValueMemberS{Value: "USER#rec"},
-		"sk":                 &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-		"date":               &types.AttributeValueMemberS{Value: d},
-		"fullname":           &types.AttributeValueMemberS{Value: "test"},
-		"gsi":                &types.AttributeValueMemberS{Value: "test"},
-		"gsi2Sk":             &types.AttributeValueMemberS{Value: "USER#rec"},
-		"gsi2":               &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-		"dpUrl":              &types.AttributeValueMemberS{Value: ""},
-		"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
+		"pk":       &types.AttributeValueMemberS{Value: "USER#rec"},
+		"sk":       &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
+		"date":     &types.AttributeValueMemberS{Value: d},
+		"fullname": &types.AttributeValueMemberS{Value: "test"},
+		"gsi":      &types.AttributeValueMemberS{Value: "test"},
+		"gsi2Sk":   &types.AttributeValueMemberS{Value: "USER#rec"},
+		"gsi2":     &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
 	}
 
 	fr := friendRequest{
@@ -27,10 +25,8 @@ func TestFriendRequestDbFormat(t *testing.T) {
 		SenderId:    "send",
 		Date:        d,
 		UserDisplayInfoNoId: UserDisplayInfoNoId{
-			Name:                    "test",
-			Nickname:                "test",
-			DpUrl:                   "",
-			DefaultProfilePicColors: "",
+			Name:     "test",
+			Nickname: "test",
 		},
 	}
 
@@ -62,24 +58,20 @@ func TestFriendRequestDbFormat(t *testing.T) {
 func TestConvertToFriendRequest(t *testing.T) {
 	d := utils.GetTimeNow()
 	expected := UserDisplayInfo{
-		Userid:                  "send",
-		Nickname:                "send",
-		Name:                    "send",
-		DpUrl:                   "",
-		DefaultProfilePicColors: "",
+		Userid:   "send",
+		Nickname: "send",
+		Name:     "send",
 	}
 
 	item := []map[string]types.AttributeValue{
 		{
-			"pk":                 &types.AttributeValueMemberS{Value: "USER#rec"},
-			"sk":                 &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-			"gsi":                &types.AttributeValueMemberS{Value: "send"},
-			"gsi2":               &types.AttributeValueMemberS{Value: "USER#rec"},
-			"gsi2Sk":             &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-			"fullname":           &types.AttributeValueMemberS{Value: "send"},
-			"dpUrl":              &types.AttributeValueMemberS{Value: ""},
-			"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
-			"date":               &types.AttributeValueMemberS{Value: d},
+			"pk":       &types.AttributeValueMemberS{Value: "USER#rec"},
+			"sk":       &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
+			"gsi":      &types.AttributeValueMemberS{Value: "send"},
+			"gsi2":     &types.AttributeValueMemberS{Value: "USER#rec"},
+			"gsi2Sk":   &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
+			"fullname": &types.AttributeValueMemberS{Value: "send"},
+			"date":     &types.AttributeValueMemberS{Value: d},
 		},
 	}
 
@@ -92,24 +84,20 @@ func TestConvertToFriendRequest(t *testing.T) {
 func TestFriendRequestToUserInfoStruct(t *testing.T) {
 	friendReqDbItem := []map[string]types.AttributeValue{
 		{
-			"pk":                 &types.AttributeValueMemberS{Value: "123"},
-			"sk":                 &types.AttributeValueMemberS{Value: "321"},
-			"gsi":                &types.AttributeValueMemberS{Value: "other"},
-			"gsi2":               &types.AttributeValueMemberS{Value: "USER#rec"},
-			"gsi2Sk":             &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-			"fullname":           &types.AttributeValueMemberS{Value: "other"},
-			"dpUrl":              &types.AttributeValueMemberS{Value: ""},
-			"default_pic_colors": &types.AttributeValueMemberS{Value: ""},
-			"date":               &types.AttributeValueMemberS{Value: ""},
+			"pk":       &types.AttributeValueMemberS{Value: "123"},
+			"sk":       &types.AttributeValueMemberS{Value: "321"},
+			"gsi":      &types.AttributeValueMemberS{Value: "other"},
+			"gsi2":     &types.AttributeValueMemberS{Value: "USER#rec"},
+			"gsi2Sk":   &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
+			"fullname": &types.AttributeValueMemberS{Value: "other"},
+			"date":     &types.AttributeValueMemberS{Value: ""},
 		},
 	}
 
 	expect := UserDisplayInfo{
-		Userid:                  "321",
-		Nickname:                "other",
-		Name:                    "other",
-		DpUrl:                   "",
-		DefaultProfilePicColors: "",
+		Userid:   "321",
+		Nickname: "other",
+		Name:     "other",
 	}
 
 	result := FriendRequestItemsToUserDisplayStructs(friendReqDbItem)

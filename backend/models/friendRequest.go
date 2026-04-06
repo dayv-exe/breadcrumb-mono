@@ -29,10 +29,8 @@ func NewFriendRequest(recipientUserId string, sender *User) *friendRequest {
 		SenderId:    sender.Userid,
 		Date:        utils.GetTimeNow(),
 		UserDisplayInfoNoId: UserDisplayInfoNoId{
-			Nickname:                sender.Nickname,
-			Name:                    sender.Name,
-			DpUrl:                   sender.DpUrl,
-			DefaultProfilePicColors: sender.DefaultProfilePicColors,
+			Nickname: sender.Nickname,
+			Name:     sender.Name,
 		},
 	}
 
@@ -67,11 +65,9 @@ func FriendRequestItemsToUserDisplayStructs(items []map[string]types.AttributeVa
 
 	for _, request := range *result {
 		friendRequests = append(friendRequests, UserDisplayInfo{
-			Userid:                  request.SenderId,
-			Nickname:                request.Nickname,
-			Name:                    request.Name,
-			DpUrl:                   request.DpUrl,
-			DefaultProfilePicColors: request.DefaultProfilePicColors,
+			Userid:   request.SenderId,
+			Nickname: request.Nickname,
+			Name:     request.Name,
 		})
 	}
 

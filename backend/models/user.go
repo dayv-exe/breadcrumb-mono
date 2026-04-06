@@ -17,18 +17,14 @@ type User struct {
 }
 
 type UserDisplayInfo struct {
-	Userid                  string `dynamodbav:"pk" json:"userId"`
-	Nickname                string `dynamodbav:"gsi" json:"nickname"`
-	Name                    string `dynamodbav:"fullname" json:"name"`
-	DpUrl                   string `dynamodbav:"dpUrl" json:"dpUrl"`
-	DefaultProfilePicColors string `dynamodbav:"default_pic_colors" json:"defaultPicColors"`
+	Userid   string `dynamodbav:"pk" json:"userId"`
+	Nickname string `dynamodbav:"gsi" json:"nickname"`
+	Name     string `dynamodbav:"fullname" json:"name"`
 }
 
 type UserDisplayInfoNoId struct {
-	Nickname                string `dynamodbav:"gsi" json:"nickname"`
-	Name                    string `dynamodbav:"fullname" json:"name"`
-	DpUrl                   string `dynamodbav:"dpUrl" json:"dpUrl"`
-	DefaultProfilePicColors string `dynamodbav:"default_pic_colors" json:"defaultPicColors"`
+	Nickname string `dynamodbav:"gsi" json:"nickname"`
+	Name     string `dynamodbav:"fullname" json:"name"`
 }
 
 type UserAccountInfo struct {
@@ -58,15 +54,11 @@ const (
 )
 
 func NewUser(userid string, nickname string, name string, isSuspended bool) *User {
-	defaultColors := utils.GenerateRandomColorPair()
-
 	return &User{
 		UserDisplayInfo: UserDisplayInfo{
-			Userid:                  userid,
-			Nickname:                nickname,
-			Name:                    name,
-			DpUrl:                   "",
-			DefaultProfilePicColors: defaultColors.Foreground + utils.AddPrefix("#", defaultColors.Background),
+			Userid:   userid,
+			Nickname: nickname,
+			Name:     name,
 		},
 		UserAccountInfo: UserAccountInfo{
 			Bio:           "",
@@ -89,20 +81,16 @@ func NewUser(userid string, nickname string, name string, isSuspended bool) *Use
 
 func GetUserDisplayInfoNoId(u *User) *UserDisplayInfoNoId {
 	return &UserDisplayInfoNoId{
-		Nickname:                u.Nickname,
-		Name:                    u.Name,
-		DpUrl:                   u.DpUrl,
-		DefaultProfilePicColors: u.DefaultProfilePicColors,
+		Nickname: u.Nickname,
+		Name:     u.Name,
 	}
 }
 
 func NewUserDisplayInfo(u User) *UserDisplayInfo {
 	return &UserDisplayInfo{
-		Userid:                  u.Userid,
-		Nickname:                u.Nickname,
-		Name:                    u.Name,
-		DpUrl:                   u.DpUrl,
-		DefaultProfilePicColors: u.DefaultProfilePicColors,
+		Userid:   u.Userid,
+		Nickname: u.Nickname,
+		Name:     u.Name,
 	}
 }
 
