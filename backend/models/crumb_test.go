@@ -18,7 +18,7 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"locationAccuracy": &dbTypes.AttributeValueMemberN{Value: "10"},
 	"locationType":     &dbTypes.AttributeValueMemberS{Value: "gps"},
 	"placeId":          &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{&dbTypes.AttributeValueMemberS{Value: "p1"}}},
-	"lsi":              &dbTypes.AttributeValueMemberS{Value: "TIME#100"},
+	"time":             &dbTypes.AttributeValueMemberS{Value: "TIME#100"},
 	"text": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
@@ -67,7 +67,7 @@ func TestCrumb_DatabaseFormat(t *testing.T) {
 
 	expected := TestCrumbDbItem
 	AssertDatabaseFormat(t, &result, expected, map[string]dbTypes.AttributeValue{
-		"lsi": &dbTypes.AttributeValueMemberS{Value: "TIME#100"},
+		"time": &dbTypes.AttributeValueMemberS{Value: "TIME#100"},
 	})
 }
 

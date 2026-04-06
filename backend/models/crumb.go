@@ -52,7 +52,7 @@ type Crumb struct {
 	Media            []crumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 
-	Time string `json:"time" dynamodbav:"lsi"`
+	Time string `json:"time" dynamodbav:"time"`
 
 	HashPk string `json:"-" dynamodbav:"gsi2"`
 	HashSk string `json:"-" dynamodbav:"gsi2Sk"`

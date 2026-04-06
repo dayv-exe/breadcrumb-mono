@@ -548,23 +548,11 @@ Resources:
           AttributeType: S
         - AttributeName: gsi3Sk
           AttributeType: S
-        - AttributeName: lsi
-          AttributeType: S 
       KeySchema:
         - AttributeName: pk
           KeyType: HASH
         - AttributeName: sk
           KeyType: RANGE
-      LocalSecondaryIndexes:
-        - IndexName: LSIndex
-          KeySchema:
-            - AttributeName: pk
-              KeyType: HASH
-            - AttributeName: lsi
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-            
       GlobalSecondaryIndexes:
         - IndexName: GSIndex
           KeySchema:
