@@ -1,10 +1,13 @@
 import { getFriends, removeFriend } from "@/api/friendsApi";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 
-export const useGetFriends = (userid: string) => useQuery({
-  queryFn: () => getFriends(userid),
-  queryKey: ["user-friends", userid],
-})
+export const useGetFriends = (userid: string) =>
+  useInfiniteQuery({
+    queryKey: ["user-friends", userid],
+    queryFn: ({ pageParam }) => getFriends(userid, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.last ?? undefined,
+  });
 
 export const useRemoveFriend = () => useMutation({
   mutationFn: removeFriend

@@ -1,20 +1,23 @@
 import { MediaItem } from "@/api/getPresignedUrl";
-import { ShowToast } from "@/constants/appConstants";
+import { UserDetails } from "@/api/models/userDetails";
+import { DEFAULT_CRUMB_RADIUS, ShowToast } from "@/constants/appConstants";
 import { useShareCrumb } from "@/hooks/queries/useCrumbsApi";
+import { useGetFriends } from "@/hooks/queries/useFriendsApi";
+import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
 import { useRef, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 import { useModal } from "../modals/ModalContext";
 import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
 import Spacer from "../Spacer";
-import ElevatedList from "../views/ElevatedList";
+import { ElevatedSectionedScrollView, Section } from "../views/ElevatedSectionedScrollView";
 import ElevatedView from "../views/ElevatedView";
 import CustomSearchInput from "./CustomSearchInput";
 
@@ -24,6 +27,10 @@ interface props {
   usePlural?: boolean;
   handleClose: () => void;
   getProcessedMedia: () => Promise<MediaItem[]>;
+}
+interface iSelectedFriend {
+  name: string
+  id: string
 }
 
 const icons = {
@@ -41,26 +48,15 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme];
 }
 
-const sendOpt = ["My location", "Choose on map"];
-
-const RECENTS = [{ username: "catluvr", name: "meow" }];
-const VISIBILITY = [
-  { username: "All My Friends ", name: "" },
-  { username: "Only Me 🔒", name: "" },
-]
-const FAKE_FRIENDS = [
-  { username: "david.arubuike", name: "david" },
-  { username: "catluvr", name: "meow" },
-];
-
-const FriendItem = ({
-  username,
-  name,
+const sendOpt = ["My location", "Friends' location", "Choose on map"];
+const ShareListItem = ({
+  title,
+  subtitle,
   onChange,
   selectedTxt,
 }: {
-  username: string;
-  name: string;
+  title: string;
+  subtitle: string;
   onChange: (s: boolean) => void;
   selectedTxt: string;
 }) => {
@@ -80,7 +76,7 @@ const FriendItem = ({
         setSelected(!selected);
       }}
     >
-      <CustomProfilePictureCircle nickname={username} size={45} customStyle={{ marginRight: 10 }} />
+      <CustomProfilePictureCircle nickname={title} size={45} customStyle={{ marginRight: 10 }} />
       <View
         style={{
           flexDirection: "column",
@@ -93,16 +89,16 @@ const FriendItem = ({
         <CustomLabel
           allowTruncate
           customStyle={{ padding: 0, fontSize: 15, fontWeight: "500" }}
-          labelText={username}
+          labelText={title}
           bold={selected}
           adaptToTheme
         />
-        {((selectedTxt && selected) || name) && (
+        {((selectedTxt && selected) || subtitle) && (
           <CustomLabel
             customStyle={{ padding: 0, marginTop: 1.5, lineHeight: 18 }}
             fontSize={13.5}
             fade
-            labelText={selected ? selectedTxt : name}
+            labelText={selected ? selectedTxt : subtitle}
             adaptToTheme
           />
         )}
@@ -136,8 +132,9 @@ interface locationItemProps {
   setSelected: () => void;
   locationStr: string;
   selText: string;
+  onChanged?: (s: boolean) => void
 }
-const LocationItem = ({ selected, setSelected, locationStr, selText }: locationItemProps) => {
+const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged }: locationItemProps) => {
   const fadedBg = useThemeColor({}, "fadedBackground");
   const vibCol = useThemeColor({}, "darkenVibrant");
   return (
@@ -149,6 +146,7 @@ const LocationItem = ({ selected, setSelected, locationStr, selText }: locationI
         padding: 7,
       }}
       onPress={() => {
+        onChanged?.(!selected)
         setSelected();
       }}
     >
@@ -210,7 +208,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const textCol = useThemeColor({}, "text")
   const [search, setSearch] = useState("");
   const searchRef = useRef(null);
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<iSelectedFriend[]>([]);
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
   const { address, coordinates } = useLocationStore();
   const [shareIsPending, setShareIsPending] = useState(false)
@@ -239,9 +237,9 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           overlay: f.overlay?.mediaKey,
           thumbnail: f.thumbnail?.mediaKey,
         })),
-        locationAccuracy: 0,
-        locationType: "mine",
-        receivers: ["1234567890"],
+        locationAccuracy: coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS,
+        locationType: selLoc === sendOpt[2] ? "map" : selLoc === sendOpt[1] ? "friend" : "mine",
+        receivers: selectedFriends.map(f => f.id),
       }, {
         onSuccess: (s) => {
           if (s.error) {
@@ -295,6 +293,92 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
     upload(processMedia);
   };
 
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, error } = useGetFriends("")
+  const { data: myProfile, isFetching: isFetchingMyProfile, error: myProfileErr } = useGetUser("")
+
+  type ShareOption = {
+    optType: "option";
+    id: string;
+    title: string;
+    subtitle: string;
+    selText: string
+  };
+
+  type FriendOption = {
+    isCurrentUser: boolean
+  } & UserDetails;
+
+  const items: FriendOption[] = [
+    { ...myProfile?.message!, isCurrentUser: true },
+    ...(data?.pages.flatMap((page) =>
+      page.message.map((f): FriendOption => ({ ...f, isCurrentUser: false }))
+    ) ?? []),
+  ];
+
+  const deriveName = (item: FriendOption): string => {
+    return (item.name ? item.name : item.nickname ?? "*No name*") + `${item.isCurrentUser ? " (Me)" : ""}`
+  }
+
+  const sections: Section[] = [
+    {
+      key: "send-options",
+      type: "static",
+      title: `Leave crumb${usePlural ? "s" : ""} at`,
+      data: sendOpt,
+      keyExtractor: (item) => item,
+      renderItem: (item) => (
+        <LocationItem
+          locationStr={item}
+          selected={selLoc === item}
+          setSelected={() => setSelLoc(item)}
+          onChanged={s => {
+            if (item === sendOpt[3]) {
+              setSelectedFriends([])
+            }
+          }}
+          selText={
+            item === sendOpt[0]
+              ? `Crumb${usePlural ? "s" : ""} can only be viewed here`
+              : item === sendOpt[1] ? `They can view crumb${usePlural ? "s" : ""} immediately`
+                : item === sendOpt[2] ? `Crumb${usePlural ? "s" : ""} can only be viewed there`
+                  : `Visible to all your friends for 24h`
+          }
+        />
+      ),
+    },
+    {
+      key: "friends",
+      type: "paginated",
+      title: "Share with",
+      data: items,
+      hidden: (items.length === 0 && !hasNextPage) || error !== null || myProfileErr !== null,
+      keyExtractor: (item: FriendOption) => item.userId ?? "",
+      hasMore: hasNextPage ?? false,
+      isFetchingMore: isFetchingNextPage || isFetching || isFetchingMyProfile,
+      onEndReached: fetchNextPage,
+      renderItem: (item: FriendOption) => (
+        <ShareListItem
+          title={deriveName(item)}
+          subtitle={item.nickname ?? ""}
+          onChange={(s) => {
+            if (s) {
+              // select
+              if (!item.userId) return
+              setSelectedFriends([...selectedFriends, {
+                id: item.userId!,
+                name: deriveName(item)
+              }]);
+            } else {
+              // unselect
+              setSelectedFriends(selectedFriends.filter((f) => f.id !== item.userId));
+            }
+          }}
+          selectedTxt={getLocText()}
+        />
+      ),
+    },
+  ];
+
   return (
     <View style={[styles.container, { height, backgroundColor: bgCol }]}>
       <ElevatedView
@@ -344,75 +428,16 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         </View>
       </ElevatedView>
 
-      <ScrollView style={{ flex: 1, paddingHorizontal: 15, paddingTop: 20 }}>
-        <ElevatedList
-          title={`Leave crumb${usePlural ? "s" : ""} at`}
-          data={sendOpt}
-          keyExtractor={(item) => item}
-          renderItem={(item) => (
-            <LocationItem
-              locationStr={item}
-              selected={selLoc === item}
-              setSelected={() => setSelLoc(item)}
-              selText={
-                item === sendOpt[0]
-                  ? `Crumb${usePlural ? "s" : ""} can only be viewed here`
-                  : `Crumb${usePlural ? "s" : ""} can only be viewed there`
-              }
-            />
-          )}
-        />
-
-        {VISIBILITY.length > 0 && (
-          <ElevatedList
-            title="Visibility"
-            data={VISIBILITY}
-            keyExtractor={(item) => item.username}
-            renderItem={(friend) => (
-              <FriendItem
-                name={friend.name}
-                username={friend.username}
-                onChange={(s) => {
-                  if (s) {
-                    setSelectedFriends([...selectedFriends, friend.username ?? ""]);
-                  } else {
-                    setSelectedFriends(selectedFriends.filter((f) => f !== friend.username));
-                  }
-                }}
-                selectedTxt={""}
-              />
-            )}
-          />
-        )}
-
-        {FAKE_FRIENDS.length > 0 && (
-          <ElevatedList
-            title="Or share w/ specific friends"
-            data={FAKE_FRIENDS}
-            keyExtractor={(item) => item.username}
-            renderItem={(friend) => (
-              <FriendItem
-                name={friend.name}
-                username={friend.username}
-                onChange={(s) => {
-                  if (s) {
-                    setSelectedFriends([...selectedFriends, friend.username ?? ""]);
-                  } else {
-                    setSelectedFriends(selectedFriends.filter((f) => f !== friend.username));
-                  }
-                }}
-                selectedTxt={getLocText()}
-              />
-            )}
-          />
-        )}
-      </ScrollView>
+      <ElevatedSectionedScrollView
+        sections={sections}
+        style={{ flex: 1, paddingHorizontal: 15, paddingTop: 15 }}
+      />
 
       <CustomButton
         isPending={shareIsPending}
         imgSrc={require("../../assets/images/icons/userlocation_sel_light.png")}
         type="less-prominent"
-        labelText={selectedFriends.length === 0 ? "Share" : `Share with ${selectedFriends.join(", ")}`}
+        labelText={selectedFriends.length === 0 ? "Share" : `Share with ${selectedFriends.map(f => f.name).join(", ")}`}
         customStyle={{
           borderRadius: 0,
           paddingBottom: insets.bottom + 20,
