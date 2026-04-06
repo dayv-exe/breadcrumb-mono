@@ -19,6 +19,7 @@ import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
 import Spacer from "../Spacer";
 import { ElevatedSectionedScrollView, Section } from "../views/ElevatedSectionedScrollView";
 import ElevatedView from "../views/ElevatedView";
+import ChooseOnMap from "./ChooseOnMap";
 import CustomSearchInput from "./CustomSearchInput";
 
 interface props {
@@ -133,8 +134,9 @@ interface locationItemProps {
   locationStr: string;
   selText: string;
   onChanged?: (s: boolean) => void
+  onPressed?: (s: boolean) => void
 }
-const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged }: locationItemProps) => {
+const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, onPressed }: locationItemProps) => {
   const fadedBg = useThemeColor({}, "fadedBackground");
   const vibCol = useThemeColor({}, "darkenVibrant");
   return (
@@ -147,6 +149,7 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged }
       }}
       onPress={() => {
         onChanged?.(!selected)
+        onPressed?.(!selected)
         setSelected();
       }}
     >
@@ -331,6 +334,15 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           locationStr={item}
           selected={selLoc === item}
           setSelected={() => setSelLoc(item)}
+          onPressed={s => {
+            if (item !== sendOpt[2]) return
+            showModal({
+              overrideDefaultBg: true,
+              content: (
+                <ChooseOnMap handleCancel={hideModal} handleChooseLocation={(lat, lon) => {}} />
+              ),
+            })
+          }}
           onChanged={s => {
             if (item === sendOpt[3]) {
               setSelectedFriends([])

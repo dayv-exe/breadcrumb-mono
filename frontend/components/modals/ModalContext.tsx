@@ -10,6 +10,7 @@ type ModalOptions = {
   onPrimary?: () => void
   onSecondary?: () => void
   content?: ReactNode
+  overrideDefaultBg?: boolean
 };
 
 type ModalContextType = {
@@ -60,7 +61,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       />}
       {
         modalOptions && modalOptions.content &&
-        <CustomPopup handleClose={hideModal} show={modalVisible}>
+        <CustomPopup handleClose={hideModal} show={modalVisible} overrideDefaultBg={modalOptions.overrideDefaultBg}>
           {modalOptions.content}
         </CustomPopup>
       }

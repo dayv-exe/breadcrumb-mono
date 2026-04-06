@@ -5,10 +5,11 @@ import CustomKeyboardAvoidingView from '../views/CustomKeyboardAvoidingView';
 
 type props = {
   show: boolean
+  overrideDefaultBg?: boolean
   handleClose: () => void
 }
 
-export default function CustomPopup({ show, handleClose, children }: PropsWithChildren<props>) {
+export default function CustomPopup({ show, handleClose, children, overrideDefaultBg }: PropsWithChildren<props>) {
   const bgCol = useThemeColor({}, "background")
   const bgOverlay = useThemeColor({}, "backgroundOverlay")
   return (
@@ -19,7 +20,7 @@ export default function CustomPopup({ show, handleClose, children }: PropsWithCh
       visible={show}
       onRequestClose={handleClose}
     >
-      <CustomKeyboardAvoidingView verticalOffset={-200} customStyle={[
+      {!overrideDefaultBg && <CustomKeyboardAvoidingView verticalOffset={-200} customStyle={[
         styles.modalBackground,
         { backgroundColor: bgOverlay }
       ]}>
@@ -31,7 +32,12 @@ export default function CustomPopup({ show, handleClose, children }: PropsWithCh
         ]}>
           {children}
         </View>
-      </CustomKeyboardAvoidingView>
+      </CustomKeyboardAvoidingView>}
+      {overrideDefaultBg &&
+        <>
+          {children}
+        </>
+      }
     </Modal>
   );
 };
