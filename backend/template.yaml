@@ -529,7 +529,7 @@ Resources:
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "${AWS::StackName}-${EnvironmentName}-Main"
+      TableName: !Sub "${AWS::StackName}-${EnvironmentName}-Main-Table"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: pk
