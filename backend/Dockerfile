@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1.7
 FROM golang:1.24-bookworm AS build
 
+RUN apt-get update && apt-get install -y --no-install-recommends zip \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=arm64 \

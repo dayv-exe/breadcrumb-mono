@@ -28,8 +28,8 @@ jobs:
       - name: Read build directories
         id: build-dirs
         run: |
-          BUILD_DIRS=$(cat build_dirs.txt | tr '\n' ',' | sed 's/,$//')
-          echo "dirs=$BUILD_DIRS" >> $GITHUB_OUTPUT
+          BUILD_DIRS=$(tr '\n' ',' < build_dirs.txt | sed 's/,$//')
+          echo "dirs=$BUILD_DIRS" >> "$GITHUB_OUTPUT"
           echo "Build directories: $BUILD_DIRS"
 
       - name: Set up Go
@@ -46,9 +46,6 @@ jobs:
         working-directory: backend/models
         run: go test -v ./...
 
-      - name: setup docker buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: configure aws creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -61,24 +58,55 @@ jobs:
         with:
           use-installer: true
 
-      - name: build go bins for lambda
-        uses: docker/build-push-action@v6
-        with:
-          context: backend
-          build-args: |
-            BUILD_DIRS=${{ steps.build-dirs.outputs.dirs }}
-          tags: breadcrumb:latest
-          load: true
-          cache-from: type=gha,scope=breadcrumb-build
-          cache-to: type=gha,scope=breadcrumb-build,mode=max
-
-      - name: extract binaries from image
-        working-directory: backend
+      - name: build go bins for lambda in container
+        working-directory: .
+        env:
+          BUILD_DIRS: ${{ steps.build-dirs.outputs.dirs }}
         run: |
-          docker create --name extract-builder breadcrumb:latest
-          rm -rf ./bin
-          docker cp extract-builder:/app/bin ./bin
-          docker rm extract-builder
+          set -euo pipefail
+          rm -rf backend/bin
+          mkdir -p backend/bin
+
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -e BUILD_DIRS="$BUILD_DIRS" \
+            -v "${{ github.workspace }}/backend:/app" \
+            -w /app \
+            golang:1.24-bookworm \
+            sh -c '
+              set -e
+              apt-get update >/dev/null
+              apt-get install -y --no-install-recommends zip >/dev/null
+
+              export CGO_ENABLED=0
+              export GOOS=linux
+              export GOARCH=arm64
+
+              mkdir -p bin
+
+              echo "$BUILD_DIRS" | tr "," "\n" | xargs -r -P 4 -I {} sh -c "
+                dir=\"\$1\"
+                [ -n \"\$dir\" ] || exit 0
+                echo \"==> Building \$dir\"
+                mkdir -p \"bin/\$dir\"
+                go build -trimpath -ldflags=\"-s -w\" \
+                  -o \"bin/\$dir/bootstrap\" \"./cmd/\$dir/main.go\"
+
+                (
+                  cd \"bin/\$dir\"
+                  zip -q \"\${dir}.zip\" bootstrap
+                )
+              " _ {}
+            '
+
+      - name: verify built artifacts
+        run: |
+          set -euo pipefail
+          echo "${{ steps.build-dirs.outputs.dirs }}" | tr ',' '\n' | while read -r dir; do
+            [ -n "$dir" ] || continue
+            test -f "bin/$dir/${dir}.zip"
+            echo "Found bin/$dir/${dir}.zip"
+          done
 
       - name: deploy sam
         run: |
