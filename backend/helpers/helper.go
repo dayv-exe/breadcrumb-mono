@@ -176,6 +176,7 @@ func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.Attribut
 
 	input := &dynamodb.QueryInput{
 		TableName: &deps.TableName,
+		Limit:     limit,
 	}
 
 	if expression.KeyCondition() != nil {
