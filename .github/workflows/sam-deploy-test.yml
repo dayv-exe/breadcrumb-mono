@@ -8,6 +8,9 @@ on:
     branches-ignore:
       - main
       - beta
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
 
 permissions:
   id-token: write
@@ -30,21 +33,24 @@ jobs:
         run: |
           BUILD_DIRS=$(tr '\n' ',' < build_dirs.txt | sed 's/,$//')
           echo "dirs=$BUILD_DIRS" >> "$GITHUB_OUTPUT"
-          echo "Build directories: $BUILD_DIRS"
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
-          cache-dependency-path: backend/go.sum
+          cache: true
+          cache-dependency-path: |
+            backend/go.sum
+            backend/**/go.mod
+            backend/**/*.go
 
       - name: run utils unit tests
         working-directory: backend/utils
-        run: go test -v ./...
+        run: go test ./...
 
       - name: run unit tests for models
         working-directory: backend/models
-        run: go test -v ./...
+        run: go test ./...
 
       - name: configure aws creds
         uses: aws-actions/configure-aws-credentials@v4
@@ -58,46 +64,30 @@ jobs:
         with:
           use-installer: true
 
-      - name: build go bins for lambda in container
-        working-directory: .
+      - name: build go bins for lambda
         env:
           BUILD_DIRS: ${{ steps.build-dirs.outputs.dirs }}
+          CGO_ENABLED: 0
+          GOOS: linux
+          GOARCH: arm64
         run: |
           set -euo pipefail
-          rm -rf backend/bin
-          mkdir -p backend/bin
+          rm -rf bin
+          mkdir -p bin
 
-          docker run --rm \
-            --user root \
-            -e BUILD_DIRS="$BUILD_DIRS" \
-            -v "${{ github.workspace }}/backend:/app" \
-            -w /app \
-            golang:1.24-bookworm \
-            sh -c '
-              set -e
-              apt-get update >/dev/null
-              apt-get install -y --no-install-recommends zip >/dev/null
+          echo "$BUILD_DIRS" | tr ',' '\n' | xargs -r -P 4 -I {} sh -c '
+            dir="$1"
+            [ -n "$dir" ] || exit 0
+            echo "==> Building $dir"
+            mkdir -p "bin/$dir"
+            go build -trimpath -ldflags="-s -w" \
+              -o "bin/$dir/bootstrap" "./cmd/$dir/main.go"
 
-              export CGO_ENABLED=0
-              export GOOS=linux
-              export GOARCH=arm64
-
-              mkdir -p bin
-
-              echo "$BUILD_DIRS" | tr "," "\n" | xargs -r -P 4 -I {} sh -c "
-                dir=\"\$1\"
-                [ -n \"\$dir\" ] || exit 0
-                echo \"==> Building \$dir\"
-                mkdir -p \"bin/\$dir\"
-                go build -trimpath -ldflags=\"-s -w\" \
-                  -o \"bin/\$dir/bootstrap\" \"./cmd/\$dir/main.go\"
-
-                (
-                  cd \"bin/\$dir\"
-                  zip -q \"\${dir}.zip\" bootstrap
-                )
-              " _ {}
-            '
+            (
+              cd "bin/$dir"
+              zip -q "${dir}.zip" bootstrap
+            )
+          ' _ {}
 
       - name: verify built artifacts
         run: |
@@ -119,23 +109,3 @@ jobs:
             --parameter-overrides EnvironmentName=test \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
-
-      - name: Get CloudFront PublicKey ID and Secret ID
-        id: cf-ids
-        run: |
-          CF_PUBLIC_KEY_ID=$(aws cloudformation describe-stack-resource \
-            --stack-name breadcrumb-stack-test \
-            --logical-resource-id CloudFrontPublicKey \
-            --region ${{ env.AWS_REGION }} \
-            --query 'StackResourceDetail.PhysicalResourceId' \
-            --output text)
-          SECRET_ID=$(aws cloudformation describe-stack-resource \
-            --stack-name breadcrumb-stack-test \
-            --logical-resource-id CloudFrontKeysSecret \
-            --region ${{ env.AWS_REGION }} \
-            --query 'StackResourceDetail.PhysicalResourceId' \
-            --output text)
-          echo "CloudFront PublicKey ID (key_pair_id): $CF_PUBLIC_KEY_ID"
-          echo "Secrets Manager Secret ID: $SECRET_ID"
-          echo "key_pair_id=$CF_PUBLIC_KEY_ID" >> $GITHUB_OUTPUT
-          echo "secret_id=$SECRET_ID" >> $GITHUB_OUTPUT
