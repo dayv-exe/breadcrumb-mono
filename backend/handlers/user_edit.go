@@ -54,3 +54,15 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		return models.InvalidRequestErrorResponse("invalid update attribute name"), nil
 	}
 }
+
+func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	userId := utils.GetAuthUserId(req)
+	imageKey := req.QueryStringParameters["key"]
+
+	err := helpers.NewUserHelper(ctx).UpdateProfilePic(userId, imageKey)
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to update profile picture, try again", err), nil
+	}
+
+	return models.SuccessfulRequestResponse("Updated successfully!", false), nil
+}

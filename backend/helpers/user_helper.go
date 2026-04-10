@@ -266,3 +266,19 @@ func (this *userHelper) NicknameAvailable(nickname string) (bool, error) {
 
 	return !exists, nil // if not exists return false then flip to true so nickname available
 }
+
+func (u *userHelper) UpdateProfilePic(userId string, newKey string) error {
+	key := models.UserKey(userId)
+
+	update := expression.Set(
+		expression.Name("profilePictureKey"),
+		expression.Value(newKey),
+	)
+	expr, err := expression.NewBuilder().WithUpdate(update).Build()
+	if err != nil {
+		return err
+	}
+
+	helper := newHelper(u.Ctx, nil)
+	return UpdateItem(helper, key, expr)
+}

@@ -25,6 +25,7 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"force_change_nickname": &dbTypes.AttributeValueMemberBOOL{Value: false},
 	"suspension_reason":     &dbTypes.AttributeValueMemberS{Value: ""},
 	"friends":               &dbTypes.AttributeValueMemberS{Value: ""},
+	"profilePictureKey":     &dbTypes.AttributeValueMemberS{Value: ""},
 }
 
 func TestUser_DatabaseFormat(t *testing.T) {

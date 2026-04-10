@@ -36,6 +36,8 @@ func HandleHandlers(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		return HandleSearchActions(ctx, req)
 	case "crumbs":
 		return HandleCrumbActions(ctx, req)
+	case "profile-picture":
+		return handleUpdateProfilePicture(ctx, req)
 	case "signup":
 		method := strings.ToLower(req.RequestContext.HTTP.Method)
 		switch method {

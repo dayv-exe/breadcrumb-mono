@@ -36,6 +36,7 @@ type UserAccountInfo struct {
 }
 
 type UserPersonalInfo struct {
+	ProfilePictureKey   string `json:"profilePictureKey" dynamodbav:"profilePictureKey"`
 	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
 	LastNicknameChange  string `dynamodbav:"last_nickname_change" json:"-"`
 	LastEmailChange     string `dynamodbav:"last_email_change" json:"-"`
@@ -67,6 +68,7 @@ func NewUser(userid string, nickname string, name string, isSuspended bool) *Use
 			DateJoined:    utils.GetTimeNow(),
 		},
 		UserPersonalInfo: UserPersonalInfo{
+			ProfilePictureKey:   "",
 			CanChangeBirthdate:  true,
 			LastNicknameChange:  "",
 			LastEmailChange:     "",
