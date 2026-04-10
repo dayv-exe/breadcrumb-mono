@@ -31,17 +31,11 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	}
 
 	crumbs := crumb.GetCrumbs(userId)
-	sentCrumbs := crumb.GetSentCrumbModels(userId)
 
 	transactions := make([]types.TransactWriteItem, 0)
 
 	for _, crumb := range *crumbs {
 		// unread crumbs to be sent to recipient
-		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
-	}
-
-	for _, crumb := range *sentCrumbs {
-		// crumbs that current user has just sent
 		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
 	}
 
@@ -51,14 +45,15 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 // get all unopened crumbs sent to current user. leave sender id blank to get from all senders or provide sender id to only get from given sender
 func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
+	pk, sk := models.GetCrumbKeys(userId, senderId, "", "", true, false)
 	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
 	keyCondition := expression.KeyEqual(
-		expression.Key("pk"),
-		expression.Value(models.CrumbPkPrefix+userId),
+		expression.Key(pk.Key),
+		expression.Value(pk.Value),
 	).And(
 		expression.KeyBeginsWith(
-			expression.Key("sk"),
-			models.CrumbSkPrefix+senderId,
+			expression.Key(sk.Key),
+			sk.Value,
 		),
 	)
 
@@ -70,7 +65,7 @@ func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[st
 	response, err := QueryItems(
 		helper,
 		lastKey,
-		nil,
+		pk.Index,
 		expr,
 		limit,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
@@ -81,14 +76,15 @@ func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[st
 }
 
 // get all crumbs sent by current user. leave recipient id blank to get from all recipients or provide recipient id to only get sent to specific user
-func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.SentCrumb, map[string]types.AttributeValue, error) {
+func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
+	pk, sk := models.GetCrumbKeys(userId, recipientId, "", "", false, true)
 	keyCond := expression.KeyEqual(
-		expression.Key("pk"),
-		expression.Value(models.SentCrumbPkPrefix+userId),
+		expression.Key(pk.Key),
+		expression.Value(pk.Value),
 	).And(
 		expression.KeyBeginsWith(
-			expression.Key("sk"),
-			models.SentCrumbSkPrefix+recipientId,
+			expression.Key(sk.Key),
+			sk.Value,
 		),
 	)
 
@@ -98,21 +94,22 @@ func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[str
 	}
 
 	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
-	result, err := QueryItems(helper, lastKey, nil, expr, limit, func(c []map[string]types.AttributeValue) []models.SentCrumb {
-		return *models.ConvertToSentCrumbs(c)
+	result, err := QueryItems(helper, lastKey, pk.Index, expr, limit, func(c []map[string]types.AttributeValue) []models.Crumb {
+		return *models.ConvertToCrumbs(c)
 	})
 
 	return result.Items, result.LastEvaluatedKey, err
 }
 
-func (h *crumbHelper) GetOpenedCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.ViewedCrumb, map[string]types.AttributeValue, error) {
+func (h *crumbHelper) GetOpenedCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
+	pk, sk := models.GetCrumbKeys(userId, senderId, "", "", true, true)
 	keyCond := expression.KeyEqual(
-		expression.Key("pk"),
-		expression.Value(models.ViewedCrumbPkPrefix+userId),
+		expression.Key(pk.Key),
+		expression.Value(pk.Value),
 	).And(
 		expression.KeyBeginsWith(
-			expression.Key("sk"),
-			models.ViewedCrumbSkPrefix+senderId,
+			expression.Key(sk.Key),
+			sk.Value,
 		),
 	)
 
@@ -122,8 +119,8 @@ func (h *crumbHelper) GetOpenedCrumbs(userId, senderId string, lastKey *map[stri
 	}
 
 	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
-	response, err := QueryItems(helper, lastKey, nil, expr, limit, func(c []map[string]types.AttributeValue) []models.ViewedCrumb {
-		return *models.ConvertToViewedCrumbs(c)
+	response, err := QueryItems(helper, lastKey, pk.Index, expr, limit, func(c []map[string]types.AttributeValue) []models.Crumb {
+		return *models.ConvertToCrumbs(c)
 	})
 
 	return response.Items, response.LastEvaluatedKey, nil

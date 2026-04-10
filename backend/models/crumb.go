@@ -4,16 +4,21 @@ import (
 	"backend/utils"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/mmcloughlin/geohash"
 )
 
 const (
-	CrumbPkPrefix   = "CRUMB#"
-	CrumbSkPrefix   = "SENDER#"
-	CrumbIdPrefix   = "CRUMB_ID#"
-	CrumbTimePrefix = "TIME#"
-	CrumbHashPrefix = "HASH#"
+	UnopenedCrumbPkPrefix = "UNOPENED_CRUMB_RECEIVER#"
+	OpenedCrumbPkPrefix   = "OPENED_CRUMB_RECEIVER#"
+
+	CrumbReceiverPrefix = "CRUMB_RECEIVER#"
+	CrumbSenderPrefix   = "CRUMB_SENDER#"
+
+	CrumbIdPrefix      = "CRUMB_ID#"
+	CrumbTimePrefix    = "TIME#"
+	CrumbGeohashPrefix = "GEOHASH#"
 )
 
 type crumbText struct {
@@ -51,15 +56,29 @@ type Crumb struct {
 	Text             []crumbText  `json:"text" dynamodbav:"text"`
 	Media            []crumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
+	Opened           bool         `json:"opened" dynamodbav:"opened"`
 
 	Time string `json:"time" dynamodbav:"time"`
 
-	HashPk string `json:"-" dynamodbav:"gsi2"`
-	HashSk string `json:"-" dynamodbav:"gsi2Sk"`
+	PK string `json:"-" dynamodbav:"pk"`
+	SK string `json:"-" dynamodbav:"sk"`
 
-	PK  string `json:"-" dynamodbav:"pk"`
-	SK  string `json:"-" dynamodbav:"sk"`
-	Gsi string `json:"-" dynamodbav:"gsi"`
+	Gsi   string `json:"-" dynamodbav:"gsi"`
+	GsiSk string `json:"-" dynamodbav:"gsiSk"`
+
+	Gsi2   string `json:"-" dynamodbav:"gsi2"`
+	Gsi2Sk string `json:"-" dynamodbav:"gsi2Sk"`
+
+	Gsi3   string `json:"-" dynamodbav:"gsi3"`
+	Gsi3Sk string `json:"-" dynamodbav:"gsi3Sk"`
+
+	Gsi4 string `json:"-" dynamodbav:"gsi4"`
+}
+
+type crumbKey struct {
+	Key   string
+	Value string
+	Index *string
 }
 
 // Returns a slice of crumb models one for each receiver
@@ -78,6 +97,7 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 			Media:            b.MediaKeys,
 			Geohash:          geohash.Encode(b.Lat, b.Lon),
 			Time:             utils.GetDateAndTime(),
+			Opened:           false,
 		})
 	}
 
@@ -85,18 +105,100 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 }
 
 func (c *Crumb) ApplyPrefixes() {
-	c.PK = CrumbPkPrefix + c.Receiver
-	c.SK = CrumbSkPrefix + c.SenderId + CrumbIdPrefix + c.Id
-	c.Gsi = CrumbIdPrefix + c.Id
+	crumbPk := UnopenedCrumbPkPrefix + c.Receiver
+	if c.Opened {
+		crumbPk = OpenedCrumbPkPrefix + c.Receiver
+	}
+	// access received crumbs
+	// PK: UNOPENED_CRUMB_RECEIVER#{userid} SK: GEOHASH#{hash}CRUMB_ID#{crumbId}
+	c.PK = crumbPk
+	c.SK = CrumbGeohashPrefix + c.Geohash + CrumbIdPrefix + c.Id
 
-	c.HashPk = CrumbPkPrefix + c.Receiver + CrumbHashPrefix + c.Geohash[:2]
-	c.HashSk = CrumbHashPrefix + c.Geohash + CrumbSkPrefix + c.SenderId + CrumbIdPrefix + c.Id
+	// access received crumbs from particular sender
+	// GSI: CRUMB_RECEIVER#{userid} GSISK: CRUMB_SENDER#{userid}GEOHASH#{hash}CRUMB_ID#{crumbId}
+	c.Gsi = CrumbReceiverPrefix + c.Receiver
+	c.GsiSk = CrumbSenderPrefix + c.SenderId + CrumbGeohashPrefix + c.Geohash + CrumbIdPrefix + c.Id
 
-	c.Time = CrumbTimePrefix + utils.GetDateAndTime()
+	// access sent crumbs
+	// GSI2: CRUMB_SENDER#{userid} GSI2SK: GEOHASH#{hash}CRUMB_ID#{crumbId}
+	c.Gsi2 = CrumbSenderPrefix + c.SenderId
+	c.Gsi2Sk = CrumbGeohashPrefix + c.Geohash + CrumbIdPrefix + c.Id
+
+	// access sent crumbs to particular user
+	// GSI3: CRUMB_SENDER#{userid} GSI3SK: CRUMB_RECEIVER#{userid}GEOHASH#{hash}CRUMB_ID#{crumbId}
+	c.Gsi3 = CrumbSenderPrefix + c.SenderId
+	c.Gsi3Sk = CrumbReceiverPrefix + c.Receiver + CrumbGeohashPrefix + c.Geohash + CrumbIdPrefix + c.Id
+
+	// access crumb by id
+	c.Gsi4 = CrumbIdPrefix + c.Id
+}
+
+func GetCrumbKeys(userId, otherUserId, geohash, crumbId string, isReceived, opened bool) (crumbKey, crumbKey) {
+	key1 := crumbKey{}
+	key2 := crumbKey{}
+
+	hasOtherUser := strings.TrimSpace(otherUserId) != ""
+
+	if isReceived {
+		if hasOtherUser {
+			// received from a particular sender -> GSI
+			// GSI: CRUMB_RECEIVER#{userid}  GSISK: CRUMB_SENDER#{userid}GEOHASH#{hash}CRUMB_ID#{crumbId}
+			key1.Key = "gsi"
+			key1.Index = aws.String("GSIndex1")
+			key2.Key = "gsiSk"
+			key2.Index = aws.String("GSIndex1")
+
+			key1.Value = CrumbReceiverPrefix + userId
+			key2.Value = CrumbSenderPrefix + otherUserId
+		} else {
+			// received (filtered by opened/unopened) -> base table
+			// PK: (UN)OPENED_CRUMB_RECEIVER#{userid}  SK: GEOHASH#{hash}CRUMB_ID#{crumbId}
+			key1.Key = "pk"
+			key1.Index = nil
+			key2.Key = "sk"
+			key2.Index = nil
+
+			if !opened {
+				key1.Value = UnopenedCrumbPkPrefix + userId
+			} else {
+				key1.Value = OpenedCrumbPkPrefix + userId
+			}
+		}
+	} else {
+		if hasOtherUser {
+			// sent to a particular receiver -> GSI3
+			// GSI3: CRUMB_SENDER#{userid}  GSI3SK: CRUMB_RECEIVER#{userid}GEOHASH#{hash}CRUMB_ID#{crumbId}
+			key1.Key = "gsi3"
+			key1.Index = aws.String("GSIndex3")
+			key2.Key = "gsi3Sk"
+			key2.Index = aws.String("GSIndex3")
+
+			key1.Value = CrumbSenderPrefix + userId
+			key2.Value = CrumbReceiverPrefix + otherUserId
+		} else {
+			// sent -> GSI2
+			// GSI2: CRUMB_SENDER#{userid}  GSI2SK: GEOHASH#{hash}CRUMB_ID#{crumbId}
+			key1.Key = "gsi2"
+			key1.Index = aws.String("GSIndex2")
+			key2.Key = "gsi2Sk"
+			key2.Index = aws.String("GSIndex2")
+
+			key1.Value = CrumbSenderPrefix + userId
+		}
+	}
+
+	if strings.TrimSpace(geohash) != "" {
+		key2.Value += CrumbGeohashPrefix + geohash
+	}
+
+	if strings.TrimSpace(crumbId) != "" {
+		key2.Value += CrumbIdPrefix + crumbId
+	}
+
+	return key1, key2
 }
 
 func (c *Crumb) RemovePrefixes() {
-	c.Time = strings.ReplaceAll(c.Time, CrumbTimePrefix, "")
 }
 
 // converts a slice of database items to a slice of crumbs (maybe)
