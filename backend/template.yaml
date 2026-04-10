@@ -362,6 +362,14 @@ Resources:
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
+        GetCurrentUserFriends:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/friends
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
         AcceptFriendRequest:
           Type: HttpApi
           Properties:

@@ -12,13 +12,13 @@ import (
 )
 
 func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	userId := req.PathParameters["id"] // the user who's friends we want to view
+	userId, userIdExists := req.PathParameters["id"] // the user who's friends we want to view
 	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last evaluated key! Try again.", err), nil
 	}
 
-	if userId == "" {
+	if !userIdExists || userId == "" {
 		userId = utils.GetAuthUserId(req)
 	}
 
