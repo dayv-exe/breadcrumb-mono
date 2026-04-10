@@ -198,7 +198,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 	// media id, media layer, media index
 	mediaKey := utils.GenerateMediaKey(userId, crumbId, objectName)
 	if mediaLayerType == "profile" {
-		mediaKey = fmt.Sprintf("%s/%s", utils.DefaultDir, userId)
+		mediaKey = fmt.Sprintf("%s/%s/%s", utils.DefaultDir, userId, objectName)
 	}
 
 	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
