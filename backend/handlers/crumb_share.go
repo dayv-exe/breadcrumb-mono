@@ -101,6 +101,10 @@ func handleGetOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReque
 	helper := helpers.NewCrumbHelper(ctx)
 	crumbs, lastKey, err := helper.GetOpenedCrumbs(userId, senderId, &lastKey, aws.Int32(30))
 
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to fetch crumbs, try again!", err), nil
+	}
+
 	return models.SuccessfulGetRequestResponse(crumbs, &lastKey), nil
 }
 

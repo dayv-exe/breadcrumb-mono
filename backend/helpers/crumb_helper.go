@@ -72,6 +72,10 @@ func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[st
 			return *models.ConvertToCrumbs(c)
 		})
 
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return response.Items, response.LastEvaluatedKey, nil
 }
 
@@ -98,6 +102,10 @@ func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[str
 		return *models.ConvertToCrumbs(c)
 	})
 
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return result.Items, result.LastEvaluatedKey, err
 }
 
@@ -122,6 +130,10 @@ func (h *crumbHelper) GetOpenedCrumbs(userId, senderId string, lastKey *map[stri
 	response, err := QueryItems(helper, lastKey, pk.Index, expr, limit, func(c []map[string]types.AttributeValue) []models.Crumb {
 		return *models.ConvertToCrumbs(c)
 	})
+
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return response.Items, response.LastEvaluatedKey, nil
 }
