@@ -224,71 +224,6 @@ Resources:
               StringEquals:
                 "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
   
-  GeneratePresignedUrl:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-GeneratePresignedUrl
-      CodeUri: bin/generate_presigned_url/generate_presigned_url.zip
-      Handler: bootstrap
-      Description: to presign url for uploads
-      Environment:
-        Variables:
-          MEDIA_BUCKET: !Ref MediaBucket
-          SECRETS_MANAGER_ARN: !Ref CloudFrontKeysSecret
-          CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
-          CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /api/v1/presigned_url
-            Method: POST
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - Statement:
-            Effect: Allow
-            Action:
-              - s3:PutObject
-            Resource: !Sub "${MediaBucket.Arn}/*"
-
-      # ill remove this later we dont need to use cloud front secrets
-        - Statement:
-            Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-            Resource: !Ref CloudFrontKeysSecret
-
-  MediaAccess:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${AWS::StackName}-${EnvironmentName}-MediaAccess
-      CodeUri: bin/media_access/media_access.zip
-      Handler: bootstrap
-      Description: Returns CloudFront signed cookies/URL for authorized users
-      Environment:
-        Variables:
-          CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
-          USERS_TABLE: !Ref UsersTable 
-      Events:
-        ApiRequest:
-          Type: HttpApi
-          Properties:
-            Path: /api/v1/media/access
-            Method: POST
-            ApiId: !Ref BreadApi
-            Auth:
-              Authorizer: CognitoAuthorizer
-      Policies:
-        - Statement:
-            Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-            Resource: !Ref CloudFrontKeysSecret
-        - DynamoDBReadPolicy:
-            TableName: !Ref UsersTable
-
   CloudFrontKeysSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
@@ -351,7 +286,12 @@ Resources:
       Description: handle everything
       Environment:
         Variables:
+          USERS_TABLE: !Ref UsersTable 
           USER_POOL_ID: !Ref CognitoUserPool
+          MEDIA_BUCKET: !Ref MediaBucket
+          SECRETS_MANAGER_ARN: !Ref CloudFrontKeysSecret
+          CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
+          CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
       Events:
         # for friends endpoints
         GetFriends:
@@ -486,7 +426,27 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
+        # for media access stuff
+        MediaAccess:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/media-access
+            Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
       Policies:
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: !Sub "${MediaBucket.Arn}/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref CloudFrontKeysSecret
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:

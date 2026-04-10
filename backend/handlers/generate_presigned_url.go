@@ -58,7 +58,7 @@ type presignResponse struct {
 	InvalidFiles []invalidPresignedFile    `json:"invalidFiles"`
 }
 
-func HandleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userID := utils.GetAuthUserId(req)
 	if userID == "" {
 		return models.UnauthorizedErrorResponse("User id not found"), nil

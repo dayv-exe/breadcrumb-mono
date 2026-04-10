@@ -34,7 +34,23 @@ type cloudFrontSecret struct {
 	KeyPairID  string `json:"key_pair_id"`
 }
 
+// sign, presign
+
 func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	action := req.QueryStringParameters["action"]
+	switch strings.ToLower(action) {
+	case "sign":
+		return handleSignMediaUrl(ctx, req)
+
+	case "presign":
+		return handleGeneratePresignedUrls(ctx, req)
+
+	default:
+		return models.InvalidRequestErrorResponse("Invalid action!"), nil
+	}
+}
+
+func handleSignMediaUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	if utils.GetAuthUserId(req) == "" {
 		return models.UnauthorizedErrorResponse("Unauthorized"), nil
 	}
