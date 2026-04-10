@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+// comment to test workflow caching improvement
+
 func GetAuthUserId(req events.APIGatewayV2HTTPRequest) string {
 
 	if req.RequestContext.Authorizer == nil {
