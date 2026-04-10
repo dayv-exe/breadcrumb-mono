@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -22,7 +21,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		userId = utils.GetAuthUserId(req)
 	}
 
-	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, &lastEvalKey, aws.Int32(1))
+	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, &lastEvalKey, nil)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}
