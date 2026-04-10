@@ -68,7 +68,7 @@ jobs:
           mkdir -p backend/bin
 
           docker run --rm \
-            --user "$(id -u):$(id -g)" \
+            --user root \
             -e BUILD_DIRS="$BUILD_DIRS" \
             -v "${{ github.workspace }}/backend:/app" \
             -w /app \
