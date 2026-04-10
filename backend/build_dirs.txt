@@ -1,8 +1,6 @@
 main_handler
-generate_presigned_url
 signup_presignup
 signup_unfinished_remover
 custom_email
 queue_actions
-media_access
 process_upload
