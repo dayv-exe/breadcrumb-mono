@@ -213,6 +213,7 @@ func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.Attribut
 	}
 
 	items := convertToStructs(result.Items)
+	log.Printf("Items converted from db: %v", items)
 	return &queryResult[T]{
 		Items:            items,
 		LastEvaluatedKey: result.LastEvaluatedKey,

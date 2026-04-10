@@ -52,7 +52,7 @@ func (fr *friendRequest) ApplyPrefixes() {
 }
 
 func FriendRequestItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[]UserDisplayInfo {
-	// TODO: write a unit test for this function
+	// TODO: write a unit test for this function (why tho?)
 	// takes friends request items from the database and converts them to user display info
 	// user id, nickname, name and display picture
 

@@ -26,9 +26,6 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}
-	if result == nil {
-		return models.SuccessfulGetRequestResponse([]models.User{}, nil), nil
-	}
 
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 
