@@ -20,6 +20,7 @@ export const BIRTHDATE_CHANGE_DELAY = 3; //days
 export const EMAIL_CHANGE_DELAY = 21; //days
 export const TEXT_CRUMB_LIMIT = 150//chars
 export const DEFAULT_CRUMB_RADIUS = 25 // meters
+export const S3_PROCESSED_MEDIA_DIR = "uploads/processed"
 
 export const STATUS_FRIENDS = "true";
 export const STATUS_REQUESTED = "requested";

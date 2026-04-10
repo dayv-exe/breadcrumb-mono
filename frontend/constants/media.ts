@@ -1,4 +1,4 @@
-export type MediaType = "photo" | "video" | "audio" | "text" | null;
+export type MediaType = "photo" | "video" | "audio" | "text" | "profilePhoto" | null;
 
 export type CropTransform = {
   scale: number;      // 1 = no zoom, >1 = zoomed in

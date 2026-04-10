@@ -14,10 +14,12 @@ import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
 import { Colors } from "@/constants/Colors";
+import { MediaData } from "@/constants/media";
 import { useDeleteUser, useGetUser } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useImagePicker } from "@/hooks/useImagePicker";
+import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -54,7 +56,7 @@ export default function ProfileSettingsScreen() {
   const mode = useColorScheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
- 
+
   const [emailOptText, setEmailOptText] = useState("Email")
   const { emailVerificationStatus } = useEmailVerificationStatus()
 
@@ -102,7 +104,7 @@ export default function ProfileSettingsScreen() {
               <CustomLabel adaptToTheme bold labelText={title} padding={0} />
               <Spacer size="small" />
             </View>
-            <CustomButton customTextStyle={{color: "red"}} customStyle={{ position: "absolute", top: 0, right: 0, padding: 0 }} labelText="cancel" type="less-vibrant-text" handleClick={closeSheet} />
+            <CustomButton customTextStyle={{ color: "red" }} customStyle={{ position: "absolute", top: 0, right: 0, padding: 0 }} labelText="cancel" type="less-vibrant-text" handleClick={closeSheet} />
           </View>
           {child}
         </View>
@@ -205,7 +207,23 @@ export default function ProfileSettingsScreen() {
   ];
 
   const { showModal, hideModal } = useModal()
-  const { pickFromGallery, takePhoto, image, isLoading } = useImagePicker()
+  const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
+  const { upload } = useMediaUpload({
+    onSuccess() {
+      hideModal()
+    },
+    onError() {
+      showModal({
+        message: "Failed to change profile picture, try again!",
+        onPrimary: hideModal,
+        primaryBtnText: "Ok"
+      })
+    }
+  })
+
+  const handleChangePic = (image: MediaData) => {
+    upload([{ index: 0, media: image.uri, type: "profilePhoto" }])
+  }
 
   return (
     <>
@@ -235,9 +253,13 @@ export default function ProfileSettingsScreen() {
                 primaryBtnText: "Choose from photos",
                 secondaryBtnText: "Take photo",
                 onPrimary: () => {
-                  pickFromGallery({ mediaTypes: ["images"], onPictureChosen: () => hideModal() }, false)
+                  pickFromGallery({ mediaTypes: ["images"], onPictureChosen: image => handleChangePic(image) }, false)
                 },
-                onSecondary: () => takePhoto({ aspect: [1, 1] }),
+                onSecondary: () => takePhoto({
+                  aspect: [1, 1], onPictureChosen: image => {
+                    handleChangePic(image)
+                  }
+                }),
                 showCancelBtn: true
               })
             }}

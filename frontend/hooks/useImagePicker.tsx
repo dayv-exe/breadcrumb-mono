@@ -17,7 +17,7 @@ interface ImagePickerOptions {
   mediaTypes?: ImagePicker.MediaType[];
   allowMultipleSel?: boolean
   selectionLimit?: number
-  onPictureChosen?: () => void;
+  onPictureChosen?: (image: MediaData) => void;
 }
 
 interface UseImagePickerReturn {
@@ -95,7 +95,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
 
   const pickFromGallery = async (
     options?: ImagePickerOptions,
-    addToMediaPreview: boolean = true
+    addToMediaPreview: boolean = true,
   ): Promise<void> => {
     if (mediaPreviews.length >= MAX_PREVIEW_MEDIA) {
       showModal({
@@ -137,7 +137,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
 
       const processedImage = processImageResult(result);
       if (processedImage) {
-        setImage(processedImage[processedImage.length - 1]);
+        options?.onPictureChosen?.(processedImage[processedImage.length - 1])
         if (addToMediaPreview) {
           processedImage.map(m => {
             addMediaPreview(m);
@@ -154,7 +154,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
     }
   };
 
-  const takePhoto = async (options?: ImagePickerOptions): Promise<void> => {
+  const takePhoto = async (options?: ImagePickerOptions, onImageSelected?: (image: MediaData) => void): Promise<void> => {
     setIsLoading(true);
     try {
       const hasPermission = await requestImagePickerCamera();
@@ -173,7 +173,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
 
       const processedImage = processImageResult(result);
       if (processedImage) {
-        setImage(processedImage[processedImage.length - 1]);
+        options?.onPictureChosen?.(processedImage[processedImage.length - 1])
       }
     } catch (error) {
       console.error("Error taking photo:", error);

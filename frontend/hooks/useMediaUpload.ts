@@ -2,6 +2,7 @@ import { MediaItem, PresignedMediaItem, validPresignedMediaItemFile } from "@/ap
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
 
 interface UseMediaUploadOptions {
+  isProfilePicture?: boolean
   onSuccess?: (files: PresignedMediaItem[]) => void;
   onError?: (error: unknown) => void;
 }

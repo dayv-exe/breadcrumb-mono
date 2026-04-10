@@ -13,7 +13,7 @@ export type MediaAccessResponse = {
 
 export const getURL = async (req: MediaAccessRequest): Promise<apiResponse<MediaAccessResponse | null>> => {
   try {
-    const { data } = await axiosInstance.post<{ message: MediaAccessResponse }>("/api/v1/media/access", {
+    const { data } = await axiosInstance.post<{ message: MediaAccessResponse }>("/api/v1/media-access?action=sign", {
       key: req.key
     })
     console.log(data.message.url)

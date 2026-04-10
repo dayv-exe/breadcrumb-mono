@@ -42,9 +42,11 @@ export type presignedUrlResponse = {
 export const getPresignedUrls = async (
   files: MediaItem[]
 ): Promise<apiResponse<presignedUrlResponse | null>> => {
+  const endpoint = files[0].type === "profilePhoto" ? "/api/v1/media-access?action=presign&profilePicture=true" : "/api/v1/media-access?action=presign"
+
   try {
     const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
-      "/api/v1/presigned_url",
+      endpoint,
       { files }
     );
     return { message: data.message, error: null };
@@ -53,6 +55,6 @@ export const getPresignedUrls = async (
     const backendMessage = axiosError.response?.data?.message
       ?? axiosError.message; // fallback to generic Axios message
     return { message: null, error: backendMessage };
-    
+
   }
 };
