@@ -23,9 +23,6 @@ func handleGetFriendRequests(ctx context.Context, req events.APIGatewayV2HTTPReq
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friend requests!", err), nil
 	}
-	if result == nil {
-		return models.SuccessfulGetRequestResponse(nil, nil), nil
-	}
 
 	var users []models.User
 
