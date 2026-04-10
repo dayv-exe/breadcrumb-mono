@@ -52,7 +52,6 @@ export const getPresignedUrls = async (
     const axiosError = error as AxiosError<{ message: string }>;
     const backendMessage = axiosError.response?.data?.message
       ?? axiosError.message; // fallback to generic Axios message
-      console.log(backendMessage)
     return { message: null, error: backendMessage };
     
   }

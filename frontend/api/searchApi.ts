@@ -16,7 +16,6 @@ export const searchUser = async (searchString: string): Promise<apiResponse<User
 }
 
 export const nicknameAvailable = async (username: string): Promise<apiResponse<boolean>> => {
-  console.log(username)
   const validation = validateUsername(username)
   if (!validation.isValid) {
     return { message: false, error: validation.reason }

@@ -242,7 +242,6 @@ export default function MainScreen() {
   useEffect(() => {
     if (currentUser && currentUser.message) {
       setUserDetails(currentUser.message.nickname, currentUser.message.name, currentUser.message.dpUrl)
-      console.log(currentUser)
     }
   }, [currentUser])
 
@@ -261,7 +260,11 @@ export default function MainScreen() {
   const isDarkMode = mode === "dark" || isAddActive(); // to force navbar into dark mode when showing add screen with camera active because it looks better
 
   return (
-    <View style={{ flex: 1, }}>
+    <View style={{
+      flex: 1, backgroundColor: isDarkMode
+        ? Colors.dark.background
+        : Colors.light.background,
+    }}>
       <Tabs
         initialRouteName="add"
         screenOptions={{
@@ -422,7 +425,8 @@ const styles = StyleSheet.create({
   tabBar: {
     height: 90,
     paddingTop: 14,
-    paddingHorizontal: 7,
+    elevation: 0,
+    paddingHorizontal: "3%",
   },
   tabLabel: {
     marginTop: 2,

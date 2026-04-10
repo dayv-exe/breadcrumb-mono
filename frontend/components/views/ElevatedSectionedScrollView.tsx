@@ -1,9 +1,10 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  RefreshControl,
   ScrollView,
   ScrollViewProps,
   StyleSheet,
@@ -43,6 +44,8 @@ interface ElevatedSectionedScrollViewProps extends Omit<ScrollViewProps, "onScro
   /** Distance from bottom (px) to trigger loading more. Default 200 */
   scrollThreshold?: number;
   sectionTitleStyle?: object;
+  /** Called on pull-to-refresh. Should return a Promise that resolves when refresh is done. */
+  onRefresh?: () => Promise<void>;
 }
 
 // --- Component ---
@@ -51,9 +54,21 @@ export function ElevatedSectionedScrollView({
   sections,
   scrollThreshold = 200,
   sectionTitleStyle,
+  onRefresh,
   ...scrollViewProps
 }: ElevatedSectionedScrollViewProps) {
   const loadingRef = useRef(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    if (!onRefresh) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [onRefresh]);
 
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -77,12 +92,17 @@ export function ElevatedSectionedScrollView({
   );
 
   const visibleSections = sections.filter((s) => !s.hidden);
-  const fadedBg = useThemeColor({}, "fadedBackground")
+  const fadedBg = useThemeColor({}, "fadedBackground");
 
   return (
     <ScrollView
       onScroll={handleScroll}
       scrollEventThrottle={16}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        ) : undefined
+      }
       {...scrollViewProps}
     >
       {visibleSections.map((section) => (
@@ -106,8 +126,7 @@ export function ElevatedSectionedScrollView({
 }
 
 const styles = StyleSheet.create({
-  section: {
-  },
+  section: {},
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",

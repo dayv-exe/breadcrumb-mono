@@ -4,7 +4,6 @@ import CustomLabel from "@/components/CustomLabel";
 import CustomDatePicker from "@/components/inputs/CustomDatePicker";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
-import CustomScrollView from "@/components/views/CustomScrollView";
 import CustomView from "@/components/views/CustomView";
 import { useCheckBirthdate } from "@/hooks/useCheckBirthdate";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -25,7 +24,7 @@ export default function BirthdateScreen() {
   const router = useRouter()
   const [pickerMoving, setPickerMoving] = useState(true)
   const { rawBirthdate, setBirthdate, validateBirthdate, birthdateToString } = useCheckBirthdate()
-  const {showModal, hideModal} = useModal()
+  const { showModal, hideModal } = useModal()
 
   function handleChange(date: Date) {
     setBirthdate(date)
@@ -55,17 +54,14 @@ export default function BirthdateScreen() {
   return (
     <CustomView backgroundColor={bgCol}>
       <CustomLabel adaptToTheme textAlign="center" labelText="Step 2 of 4" fade />
-      <CustomScrollView>
-        <Spacer />
-        <CustomDatePicker
-          adaptToTheme
-          date={rawBirthdate}
-          dateStr={birthdateToString(rawBirthdate)}
-          setDate={handleChange}
-          setPickerMoving={setPickerMoving}
-        />
-      </CustomScrollView>
-
+      <Spacer />
+      <CustomDatePicker
+        adaptToTheme
+        date={rawBirthdate}
+        dateStr={birthdateToString(rawBirthdate)}
+        setDate={handleChange}
+        setPickerMoving={setPickerMoving}
+      />
       <View style={styles.buttonView}>
         <CustomButton type="prominent" labelText="Next" handleClick={handleValidateBirthdate} disabled={pickerMoving} />
         <Spacer />

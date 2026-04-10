@@ -135,8 +135,9 @@ export default function ProfileItem({ userDetails, showFriendReqOpts = false, ha
           alignItems: "center",
           justifyContent: "flex-start",
           flexDirection: "row",
+          padding: 5
         }}>
-          <CustomProfilePictureCircle nickname={userDetails.nickname} size={60} />
+          <CustomProfilePictureCircle nickname={userDetails.nickname} size={50} />
           <View style={styles.names}>
             <CustomLabel padding={0} adaptToTheme labelText={userDetails.nickname!} fontSize={15} bold />
             <Spacer size="tiny" />
@@ -144,7 +145,7 @@ export default function ProfileItem({ userDetails, showFriendReqOpts = false, ha
           </View>
         </View>
 
-        {!isMyProfile && <FriendshipActionBtn handleClick={handleFriendActionClick} btnType={friendshipBtnType} text={friendshipBtnTxt} isPending={SendFriendReqPending || cancelFriendReqPending} />}
+        {false && !isMyProfile && <FriendshipActionBtn handleClick={handleFriendActionClick} btnType={friendshipBtnType} text={friendshipBtnTxt} isPending={SendFriendReqPending || cancelFriendReqPending} />}
 
       </TouchableOpacity>
 

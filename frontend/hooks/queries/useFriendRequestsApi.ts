@@ -1,15 +1,16 @@
 import { acceptFriendRequest, getFriendRequests, rejectFriendRequest, sendFriendRequest, unsendFriendRequest } from "@/api/friendRequestsApi";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 
 export const useAcceptFriendRequests = () => useMutation({
   mutationFn: acceptFriendRequest
 })
 
-export const useGetFriendRequests = () => useQuery({
-  queryFn: () => getFriendRequests(),
+export const useGetFriendRequests = () => useInfiniteQuery({
   queryKey: ["friend-requests"],
-  staleTime: 2 * (60 * 1000)
-})
+  queryFn: ({ pageParam }) => getFriendRequests(pageParam),
+  initialPageParam: undefined as string | undefined,
+  getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
+});
 
 export const useRejectFriendRequest = () => useMutation({
   mutationFn: rejectFriendRequest

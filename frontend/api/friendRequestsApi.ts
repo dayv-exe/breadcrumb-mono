@@ -5,7 +5,7 @@ import { UserDetails } from "./models/userDetails"
 
 export const acceptFriendRequest = async (senderId: string): Promise<apiResponse<string>> => {
   try {
-    const { data } = await axiosInstance.post<{ message: string }>("/api/v1/friends", {senderId: senderId})
+    const { data } = await axiosInstance.post<{ message: string }>("/api/v1/friends", { senderId: senderId })
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
@@ -13,9 +13,11 @@ export const acceptFriendRequest = async (senderId: string): Promise<apiResponse
   }
 }
 
-export const getFriendRequests = async (): Promise<apiResponse<UserDetails[]>> => {
+export const getFriendRequests = async (lastEvalKey?: string): Promise<apiResponse<UserDetails[]>> => {
+  const endPoint = `/api/v1/friend-requests`
+  const endpointWithNextPage = `/api/v1/friend-requests?last=${lastEvalKey}`
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[] }>(`/api/v1/friend-requests`)
+    const { data } = await axiosInstance.get<{ message: UserDetails[], last?: string }>(lastEvalKey ? endpointWithNextPage : endPoint)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

@@ -1,14 +1,15 @@
 import { UserDetails } from "@/api/models/userDetails";
-import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import ProfileItem from "@/components/profile/ProfileItem";
 import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
 import Spacer from "@/components/Spacer";
-import CustomView from "@/components/views/CustomView";
+import { ElevatedSectionedScrollView, Section } from "@/components/views/ElevatedSectionedScrollView";
+import { useGetFriendRequests } from "@/hooks/queries/useFriendRequestsApi";
 import { useGetFriends } from "@/hooks/queries/useFriendsApi";
-import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useIsMyProfile } from "@/hooks/useIsMyProfile";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { FlatList, ListRenderItem, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const icons = {
@@ -63,58 +64,106 @@ function LoadingComponent() {
 
 export default function ViewFriendsScreen() {
   const { accountId, nickname } = useLocalSearchParams<{ accountId: string, nickname: string }>()
-  const { data: response, error: friendsError, isPending: isPending, refetch } = useGetFriends(accountId)
-  const mode = useColorScheme()
+  const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, error } = useGetFriends(accountId)
+  const { data: requests, refetch: refetchRequests, fetchNextPage: fetchNextReq, hasNextPage: reqHasNextPage, isFetchingNextPage: isFetchingNextReqPage, isFetching: isFetchingReq, error: reqErr } = useGetFriendRequests()
+  const isMyProfile = useIsMyProfile(accountId)
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const darkBgCol = useThemeColor({}, "darkBackground")
 
-  const renderFriends: ListRenderItem<UserDetails> = ({ item }) => (
-    <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
-      router.push({
-        pathname: "/user-profile",
-        params: { userId: item.userId, tempNickname: item.nickname }
-      })
-    }} />
-  )
+  const friends: UserDetails[] = [
+    ...(data?.pages.flatMap((page) =>
+      page.message.map((f): UserDetails => f)
+    ) ?? []),
+  ]
+
+  const fReq: UserDetails[] = [
+    ...(requests?.pages.flatMap((page) =>
+      page.message.map((r): UserDetails => r)
+    ) ?? []),
+  ]
+
+  const sections: Section[] = [
+    {
+      key: "friend requests",
+      type: "paginated",
+      title: "Pending friend requests",
+      data: fReq ?? [],
+      hidden: !isMyProfile || (fReq.length === 0 && !hasNextPage) || error !== null,
+      keyExtractor: (item: UserDetails) => item.userId ?? "",
+      hasMore: hasNextPage ?? false,
+      isFetchingMore: isFetchingNextPage || isFetching,
+      onEndReached: fetchNextPage,
+      renderItem: (item: UserDetails) => {
+        console.log("FRIENDS")
+        console.log(item)
+        return (
+          <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
+            router.push({
+              pathname: "/user-profile",
+              params: { userId: item.userId, tempNickname: item.nickname }
+            })
+          }} />
+        )
+      },
+    },
+    {
+      key: "friends",
+      type: "paginated",
+      title: "Friends",
+      data: friends ?? [],
+      hidden: (friends.length === 0 && !hasNextPage) || error !== null,
+      keyExtractor: (item: UserDetails) => item.userId ?? "",
+      hasMore: hasNextPage ?? false,
+      isFetchingMore: isFetchingNextPage || isFetching,
+      onEndReached: fetchNextPage,
+      renderItem: (item: UserDetails) => {
+        console.log("FRIENDS")
+        console.log(item)
+        return (
+          <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
+            router.push({
+              pathname: "/user-profile",
+              params: { userId: item.userId, tempNickname: item.nickname }
+            })
+          }} />
+        )
+      },
+    },
+  ]
 
   return (
-    <CustomView topPadding={insets.top} adaptToTheme horizontalPadding={0}>
-      {/* header */}
-      <View style={styles.header}>
+    <View style={{
+      flex: 1,
+      paddingTop: insets.top,
+      backgroundColor: darkBgCol
+    }}>
+      <CustomLabel labelText={nickname} adaptToTheme textAlign="center" bold />
+      {
+        friends.length < 1 && (fReq.length < 1 || !isMyProfile) &&
         <View style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          zIndex: 100
+          flex: 1,
+          marginTop: 15,
+          alignItems: "center",
+          justifyContent: "center"
         }}>
-          <CustomImageButton flat handleClick={() => {
-            router.dismiss()
-          }} src={getIconImage("back", mode === "light")} />
+          <CustomLabel labelText="👻" textAlign="center" adaptToTheme fontSize={37} />
+          <CustomLabel adaptToTheme textAlign="center" fade labelText="Nothing to see here" />
         </View>
-        <CustomLabel labelText={nickname} bold adaptToTheme textAlign="center" />
-      </View>
-      {response?.message && <CustomLabel labelText="friends" textAlign="center" fade adaptToTheme />}
-      <Spacer />
-      <CustomView horizontalPadding={20} adaptToTheme>
-        {response && !isPending && !friendsError && !response.message &&
-          <NoFriendsComponent />
-        }
-        {response && !isPending && !friendsError && response.message &&
-          <FlatList
-            style={{ width: "100%" }}
-            refreshing={isPending}
-            onRefresh={refetch}
-            data={response.message}
-            renderItem={renderFriends}
-            ItemSeparatorComponent={() => <Spacer size="small" />}
-          />
-        }
-        {
-          isPending &&
-          <LoadingComponent />
-        }
-      </CustomView>
-    </CustomView>
+      }
+      <ElevatedSectionedScrollView
+        sections={sections}
+        onRefresh={async () => {
+          refetch()
+          refetchRequests()
+        }}
+        style={{
+          flex: 1,
+          paddingHorizontal: 15,
+          paddingTop: 15,
+        }}
+      />
+    </View>
   )
 }
 

@@ -151,7 +151,7 @@ export default function CustomMap({
             handlePress(e);
           }}
           attributionPosition={{ bottom: 80, left: 5 }}
-          logoPosition={{ top: -15, left: 15 }}
+          logoPosition={{ top: -15, left: 15 }} 
           attributionEnabled={true}
           logoEnabled={false}
           onTouchStart={(e) => {
@@ -160,8 +160,8 @@ export default function CustomMap({
           }}
           onTouchEnd={gestures.handleTouchEnd}
           onTouchMove={(e) => {
-            refetchCrumbs()
-            gestures.handleTouchMove(e);
+            // refetchCrumbs()
+            // gestures.handleTouchMove(e);
           }}
           onTouchCancel={gestures.handleTouchCancel}
         >
