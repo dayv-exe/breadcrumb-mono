@@ -59,6 +59,7 @@ type presignResponse struct {
 }
 
 func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	isProfilePicture := strings.ToLower(req.QueryStringParameters["profilePicture"]) == "true"
 	userID := utils.GetAuthUserId(req)
 	if userID == "" {
 		return models.UnauthorizedErrorResponse("User id not found"), nil
@@ -96,8 +97,12 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		}
 
 		mediaId := randHash.String()
+		layer := ""
+		if isProfilePicture {
+			layer = "profile"
+		}
 
-		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, crumbId, mediaId, "", int32(file.Index))
+		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, crumbId, mediaId, layer, int32(file.Index))
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 			// dont attempt to sign anything else if base media is invalid
@@ -133,6 +138,7 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 }
 
 func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, crumbId, mediaId, mediaLayerType string, index int32) (validPresignedFile, *invalidPresignedFile) {
+	mediaLayerType = strings.ToLower(mediaLayerType)
 	if strings.TrimSpace(fileName) == "" {
 		return validPresignedFile{}, nil
 	}
@@ -184,15 +190,16 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 		}
 	}
 
-	var objectName string
-	if mediaLayerType == "" {
-		objectName = fmt.Sprintf("%s_%d%s", mediaId, index, ext)
-	} else {
-		objectName = fmt.Sprintf("%s_%s_%d%s", mediaId, mediaLayerType, index, ext)
+	objectName := fmt.Sprintf("%s_%d_%s%s", mediaId, index, mediaLayerType, ext)
+	if mediaLayerType == "profile" {
+		objectName = fmt.Sprintf("%s.jpg", userId)
 	}
 
 	// media id, media layer, media index
 	mediaKey := utils.GenerateMediaKey(userId, crumbId, objectName)
+	if mediaLayerType == "profile" {
+		mediaKey = fmt.Sprintf("%s/%s", utils.DefaultDir, userId)
+	}
 
 	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(utils.GetDependencies().BucketName),

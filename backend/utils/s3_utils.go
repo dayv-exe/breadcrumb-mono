@@ -52,6 +52,8 @@ func GetExtensionFromMimeType(contentType string) string {
 	return ""
 }
 
+var DefaultDir = "uploads/unprocessed"
+
 func GenerateMediaKey(userId, crumbId, fileName string) string {
-	return fmt.Sprintf("uploads/unprocessed/%s/%s/%s", userId, crumbId, fileName)
+	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, crumbId, fileName)
 }
