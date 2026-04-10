@@ -81,6 +81,11 @@ type crumbKey struct {
 	Index *string
 }
 
+type CrumbCoordinates struct {
+	Latitude  float64
+	Longitude float64
+}
+
 // Returns a slice of crumb models one for each receiver
 func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 	crumbs := make([]Crumb, 0)

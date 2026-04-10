@@ -71,14 +71,14 @@ func handleGetUnOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReq
 	if userId == "" {
 		return models.UnauthorizedErrorResponse("You need to login to do this!"), nil
 	}
-	senderId := strings.TrimSpace(req.QueryStringParameters["sender"])
+	// senderId := strings.TrimSpace(req.QueryStringParameters["sender"])
 	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	crumbs, lastKey, err := helper.GetCrumbs(false, userId, senderId, &lastEvalKey, aws.Int32(30))
+	crumbs, lastKey, err := helper.GetCrumbs(userId, false, &lastEvalKey, aws.Int32(30))
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get unopened crumbs, try again!", err), nil
 	}
@@ -92,14 +92,14 @@ func handleGetOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReque
 		return models.UnauthorizedErrorResponse("You need to be logged in to do this!"), nil
 	}
 
-	senderId := req.QueryStringParameters["sender"]
+	// senderId := req.QueryStringParameters["sender"]
 	lastKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last key, try again!", err), nil
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	crumbs, lastKey, err := helper.GetCrumbs(true, userId, senderId, &lastKey, aws.Int32(30))
+	crumbs, lastKey, err := helper.GetCrumbs(userId, true, &lastKey, aws.Int32(30))
 
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to fetch crumbs, try again!", err), nil
@@ -113,14 +113,14 @@ func handleGetSentCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest
 	if userId == "" {
 		return models.UnauthorizedErrorResponse("You need to login to do this!"), nil
 	}
-	recipientId := strings.TrimSpace(req.QueryStringParameters["to"])
+	//recipientId := strings.TrimSpace(req.QueryStringParameters["to"])
 	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	crumbs, lastKey, err := helper.GetSentCrumbs(userId, recipientId, &lastEvalKey, aws.Int32(30))
+	crumbs, lastKey, err := helper.GetSentCrumbs(userId, &lastEvalKey, aws.Int32(30))
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get sent crumbs, try again!", err), nil
 	}

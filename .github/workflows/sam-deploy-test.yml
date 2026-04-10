@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
-      
+
       - name: Read build directories
         id: build-dirs
         run: |
@@ -32,40 +32,11 @@ jobs:
           echo "dirs=$BUILD_DIRS" >> $GITHUB_OUTPUT
           echo "Build directories: $BUILD_DIRS"
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-test-${{ hashFiles('backend/**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-test-
-            ${{ runner.os }}-go-
-
-      - name: setup docker build
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-test-${{ hashFiles('backend/Dockerfile', 'backend/**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-test-
-            ${{ runner.os }}-buildx-
-
-      - name: configure aws creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{secrets.AWS_ROLE_TEST}}
-          role-session-name: github-ci
-          aws-region: ${{env.AWS_REGION}}
-
-      - name: Set up SAM CLI
-        uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
+          go-version: '1.23'
+          cache-dependency-path: backend/go.sum
 
       - name: run utils unit tests
         working-directory: backend/utils
@@ -75,23 +46,39 @@ jobs:
         working-directory: backend/models
         run: go test -v ./...
 
+      - name: setup docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: configure aws creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TEST }}
+          role-session-name: github-ci
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
       - name: build go bins for lambda
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          build-args: |
+            BUILD_DIRS=${{ steps.build-dirs.outputs.dirs }}
+          tags: breadcrumb:latest
+          load: true
+          cache-from: type=gha,scope=breadcrumb-build
+          cache-to: type=gha,scope=breadcrumb-build,mode=max
+
+      - name: extract binaries from image
+        working-directory: backend
         run: |
-          docker buildx build \
-            --build-arg BUILD_DIRS="${{ steps.build-dirs.outputs.dirs }}" \
-            --cache-from type=local,src=/tmp/.buildx-cache \
-            --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            --load \
-            -t breadcrumb .
-          docker create --name extract-builder breadcrumb
+          docker create --name extract-builder breadcrumb:latest
           rm -rf ./bin
           docker cp extract-builder:/app/bin ./bin
           docker rm extract-builder
-
-      - name: Move Docker cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: deploy sam
         run: |
@@ -114,17 +101,13 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --query 'StackResourceDetail.PhysicalResourceId' \
             --output text)
-
           SECRET_ID=$(aws cloudformation describe-stack-resource \
             --stack-name breadcrumb-stack-test \
             --logical-resource-id CloudFrontKeysSecret \
             --region ${{ env.AWS_REGION }} \
             --query 'StackResourceDetail.PhysicalResourceId' \
             --output text)
-
           echo "CloudFront PublicKey ID (key_pair_id): $CF_PUBLIC_KEY_ID"
           echo "Secrets Manager Secret ID: $SECRET_ID"
-
-          # Export as step outputs
           echo "key_pair_id=$CF_PUBLIC_KEY_ID" >> $GITHUB_OUTPUT
           echo "secret_id=$SECRET_ID" >> $GITHUB_OUTPUT
