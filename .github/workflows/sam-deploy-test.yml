@@ -42,7 +42,7 @@ jobs:
           cache-dependency-path: |
             backend/go.sum
             backend/**/go.mod
-            backend/**/*.go
+            backend/**/go.sum
 
       - name: run utils unit tests
         working-directory: backend/utils
