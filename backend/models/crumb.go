@@ -133,7 +133,7 @@ func (c *Crumb) ApplyPrefixes() {
 	c.Gsi4 = CrumbIdPrefix + c.Id
 }
 
-func GetCrumbKeys(userId, otherUserId, geohash, crumbId string, isReceived, opened bool) (crumbKey, crumbKey) {
+func fGetCrumbKeys(userId, otherUserId, geohash, crumbId string, isReceived, opened bool) (crumbKey, crumbKey) {
 	key1 := crumbKey{}
 	key2 := crumbKey{}
 

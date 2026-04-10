@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -44,16 +45,19 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 }
 
 // get all unopened crumbs sent to current user. leave sender id blank to get from all senders or provide sender id to only get from given sender
-func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
-	pk, sk := models.GetCrumbKeys(userId, senderId, "", "", true, false)
+func (h *crumbHelper) GetCrumbs(opened bool, userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
+	pk := models.UnopenedCrumbPkPrefix + userId
+	if opened {
+		pk = models.OpenedCrumbPkPrefix + userId
+	}
 	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
 	keyCondition := expression.KeyEqual(
-		expression.Key(pk.Key),
-		expression.Value(pk.Value),
+		expression.Key("gsi"),
+		expression.Value(pk),
 	).And(
 		expression.KeyBeginsWith(
-			expression.Key(sk.Key),
-			sk.Value,
+			expression.Key("gsiSk"),
+			models.CrumbSenderPrefix+senderId,
 		),
 	)
 
@@ -65,7 +69,7 @@ func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[st
 	response, err := QueryItems(
 		helper,
 		lastKey,
-		pk.Index,
+		aws.String("GSIndex"),
 		expr,
 		limit,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
@@ -81,14 +85,13 @@ func (h *crumbHelper) GetUnOpenedCrumbs(userId, senderId string, lastKey *map[st
 
 // get all crumbs sent by current user. leave recipient id blank to get from all recipients or provide recipient id to only get sent to specific user
 func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
-	pk, sk := models.GetCrumbKeys(userId, recipientId, "", "", false, true)
 	keyCond := expression.KeyEqual(
-		expression.Key(pk.Key),
-		expression.Value(pk.Value),
+		expression.Key("gsi3"),
+		expression.Value(models.CrumbSenderPrefix+userId),
 	).And(
 		expression.KeyBeginsWith(
-			expression.Key(sk.Key),
-			sk.Value,
+			expression.Key("gsi3Sk"),
+			models.CrumbReceiverPrefix+recipientId,
 		),
 	)
 
@@ -98,7 +101,7 @@ func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[str
 	}
 
 	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
-	result, err := QueryItems(helper, lastKey, pk.Index, expr, limit, func(c []map[string]types.AttributeValue) []models.Crumb {
+	result, err := QueryItems(helper, lastKey, aws.String("GSIndex3"), expr, limit, func(c []map[string]types.AttributeValue) []models.Crumb {
 		return *models.ConvertToCrumbs(c)
 	})
 
@@ -107,33 +110,4 @@ func (h *crumbHelper) GetSentCrumbs(userId, recipientId string, lastKey *map[str
 	}
 
 	return result.Items, result.LastEvaluatedKey, err
-}
-
-func (h *crumbHelper) GetOpenedCrumbs(userId, senderId string, lastKey *map[string]types.AttributeValue, limit *int32) ([]models.Crumb, map[string]types.AttributeValue, error) {
-	pk, sk := models.GetCrumbKeys(userId, senderId, "", "", true, true)
-	keyCond := expression.KeyEqual(
-		expression.Key(pk.Key),
-		expression.Value(pk.Value),
-	).And(
-		expression.KeyBeginsWith(
-			expression.Key(sk.Key),
-			sk.Value,
-		),
-	)
-
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	helper := newHelper(h.Ctx, &utils.GetDependencies().MainTableName)
-	response, err := QueryItems(helper, lastKey, pk.Index, expr, limit, func(c []map[string]types.AttributeValue) []models.Crumb {
-		return *models.ConvertToCrumbs(c)
-	})
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return response.Items, response.LastEvaluatedKey, nil
 }

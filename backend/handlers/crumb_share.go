@@ -78,7 +78,7 @@ func handleGetUnOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReq
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	crumbs, lastKey, err := helper.GetUnOpenedCrumbs(userId, senderId, &lastEvalKey, aws.Int32(30))
+	crumbs, lastKey, err := helper.GetCrumbs(false, userId, senderId, &lastEvalKey, aws.Int32(30))
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get unopened crumbs, try again!", err), nil
 	}
@@ -99,7 +99,7 @@ func handleGetOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReque
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	crumbs, lastKey, err := helper.GetOpenedCrumbs(userId, senderId, &lastKey, aws.Int32(30))
+	crumbs, lastKey, err := helper.GetCrumbs(true, userId, senderId, &lastKey, aws.Int32(30))
 
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to fetch crumbs, try again!", err), nil
