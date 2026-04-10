@@ -133,11 +133,6 @@ func (this *userHelper) DeleteFromDynamo(u *models.User) error {
 }
 
 func (u *userHelper) updateNameOrNickname(user *models.User, newName string, transactions []types.TransactWriteItem, updatingNickname bool) error {
-	log.Println("name update begins")
-
-	log.Println("old name: " + user.Name)
-	log.Println("old nickname: " + user.Nickname)
-
 	// get transactions to delete all old search indexes
 	err := TransactWrite(newHelper(u.Ctx, nil), models.GetDeleteUserIndexesItems(user)...)
 
@@ -153,10 +148,8 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 		attributeName = "gsi"             // hardcoded string
 		dateAttr = "last_nickname_change" // hardcoded string
 		user.Nickname = newName
-		log.Println("updating nickname to " + newName)
 	} else {
 		user.Name = newName
-		log.Println("updating name to " + newName)
 	}
 
 	// generate new search indexes based on new name
@@ -194,7 +187,6 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 		log.Println("ERROR: failed to put action in queue!")
 		log.Println(err)
 	}
-	log.Println("update complete")
 	return nil
 }
 

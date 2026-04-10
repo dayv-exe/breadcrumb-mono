@@ -129,9 +129,6 @@ func (this *friendshipHelper) GetAllFriends(userId string, lastEvalKey *map[stri
 		},
 	)
 
-	log.Printf("result in helper: %v", result)
-	log.Printf("result items in helper: %v", result.Items)
-
 	return &listResponse[models.UserDisplayInfo]{
 		Items:       result.Items,
 		LastEvalKey: result.LastEvaluatedKey,

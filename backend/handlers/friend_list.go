@@ -29,7 +29,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 
-	var users []models.User
+	users := make([]models.User, 0)
 
 	for _, friend := range result.Items {
 		var friendshipStatus string

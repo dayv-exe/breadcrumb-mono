@@ -162,7 +162,8 @@ func QueryAllItems[T any](deps *helper, indexName *string, expression expression
 		lastEvaluatedKey = result.LastEvaluatedKey
 	}
 
-	items := convertToStructs(allItems)
+	items := make([]T, 0)
+	items = append(items, convertToStructs(allItems)...)
 
 	return &items, nil
 }
@@ -212,8 +213,9 @@ func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.Attribut
 		return nil, err
 	}
 
-	items := convertToStructs(result.Items)
-	log.Printf("Items converted from db: %v", items)
+	items := make([]T, 0)
+	items = append(items, convertToStructs(result.Items)...)
+
 	return &queryResult[T]{
 		Items:            items,
 		LastEvaluatedKey: result.LastEvaluatedKey,

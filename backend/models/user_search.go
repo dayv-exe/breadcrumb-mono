@@ -116,7 +116,7 @@ func SearchItemsToUserInfoStruct(items []map[string]types.AttributeValue) *[]Use
 		s.Userid = strings.TrimPrefix(s.Userid, UserPkPrefix)
 	})
 
-	var users []UserDisplayInfo
+	users := make([]UserDisplayInfo, 0)
 	for _, user := range *searchItems {
 		users = append(users, UserDisplayInfo{
 			Userid:   user.Userid,

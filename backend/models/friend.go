@@ -57,7 +57,7 @@ func FriendItemsToUserDisplayStructs(items []map[string]types.AttributeValue) *[
 	})
 
 	// convert friends to user display info
-	var friends []UserDisplayInfo
+	friends := make([]UserDisplayInfo, 0)
 	for _, Friend := range *result {
 		friends = append(friends, UserDisplayInfo{
 			Userid:   Friend.OtherUserID,

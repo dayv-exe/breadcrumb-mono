@@ -7,7 +7,6 @@ import (
 )
 
 func GetAuthUserId(req events.APIGatewayV2HTTPRequest) string {
-	log.Println("getting user sub from request")
 
 	if req.RequestContext.Authorizer == nil {
 		log.Println("missing authorizer")
@@ -26,7 +25,6 @@ func GetAuthUserId(req events.APIGatewayV2HTTPRequest) string {
 		return ""
 	}
 
-	log.Println("gotten user sub from request:", sub)
 	return sub
 }
 

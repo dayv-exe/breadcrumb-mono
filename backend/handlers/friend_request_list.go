@@ -24,7 +24,7 @@ func handleGetFriendRequests(ctx context.Context, req events.APIGatewayV2HTTPReq
 		return models.ServerSideErrorResponse("Failed to get friend requests!", err), nil
 	}
 
-	var users []models.User
+	users := make([]models.User, 0)
 
 	for _, user := range result.Items {
 		users = append(users, models.User{

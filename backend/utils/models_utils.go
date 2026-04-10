@@ -20,7 +20,7 @@ func ToDatabaseFormat[T DatabaseFormattable](item T) *map[string]types.Attribute
 }
 
 func DatabaseItemsToStructs[T any](items []map[string]types.AttributeValue, postProcess func(*T)) *[]T {
-	var structs []T
+	structs := make([]T, 0)
 	if err := attributevalue.UnmarshalListOfMaps(items, &structs); err != nil {
 		panic("Failed to convert database item to structs of type %T")
 	}

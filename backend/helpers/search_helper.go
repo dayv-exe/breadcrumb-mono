@@ -67,7 +67,7 @@ func (this *searchHelper) SearchUser(searchStr string) (*[]models.UserDisplayInf
 	}
 
 	// loop through matches and rank them and put them in results
-	var result []models.UserDisplayInfo
+	result := make([]models.UserDisplayInfo, 0)
 	for index, user := range matches {
 		user.Userid = strings.TrimPrefix(user.Userid, models.UserPkPrefix) // removes the 'USER#'
 		key := user.Userid

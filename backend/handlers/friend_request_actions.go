@@ -3,14 +3,12 @@ package handlers
 import (
 	"backend/models"
 	"context"
-	"log"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 func HandleFriendRequestActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	log.Printf("req is %v", req)
 	switch strings.ToLower(req.RequestContext.HTTP.Method) {
 	case "get":
 		return handleGetFriendRequests(ctx, req)

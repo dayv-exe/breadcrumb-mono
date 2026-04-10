@@ -34,7 +34,6 @@ func InvalidRequestErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 	if msg == "" {
 		msg = "Invalid request body."
 	}
-	log.Println(msg)
 	return buildResponse(400, ResponseBody{
 		Message:          msg,
 		LastEvaluatedKey: nil,
@@ -45,7 +44,6 @@ func UnauthorizedErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 	if msg == "" {
 		msg = "Unauthorized request."
 	}
-	log.Println(msg)
 	return buildResponse(401, ResponseBody{msg, nil})
 }
 
@@ -53,7 +51,6 @@ func ForbiddenErrorResponse(msg string) events.APIGatewayV2HTTPResponse {
 	if msg == "" {
 		msg = "Insufficient Permissions"
 	}
-	log.Println(msg)
 	return buildResponse(403, ResponseBody{msg, nil})
 }
 
@@ -62,7 +59,6 @@ func NotFoundResponse(msg string) events.APIGatewayV2HTTPResponse {
 		msg = "Resource not found."
 	}
 
-	log.Println(msg)
 	return buildResponse(404, ResponseBody{msg, nil})
 }
 
