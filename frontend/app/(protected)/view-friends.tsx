@@ -1,4 +1,5 @@
 import { UserDetails } from "@/api/models/userDetails";
+import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import ProfileItem from "@/components/profile/ProfileItem";
 import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
@@ -6,6 +7,7 @@ import Spacer from "@/components/Spacer";
 import { ElevatedSectionedScrollView, Section } from "@/components/views/ElevatedSectionedScrollView";
 import { useGetFriendRequests } from "@/hooks/queries/useFriendRequestsApi";
 import { useGetFriends } from "@/hooks/queries/useFriendsApi";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useIsMyProfile } from "@/hooks/useIsMyProfile";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -68,6 +70,7 @@ export default function ViewFriendsScreen() {
   const { data: requests, refetch: refetchRequests, fetchNextPage: fetchNextReq, hasNextPage: reqHasNextPage, isFetchingNextPage: isFetchingNextReqPage, isFetching: isFetchingReq, error: reqErr } = useGetFriendRequests()
   const isMyProfile = useIsMyProfile(accountId)
   const router = useRouter()
+  const mode = useColorScheme()
   const insets = useSafeAreaInsets()
   const darkBgCol = useThemeColor({}, "darkBackground")
 
@@ -138,6 +141,11 @@ export default function ViewFriendsScreen() {
       paddingTop: insets.top,
       backgroundColor: darkBgCol
     }}>
+      <CustomImageButton customStyle={{
+        backgroundColor: darkBgCol,
+        position: "absolute",
+        top: insets.top - 7,
+      }} src={getIconImage("back", mode === "light")} flat handleClick={() => router.dismiss()} />
       <CustomLabel labelText={nickname} adaptToTheme textAlign="center" bold />
       {
         friends.length < 1 && (fReq.length < 1 || !isMyProfile) &&
