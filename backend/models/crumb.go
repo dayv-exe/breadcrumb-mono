@@ -21,7 +21,7 @@ const (
 	CrumbGeohashPrefix = "GEOHASH#"
 )
 
-type crumbText struct {
+type CrumbText struct {
 	Index   int    `json:"index" dynamodbav:"index"`
 	Content string `json:"content" dynamodbav:"content"`
 }
@@ -40,7 +40,7 @@ type CrumbBody struct {
 	Lon              float64      `json:"lon"`
 	LocationAccuracy float32      `json:"locationAccuracy"`
 	LocationType     string       `json:"locationType"`
-	Text             []crumbText  `json:"text"`
+	Text             []CrumbText  `json:"text"`
 	MediaKeys        []crumbMedia `json:"media"`
 }
 
@@ -53,7 +53,7 @@ type Crumb struct {
 	LocationAccuracy float32      `json:"locationAccuracy" dynamodbav:"locationAccuracy"`
 	LocationType     string       `json:"locationType" dynamodbav:"locationType"`
 	PlaceId          []string     `json:"placeId" dynamodbav:"placeId"`
-	Text             []crumbText  `json:"text" dynamodbav:"text"`
+	Text             []CrumbText  `json:"text" dynamodbav:"text"`
 	Media            []crumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 	Opened           bool         `json:"opened" dynamodbav:"opened"`

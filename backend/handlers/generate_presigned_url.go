@@ -20,19 +20,21 @@ import (
 )
 
 type MediaItem struct {
-	Index             int32  `json:"index"`
-	MediaFileName     string `json:"media"`
-	OverlayFileName   string `json:"overlay"`
-	ThumbnailFileName string `json:"thumbnail"`
-	Type              string `json:"type"`
+	Index             int32            `json:"index"`
+	MediaFileName     string           `json:"media"`
+	OverlayFileName   string           `json:"overlay"`
+	ThumbnailFileName string           `json:"thumbnail"`
+	Text              models.CrumbText `json:"text"`
+	Type              string           `json:"type"`
 }
 
 type ValidPresignedMediaItem struct {
 	Index         int32              `json:"index"`
 	CrumbId       string             `json:"crumbId"`
-	MediaFile     validPresignedFile `json:"media"`
+	MediaFile     validPresignedFile `json:"media,omitempty"`
 	OverlayFile   validPresignedFile `json:"overlay,omitempty"`
 	ThumbnailFile validPresignedFile `json:"thumbnail,omitempty"`
+	Text          models.CrumbText   `json:"text,omitempty"`
 	Type          string             `json:"type"`
 }
 
@@ -91,6 +93,21 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	crumbId := randHash.String()
 
 	for _, file := range body.Files {
+		if strings.ToLower(file.Type) == "text" {
+			// pretend to sign text, so upload flow stays same regardless of crumb type
+			validFiles = append(validFiles, ValidPresignedMediaItem{
+				Index:         file.Index,
+				CrumbId:       crumbId,
+				MediaFile:     validPresignedFile{},
+				OverlayFile:   validPresignedFile{},
+				ThumbnailFile: validPresignedFile{},
+				Text:          file.Text,
+				Type:          file.Type,
+			})
+
+			continue
+		}
+
 		randHash, err := uuid.NewRandom()
 		if err != nil {
 			log.Fatalf("Failed to gen random hash for media upload. ERR: %v", err)
