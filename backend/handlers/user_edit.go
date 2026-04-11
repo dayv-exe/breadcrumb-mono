@@ -58,6 +58,9 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 	imageKey := req.QueryStringParameters["key"]
+	if imageKey == "" {
+		return models.InvalidRequestErrorResponse("No key for image provided!"), nil
+	}
 
 	err := helpers.NewUserHelper(ctx).UpdateProfilePic(userId, imageKey)
 	if err != nil {

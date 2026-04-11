@@ -192,7 +192,7 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 
 	objectName := fmt.Sprintf("%s_%d_%s%s", mediaId, index, mediaLayerType, ext)
 	if mediaLayerType == "profile" {
-		objectName = fmt.Sprintf("%s.jpg", userId)
+		objectName = fmt.Sprintf("%s_%d.jpg", userId, time.Now().Unix())
 	}
 
 	// media id, media layer, media index
