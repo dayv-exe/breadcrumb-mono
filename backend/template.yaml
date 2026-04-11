@@ -443,6 +443,14 @@ Resources:
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
+        GetProfilePicture:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/profile-picture
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
 
       Policies:
         - Statement:

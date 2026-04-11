@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -52,6 +53,18 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 
 	default:
 		return models.InvalidRequestErrorResponse("invalid update attribute name"), nil
+	}
+}
+
+func handleProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	method := req.RequestContext.HTTP.Method
+	switch strings.ToLower(method) {
+	case "put":
+		return handleUpdateProfilePicture(ctx, req)
+	case "get":
+		return handleGetProfilePictureUrl(ctx, req)
+	default:
+		return models.InvalidRequestErrorResponse("Invalid profile picture method!"), nil
 	}
 }
 

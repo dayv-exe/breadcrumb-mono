@@ -3,21 +3,15 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"log"
 	"mime"
-	"path"
 	"strings"
 	"time"
 
+	"backend/helpers"
 	"backend/models"
 	"backend/utils"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/config"
-	cfsign "github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
-	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 )
 
 type mediaAccessRequest struct {
@@ -67,94 +61,35 @@ func handleSignMediaUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest)
 		return models.InvalidRequestErrorResponse("Invalid JSON body"), nil
 	}
 
-	objectKey, err := sanitizeObjectKey(body.Key)
+	signedUrl, expiresAt, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(body.Key, 15)
+
 	if err != nil {
-		return models.InvalidRequestErrorResponse(err.Error()), nil
-	}
-
-	secret, err := getCloudFrontSecret(ctx)
-	if err != nil {
-		return models.ServerSideErrorResponse("Failed to load CloudFront signing secret", err), nil
-	}
-
-	privateKeyPEM := normalizePEM(secret.PrivateKey)
-	if privateKeyPEM == "" || strings.TrimSpace(secret.KeyPairID) == "" {
-		return models.ServerSideErrorResponse("CloudFront signing secret is incomplete", nil), nil
-	}
-
-	cfSigner, err := cfsign.LoadPEMPrivKeyPKCS8AsSigner(strings.NewReader(privateKeyPEM))
-	if err != nil {
-		log.Printf("Invalid CloudFront private key: %v", err)
-		return models.ServerSideErrorResponse("Invalid CloudFront private key", err), nil
-	}
-
-	rawURL := fmt.Sprintf("https://%s/%s", utils.GetDependencies().CloudFrontDomainName, objectKey)
-	expiresAt := time.Now().UTC().Add(15 * time.Minute)
-
-	signer := cfsign.NewURLSigner(secret.KeyPairID, cfSigner)
-
-	signedURL, err := signer.Sign(rawURL, expiresAt)
-	if err != nil {
-		return models.ServerSideErrorResponse("Failed to sign media URL", nil), nil
+		return models.ServerSideErrorResponse("Failed to sign media key!", err), nil
 	}
 
 	resp := mediaAccessResponse{
-		URL:       signedURL,
+		URL:       signedUrl,
 		ExpiresAt: expiresAt.Format(time.RFC3339),
 	}
 
 	return models.SuccessfulGetRequestResponse(resp, nil), nil
 }
 
-func getCloudFrontSecret(ctx context.Context) (cloudFrontSecret, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	userId := req.QueryStringParameters["userid"]
+	if strings.TrimSpace(userId) == "" {
+		return models.SuccessfulGetRequestResponse("", nil), nil
+	}
+
+	key, err := helpers.NewUserHelper(ctx).GetProfilePicKey(userId)
 	if err != nil {
-		return cloudFrontSecret{}, err
+		return models.ServerSideErrorResponse("Failed to get media key!", err), nil
 	}
 
-	client := secretsmanager.NewFromConfig(cfg)
-
-	out, err := client.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{
-		SecretId: &utils.GetDependencies().SecretArn,
-	})
+	signedUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key, 15)
 	if err != nil {
-		return cloudFrontSecret{}, err
+		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
 	}
 
-	if out.SecretString == nil || strings.TrimSpace(*out.SecretString) == "" {
-		return cloudFrontSecret{}, errors.New("secret string is empty")
-	}
-
-	var secret cloudFrontSecret
-	if err := json.Unmarshal([]byte(*out.SecretString), &secret); err != nil {
-		return cloudFrontSecret{}, err
-	}
-
-	return secret, nil
-}
-
-func sanitizeObjectKey(key string) (string, error) {
-	key = strings.TrimSpace(key)
-	key = strings.TrimPrefix(key, "/")
-	key = path.Clean(key)
-
-	if key == "." || key == "" {
-		return "", errors.New("key is required")
-	}
-
-	if strings.HasPrefix(key, "../") || key == ".." {
-		return "", errors.New("invalid key")
-	}
-
-	// if !strings.HasPrefix(key, "uploads/") {
-	// 	return "", errors.New("key must start with uploads/")
-	// }
-
-	return key, nil
-}
-
-func normalizePEM(s string) string {
-	s = strings.TrimSpace(s)
-	s = strings.ReplaceAll(s, `\n`, "\n")
-	return s
+	return models.SuccessfulGetRequestResponse(signedUrl, nil), nil
 }

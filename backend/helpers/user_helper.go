@@ -282,3 +282,38 @@ func (u *userHelper) UpdateProfilePic(userId string, newKey string) error {
 	helper := newHelper(u.Ctx, nil)
 	return UpdateItem(helper, key, expr)
 }
+
+func (u *userHelper) GetProfilePicKey(userId string) (string, error) {
+	keyCond := expression.KeyEqual(
+		expression.Key("pk"),
+		expression.Value(models.UserPkPrefix+userId),
+	).And(
+		expression.KeyBeginsWith(
+			expression.Key("sk"),
+			models.UserSkPrefix,
+		),
+	)
+
+	proj := expression.NamesList(
+		expression.Name("profilePictureKey"),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
+	if err != nil {
+		log.Printf("Failed to build key condition ERROR: %v", err)
+		return "", err
+	}
+
+	helper := newHelper(u.Ctx, nil)
+	result, err := QueryItems(helper, nil, nil, expr, aws.Int32(1), func(m []map[string]types.AttributeValue) []string {
+		users := models.ConvertToUsers(m)
+		keys := make([]string, 0)
+		for _, user := range *users {
+			keys = append(keys, user.ProfilePictureKey)
+		}
+
+		return keys
+	})
+
+	return result.Items[0], nil
+}
