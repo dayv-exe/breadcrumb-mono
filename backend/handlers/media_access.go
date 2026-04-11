@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"mime"
 	"path"
 	"strings"
 	"time"
@@ -37,6 +38,12 @@ type cloudFrontSecret struct {
 // sign, presign
 
 func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	mime.AddExtensionType(".mov", "video/quicktime")
+	mime.AddExtensionType(".heic", "image/heic")
+	mime.AddExtensionType(".heif", "image/heif")
+	mime.AddExtensionType(".avif", "image/avif")
+	mime.AddExtensionType(".mp4", "video/mp4")
+	mime.AddExtensionType(".m4a", "audio/mp4")
 	action := req.QueryStringParameters["action"]
 	switch strings.ToLower(action) {
 	case "sign":
