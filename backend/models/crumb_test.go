@@ -52,7 +52,7 @@ func NewTestCrumbBody() CrumbBody {
 		Lon:              -1,
 		LocationAccuracy: 10,
 		LocationType:     "gps",
-		Text: []crumbText{
+		Text: []CrumbText{
 			{
 				Index:   0,
 				Content: "hello world",
