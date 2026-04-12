@@ -71,8 +71,13 @@ func handleProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPReques
 func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 	imageKey := req.QueryStringParameters["key"]
-	if imageKey == "" {
-		return models.InvalidRequestErrorResponse("No key for image provided!"), nil
+
+	if imageKey != "" {
+		parts := strings.Split(imageKey, "/")
+		fileName := parts[len(parts)-1]
+		if strings.HasPrefix(fileName, userId) {
+			return models.ForbiddenErrorResponse("Your profile picture must be a picture YOU uploaded! Naughty naughty!!!"), nil
+		}
 	}
 
 	err := helpers.NewUserHelper(ctx).UpdateProfilePic(userId, imageKey)
