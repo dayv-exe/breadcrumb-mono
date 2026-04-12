@@ -75,7 +75,7 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 	if imageKey != "" {
 		parts := strings.Split(imageKey, "/")
 		fileName := parts[len(parts)-1]
-		if strings.HasPrefix(fileName, userId) {
+		if !strings.HasPrefix(fileName, userId) {
 			return models.ForbiddenErrorResponse("Your profile picture must be a picture YOU uploaded! Naughty naughty!!!"), nil
 		}
 	}
