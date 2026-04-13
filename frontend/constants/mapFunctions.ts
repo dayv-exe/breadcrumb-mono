@@ -13,7 +13,6 @@ export const getPressedLocationInfo = async (e: any, mapRef: React.RefObject<Map
     "settlement-minor-label",
     "settlement-subdivision-label",
   ]);
-  console.log(res)
   return res?.features[0]
 };
 

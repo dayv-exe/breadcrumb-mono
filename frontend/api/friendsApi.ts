@@ -8,8 +8,6 @@ export const getFriends = async (id: string, lastEvalKey?: string): Promise<apiR
   const endPointNextPage = `/api/v1/friends/${id}?last=${lastEvalKey}`
   try {
     const { data } = await axiosInstance.get<{ message: UserDetails[], last?: string }>(lastEvalKey ? endPointNextPage : endPoint)
-    console.log("List of friends")
-    console.log(data.message)
     return { message: data.message, last: data.last, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

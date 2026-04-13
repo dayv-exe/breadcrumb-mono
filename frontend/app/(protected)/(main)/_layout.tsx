@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     height: 90,
     paddingTop: 14,
     elevation: 0,
-    paddingHorizontal: "3%",
+    paddingHorizontal: "4%",
   },
   tabLabel: {
     marginTop: 2,

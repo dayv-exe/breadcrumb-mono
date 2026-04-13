@@ -55,7 +55,9 @@ const ShareListItem = ({
   subtitle,
   onChange,
   selectedTxt,
+  userId
 }: {
+  userId?: string
   title: string;
   subtitle: string;
   onChange: (s: boolean) => void;
@@ -77,7 +79,7 @@ const ShareListItem = ({
         setSelected(!selected);
       }}
     >
-      <CustomProfilePictureCircle nickname={title} size={45} customStyle={{ marginRight: 10 }} />
+      <CustomProfilePictureCircle nickname={title} size={45} customStyle={{ marginRight: 10 }} userId={userId} />
       <View
         style={{
           flexDirection: "column",
@@ -234,9 +236,14 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         id: files[0].crumbId,
         lat: coordinates?.latitude ?? 0,
         lon: coordinates?.longitude ?? 0,
-        mediaItems: files.map(f => ({
+        text: files.filter(f => f.type === "text").map(f => ({
           index: f.index,
-          media: f.media.mediaKey,
+          content: f.text?.content ?? ""
+        })),
+        mediaItems: files.filter(f => f.type !== "text").map(f => ({
+          index: f.index,
+          media: f.media?.mediaKey,
+          type: f.type,
           overlay: f.overlay?.mediaKey,
           thumbnail: f.thumbnail?.mediaKey,
         })),
@@ -339,7 +346,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
             showModal({
               overrideDefaultBg: true,
               content: (
-                <ChooseOnMap handleCancel={hideModal} handleChooseLocation={(lat, lon) => {}} />
+                <ChooseOnMap handleCancel={hideModal} handleChooseLocation={(lat, lon) => { }} />
               ),
             })
           }}
@@ -371,6 +378,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
       renderItem: (item: FriendOption) => (
         <ShareListItem
           title={deriveName(item)}
+          userId={item.userId ?? ""}
           subtitle={item.nickname ?? ""}
           onChange={(s) => {
             if (s) {

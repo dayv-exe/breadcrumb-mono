@@ -41,43 +41,42 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
 
   };
 
-  const upload =
-    async (processedMedia: MediaItem[]) => {
-      presignedUrl(processedMedia, {
-        onSuccess: async (s) => {
-          try {
-            const validFiles = s.message?.validFiles;
-            if (!validFiles?.length) {
-              return;
-            }
-
-            s.message?.invalidFiles.map(f => {
-              console.log("Name: " + f.fileName + "\n" + "Reason: " + f.reason)
-            })
-
-            const uploads: validPresignedMediaItemFile[] = [];
-
-            validFiles.forEach((file) => {
-              uploads.push(file.media);
-              if (file.overlay?.uploadUrl) uploads.push(file.overlay);
-              if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
-            });
-
-            await Promise.all(uploads.map(uploadFile));
-
-            options?.onSuccess?.(validFiles);
-          } catch (err) {
-            console.log("Upload error:", err);
-            options?.onError?.(err);
-          } finally {
+  const upload = async (processedMedia: MediaItem[]) => {
+    presignedUrl(processedMedia, {
+      onSuccess: async (s) => {
+        try {
+          s.message?.invalidFiles.map(f => {
+            console.log("Name: " + f.fileName + "\n" + "Reason: " + f.reason)
+          })
+          const validFiles = s.message?.validFiles;
+          if (!validFiles?.length) {
+            options?.onError?.("No valid files to upload!")
+            return;
           }
-        },
-        onError: (e) => {
-          console.log("Presigned URL error:", e);
-          options?.onError?.(e);
-        },
-      });
-    };
+
+          const uploads: validPresignedMediaItemFile[] = [];
+
+          validFiles.forEach((file) => {
+            if (file.media?.uploadUrl) uploads.push(file.media);
+            if (file.overlay?.uploadUrl) uploads.push(file.overlay);
+            if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
+          });
+
+          await Promise.all(uploads.map(uploadFile));
+
+          options?.onSuccess?.(validFiles);
+        } catch (err) {
+          console.log("Upload error:", err);
+          options?.onError?.(err);
+        } finally {
+        }
+      },
+      onError: (e) => {
+        console.log("Presigned URL error:", e);
+        options?.onError?.(e);
+      },
+    });
+  };
 
   return { upload };
 }

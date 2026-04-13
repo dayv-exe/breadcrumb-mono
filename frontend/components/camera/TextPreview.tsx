@@ -23,11 +23,13 @@ export default function TextPreview({ media }: props) {
   const { height } = useWindowDimensions()
   const maxSheetHeight = height - top
   const updateText = useMediaStore(s => s.updateCurrentMediaText)
-  const {nickname, fullname, dpUrl} = useAuthStore(useShallow(s => ({
+  const {nickname, fullname, userId} = useAuthStore(useShallow(s => ({
       nickname: s.userNickname,
       fullname: s.userFullname,
-      dpUrl: s.userDpUrl,
+      userId: s.userId
     })))
+
+    console.log(userId)
 
   function Crumb() {
     return (
@@ -35,7 +37,7 @@ export default function TextPreview({ media }: props) {
         backgroundColor: bg
       }]}>
         <View style={styles.header}>
-          <CustomProfilePictureCircle size={65} nickname={nickname} imgUrl={dpUrl ?? ""} />
+          <CustomProfilePictureCircle size={65} nickname={nickname} userId={userId}/>
           <Spacer size="small" />
           <View>
             <CustomLabel labelText={nickname ?? "<not found>"} adaptToTheme bold padding={0} fontSize={16} />

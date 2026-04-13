@@ -79,10 +79,6 @@ export default function CustomMap({
   const { data: crumbsResponse, refetch: refetchCrumbs } = useGetCrumbs();
   const crumbs = crumbsResponse?.message ?? [];
 
-  useEffect(() => {
-    console.log(crumbs)
-  }, [crumbs])
-
   const gestures = useCustomGestures(
     {
       onLongPress: (pos) => {

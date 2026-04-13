@@ -44,7 +44,7 @@ export const useAuthStore = create(
     userNickname: "",
     userDpUrl: "",
     clearUserDetails: async () => {
-      set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userNickname: "", userFullname: "" })
+      set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userNickname: "", userFullname: "" })
     },
     login: async (email: string, password: string, userDetails: SignInOutput | null) => {
       try {
@@ -54,7 +54,7 @@ export const useAuthStore = create(
         })
 
         if (user.isSignedIn) {
-          set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userNickname: "", userFullname: "" })
+          set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userNickname: "", userFullname: "" })
         }
 
         return { isSuccess: user.isSignedIn }
@@ -103,7 +103,7 @@ export const useAuthStore = create(
     },
     cancelSignup: async () => {
       await signOut()
-      set({ showEmailVerificationPage: false, userEmail: "", userPassword: "", userId: "", userFullname: "", userNickname: "" })
+      set({ showEmailVerificationPage: false, userEmail: "", userPassword: "", userFullname: "", userNickname: "" })
     },
     checkAuthStatus: async () => {
       try {
@@ -162,7 +162,7 @@ export const useAuthStore = create(
 
         { return { isSuccess: true } }
       } catch (error) {
-        set({ userEmail: "", userPassword: "", userId: "", showEmailVerificationPage: false, userFullname: "", userNickname: "" })
+        set({ userEmail: "", userPassword: "" , showEmailVerificationPage: false, userFullname: "", userNickname: "" })
         console.log("Failed to resend confirmation code: ", error)
         return { isSuccess: false, info: error }
       }

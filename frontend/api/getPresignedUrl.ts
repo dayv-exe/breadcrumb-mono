@@ -1,6 +1,7 @@
 import axiosInstance from "@/constants/axios";
 import { MediaType } from "@/constants/media";
 import { AxiosError } from "axios";
+import { crumbText } from "./crumbsApi";
 import { apiResponse } from "./models/apiResponse";
 
 export type MediaItem = {
@@ -8,20 +9,23 @@ export type MediaItem = {
   media: string
   overlay?: string
   thumbnail?: string
+  text?: crumbText
   type: MediaType
 }
 
 export type PresignedMediaItem = {
   index: number
   crumbId: string
-  media: validPresignedMediaItemFile
+  media: validPresignedMediaItemFile | null
   overlay: validPresignedMediaItemFile | null
   thumbnail: validPresignedMediaItemFile | null
+  text: crumbText | null
   type: MediaType
 }
 
 export type validPresignedMediaItemFile = {
   fileName: string;
+  type: MediaType
   contentType: string;
   mediaKey: string;
   uploadUrl: string;

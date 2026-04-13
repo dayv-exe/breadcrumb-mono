@@ -1,10 +1,12 @@
 import axiosInstance from "@/constants/axios"
+import { MediaType } from "@/constants/media"
 import { AxiosError } from "axios"
 import { apiResponse } from "./models/apiResponse"
 
 type crumbMedia = {
   index: number
-  media: string
+  media?: string
+  type: MediaType
   overlay?: string
   thumbnail?: string
 }

@@ -99,8 +99,7 @@ export default function CustomMediaPicker({
             shouldDownloadFromNetwork: Platform.OS === "ios",
           });
 
-          const localUri = info.localUri ?? info.uri; // localUri is best; uri might still work sometimes
-          console.log(localUri)
+          const localUri = info.localUri ?? info.uri; 
           if (!localUri) throw new Error("Could not resolve asset to a usable URI.");
 
           return {

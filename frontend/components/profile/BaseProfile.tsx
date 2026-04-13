@@ -379,7 +379,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
             <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
               <Spacer size="small" />
               <View style={styles.profileHeader}>
-                <CustomProfilePictureCircle size={100} nickname={userData?.message?.nickname} />
+                <CustomProfilePictureCircle size={100} nickname={userData?.message?.nickname} userId={userData?.message?.userId} />
                 <Spacer />
                 <View style={styles.profileAside}>
                   {!isPending && <CustomLabel fontSize={18.5} bold labelText={getName()} textAlign="left" adaptToTheme />}

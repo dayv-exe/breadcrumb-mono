@@ -459,7 +459,16 @@ export default function PreviewScreen({
           break;
         }
 
-        case "text":
+        case "text": {
+          processed.push({
+            index: i,
+            text: { index: i, content: item.text ?? "" },
+            media: "",
+            type: "text",
+          })
+          break;
+        }
+
         case "audio":
           processed.push({
             index: i,

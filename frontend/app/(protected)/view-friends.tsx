@@ -90,7 +90,7 @@ export default function ViewFriendsScreen() {
     {
       key: "friend requests",
       type: "paginated",
-      title: "Pending friend requests",
+      title: "Friend requests",
       data: fReq ?? [],
       hidden: !isMyProfile || (fReq.length === 0 && !hasNextPage) || error !== null,
       keyExtractor: (item: UserDetails) => item.userId ?? "",
@@ -98,8 +98,6 @@ export default function ViewFriendsScreen() {
       isFetchingMore: isFetchingNextPage || isFetching,
       onEndReached: fetchNextPage,
       renderItem: (item: UserDetails) => {
-        console.log("FRIENDS")
-        console.log(item)
         return (
           <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
             router.push({
@@ -121,8 +119,6 @@ export default function ViewFriendsScreen() {
       isFetchingMore: isFetchingNextPage || isFetching,
       onEndReached: fetchNextPage,
       renderItem: (item: UserDetails) => {
-        console.log("FRIENDS")
-        console.log(item)
         return (
           <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
             router.push({

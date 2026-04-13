@@ -57,7 +57,7 @@ function NewEmailSection({ oldEmail, setStep }: NewEmailProps) {
       <CustomLabel adaptToTheme textAlign="center" labelText={`Step 1 of 2`} fade fontSize={14} />
       <CustomInput value={email} setValue={setEmail} infoText={emailInfoText} inputMode={emailInputMode} ref={inputRef} adaptToTheme labelText={"Email"} showInfoTextAlways autoCapitalize="none" forceLowercase keyboardType="email-address" disableAutoCorrect useLessProminentColors />
       <Spacer />
-      <CustomLabel adaptToTheme labelText={`You can update your name only once every ${EMAIL_CHANGE_DELAY} days.`} fade italic fontSize={14} />
+      <CustomLabel adaptToTheme labelText={`You can update your email only once every ${EMAIL_CHANGE_DELAY} days.`} fade italic fontSize={14} />
       <Spacer size="small" />
       <CustomButton isPending={reqUpdateEmailPending} handleClick={handleClick} disabled={disableUpdateBtn()} type="less-prominent" labelText="Send Verification Code" />
     </View>

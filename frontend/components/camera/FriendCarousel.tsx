@@ -182,6 +182,7 @@ function FriendItem({ friend, index, scrollX }: FriendItemProps) {
           size={64}
           imgUrl={friend.avatar}
           nickname={friend.name}
+          userId={friend.id}
           handleClick={() => {
             setSelectedFriend(friend)
           }}

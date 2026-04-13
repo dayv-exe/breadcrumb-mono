@@ -137,7 +137,7 @@ export default function ProfileItem({ userDetails, showFriendReqOpts = false, ha
           flexDirection: "row",
           padding: 5
         }}>
-          <CustomProfilePictureCircle nickname={userDetails.nickname} size={50} />
+          <CustomProfilePictureCircle nickname={userDetails.nickname} userId={userDetails.userId} size={50} />
           <View style={styles.names}>
             <CustomLabel padding={0} adaptToTheme labelText={userDetails.nickname!} fontSize={15} bold />
             <Spacer size="tiny" />

@@ -81,8 +81,12 @@ export default function SignupVerifyScreen() {
     } else if (!res.sub) {
       handleErrorGracefully("no sub returned")
     } else if (res.isSuccess) {
+      if (!userNickname) {
+        handleErrorGracefully("No nickname chosen!")
+        return
+      }
       createUser({
-        name: userFullname,
+        name: userFullname ?? "",
         nickname: userNickname,
         sub: res.sub
       }, {

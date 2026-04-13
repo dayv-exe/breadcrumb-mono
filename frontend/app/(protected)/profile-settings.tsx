@@ -15,7 +15,7 @@ import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
 import { Colors } from "@/constants/Colors";
 import { MediaData } from "@/constants/media";
-import { useDeleteUser, useGetUser } from "@/hooks/queries/useUserApi";
+import { useDeleteUser, useGetUser, useUpdateProfilePicture } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useImagePicker } from "@/hooks/useImagePicker";
@@ -208,9 +208,31 @@ export default function ProfileSettingsScreen() {
 
   const { showModal, hideModal } = useModal()
   const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
+  const { mutate: updateProfilePictureKey, isError } = useUpdateProfilePicture()
   const { upload } = useMediaUpload({
-    onSuccess() {
-      hideModal()
+    onSuccess(file) {
+      if (isError || !file[0].media?.mediaKey) {
+        showModal({
+          message: "Failed to change profile picture, try again!",
+          onPrimary: hideModal,
+          primaryBtnText: "Ok"
+        })
+        return
+      }
+
+      console.log(file[0].media.mediaKey)
+      updateProfilePictureKey(file[0].media.mediaKey, {
+        onSuccess() {
+
+        },
+        onError() {
+          showModal({
+            message: "Failed to update profile picture, try again.",
+            primaryBtnText: "Close",
+            onPrimary: hideModal
+          })
+        }
+      })
     },
     onError() {
       showModal({
@@ -221,8 +243,47 @@ export default function ProfileSettingsScreen() {
     }
   })
 
+  const handlePressChangePic = () => {
+    openSheet({
+      content: (
+        <View style={{ paddingBottom: insets.bottom }}>
+          <CustomButton type="text" labelText="Choose from photos" adaptToTheme handleClick={() => {
+            pickFromGallery({ mediaTypes: ["images"], onPictureChosen: image => handleChangePic(image) }, false)
+          }} />
+          <CustomButton type="text" labelText="Take photo" adaptToTheme handleClick={() => {
+            takePhoto({
+              aspect: [1, 1], onPictureChosen: image => {
+                handleChangePic(image)
+              }
+            })
+          }} />
+          <CustomButton type="text" labelText="Delete" customTextStyle={{ color: "red" }} adaptToTheme handleClick={handleDeletePic} />
+        </View>
+      ),
+      dynamicHeight: true,
+    })
+  }
+
   const handleChangePic = (image: MediaData) => {
-    upload([{ index: 0, media: image.uri, type: "profilePhoto" }])
+    upload([{ index: 0, media: image.uri, type: "profilePhoto", thumbnail: image.thumbnail }])
+    closeSheet()
+  }
+
+  const handleDeletePic = () => {
+    updateProfilePictureKey("", {
+      onSuccess() {
+
+      },
+      onError() {
+        showModal({
+          message: "Failed to update profile picture, try again.",
+          primaryBtnText: "Close",
+          onPrimary: hideModal
+        })
+      }
+    })
+
+    closeSheet()
   }
 
   return (
@@ -246,25 +307,16 @@ export default function ProfileSettingsScreen() {
         <View style={[
           styles.container,
         ]}>
-          <CustomProfilePictureCircle nickname={user.message?.nickname}
-            handleClick={async () => {
-              await showModal({
-                message: "Change profile picture",
-                primaryBtnText: "Choose from photos",
-                secondaryBtnText: "Take photo",
-                onPrimary: () => {
-                  pickFromGallery({ mediaTypes: ["images"], onPictureChosen: image => handleChangePic(image) }, false)
-                },
-                onSecondary: () => takePhoto({
-                  aspect: [1, 1], onPictureChosen: image => {
-                    handleChangePic(image)
-                  }
-                }),
-                showCancelBtn: true
-              })
-            }}
-          />
-          <Spacer />
+          <View style={{
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <CustomProfilePictureCircle userId={user.message?.userId} nickname={user.message?.nickname}
+              handleClick={handlePressChangePic}
+            />
+            <CustomButton handleClick={handlePressChangePic} labelText="Tap to change" type="text" adaptToTheme />
+          </View>
           <SectionList
             style={styles.sections}
             sections={sections}
@@ -306,7 +358,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
-    width: "100%"
+    width: "100%",
+    flexDirection: "column",
   },
   sectionHeader: {
     paddingVertical: 20,

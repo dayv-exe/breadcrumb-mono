@@ -54,3 +54,23 @@ export const getUser = async (idOrNickname: string): Promise<apiResponse<UserDet
 export const getMyProfile = async (): Promise<apiResponse<UserDetails | null>> => {
   return getUser("")
 }
+
+export const updateProfilePicture = async (key: string): Promise<apiResponse<boolean>> => {
+  try {
+    await axiosInstance.put<{ message: string }>(`/api/v1/profile-picture?key=${key}`)
+    return { message: true, error: null }
+  } catch (error) {
+    console.log((error as AxiosError).message)
+    return { message: false, error: (error as AxiosError).message }
+  }
+}
+
+export const getProfilePicture = async (userid: string): Promise<apiResponse<string>> => {
+  try {
+    const { data } = await axiosInstance.get<{ message: string }>(`/api/v1/profile-picture?userid=${userid}`)
+    return { message: data.message, error: null }
+  } catch (error) {
+    console.log((error as AxiosError).message)
+    return { message: "", error: (error as AxiosError).message }
+  }
+}

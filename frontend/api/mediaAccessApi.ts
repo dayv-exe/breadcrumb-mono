@@ -16,7 +16,6 @@ export const getURL = async (req: MediaAccessRequest): Promise<apiResponse<Media
     const { data } = await axiosInstance.post<{ message: MediaAccessResponse }>("/api/v1/media-access?action=sign", {
       key: req.key
     })
-    console.log(data.message.url)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
