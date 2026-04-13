@@ -269,6 +269,12 @@ func (this *userHelper) NicknameAvailable(nickname string) (bool, error) {
 
 func (u *userHelper) UpdateProfilePic(userId string, newKey string) error {
 	key := models.UserKey(userId)
+	oldProfilePicKey, _ := u.GetProfilePicKey(userId)
+
+	// TODO: if err then add del operation to queue and try again
+	if strings.TrimSpace(oldProfilePicKey) != "" {
+		NewS3Helper(u.Ctx).DeleteObj(oldProfilePicKey)
+	}
 
 	update := expression.Set(
 		expression.Name("profilePictureKey"),

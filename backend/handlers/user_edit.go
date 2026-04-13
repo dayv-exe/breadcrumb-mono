@@ -70,12 +70,14 @@ func handleProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPReques
 
 func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
-	imageKey := req.QueryStringParameters["key"]
+	imageKey := strings.TrimSpace(req.QueryStringParameters["key"])
 
 	if imageKey != "" {
 		parts := strings.Split(imageKey, "/")
+		folderName := parts[len(parts)-2]
 		fileName := parts[len(parts)-1]
-		if !strings.HasPrefix(fileName, userId) {
+
+		if folderName != userId || !strings.HasPrefix(fileName, userId) {
 			return models.ForbiddenErrorResponse("Your profile picture must be a picture YOU uploaded! Naughty naughty!!!"), nil
 		}
 	}
