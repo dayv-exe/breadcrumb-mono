@@ -102,5 +102,5 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 		return models.ServerSideErrorResponse("Failed to update profile picture, try again", err), nil
 	}
 
-	return models.SuccessfulRequestResponse("Updated successfully!", false), nil
+	return models.SuccessfulRequestResponse(userId, false), nil
 }
