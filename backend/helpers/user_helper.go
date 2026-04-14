@@ -271,13 +271,15 @@ func (u *userHelper) UpdateProfilePic(userId string, newProfilePicture models.Cr
 	key := models.UserKey(userId)
 	oldProfilePic, _ := u.GetProfilePicKeys(userId)
 
+	s3Helper := NewS3Helper(u.Ctx)
+
 	// TODO: if err then add del operation to queue and try again
 	if strings.TrimSpace(oldProfilePic.MediaKey) != "" {
-		NewS3Helper(u.Ctx).DeleteObj(oldProfilePic.MediaKey)
+		s3Helper.DeleteObj(oldProfilePic.MediaKey)
 	}
 
 	if strings.TrimSpace(oldProfilePic.ThumbnailKey) != "" {
-		NewS3Helper(u.Ctx).DeleteObj(oldProfilePic.ThumbnailKey)
+		s3Helper.DeleteObj(oldProfilePic.ThumbnailKey)
 	}
 
 	update := expression.Set(
