@@ -81,8 +81,12 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 		folderName := parts[len(parts)-2]
 		fileName := parts[len(parts)-1]
 
-		if folderName != userId || !strings.HasPrefix(fileName, userId) || !strings.HasPrefix(thumbnailKey, imageKey) {
-			return models.ForbiddenErrorResponse("Invalid profile picture keys"), nil
+		if folderName != userId {
+			return models.ForbiddenErrorResponse("Invalid profile picture key"), nil
+		} else if !strings.HasPrefix(fileName, userId) {
+			return models.ForbiddenErrorResponse("Invalid profile picture dir"), nil
+		} else if !strings.HasPrefix(thumbnailKey, imageKey) {
+			return models.ForbiddenErrorResponse("Invalid profile picture thumbnail"), nil
 		}
 
 	} else {
