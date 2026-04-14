@@ -20,7 +20,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const fgColDark = "#fff";
   const bgCol = useThemeColor({}, "fadedBackground");
 
-  const imgUrl = data?.message && !data.error ? data.message : null;
+  const url = (data?.message && !data.error) ? data?.message?.thumbnail : null;
 
   nickname = nickname ?? "";
   const parts = nickname.split(/[._]/);
@@ -36,12 +36,14 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
         justifyContent: "center",
         borderRadius: size / 2,
         overflow: "hidden",
+        borderColor: "rgba(0, 0, 0, .1)",
+        borderWidth: 1
       }, customStyle]}
-      onPress={() => handleClick?.(imgUrl ?? "")}
+      onPress={() => handleClick?.(url ?? "")}
     >
-      {imgUrl ? (
+      {url ? (
         <Image
-          source={{ uri: imgUrl }}
+          source={{ uri: url }}
           style={{ width: size, height: size, borderRadius: size / 2 }}
           resizeMode="cover"
         />

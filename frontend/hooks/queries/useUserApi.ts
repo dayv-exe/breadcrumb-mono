@@ -1,6 +1,6 @@
 import { searchUser } from "@/api/searchApi";
 import { createUser, deleteUser, editUser, getProfilePicture, getUser, updateProfilePicture } from "@/api/userApi";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useCreateUser = () => useMutation({
   mutationFn: createUser
@@ -27,9 +27,16 @@ export const useSearchUser = (str: string) => useQuery({
   enabled: str.length >= 2
 })
 
-export const useUpdateProfilePicture = () => useMutation({
-  mutationFn: updateProfilePicture
-})
+export const useUpdateProfilePicture = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updateProfilePicture,
+    
+    onSuccess(data) {
+      queryClient.invalidateQueries({ queryKey: ["profile-picture", data.message] })
+    },
+  })
+}
 
 export const useGetProfilePicture = (userid: string) => useQuery({
   queryKey: ["profile-picture", userid],

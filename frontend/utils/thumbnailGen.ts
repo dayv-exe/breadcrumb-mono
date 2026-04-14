@@ -1,15 +1,32 @@
-import { createVideoPlayer } from "expo-video";
+import { Image, createVideoThumbnail } from 'react-native-compressor';
 
-export async function generateVideoThumbnail(uri: string) {
-  const player = createVideoPlayer({ uri });
+type MediaType = 'image' | 'video';
 
+export const generateThumbnail = async (
+  uri: string,
+  type: MediaType
+): Promise<string> => {
   try {
-    const thumbnails = await player.generateThumbnailsAsync([0.7]); // seconds
-    return thumbnails[0];
+    if (type === 'image') {
+      // Resize image → thumbnail
+      const thumbnail = await Image.compress(uri, {
+        compressionMethod: 'manual',
+        maxWidth: 200,
+        maxHeight: 200,
+        quality: 0.6,
+      });
+
+      return thumbnail;
+    }
+
+    if (type === 'video') {
+      const { path } = await createVideoThumbnail(uri);
+      return path;
+    }
+
+    throw new Error('Unsupported media type');
   } catch (error) {
-    console.error("Thumbnail generation failed:", error);
-    return undefined;
-  } finally {
-    player.release();
+    console.error('Thumbnail generation failed:', error);
+    throw error;
   }
-}
+};

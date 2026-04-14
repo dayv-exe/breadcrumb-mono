@@ -22,6 +22,7 @@ import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
+import { generateThumbnail } from "@/utils/thumbnailGen";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, SectionList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -220,8 +221,10 @@ export default function ProfileSettingsScreen() {
         return
       }
 
-      console.log(file[0].media.mediaKey)
-      updateProfilePictureKey(file[0].media.mediaKey, {
+      updateProfilePictureKey({
+        imageKey: file[0].media.mediaKey,
+        thumbnailKey: file[0].thumbnail!.mediaKey
+      }, {
         onSuccess() {
 
         },
@@ -264,13 +267,17 @@ export default function ProfileSettingsScreen() {
     })
   }
 
-  const handleChangePic = (image: MediaData) => {
-    upload([{ index: 0, media: image.uri, type: "profilePhoto", thumbnail: image.thumbnail }])
+  const handleChangePic = async (image: MediaData) => {
+    image.thumbnail = await generateThumbnail(image.uri, "image")
+    await upload([{ index: 0, media: image.uri, type: "profilePhoto", thumbnail: image.thumbnail }])
     closeSheet()
   }
 
   const handleDeletePic = () => {
-    updateProfilePictureKey("", {
+    updateProfilePictureKey({
+      imageKey: "",
+      thumbnailKey: "",
+    }, {
       onSuccess() {
 
       },
