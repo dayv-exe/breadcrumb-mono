@@ -58,7 +58,7 @@ func NewTestCrumbBody() CrumbBody {
 				Content: "hello world",
 			},
 		},
-		MediaKeys: []crumbMedia{{Index: 0, MediaKey: "img-key-1"}},
+		MediaKeys: []CrumbMedia{{Index: 0, MediaKey: "img-key-1"}},
 	}
 }
 

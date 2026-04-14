@@ -58,3 +58,7 @@ var ProcessedDir = "uploads/processed"
 func GenerateMediaKey(userId, crumbId, fileName string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, crumbId, fileName)
 }
+
+func GenerateProfilePictureKey(userId, fileName string) string {
+	return fmt.Sprintf("%s/%s/%s", ProcessedDir, userId, fileName)
+}

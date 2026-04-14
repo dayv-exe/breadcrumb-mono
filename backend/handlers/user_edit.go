@@ -70,19 +70,30 @@ func handleProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPReques
 
 func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
-	imageKey := strings.TrimSpace(req.QueryStringParameters["key"])
+	imageKey := strings.ToLower(strings.TrimSpace(req.QueryStringParameters["imageKey"]))
+	thumbnailKey := strings.ToLower(strings.TrimSpace(req.QueryStringParameters["thumbnailKey"]))
 
 	if imageKey != "" {
+		if thumbnailKey == "" {
+			return models.InvalidRequestErrorResponse("No thumbnail key provided!"), nil
+		}
 		parts := strings.Split(imageKey, "/")
 		folderName := parts[len(parts)-2]
 		fileName := parts[len(parts)-1]
 
-		if folderName != userId || !strings.HasPrefix(fileName, userId) {
-			return models.ForbiddenErrorResponse("Your profile picture must be a picture YOU uploaded! Naughty naughty!!!"), nil
+		if folderName != userId || !strings.HasPrefix(fileName, userId) || !strings.HasPrefix(thumbnailKey, imageKey) {
+			return models.ForbiddenErrorResponse("Invalid profile picture keys"), nil
 		}
+
+	} else {
+		thumbnailKey = ""
 	}
 
-	err := helpers.NewUserHelper(ctx).UpdateProfilePic(userId, imageKey)
+	err := helpers.NewUserHelper(ctx).UpdateProfilePic(userId, models.CrumbMedia{
+		Index:        0,
+		MediaKey:     imageKey,
+		ThumbnailKey: thumbnailKey,
+	})
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to update profile picture, try again", err), nil
 	}

@@ -81,15 +81,23 @@ func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTP
 		return models.SuccessfulGetRequestResponse("", nil), nil
 	}
 
-	key, err := helpers.NewUserHelper(ctx).GetProfilePicKey(userId)
+	key, err := helpers.NewUserHelper(ctx).GetProfilePicKeys(userId)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get media key!", err), nil
 	}
 
-	signedUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key, 15)
+	signedKeyUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key.MediaKey, 15)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
 	}
 
-	return models.SuccessfulGetRequestResponse(signedUrl, nil), nil
+	signedThumbnailKeyUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key.ThumbnailKey, 15)
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
+	}
+
+	return models.SuccessfulGetRequestResponse(models.CrumbMedia{
+		MediaKey:     signedKeyUrl,
+		ThumbnailKey: signedThumbnailKeyUrl,
+	}, nil), nil
 }

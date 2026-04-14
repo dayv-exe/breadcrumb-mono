@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/constants"
+	"backend/helpers"
 	"backend/models"
 	"backend/utils"
 	"context"
@@ -14,13 +15,11 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 )
 
 type MediaItem struct {
-	Index             int32            `json:"index"`
+	Index             int8             `json:"index"`
 	MediaFileName     string           `json:"media"`
 	OverlayFileName   string           `json:"overlay"`
 	ThumbnailFileName string           `json:"thumbnail"`
@@ -29,20 +28,20 @@ type MediaItem struct {
 }
 
 type ValidPresignedMediaItem struct {
-	Index         int32              `json:"index"`
+	Index         int8               `json:"index"`
 	CrumbId       string             `json:"crumbId"`
-	MediaFile     validPresignedFile `json:"media,omitempty"`
-	OverlayFile   validPresignedFile `json:"overlay,omitempty"`
-	ThumbnailFile validPresignedFile `json:"thumbnail,omitempty"`
+	MediaFile     ValidPresignedFile `json:"media,omitempty"`
+	OverlayFile   ValidPresignedFile `json:"overlay,omitempty"`
+	ThumbnailFile ValidPresignedFile `json:"thumbnail,omitempty"`
 	Text          models.CrumbText   `json:"text,omitempty"`
 	Type          string             `json:"type"`
 }
 
-type presignRequest struct {
+type PresignRequest struct {
 	Files []MediaItem `json:"files"`
 }
 
-type validPresignedFile struct {
+type ValidPresignedFile struct {
 	FileName    string            `json:"fileName"`
 	ContentType string            `json:"contentType"`
 	MediaKey    string            `json:"mediaKey"`
@@ -50,14 +49,14 @@ type validPresignedFile struct {
 	Fields      map[string]string `json:"fields"`
 }
 
-type invalidPresignedFile struct {
+type InvalidPresignedFile struct {
 	FileName string `json:"fileName"`
 	Reason   string `json:"reason"`
 }
 
-type presignResponse struct {
+type PresignResponse struct {
 	ValidFiles   []ValidPresignedMediaItem `json:"validFiles"`
-	InvalidFiles []invalidPresignedFile    `json:"invalidFiles"`
+	InvalidFiles []InvalidPresignedFile    `json:"invalidFiles"`
 }
 
 func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -67,7 +66,7 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		return models.UnauthorizedErrorResponse("User id not found"), nil
 	}
 
-	var body presignRequest
+	var body PresignRequest
 	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
 		return models.InvalidRequestErrorResponse("Invalid request body"), nil
 	}
@@ -76,14 +75,36 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		return models.InvalidRequestErrorResponse("At least one file is required"), nil
 	}
 
-	if len(body.Files) > constants.MAX_UPLOAD_AMOUNT {
+	if len(body.Files) > constants.MAX_UPLOAD_AMOUNT || isProfilePicture && len(body.Files) > 1 {
 		return models.InvalidRequestErrorResponse("Too many files to be uploaded at once!"), nil
 	}
 
-	presignClient := s3.NewPresignClient(utils.GetDependencies().S3Client)
-
 	validFiles := make([]ValidPresignedMediaItem, 0, len(body.Files))
-	invalidFiles := make([]invalidPresignedFile, 0)
+	invalidFiles := make([]InvalidPresignedFile, 0)
+
+	if isProfilePicture {
+		media, invalid := presignFileAsProfilePicture(ctx, userID, body.Files[0].MediaFileName, false)
+		if invalid != nil {
+			return models.InvalidRequestErrorResponse(fmt.Sprintf("Profile picture is invalid. ERROR: %v", invalid.Reason)), nil
+		}
+
+		thumbnail, invalid := presignFileAsProfilePicture(ctx, userID, body.Files[0].ThumbnailFileName, true)
+		if invalid != nil {
+			return models.InvalidRequestErrorResponse(fmt.Sprintf("Profile picture thumbnail is invalid. ERROR: %v", invalid.Reason)), nil
+		}
+
+		res := PresignResponse{
+			ValidFiles: []ValidPresignedMediaItem{
+				ValidPresignedMediaItem{
+					MediaFile:     media,
+					ThumbnailFile: thumbnail,
+				},
+			},
+			InvalidFiles: []InvalidPresignedFile{},
+		}
+
+		return models.SuccessfulGetRequestResponse(res, nil), nil
+	}
 
 	randHash, err := uuid.NewRandom()
 	if err != nil {
@@ -98,9 +119,9 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 			validFiles = append(validFiles, ValidPresignedMediaItem{
 				Index:         file.Index,
 				CrumbId:       crumbId,
-				MediaFile:     validPresignedFile{},
-				OverlayFile:   validPresignedFile{},
-				ThumbnailFile: validPresignedFile{},
+				MediaFile:     ValidPresignedFile{},
+				OverlayFile:   ValidPresignedFile{},
+				ThumbnailFile: ValidPresignedFile{},
 				Text:          file.Text,
 				Type:          file.Type,
 			})
@@ -114,24 +135,20 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		}
 
 		mediaId := randHash.String()
-		layer := ""
-		if isProfilePicture {
-			layer = "profile"
-		}
 
-		media, invalid := presignFile(ctx, presignClient, userID, file.MediaFileName, crumbId, mediaId, layer, int32(file.Index))
+		media, invalid := presignFileAsMedia(ctx, userID, crumbId, mediaId, file.MediaFileName, file.Index, "")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 			// dont attempt to sign anything else if base media is invalid
 			continue
 		}
 
-		overlay, invalid := presignFile(ctx, presignClient, userID, file.OverlayFileName, crumbId, mediaId, "overlay", int32(file.Index))
+		overlay, invalid := presignFileAsMedia(ctx, userID, crumbId, mediaId, file.OverlayFileName, file.Index, "overlay")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
 
-		thumbnail, invalid := presignFile(ctx, presignClient, userID, file.ThumbnailFileName, crumbId, mediaId, "thumbnail", int32(file.Index))
+		thumbnail, invalid := presignFileAsMedia(ctx, userID, crumbId, mediaId, file.ThumbnailFileName, file.Index, "thumbnail")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
 		}
@@ -146,7 +163,7 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 		})
 	}
 
-	res := presignResponse{
+	res := PresignResponse{
 		ValidFiles:   validFiles,
 		InvalidFiles: invalidFiles,
 	}
@@ -154,15 +171,15 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 	return models.SuccessfulGetRequestResponse(res, nil), nil
 }
 
-func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, fileName, crumbId, mediaId, mediaLayerType string, index int32) (validPresignedFile, *invalidPresignedFile) {
-	mediaLayerType = strings.ToLower(mediaLayerType)
+func presignFileAsMedia(ctx context.Context, userId, crumbId, mediaId, fileName string, index int8, layer string) (ValidPresignedFile, *InvalidPresignedFile) {
+	layer = strings.ToLower(layer)
 	if strings.TrimSpace(fileName) == "" {
-		return validPresignedFile{}, nil
+		return ValidPresignedFile{}, nil
 	}
 
 	ext := strings.ToLower(filepath.Ext(fileName))
-	if ext == "" && mediaLayerType != "thumbnail" {
-		return validPresignedFile{}, &invalidPresignedFile{
+	if ext == "" && layer != "thumbnail" {
+		return ValidPresignedFile{}, &InvalidPresignedFile{
 			FileName: fileName,
 			Reason:   "File has no extension",
 		}
@@ -176,23 +193,23 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 
 	contentType := mime.TypeByExtension(ext)
 	if contentType == "" {
-		return validPresignedFile{}, &invalidPresignedFile{
+		return ValidPresignedFile{}, &InvalidPresignedFile{
 			FileName: fileName,
 			Reason:   "Unrecognized file extension",
 		}
 	}
 
-	switch mediaLayerType {
+	switch layer {
 	case "overlay":
 		if !utils.IsAllowedOverlayMimeType(contentType) {
-			return validPresignedFile{}, &invalidPresignedFile{
+			return ValidPresignedFile{}, &InvalidPresignedFile{
 				FileName: fileName,
 				Reason:   "File type not allowed for overlays",
 			}
 		}
 	case "thumbnail":
 		if !utils.IsAllowedThumbnailMimeType(contentType) {
-			return validPresignedFile{}, &invalidPresignedFile{
+			return ValidPresignedFile{}, &InvalidPresignedFile{
 				FileName: fileName,
 				Reason:   "File type not allowed for thumbnails",
 			}
@@ -200,43 +217,96 @@ func presignFile(ctx context.Context, presignClient *s3.PresignClient, userId, f
 
 	default:
 		if !utils.IsAllowedMimeType(contentType) {
-			return validPresignedFile{}, &invalidPresignedFile{
+			return ValidPresignedFile{}, &InvalidPresignedFile{
 				FileName: fileName,
 				Reason:   "File type not allowed",
 			}
 		}
 	}
 
-	objectName := fmt.Sprintf("%s_%d_%s%s", mediaId, index, mediaLayerType, ext)
-	if mediaLayerType == "profile" {
-		objectName = fmt.Sprintf("%s_%d.jpg", userId, time.Now().Unix())
-	}
+	objectName := fmt.Sprintf("%s_%d_%s%s", mediaId, index, layer, ext)
 
 	// media id, media layer, media index
 	mediaKey := utils.GenerateMediaKey(userId, crumbId, objectName)
-	if mediaLayerType == "profile" {
-		mediaKey = fmt.Sprintf("%s/%s/%s", utils.ProcessedDir, userId, objectName)
-	}
 
-	presignedReq, err := presignClient.PresignPostObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String(utils.GetDependencies().BucketName),
-		Key:         aws.String(mediaKey),
-		ContentType: aws.String(contentType),
-	}, func(po *s3.PresignPostOptions) {
-		po.Expires = constants.PRESIGNED_URL_EXPIRY * time.Minute
-		po.Conditions = []any{
-			[]any{"content-length-range", 0, constants.MAX_UPLOAD_SIZE},
-		}
-	})
+	presignedReq, err := helpers.NewS3Helper(ctx).PresignedUrl(mediaKey, contentType)
 	if err != nil {
 		log.Printf("An error occurred while trying to generate presigned url. file name: %s ERROR: %v", fileName, err)
-		return validPresignedFile{}, &invalidPresignedFile{
+		return ValidPresignedFile{}, &InvalidPresignedFile{
 			FileName: fileName,
 			Reason:   "Failed to generate presigned URL",
 		}
 	}
 
-	return validPresignedFile{
+	return ValidPresignedFile{
+		FileName:    fileName,
+		ContentType: contentType,
+		MediaKey:    mediaKey,
+		UploadUrl:   presignedReq.URL,
+		Fields:      presignedReq.Values,
+	}, nil
+}
+
+func presignFileAsProfilePicture(ctx context.Context, userId, fileName string, isThumbnail bool) (ValidPresignedFile, *InvalidPresignedFile) {
+	if strings.TrimSpace(fileName) == "" {
+		return ValidPresignedFile{}, nil
+	}
+
+	ext := strings.ToLower(filepath.Ext(fileName))
+	if ext == "" && !isThumbnail {
+		return ValidPresignedFile{}, &InvalidPresignedFile{
+			FileName: fileName,
+			Reason:   "File has no extension",
+		}
+	}
+
+	if ext == "" {
+		// vid thumbnail from app does not have ext in file name
+		// it is always jpg
+		ext = ".jpg"
+	}
+
+	contentType := mime.TypeByExtension(ext)
+	if contentType == "" {
+		return ValidPresignedFile{}, &InvalidPresignedFile{
+			FileName: fileName,
+			Reason:   "Unrecognized file extension",
+		}
+	}
+
+	switch isThumbnail {
+	case true:
+		if !utils.IsAllowedThumbnailMimeType(contentType) {
+			return ValidPresignedFile{}, &InvalidPresignedFile{
+				FileName: fileName,
+				Reason:   "File type not allowed for thumbnails",
+			}
+		}
+
+	default:
+		if !utils.IsAllowedMimeType(contentType) {
+			return ValidPresignedFile{}, &InvalidPresignedFile{
+				FileName: fileName,
+				Reason:   "File type not allowed",
+			}
+		}
+	}
+
+	objectName := fmt.Sprintf("%s_%d.jpg", userId, time.Now().Unix())
+
+	// media id, media layer, media index
+	mediaKey := utils.GenerateProfilePictureKey(userId, objectName)
+
+	presignedReq, err := helpers.NewS3Helper(ctx).PresignedUrl(mediaKey, contentType)
+	if err != nil {
+		log.Printf("An error occurred while trying to generate presigned url. file name: %s ERROR: %v", fileName, err)
+		return ValidPresignedFile{}, &InvalidPresignedFile{
+			FileName: fileName,
+			Reason:   "Failed to generate presigned URL",
+		}
+	}
+
+	return ValidPresignedFile{
 		FileName:    fileName,
 		ContentType: contentType,
 		MediaKey:    mediaKey,

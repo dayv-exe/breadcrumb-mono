@@ -26,7 +26,7 @@ type CrumbText struct {
 	Content string `json:"content" dynamodbav:"content"`
 }
 
-type crumbMedia struct {
+type CrumbMedia struct {
 	Index        int    `json:"index" dynamodbav:"index"`
 	MediaKey     string `json:"media" dynamodbav:"media"`
 	OverlayKey   string `json:"overlay,omitempty" dynamodbav:"overlay"`
@@ -41,7 +41,7 @@ type CrumbBody struct {
 	LocationAccuracy float32      `json:"locationAccuracy"`
 	LocationType     string       `json:"locationType"`
 	Text             []CrumbText  `json:"text"`
-	MediaKeys        []crumbMedia `json:"media"`
+	MediaKeys        []CrumbMedia `json:"media"`
 }
 
 type Crumb struct {
@@ -54,7 +54,7 @@ type Crumb struct {
 	LocationType     string       `json:"locationType" dynamodbav:"locationType"`
 	PlaceId          []string     `json:"placeId" dynamodbav:"placeId"`
 	Text             []CrumbText  `json:"text" dynamodbav:"text"`
-	Media            []crumbMedia `json:"media" dynamodbav:"media"`
+	Media            []CrumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 	Opened           bool         `json:"opened" dynamodbav:"opened"`
 

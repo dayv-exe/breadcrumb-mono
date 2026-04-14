@@ -33,6 +33,9 @@ func NewCloudfrontHelper(ctx context.Context) *cloudfrontHelper {
 }
 
 func (h *cloudfrontHelper) GetSignedUrl(mediaKey string, ttl int16) (string, time.Time, error) {
+	if strings.TrimSpace(mediaKey) == "" {
+		return "", time.Now().UTC(), nil
+	}
 	objectKey, err := sanitizeObjectKey(mediaKey)
 	if err != nil {
 		return "", time.Now().UTC(), err

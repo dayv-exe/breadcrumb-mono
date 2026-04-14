@@ -267,18 +267,22 @@ func (this *userHelper) NicknameAvailable(nickname string) (bool, error) {
 	return !exists, nil // if not exists return false then flip to true so nickname available
 }
 
-func (u *userHelper) UpdateProfilePic(userId string, newKey string) error {
+func (u *userHelper) UpdateProfilePic(userId string, newProfilePicture models.CrumbMedia) error {
 	key := models.UserKey(userId)
-	oldProfilePicKey, _ := u.GetProfilePicKey(userId)
+	oldProfilePic, _ := u.GetProfilePicKeys(userId)
 
 	// TODO: if err then add del operation to queue and try again
-	if strings.TrimSpace(oldProfilePicKey) != "" {
-		NewS3Helper(u.Ctx).DeleteObj(oldProfilePicKey)
+	if strings.TrimSpace(oldProfilePic.MediaKey) != "" {
+		NewS3Helper(u.Ctx).DeleteObj(oldProfilePic.MediaKey)
+	}
+
+	if strings.TrimSpace(oldProfilePic.ThumbnailKey) != "" {
+		NewS3Helper(u.Ctx).DeleteObj(oldProfilePic.ThumbnailKey)
 	}
 
 	update := expression.Set(
-		expression.Name("profilePictureKey"),
-		expression.Value(newKey),
+		expression.Name("profilePicture"),
+		expression.Value(newProfilePicture),
 	)
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 	if err != nil {
@@ -289,7 +293,7 @@ func (u *userHelper) UpdateProfilePic(userId string, newKey string) error {
 	return UpdateItem(helper, key, expr)
 }
 
-func (u *userHelper) GetProfilePicKey(userId string) (string, error) {
+func (u *userHelper) GetProfilePicKeys(userId string) (models.CrumbMedia, error) {
 	keyCond := expression.KeyEqual(
 		expression.Key("pk"),
 		expression.Value(models.UserPkPrefix+userId),
@@ -301,21 +305,21 @@ func (u *userHelper) GetProfilePicKey(userId string) (string, error) {
 	)
 
 	proj := expression.NamesList(
-		expression.Name("profilePictureKey"),
+		expression.Name("profilePicture"),
 	)
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
 	if err != nil {
 		log.Printf("Failed to build key condition ERROR: %v", err)
-		return "", err
+		return models.CrumbMedia{}, err
 	}
 
 	helper := newHelper(u.Ctx, nil)
-	result, err := QueryItems(helper, nil, nil, expr, aws.Int32(1), func(m []map[string]types.AttributeValue) []string {
+	result, err := QueryItems(helper, nil, nil, expr, aws.Int32(1), func(m []map[string]types.AttributeValue) []models.CrumbMedia {
 		users := models.ConvertToUsers(m)
-		keys := make([]string, 0)
+		keys := make([]models.CrumbMedia, 0)
 		for _, user := range *users {
-			keys = append(keys, user.ProfilePictureKey)
+			keys = append(keys, user.ProfilePicture)
 		}
 
 		return keys

@@ -36,17 +36,17 @@ type UserAccountInfo struct {
 }
 
 type UserPersonalInfo struct {
-	ProfilePictureKey   string `json:"profilePictureKey" dynamodbav:"profilePictureKey"`
-	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
-	LastNicknameChange  string `dynamodbav:"last_nickname_change" json:"-"`
-	LastEmailChange     string `dynamodbav:"last_email_change" json:"-"`
-	LastNameChange      string `dynamodbav:"last_name_change" json:"-"`
-	AllowNicknameChange bool   `dynamodbav:"-" json:"allowNicknameChange,omitempty"`
-	AllowEmailChange    bool   `dynamodbav:"-" json:"allowEmailChange,omitempty"`
-	AllowNameChange     bool   `dynamodbav:"-" json:"allowNameChange,omitempty"`
-	LastLogin           string `dynamodbav:"last_login" json:"lastLogin,omitempty"`
-	ForceChangeNickname bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname,omitempty"`
-	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
+	ProfilePicture      CrumbMedia `json:"profilePicture" dynamodbav:"profilePicture"`
+	CanChangeBirthdate  bool       `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
+	LastNicknameChange  string     `dynamodbav:"last_nickname_change" json:"-"`
+	LastEmailChange     string     `dynamodbav:"last_email_change" json:"-"`
+	LastNameChange      string     `dynamodbav:"last_name_change" json:"-"`
+	AllowNicknameChange bool       `dynamodbav:"-" json:"allowNicknameChange,omitempty"`
+	AllowEmailChange    bool       `dynamodbav:"-" json:"allowEmailChange,omitempty"`
+	AllowNameChange     bool       `dynamodbav:"-" json:"allowNameChange,omitempty"`
+	LastLogin           string     `dynamodbav:"last_login" json:"lastLogin,omitempty"`
+	ForceChangeNickname bool       `dynamodbav:"force_change_nickname" json:"forceChangeNickname,omitempty"`
+	SuspensionReason    string     `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
 }
 
 const (
@@ -68,7 +68,6 @@ func NewUser(userid string, nickname string, name string, isSuspended bool) *Use
 			DateJoined:    utils.GetTimeNow(),
 		},
 		UserPersonalInfo: UserPersonalInfo{
-			ProfilePictureKey:   "",
 			CanChangeBirthdate:  true,
 			LastNicknameChange:  "",
 			LastEmailChange:     "",
