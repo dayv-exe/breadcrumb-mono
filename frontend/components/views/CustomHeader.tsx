@@ -35,6 +35,7 @@ export default function CustomHeader({ handleBack, title }: props) {
         flat
         src={getIconImage("back", mode === "light")} 
         handleClick={handleBack}
+        type="text"
         />
       }
       {!handleBack &&

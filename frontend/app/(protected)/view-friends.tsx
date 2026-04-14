@@ -147,7 +147,6 @@ export default function ViewFriendsScreen() {
         friends.length < 1 && (fReq.length < 1 || !isMyProfile) &&
         <View style={{
           flex: 1,
-          marginTop: 15,
           alignItems: "center",
           justifyContent: "center"
         }}>
@@ -155,6 +154,7 @@ export default function ViewFriendsScreen() {
           <CustomLabel adaptToTheme textAlign="center" fade labelText="Nothing to see here" />
         </View>
       }
+      <Spacer />
       <ElevatedSectionedScrollView
         sections={sections}
         onRefresh={async () => {
@@ -163,8 +163,6 @@ export default function ViewFriendsScreen() {
         }}
         style={{
           flex: 1,
-          paddingHorizontal: 15,
-          paddingTop: 15,
         }}
       />
     </View>

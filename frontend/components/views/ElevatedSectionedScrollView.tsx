@@ -1,5 +1,5 @@
-import { useThemeColor } from "@/hooks/use-theme-color";
-import React, { useCallback, useRef, useState } from "react";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   NativeScrollEvent,
@@ -10,6 +10,7 @@ import {
   StyleSheet,
   View
 } from "react-native";
+import CustomLabel from "../CustomLabel";
 import ElevatedSection from "./ElevatedSection";
 
 // --- Types ---
@@ -57,8 +58,11 @@ export function ElevatedSectionedScrollView({
   onRefresh,
   ...scrollViewProps
 }: ElevatedSectionedScrollViewProps) {
-  const loadingRef = useRef(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const fadedBg = useThemeColor({}, "fadedBackground");
+  const darkBg = useThemeColor({}, "darkBackground")
+  const textCol = useThemeColor({}, "text")
 
   const handleRefresh = useCallback(async () => {
     if (!onRefresh) return;
@@ -92,44 +96,74 @@ export function ElevatedSectionedScrollView({
   );
 
   const visibleSections = sections.filter((s) => !s.hidden);
-  const fadedBg = useThemeColor({}, "fadedBackground");
+
+  // Build flat list of direct children + track which indices are sticky headers
+  const children: React.ReactNode[] = [];
+  const stickyIndices: number[] = [];
+
+  visibleSections.forEach((section, sectionIdx) => {
+    const isLast = sectionIdx === visibleSections.length - 1;
+
+    // Sticky header (direct child of ScrollView)
+    if (section.title) {
+      stickyIndices.push(children.length);
+      children.push(
+        <View
+          key={`${section.key}-header`}
+          style={[styles.stickyHeader, { backgroundColor: darkBg, paddingHorizontal: 15 }]}
+        >
+          <CustomLabel adaptToTheme bold labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, {backgroundColor: darkBg, padding: 0}]} />
+        </View>
+      );
+    }
+
+    // Section body
+    children.push(
+      <View
+        key={`${section.key}-body`}
+        style={{ marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
+      >
+        <ElevatedSection title="">
+          {section.data.map((item, i) => (
+            <React.Fragment key={section.keyExtractor(item)}>
+              {section.renderItem(item, i)}
+              {i + 1 < section.data.length && (
+                <View
+                  style={{ borderBottomWidth: 1, borderBottomColor: fadedBg }}
+                />
+              )}
+            </React.Fragment>
+          ))}
+
+          {section.type === "paginated" && section.isFetchingMore && (
+            <ActivityIndicator style={styles.loader} />
+          )}
+        </ElevatedSection>
+      </View>
+    );
+  });
 
   return (
     <ScrollView
       onScroll={handleScroll}
       scrollEventThrottle={16}
+      stickyHeaderIndices={stickyIndices}
       refreshControl={
         onRefresh ? (
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         ) : undefined
       }
+      showsVerticalScrollIndicator={false}
       {...scrollViewProps}
     >
-      {visibleSections.map((section) => (
-        <View key={section.key} style={styles.section}>
-          <ElevatedSection title={section.title ?? ""}>
-            {section.data.map((item, index) => (
-              <React.Fragment key={section.keyExtractor(item)}>
-                {section.renderItem(item, index)}
-                {index + 1 < section.data.length && <View style={{ borderBottomWidth: 1, borderBottomColor: fadedBg }} />}
-              </React.Fragment>
-            ))}
-
-            {section.type === "paginated" && section.isFetchingMore && (
-              <ActivityIndicator style={styles.loader} />
-            )}
-          </ElevatedSection>
-        </View>
-      ))}
+      {children}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {},
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+  stickyHeader: {
+    paddingBottom: 10,
   },
   loader: {
     paddingVertical: 12,

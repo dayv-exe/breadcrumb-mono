@@ -448,9 +448,10 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         </View>
       </ElevatedView>
 
+      <Spacer />
       <ElevatedSectionedScrollView
         sections={sections}
-        style={{ flex: 1, paddingHorizontal: 15, paddingTop: 15 }}
+        style={{ flex: 1 }}
       />
 
       <CustomButton

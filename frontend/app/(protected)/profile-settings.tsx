@@ -1,6 +1,5 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
-import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import { useModal } from "@/components/modals/ModalContext";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
@@ -13,7 +12,7 @@ import EditUsername from "@/components/profile/EditUsername";
 import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
-import { Colors } from "@/constants/Colors";
+import { ElevatedSectionedScrollView, Section } from "@/components/views/ElevatedSectionedScrollView";
 import { MediaData } from "@/constants/media";
 import { useDeleteUser, useGetUser, useUpdateProfilePicture } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
@@ -25,9 +24,32 @@ import { useAuthStore } from "@/utils/authStore";
 import { generateThumbnail } from "@/utils/thumbnailGen";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, SectionList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+
+type SettingOption = {
+  name: string
+  value: string
+  handleClick?: () => void
+}
+
+const OptionItem = ({ name, value, handleClick }: SettingOption) => {
+  return (
+    <TouchableOpacity style={{
+      minHeight: 60,
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 10,
+      paddingVertical: 10
+    }} onPress={() => handleClick?.()}>
+      <CustomLabel padding={0} adaptToTheme labelText={name} fade={value ? true : false} fontSize={value ? 14 : 15} />
+      <Spacer size="tiny" />
+      {value && <CustomLabel padding={0} adaptToTheme labelText={value} />}
+    </TouchableOpacity>
+  )
+}
 
 const icons = {
   next: {
@@ -54,6 +76,7 @@ export default function ProfileSettingsScreen() {
   const { mutate: delAccount } = useDeleteUser()
   const fadedBgColor = useThemeColor({}, "fadedBackground")
   const bgCol = useThemeColor({}, "background")
+  const darkBg = useThemeColor({}, "darkBackground")
   const mode = useColorScheme()
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -118,9 +141,13 @@ export default function ProfileSettingsScreen() {
 
   const { openSheet, closeSheet } = useBottomSheet()
 
-  const sections = [
+  const sections: Section[] = [
     {
-      title: '👤 Account Information', data: [
+      type: "static",
+      key: "account info",
+      title: "👤 Account Information",
+      keyExtractor: (opt: SettingOption) => opt.name,
+      data: [
         {
           name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
             handleOptClick("Edit username",
@@ -181,10 +208,17 @@ export default function ProfileSettingsScreen() {
             )
           }
         },
-      ]
+      ],
+      renderItem: (opt: SettingOption) => (
+        <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
+      )
     },
     {
-      title: '🔐 Privacy', data: [
+      type: "static",
+      key: "privacy",
+      title: '🔐 Privacy',
+      keyExtractor: (opt: SettingOption) => opt.name,
+      data: [
         {
           name: 'Blocked Users', value: "", handleClick: () => {
             handleOptClick("Blocked users",
@@ -197,15 +231,25 @@ export default function ProfileSettingsScreen() {
         { name: "Logout", value: "", handleClick: handleLogout },
         { name: 'Delete account', value: "", handleClick: handleDelAccount },
         { name: 'Bug report', value: "" },
-      ]
+      ],
+      renderItem: (opt: SettingOption) => (
+        <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
+      )
     },
     {
-      title: '📖 Legal', data: [
+      type: "static",
+      key: "legal",
+      title: '📖 Legal',
+      keyExtractor: (opt: SettingOption) => opt.name,
+      data: [
         { name: 'Term of service', value: "" },
         { name: 'Contact us', value: "" },
-      ]
+      ],
+      renderItem: (opt: SettingOption) => (
+        <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
+      )
     },
-  ];
+  ]
 
   const { showModal, hideModal } = useModal()
   const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
@@ -306,11 +350,11 @@ export default function ProfileSettingsScreen() {
           <ActivityIndicator />
         </View>
       }
-      {!isPending && !error && user && !user.error && <CustomView horizontalPadding={0} adaptToTheme>
+      {!isPending && !error && user && !user.error && <CustomView horizontalPadding={0} backgroundColor={darkBg}>
         <CustomHeader title="Edit profile" handleBack={() => {
           router.dismiss()
         }} />
-        <Spacer />
+        <Spacer size="small" />
         <View style={[
           styles.container,
         ]}>
@@ -324,28 +368,11 @@ export default function ProfileSettingsScreen() {
             />
             <CustomButton handleClick={handlePressChangePic} labelText="Tap to change" type="text" adaptToTheme />
           </View>
-          <SectionList
-            style={styles.sections}
-            sections={sections}
-            keyExtractor={(item, index) => item.name + index}
-            renderItem={({ item }) => (
-              <View style={[styles.item, { borderBottomColor: fadedBgColor }]}>
-                <TouchableOpacity onPress={item.handleClick ? item.handleClick : () => { }} style={styles.optionTouchable}>
-                  <View>
-                    <CustomLabel fitContent adaptToTheme fade labelText={item.name} />
-                    {item.value && <CustomLabel fitContent adaptToTheme labelText={item.value} />}
-                  </View>
-                  <CustomImageButton flat src={getIconImage("next", mode === "light")} />
-                </TouchableOpacity>
-              </View>
-            )}
-            renderSectionHeader={({ section: { title } }) => (
-              <Text style={[styles.sectionHeader, {
-                backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background,
-                color: mode === "dark" ? Colors.dark.text : Colors.light.text
-              }]}>{title}</Text>
-            )}
-          />
+          <Spacer />
+          <ElevatedSectionedScrollView sections={sections} style={{
+            flex: 1,
+            width: "100%",
+          }} />
         </View>
       </CustomView>}
     </>
@@ -381,7 +408,7 @@ const styles = StyleSheet.create({
     alignSelf: "center"
   },
   sections: {
-    width: "100%",
+    width: "90%",
   },
   optionTouchable: {
     width: "100%",

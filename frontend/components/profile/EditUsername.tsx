@@ -27,7 +27,6 @@ export default function EditUsername({ oldUsername, onUpdate, allowNicknameChang
         editUsername({ target: "nickname", payload: username }, {
           onSuccess: res => {
             if (!res.error) {
-              ShowToast("👍 Username changed successfully!")
               onUpdate()
             }
           },

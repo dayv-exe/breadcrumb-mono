@@ -27,7 +27,6 @@ export default function EditBirthdate({ onUpdate }: props) {
     if (error) {
       ShowToast(error)
     } else if (success) {
-      ShowToast("👍 Birthdate updated!")
       onUpdate()
     }
   }

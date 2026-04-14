@@ -19,7 +19,6 @@ export default function EditBio({ oldBio, onUpdate }: props) {
     editBio({ target: "bio", payload: bio.trim() }, {
       onSuccess: res => {
         if (!res.error) {
-          ShowToast("Updated bio!")
           onUpdate()
         } else {
           ShowToast("Failed to update bio, try again.")

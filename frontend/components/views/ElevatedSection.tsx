@@ -12,7 +12,7 @@ interface ElevatedSectionProps {
 export default function ElevatedSection({ title, style, children }: PropsWithChildren<ElevatedSectionProps>) {
   return (
     <View style={styles.container}>
-      <CustomLabel labelText={title} fontSize={14} adaptToTheme bold />
+      {title && <CustomLabel labelText={title} fontSize={14} adaptToTheme bold />}
       <Spacer size="tiny" />
       <ElevatedView style={style}>
         {

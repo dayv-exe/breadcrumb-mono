@@ -36,7 +36,6 @@ export default function EditPassword({ onUpdate }: prop) {
     if (error) {
       showToast(error)
     } else if (success) {
-      showToast("👍 Password changed successfully!")
       onUpdate()
     }
   }
