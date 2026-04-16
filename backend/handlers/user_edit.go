@@ -23,7 +23,9 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		return models.InvalidRequestErrorResponse("failed to unmarshal"), nil
 	}
 
-	user, err := helpers.NewUserHelper(ctx).FindById(utils.GetAuthUserId(req))
+	userId := utils.GetAuthUserId(req)
+
+	user, err := helpers.NewUserHelper(ctx).FindById(userId)
 	if err != nil {
 		return models.NotFoundResponse("failed to get user"), nil
 	}
@@ -34,14 +36,14 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		if err != nil {
 			return models.ServerSideErrorResponse("Error while trying to update nickname", err), nil
 		}
-		return models.SuccessfulRequestResponse("Nickname changed!", false), nil
+		return models.SuccessfulRequestResponse(userId, false), nil
 
 	case "name":
 		err := helpers.NewUserHelper(ctx).UpdateName(user, editBody.Payload)
 		if err != nil {
 			return models.ServerSideErrorResponse("Error while trying to update name", err), nil
 		}
-		return models.SuccessfulRequestResponse("Name changed!", false), nil
+		return models.SuccessfulRequestResponse(userId, false), nil
 
 	case "bio":
 		err := helpers.NewUserHelper(ctx).UpdateBio(user.Userid, editBody.Payload)
@@ -49,7 +51,7 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 			return models.ServerSideErrorResponse("Error while trying to update bio", err), nil
 		}
 
-		return models.SuccessfulRequestResponse("", false), nil
+		return models.SuccessfulRequestResponse(userId, false), nil
 
 	default:
 		return models.InvalidRequestErrorResponse("invalid update attribute name"), nil
