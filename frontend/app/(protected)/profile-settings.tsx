@@ -72,7 +72,7 @@ export default function ProfileSettingsScreen() {
   const {
     userid,
   } = useLocalSearchParams<{ userid: string }>()
-  const { data: user, error, isFetching: isPending, refetch } = useGetUser(userid)
+  const { data: user, error, isFetching: isPending } = useGetUser(userid)
   const { mutate: delAccount } = useDeleteUser()
   const fadedBgColor = useThemeColor({}, "fadedBackground")
   const bgCol = useThemeColor({}, "background")
@@ -153,7 +153,6 @@ export default function ProfileSettingsScreen() {
             handleOptClick("Edit username",
               <EditUsername allowNicknameChange={user?.message?.allowNicknameChange ?? true} onUpdate={() => {
                 closeSheet()
-                refetch()
               }} oldUsername={user?.message?.nickname ?? ""} />
             )
           }
@@ -163,7 +162,6 @@ export default function ProfileSettingsScreen() {
             handleOptClick("Update name",
               <EditName allowNameChange={user?.message?.allowNameChange ?? true} onUpdate={() => {
                 closeSheet()
-                refetch()
               }} oldName={user?.message?.name ?? ""} />
             )
           }
@@ -173,7 +171,6 @@ export default function ProfileSettingsScreen() {
             handleOptClick("Update bio",
               <EditBio oldBio={user?.message?.bio ?? ""} onUpdate={() => {
                 closeSheet()
-                refetch()
               }} />
             )
           }
@@ -183,7 +180,6 @@ export default function ProfileSettingsScreen() {
             handleOptClick("Update email",
               <EditEmail oldEmail={user?.message?.email ?? ""} onUpdate={() => {
                 closeSheet()
-                refetch()
               }} />
             )
           }
@@ -193,7 +189,6 @@ export default function ProfileSettingsScreen() {
             handleOptClick("Change password",
               <EditPassword onUpdate={() => {
                 closeSheet()
-                refetch()
               }} />
             )
           }
@@ -203,7 +198,6 @@ export default function ProfileSettingsScreen() {
             handleOptClick("Update birthdate",
               <EditBirthdate onUpdate={() => {
                 closeSheet()
-                refetch()
               }} />
             )
           }

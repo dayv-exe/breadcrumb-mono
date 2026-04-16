@@ -1,5 +1,5 @@
 import { acceptFriendRequest, getFriendRequests, rejectFriendRequest, sendFriendRequest, unsendFriendRequest } from "@/api/friendRequestsApi";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useAcceptFriendRequests = () => useMutation({
   mutationFn: acceptFriendRequest
@@ -12,14 +12,43 @@ export const useGetFriendRequests = () => useInfiniteQuery({
   getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
 });
 
-export const useRejectFriendRequest = () => useMutation({
-  mutationFn: rejectFriendRequest
-})
+export const useRejectFriendRequest = () => {
+  const queryClient = useQueryClient()
 
-export const useSendFriendRequest = () => useMutation({
-  mutationFn: sendFriendRequest
-})
+  return useMutation({
+    mutationFn: rejectFriendRequest,
+    onSuccess(data, variables, onMutateResult, context) {
+      queryClient.invalidateQueries({
+        queryKey: ["user-details", variables]
+      })
 
-export const useUnsendFriendRequest = () => useMutation({
-  mutationFn: unsendFriendRequest
-})
+      queryClient.invalidateQueries({
+        queryKey: ["friend-requests"]
+      })
+    }
+  })
+}
+
+export const useSendFriendRequest = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: sendFriendRequest,
+    onSuccess(data, variables, onMutateResult, context) {
+      queryClient.invalidateQueries({
+        queryKey: ["user-details", variables]
+      })
+    },
+  })
+}
+
+export const useUnsendFriendRequest = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: unsendFriendRequest,
+    onSuccess(data, variables, onMutateResult, context) {
+      queryClient.invalidateQueries({
+        queryKey: ["user-details", variables]
+      })
+    },
+  })
+}

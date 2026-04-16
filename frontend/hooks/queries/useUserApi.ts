@@ -10,9 +10,17 @@ export const useDeleteUser = () => useMutation({
   mutationFn: () => deleteUser()
 })
 
-export const useEditUser = () => useMutation({
-  mutationFn: editUser
-})
+export const useEditUser = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: editUser,
+    onSuccess(data, variables, onMutateResult, context) {
+      qc.invalidateQueries({
+        queryKey: ["user-details", data.message]
+      })
+    },
+  })
+}
 
 export const useGetUser = (idOrNickname: string) => useQuery({
   queryFn: () => getUser(idOrNickname),
@@ -31,7 +39,7 @@ export const useUpdateProfilePicture = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: updateProfilePicture,
-    
+
     onSuccess(data) {
       queryClient.invalidateQueries({ queryKey: ["profile-picture", data.message] })
     },
