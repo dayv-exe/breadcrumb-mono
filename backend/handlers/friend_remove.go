@@ -38,5 +38,5 @@ func handleRemoveFriend(ctx context.Context, req events.APIGatewayV2HTTPRequest)
 		return models.ServerSideErrorResponse("Failed to end friendship, you guys must stay friends, jk jk, just try again", endErr), nil
 	}
 
-	return models.SuccessfulRequestResponse("Friendship ended! :(", false), nil
+	return models.SuccessfulRequestResponse(currentUserId, false), nil
 }

@@ -29,9 +29,9 @@ func handleAcceptFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPR
 		return models.InvalidRequestErrorResponse("You cannot be friends with yourself!"), nil
 	}
 
-	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendshipStatus(currentUserId, reqBody.SenderId)
-	if friendshipStatusErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to determine friendship status!", friendshipStatusErr), nil
+	friendshipStatus, err := friendshipHelper.GetFriendshipStatus(currentUserId, reqBody.SenderId)
+	if err != nil {
+		return models.ServerSideErrorResponse("Something went wrong while trying to determine friendship status!", err), nil
 	}
 
 	if friendshipStatus != constants.FRIENDSHIP_STATUS_RECEIVED {
@@ -40,20 +40,20 @@ func handleAcceptFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPR
 
 	userHelper := helpers.NewUserHelper(ctx)
 
-	thisUser, thisUserErr := userHelper.FindById(currentUserId)
-	if thisUserErr != nil || thisUser == nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to get this users details!", thisUserErr), nil
+	thisUser, err := userHelper.FindById(currentUserId)
+	if err != nil || thisUser == nil {
+		return models.ServerSideErrorResponse("Something went wrong while trying to get this users details!", err), nil
 	}
 
-	otherUser, otherUserErr := userHelper.FindById(reqBody.SenderId)
-	if otherUserErr != nil || otherUser == nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to get other users details!", otherUserErr), nil
+	otherUser, err := userHelper.FindById(reqBody.SenderId)
+	if err != nil || otherUser == nil {
+		return models.ServerSideErrorResponse("Something went wrong while trying to get other users details!", err), nil
 	}
 
-	acceptErr := friendshipHelper.AcceptFriendRequest(thisUser, otherUser)
-	if acceptErr != nil {
-		return models.ServerSideErrorResponse("Unable to accept friend request, something went wrong.", acceptErr), nil
+	err = friendshipHelper.AcceptFriendRequest(thisUser, otherUser)
+	if err != nil {
+		return models.ServerSideErrorResponse("Unable to accept friend request, something went wrong.", err), nil
 	}
 
-	return models.SuccessfulRequestResponse("New friend added!", false), nil
+	return models.SuccessfulRequestResponse(currentUserId, false), nil
 }
