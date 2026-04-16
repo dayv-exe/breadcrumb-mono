@@ -1,9 +1,17 @@
 import { acceptFriendRequest, getFriendRequests, rejectFriendRequest, sendFriendRequest, unsendFriendRequest } from "@/api/friendRequestsApi";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const useAcceptFriendRequests = () => useMutation({
-  mutationFn: acceptFriendRequest
-})
+export const useAcceptFriendRequests = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: acceptFriendRequest,
+    onSuccess(data, variables, onMutateResult, context) {
+      qc.invalidateQueries({ queryKey: ["user-friends", variables] })
+      qc.invalidateQueries({ queryKey: ["user-friends", data.message] })
+      qc.invalidateQueries({ queryKey: ["friend-requests"] })
+    },
+  })
+}
 
 export const useGetFriendRequests = () => useInfiniteQuery({
   queryKey: ["friend-requests"],

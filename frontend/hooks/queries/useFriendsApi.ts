@@ -1,5 +1,5 @@
 import { getFriends, removeFriend } from "@/api/friendsApi";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useGetFriends = (userid: string) =>
   useInfiniteQuery({
@@ -9,6 +9,13 @@ export const useGetFriends = (userid: string) =>
     getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
   });
 
-export const useRemoveFriend = () => useMutation({
-  mutationFn: removeFriend
-})
+export const useRemoveFriend = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: removeFriend,
+    onSuccess(data, variables, onMutateResult, context) {
+      qc.invalidateQueries({queryKey: ["user-friends", variables]})
+      qc.invalidateQueries({queryKey: ["user-friends", data.message]})
+    },
+  })
+}
