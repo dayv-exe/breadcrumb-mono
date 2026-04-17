@@ -25,7 +25,7 @@ export const useEditUser = () => {
 export const useGetUser = (idOrNickname: string) => useQuery({
   queryFn: () => getUser(idOrNickname),
   queryKey: ["user-details", idOrNickname],
-  staleTime: 2 * (60 * 1000)
+  staleTime: 5 * (60 * 1000)
 })
 
 export const useSearchUser = (str: string) => useQuery({
@@ -50,5 +50,5 @@ export const useGetProfilePicture = (userid: string) => useQuery({
   queryKey: ["profile-picture", userid],
   enabled: userid.length > 0,
   queryFn: () => getProfilePicture(userid),
-  staleTime: 1 * (60 * 1000)
+  staleTime: 5 * (60 * 1000)
 })

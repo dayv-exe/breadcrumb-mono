@@ -193,7 +193,7 @@ export default function SearchScreen() {
               <LoadingView />
             }
             {searchResult?.error && <SearchErrorView />}
-            {searchResult && !searchResult?.message && !searchResult?.error && <NoResult />}
+            {searchResult && searchResult?.message.length < 1 && !searchResultErr && <NoResult />}
             {(!searchResPending && !searchResultErr && searchResult?.message) && <FlatList
               data={searchResult?.message}
               renderItem={renderUser}
@@ -233,7 +233,7 @@ export default function SearchScreen() {
             }} />}
           </View>
         </ElevatedView>
-        
+
       </SunkenView>}
     </>
   )

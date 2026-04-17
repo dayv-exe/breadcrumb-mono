@@ -28,6 +28,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
 
   return (
     <TouchableOpacity
+      disabled={!handleClick}
       style={[{
         backgroundColor: bgCol,
         width: size,

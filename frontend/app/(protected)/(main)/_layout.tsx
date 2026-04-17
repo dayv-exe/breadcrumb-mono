@@ -9,6 +9,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useMediaStore } from "@/utils/mediaStore";
 import { Tabs, useSegments } from "expo-router";
+import { Heart, Plus, Search, User } from "lucide-react-native";
 import { useEffect } from "react";
 import { ColorValue, Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useShallow } from "zustand/shallow";
@@ -170,7 +171,6 @@ function MediaActionButtons({
         <>
           <CustomButton
             type="text"
-            slim
             customTextStyle={{ color: showMediaPreviews ? "red" : "red" }}
             labelText={showMediaPreviews ? "Delete" : "Discard"}
             handleClick={() => {
@@ -188,12 +188,12 @@ function MediaActionButtons({
           />
         </>
       }
-      {showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
+      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
-      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
+      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
         setSharing(true)
       }} />}
-      {!showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} slim handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
+      {!showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );
 }
@@ -214,9 +214,9 @@ function CroppingActionButtons() {
 
   return (
     <View style={styles.navbar}>
-      <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} slim useMinWidth handleClick={revertCrop} />
+      <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} useMinWidth handleClick={revertCrop} />
       <Spacer size="small" />
-      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} slim useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{ backgroundColor: "#00c04b" }} />
+      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{ backgroundColor: "#00c04b" }} />
     </View>
   )
 }
@@ -258,6 +258,9 @@ export default function MainScreen() {
     return false;
   };
   const isDarkMode = mode === "dark" || isAddActive(); // to force navbar into dark mode when showing add screen with camera active because it looks better
+  const getTextCol = (invert?: boolean) => {
+    return isDarkMode && !invert ? Colors.dark.text : Colors.light.text
+  }
 
   return (
     <View style={{
@@ -307,12 +310,14 @@ export default function MainScreen() {
           options={{
             title: "Search",
             tabBarIcon: ({ focused }) => (
-              <CustomTabIcon
-                name={"search"}
-                size={23}
-                focused={focused}
-                darkMode={isDarkMode}
-              />
+              // <CustomTabIcon
+              //   name={"search"}
+              //   size={23}
+              //   focused={focused}
+              //   darkMode={isDarkMode}
+              // />
+
+              <Search fontSize={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel
@@ -335,12 +340,13 @@ export default function MainScreen() {
           options={{
             title: "Post",
             tabBarIcon: ({ focused }) => (
-              <CustomTabIcon
-                name={"add"}
-                focused={focused}
-                size={23}
-                darkMode={isDarkMode}
-              />
+              // <CustomTabIcon
+              //   name={"add"}
+              //   focused={focused}
+              //   size={23}
+              //   darkMode={isDarkMode}
+              // />
+              <Plus size={32} strokeWidth={1.5} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel
@@ -363,11 +369,14 @@ export default function MainScreen() {
           options={{
             title: "Message",
             tabBarIcon: ({ focused }) => (
-              <CustomTabIcon
-                name={"notifications"}
-                focused={focused}
-                darkMode={isDarkMode}
-              />
+              // <CustomTabIcon
+              //   name={"notifications"}
+              //   focused={focused}
+              //   darkMode={isDarkMode}
+              //   size={21}
+              // />
+
+              <Heart size={22} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Chat" focused={focused} />
@@ -386,11 +395,12 @@ export default function MainScreen() {
           options={{
             title: "Me",
             tabBarIcon: ({ focused }) => (
-              <CustomTabIcon
-                name={"profile"}
-                focused={focused}
-                darkMode={isDarkMode}
-              />
+              // <CustomTabIcon
+              //   name={"profile"}
+              //   focused={focused}
+              //   darkMode={isDarkMode}
+              // />
+              <User fontSize={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Me" focused={focused} />
@@ -426,7 +436,7 @@ const styles = StyleSheet.create({
     height: 90,
     paddingTop: 14,
     elevation: 0,
-    paddingHorizontal: "4%",
+    paddingHorizontal: "5%",
   },
   tabLabel: {
     marginTop: 2,

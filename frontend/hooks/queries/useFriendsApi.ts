@@ -7,6 +7,7 @@ export const useGetFriends = (userid: string) =>
     queryFn: ({ pageParam }) => getFriends(userid, pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
+    staleTime: 5 * (60 * 1000)
   });
 
 export const useRemoveFriend = () => {
@@ -14,8 +15,8 @@ export const useRemoveFriend = () => {
   return useMutation({
     mutationFn: removeFriend,
     onSuccess(data, variables, onMutateResult, context) {
-      qc.invalidateQueries({queryKey: ["user-friends", variables]})
-      qc.invalidateQueries({queryKey: ["user-friends", data.message]})
+      qc.invalidateQueries({ queryKey: ["user-friends", variables] })
+      qc.invalidateQueries({ queryKey: ["user-friends", data.message] })
     },
   })
 }

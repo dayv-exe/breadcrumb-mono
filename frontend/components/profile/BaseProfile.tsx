@@ -337,7 +337,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               <View style={styles.nameContainer}>
                 {showBackButton && <CustomImageButton size={27} flat src={getIconImage("back", mode === "light")} handleClick={handleBackClick} />}
                 {/* NICKNAME LABEL */}
-                {!isPending && <CustomLabel fitContent adaptToTheme bold labelText={getNickname()} />}
+                {!isPending && <CustomLabel fitContent adaptToTheme bold labelText={getNickname()} fontSize={19} allowTruncate />}
                 {isPending && !tempNickname && <Skeleton height={20} borderRadius={10} />}
                 {isPending && tempNickname && <CustomLabel fitContent adaptToTheme bold labelText={tempNickname} />}
               </View>
@@ -363,7 +363,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
 
                           <CustomButton adaptToTheme labelText="Report" type="text" />
 
-                          <CustomButton adaptToTheme labelText="Block" type="text" customTextStyle={{color: "red"}} />
+                          <CustomButton adaptToTheme labelText="Block" type="text" customTextStyle={{ color: "red" }} />
                           <Spacer />
                         </View>
                       ),
@@ -379,12 +379,12 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
             <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
               <Spacer size="small" />
               <View style={styles.profileHeader}>
-                <CustomProfilePictureCircle size={100} nickname={userData?.message?.nickname} userId={userData?.message?.userId} />
+                <CustomProfilePictureCircle size={90} nickname={userData?.message?.nickname} userId={userData?.message?.userId} />
                 <Spacer />
                 <View style={styles.profileAside}>
-                  {!isPending && <CustomLabel fontSize={18.5} bold labelText={getName()} textAlign="left" adaptToTheme />}
+                  {!isPending && <CustomLabel fontSize={16} labelText={getName()} textAlign="left" adaptToTheme />}
                   {isPending && <Skeleton height={20} width={100} borderRadius={10} />}
-                  <Spacer size="small" />
+                  <Spacer size="tiny" />
                   {!isPending && <CustomButton labelText={getFriendsText()} handleClick={handleFriendsClick} squashed type="theme-faded" />}
                   {isPending && <Skeleton height={20} width={60} borderRadius={10} />}
                 </View>
@@ -434,6 +434,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
+    flexGrow: 1,
+    flexShrink: 1,
   },
   profileHeader: {
     width: "100%",

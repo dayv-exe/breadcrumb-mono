@@ -8,6 +8,7 @@ export const useAcceptFriendRequests = () => {
     onSuccess(data, variables, onMutateResult, context) {
       qc.invalidateQueries({ queryKey: ["user-friends", variables] })
       qc.invalidateQueries({ queryKey: ["user-friends", data.message] })
+      qc.invalidateQueries({ queryKey: ["user-details", variables] })
       qc.invalidateQueries({ queryKey: ["friend-requests"] })
     },
   })
@@ -18,6 +19,7 @@ export const useGetFriendRequests = () => useInfiniteQuery({
   queryFn: ({ pageParam }) => getFriendRequests(pageParam),
   initialPageParam: undefined as string | undefined,
   getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
+  staleTime: 1 * (60 * 1000)
 });
 
 export const useRejectFriendRequest = () => {

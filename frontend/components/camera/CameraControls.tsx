@@ -69,6 +69,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5
   },
   imageButtons: {
-    marginVertical: 10
+    marginVertical: 10,
+    elevation: 7,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 15,
   }
 })

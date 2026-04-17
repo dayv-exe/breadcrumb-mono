@@ -233,7 +233,7 @@ export default function ProfileSettingsScreen() {
     {
       type: "static",
       key: "legal",
-      title: '📖 Legal',
+      title: '📖 Other',
       keyExtractor: (opt: SettingOption) => opt.name,
       data: [
         { name: 'Term of service', value: "" },
@@ -360,7 +360,7 @@ export default function ProfileSettingsScreen() {
             <CustomProfilePictureCircle userId={user.message?.userId} nickname={user.message?.nickname}
               handleClick={handlePressChangePic}
             />
-            <CustomButton handleClick={handlePressChangePic} labelText="Tap to change" type="text" adaptToTheme />
+            <CustomButton handleClick={handlePressChangePic} bold={false} labelText="Tap to change" type="text" adaptToTheme />
           </View>
           <Spacer />
           <ElevatedSectionedScrollView sections={sections} style={{
