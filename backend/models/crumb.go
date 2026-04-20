@@ -73,6 +73,9 @@ type Crumb struct {
 	Gsi3Sk string `json:"-" dynamodbav:"gsi3Sk"`
 
 	Gsi4 string `json:"-" dynamodbav:"gsi4"`
+
+	Gsi5   string `json:"-" dynamodbav:"gsi5"`
+	Gsi5Sk string `json:"-" dynamodbav:"gsi5Sk"`
 }
 
 type crumbKey struct {
@@ -136,6 +139,11 @@ func (c *Crumb) ApplyPrefixes() {
 
 	// access crumb by id
 	c.Gsi4 = CrumbIdPrefix + c.Id
+
+	// access received crumbs and order by age
+	// GSI5: CRUMB_RECEIVER#{userid} GSI5SK: TIME#{time}CRUMB_SENDER#{send_id}CRUMB_ID#{crumbId}
+	c.Gsi5 = CrumbReceiverPrefix + c.Receiver
+	c.GsiSk = CrumbTimePrefix + c.Time + CrumbSenderPrefix + c.SenderId + CrumbIdPrefix + c.Id
 }
 
 func fGetCrumbKeys(userId, otherUserId, geohash, crumbId string, isReceived, opened bool) (crumbKey, crumbKey) {
