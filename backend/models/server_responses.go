@@ -14,7 +14,7 @@ import (
 
 type ResponseBody struct {
 	Message          interface{} `json:"message"`
-	LastEvaluatedKey interface{} `json:"last,omitempty"`
+	LastEvaluatedKey interface{} `json:"next,omitempty"`
 }
 
 // buildResponse builds a standard API Gateway proxy response

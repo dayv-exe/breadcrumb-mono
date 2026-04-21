@@ -17,7 +17,7 @@ const (
 	CrumbSenderPrefix   = "CRUMB_SENDER#"
 
 	CrumbIdPrefix      = "CRUMB_ID#"
-	CrumbTimePrefix    = "TIME#"
+	CrumbTimePrefix    = "TS#"
 	CrumbGeohashPrefix = "GEOHASH#"
 )
 
@@ -143,7 +143,7 @@ func (c *Crumb) ApplyPrefixes() {
 	// access received crumbs and order by age
 	// GSI5: CRUMB_RECEIVER#{userid} GSI5SK: TIME#{time}CRUMB_SENDER#{send_id}CRUMB_ID#{crumbId}
 	c.Gsi5 = CrumbReceiverPrefix + c.Receiver
-	c.GsiSk = CrumbTimePrefix + c.Time + CrumbSenderPrefix + c.SenderId + CrumbIdPrefix + c.Id
+	c.Gsi5Sk = CrumbTimePrefix + c.Time + CrumbSenderPrefix + c.SenderId + CrumbIdPrefix + c.Id
 }
 
 func fGetCrumbKeys(userId, otherUserId, geohash, crumbId string, isReceived, opened bool) (crumbKey, crumbKey) {

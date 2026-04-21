@@ -72,7 +72,7 @@ func handleGetUnOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReq
 		return models.UnauthorizedErrorResponse("You need to login to do this!"), nil
 	}
 	// senderId := strings.TrimSpace(req.QueryStringParameters["sender"])
-	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}
@@ -93,7 +93,7 @@ func handleGetOpenedCrumbs(ctx context.Context, req events.APIGatewayV2HTTPReque
 	}
 
 	// senderId := req.QueryStringParameters["sender"]
-	lastKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	lastKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last key, try again!", err), nil
 	}
@@ -114,7 +114,7 @@ func handleGetSentCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest
 		return models.UnauthorizedErrorResponse("You need to login to do this!"), nil
 	}
 	//recipientId := strings.TrimSpace(req.QueryStringParameters["to"])
-	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}

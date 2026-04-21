@@ -12,7 +12,7 @@ import (
 
 func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId, userIdExists := req.PathParameters["id"] // the user who's friends we want to view
-	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last evaluated key! Try again.", err), nil
 	}

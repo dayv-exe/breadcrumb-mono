@@ -15,8 +15,6 @@ require (
 	golang.org/x/text v0.29.0
 )
 
-require github.com/uber/h3-go/v4 v4.4.0 // indirect
-
 require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.16 // indirect

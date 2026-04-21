@@ -14,7 +14,7 @@ import (
 func handleGetFriendRequests(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	currentUserId := utils.GetAuthUserId(req)
 
-	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["last"])
+	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}
