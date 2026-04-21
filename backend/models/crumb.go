@@ -111,7 +111,7 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 func (c *Crumb) ApplyPrefixes() {
 	// access received crumbs by id
 	// PK: UNOPENED_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
-	c.PK = CrumbPkPrefix
+	c.PK = CrumbPkPrefix + c.Receiver
 	c.SK = CrumbIdPrefix + c.Id
 
 	// access sent crumbs by id

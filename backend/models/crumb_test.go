@@ -8,7 +8,7 @@ import (
 )
 
 var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
-	"pk":               &dbTypes.AttributeValueMemberS{Value: "UNOPENED_CRUMB_RECEIVER#r1"},
+	"pk":               &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
 	"sk":               &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
 	"id":               &dbTypes.AttributeValueMemberS{Value: "c1"},
 	"sender":           &dbTypes.AttributeValueMemberS{Value: "s1"},
