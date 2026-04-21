@@ -10,10 +10,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleCrumbActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	return models.InvalidRequestErrorResponse("Invalid url"), nil
-}
-
 func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 	if userId == "" {
