@@ -41,3 +41,16 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	helper := newHelper(h.Ctx, nil)
 	return TransactWrite(helper, transactions...)
 }
+
+func (h *crumbHelper) GetCrumb(userId, crumbId string) (*models.Crumb, error) {
+	result, err := getItem(
+		newHelper(h.Ctx, nil),
+		models.CrumbKey(userId, crumbId),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &(*models.ConvertToCrumbs([]map[string]types.AttributeValue{result.Item}))[0], nil
+}

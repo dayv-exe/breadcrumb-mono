@@ -12,8 +12,7 @@ import (
 // get crumb by id
 
 const (
-	UnopenedCrumbPkPrefix = "UNOPENED_CRUMB_RECEIVER#"
-	OpenedCrumbPkPrefix   = "OPENED_CRUMB_RECEIVER#"
+	CrumbPkPrefix = "CRUMB_RECEIVER#"
 
 	CrumbReceiverPrefix = "CRUMB_RECEIVER#"
 	CrumbSenderPrefix   = "CRUMB_SENDER#"
@@ -110,13 +109,9 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 }
 
 func (c *Crumb) ApplyPrefixes() {
-	crumbPk := UnopenedCrumbPkPrefix + c.Receiver
-	if c.Opened {
-		crumbPk = OpenedCrumbPkPrefix + c.Receiver
-	}
 	// access received crumbs by id
 	// PK: UNOPENED_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
-	c.PK = crumbPk
+	c.PK = CrumbPkPrefix
 	c.SK = CrumbIdPrefix + c.Id
 
 	// access sent crumbs by id
@@ -143,4 +138,11 @@ func ConvertToCrumbs(items []map[string]types.AttributeValue) *[]Crumb {
 	return utils.DatabaseItemsToStructs(items, func(c *Crumb) {
 		c.RemovePrefixes()
 	})
+}
+
+func CrumbKey(userId, crumbId string) *map[string]types.AttributeValue {
+	return &map[string]types.AttributeValue{
+		"pk": &types.AttributeValueMemberS{Value: CrumbPkPrefix + userId},
+		"sk": &types.AttributeValueMemberS{Value: CrumbIdPrefix + crumbId},
+	}
 }
