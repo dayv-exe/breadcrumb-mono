@@ -95,3 +95,49 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 		return &result.Items[0], nil
 	}
 }
+
+func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
+	pk := "gsi2"
+	sk := "gsi2Sk"
+	if sentCrumb {
+		pk = "gsi3"
+		sk = "gsi3Sk"
+	}
+
+	pkVal := models.CrumbReceiverPrefix + userId
+	skVal := models.CrumbTimePrefix
+	if sentCrumb {
+		pkVal = models.CrumbSenderPrefix + userId
+	}
+
+	keyCond := expression.KeyEqual(
+		expression.Key(pk),
+		expression.Value(pkVal),
+	).And(
+		expression.KeyBeginsWith(
+			expression.Key(sk),
+			skVal,
+		),
+	)
+
+	indexName := "GSIndex2"
+	if sentCrumb {
+		indexName = "GSIndex3"
+	}
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	return QueryItems(
+		newHelper(h.Ctx, nil),
+		&lastEvalKey,
+		&indexName,
+		expr,
+		nil,
+		func(c []map[string]types.AttributeValue) []models.Crumb {
+			return *models.ConvertToCrumbs(c)
+		},
+	)
+}
