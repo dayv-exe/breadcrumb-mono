@@ -77,7 +77,7 @@ export default function CustomMap({
   const movedMap = useRef<boolean>(false);
 
   const { data: crumbsResponse, refetch: refetchCrumbs } = useGetCrumbs();
-  const crumbs = crumbsResponse?.message ?? [];
+  const crumbs = crumbsResponse?.pages.flatMap(crumb => crumb.message.map(c => c)) ?? [];
 
   const gestures = useCustomGestures(
     {
@@ -157,7 +157,7 @@ export default function CustomMap({
           }}
           onTouchEnd={gestures.handleTouchEnd}
           onTouchMove={(e) => {
-            // refetchCrumbs()
+            refetchCrumbs()
             // gestures.handleTouchMove(e);
           }}
           onTouchCancel={gestures.handleTouchCancel}

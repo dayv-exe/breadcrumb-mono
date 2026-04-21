@@ -1,7 +1,7 @@
 import axiosInstance from "@/constants/axios"
 import { MediaType } from "@/constants/media"
 import { AxiosError } from "axios"
-import { apiResponse } from "./models/apiResponse"
+import { apiResponse, extractBackendMsg } from "./models/apiResponse"
 
 type crumbMedia = {
   index: number
@@ -49,7 +49,7 @@ export const getCrumbs = async (next?: string): Promise<apiResponse<Crumb[]>> =>
     const { data } = await axiosInstance.get<{ message: Crumb[] }>(url)
     return { message: data.message, error: null }
   } catch (error) {
-    console.log((error as AxiosError).message)
+    console.log(extractBackendMsg(error))
     return { message: [], error: (error as AxiosError).message }
   }
 }

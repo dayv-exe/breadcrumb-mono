@@ -1,8 +1,7 @@
 import axiosInstance from "@/constants/axios";
 import { MediaType } from "@/constants/media";
-import { AxiosError } from "axios";
 import { crumbText } from "./crumbsApi";
-import { apiResponse } from "./models/apiResponse";
+import { apiResponse, extractBackendMsg } from "./models/apiResponse";
 
 export type MediaItem = {
   index: number
@@ -55,10 +54,8 @@ export const getPresignedUrls = async (
     );
     return { message: data.message, error: null };
   } catch (error) {
-    const axiosError = error as AxiosError<{ message: string }>;
-    const backendMessage = axiosError.response?.data?.message
-      ?? axiosError.message; // fallback to generic Axios message
-    return { message: null, error: backendMessage };
+
+    return { message: null, error: extractBackendMsg(error) };
 
   }
 };
