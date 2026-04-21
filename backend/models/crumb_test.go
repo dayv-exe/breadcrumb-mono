@@ -9,7 +9,7 @@ import (
 
 var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"pk":               &dbTypes.AttributeValueMemberS{Value: "UNOPENED_CRUMB_RECEIVER#r1"},
-	"sk":               &dbTypes.AttributeValueMemberS{Value: "GEOHASH#hashCRUMB_ID#c1"},
+	"sk":               &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
 	"id":               &dbTypes.AttributeValueMemberS{Value: "c1"},
 	"sender":           &dbTypes.AttributeValueMemberS{Value: "s1"},
 	"receiver":         &dbTypes.AttributeValueMemberS{Value: "r1"},
@@ -35,15 +35,12 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 		}},
 	}},
 	"geohash": &dbTypes.AttributeValueMemberS{Value: "hash"},
-	"gsi":     &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
-	"gsiSk":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1GEOHASH#hashCRUMB_ID#c1"},
-	"gsi2":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1"},
-	"gsi2Sk":  &dbTypes.AttributeValueMemberS{Value: "GEOHASH#hashCRUMB_ID#c1"},
+	"gsi":     &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1"},
+	"gsiSk":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
+	"gsi2":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
+	"gsi2Sk":  &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
 	"gsi3":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1"},
-	"gsi3Sk":  &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1GEOHASH#hashCRUMB_ID#c1"},
-	"gsi4":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
-	"gsi5":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
-	"gsi5Sk":  &dbTypes.AttributeValueMemberS{Value: "TS#timeCRUMB_SENDER#s1CRUMB_ID#c1"},
+	"gsi3Sk":  &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
 }
 
 func NewTestCrumbBody() CrumbBody {
@@ -73,7 +70,8 @@ func TestCrumb_DatabaseFormat(t *testing.T) {
 
 	expected := TestCrumbDbItem
 	AssertDatabaseFormat(t, &result, expected, map[string]dbTypes.AttributeValue{
-		"gsi5Sk": &dbTypes.AttributeValueMemberS{Value: "TS#timeCRUMB_SENDER#s1CRUMB_ID#c1"},
+		"gsi2Sk": &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
+		"gsi3Sk": &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
 	})
 }
 
@@ -84,7 +82,8 @@ func TestConvertToCrumbs(t *testing.T) {
 	expected.PlaceId = []string{"p1"}
 	expected.ApplyPrefixes()
 	expected.Time = "100"
-	expected.Gsi5Sk = "TS#timeCRUMB_SENDER#s1CRUMB_ID#c1"
+	expected.Gsi2Sk = "TS#100CRUMB_ID#c1"
+	expected.Gsi3Sk = "TS#100CRUMB_ID#c1"
 
 	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}))[0]
 
