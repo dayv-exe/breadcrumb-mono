@@ -411,7 +411,7 @@ Resources:
         GetCrumbs:
           Type: HttpApi
           Properties:
-            Path: /api/v1/crumbs/{action}
+            Path: /api/v1/crumbs
             Method: GET
             ApiId: !Ref BreadApi
             Auth:
