@@ -35,7 +35,7 @@ func geohashPrecisionForZoom(zoom float64) uint {
 
 func GeohashPrefixesForViewport(v Viewport) []string {
 	precision := geohashPrecisionForZoom(v.Zoom)
-	return cellsCoveringViewport(v, precision)
+	return CellsCoveringViewport(v, precision)
 }
 
 // cellsCoveringViewport samples the four corners and the centre of the

@@ -42,6 +42,8 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"gsi3":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1"},
 	"gsi3Sk":  &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1GEOHASH#hashCRUMB_ID#c1"},
 	"gsi4":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
+	"gsi5":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
+	"gsi5Sk":  &dbTypes.AttributeValueMemberS{Value: "TS#timeCRUMB_SENDER#s1CRUMB_ID#c1"},
 }
 
 func NewTestCrumbBody() CrumbBody {
@@ -70,7 +72,9 @@ func TestCrumb_DatabaseFormat(t *testing.T) {
 	result.Time = "100"
 
 	expected := TestCrumbDbItem
-	AssertDatabaseFormat(t, &result, expected, nil)
+	AssertDatabaseFormat(t, &result, expected, map[string]dbTypes.AttributeValue{
+		"gsi5Sk": &dbTypes.AttributeValueMemberS{Value: "TS#timeCRUMB_SENDER#s1CRUMB_ID#c1"},
+	})
 }
 
 func TestConvertToCrumbs(t *testing.T) {
@@ -80,10 +84,12 @@ func TestConvertToCrumbs(t *testing.T) {
 	expected.PlaceId = []string{"p1"}
 	expected.ApplyPrefixes()
 	expected.Time = "100"
+	expected.Gsi5Sk = "TS#timeCRUMB_SENDER#s1CRUMB_ID#c1"
 
 	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}))[0]
 
 	if !reflect.DeepEqual(expected, results) {
-		t.Errorf("Result: %v does not match expected: %v", results, expected)
+		// t.Errorf("Result: %v does not match expected: %v", results, expected)
+		t.Errorf("Result and expected MISMATCH:\n%v\n%v", results, expected)
 	}
 }
