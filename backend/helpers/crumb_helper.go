@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
@@ -42,15 +44,54 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	return TransactWrite(helper, transactions...)
 }
 
-func (h *crumbHelper) GetCrumb(userId, crumbId string) (*models.Crumb, error) {
-	result, err := getItem(
-		newHelper(h.Ctx, nil),
-		models.CrumbKey(userId, crumbId),
-	)
+func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.Crumb, error) {
+	helper := newHelper(h.Ctx, nil)
+	switch sentCrumb {
+	case false:
+		// get crumb received by id
+		result, err := getItem(
+			helper,
+			models.CrumbKey(userId, crumbId),
+		)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
+		return &(*models.ConvertToCrumbs([]map[string]types.AttributeValue{result.Item}))[0], nil
+
+	default:
+		// get sent crumb by id
+		keyCond := expression.KeyEqual(
+			expression.Key("pk"),
+			expression.Value(models.CrumbSenderPrefix+userId),
+		).And(
+			expression.KeyBeginsWith(
+				expression.Key("sk"),
+				models.CrumbIdPrefix+crumbId,
+			),
+		)
+
+		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := QueryItems(
+			helper,
+			nil,
+			aws.String("GSIndex"),
+			expr,
+			aws.Int32(1),
+			func(c []map[string]types.AttributeValue) []models.Crumb {
+				return *models.ConvertToCrumbs(c)
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return &result.Items[0], nil
 	}
-
-	return &(*models.ConvertToCrumbs([]map[string]types.AttributeValue{result.Item}))[0], nil
 }
