@@ -120,12 +120,22 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		),
 	)
 
+	proj := expression.NamesList(
+		expression.Name("id"),
+		expression.Name("lat"),
+		expression.Name("lon"),
+		expression.Name("receiver"),
+		expression.Name("sender"),
+		expression.Name("time"),
+		expression.Name("opened"),
+	)
+
 	indexName := "GSIndex2"
 	if sentCrumb {
 		indexName = "GSIndex3"
 	}
 
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
 	if err != nil {
 		return nil, err
 	}
