@@ -1,15 +1,27 @@
 package handlers
 
 import (
+	"backend/models"
 	"context"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 func HandleCrumbActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	crumbId := req.PathParameters["id"]
-	if crumbId == "" {
-		return handleGetCrumbs(ctx, req)
+	method := strings.ToLower(req.RequestContext.HTTP.Method)
+	switch method {
+	case "get":
+		crumbId := req.PathParameters["id"]
+		if crumbId == "" {
+			return handleGetCrumbs(ctx, req)
+		}
+		return HandleGetCrumb(ctx, req)
+
+	case "post":
+		return handleShareCrumb(ctx, req)
+
+	default:
+		return models.InvalidRequestErrorResponse("Invalid HTTP method!"), nil
 	}
-	return HandleGetCrumb(ctx, req)
 }
