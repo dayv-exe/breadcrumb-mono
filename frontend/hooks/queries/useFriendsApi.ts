@@ -1,4 +1,5 @@
 import { getFriends, removeFriend } from "@/api/friendsApi";
+import { TIME } from "@/constants/appConstants";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useGetFriends = (userid: string) =>
@@ -6,8 +7,8 @@ export const useGetFriends = (userid: string) =>
     queryKey: ["user-friends", userid],
     queryFn: ({ pageParam }) => getFriends(userid, pageParam),
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
-    staleTime: 5 * (60 * 1000)
+    getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
+    staleTime: 5 * TIME.MINUTE
   });
 
 export const useRemoveFriend = () => {

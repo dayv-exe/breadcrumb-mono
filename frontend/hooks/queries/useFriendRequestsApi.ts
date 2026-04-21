@@ -18,7 +18,7 @@ export const useGetFriendRequests = () => useInfiniteQuery({
   queryKey: ["friend-requests"],
   queryFn: ({ pageParam }) => getFriendRequests(pageParam),
   initialPageParam: undefined as string | undefined,
-  getNextPageParam: (lastPage) => lastPage.last && lastPage.last !== "" ? lastPage.last : undefined,
+  getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
   staleTime: 1 * (60 * 1000)
 });
 

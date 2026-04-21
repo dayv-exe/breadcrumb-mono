@@ -13,11 +13,11 @@ export const acceptFriendRequest = async (senderId: string): Promise<apiResponse
   }
 }
 
-export const getFriendRequests = async (lastEvalKey?: string): Promise<apiResponse<UserDetails[]>> => {
+export const getFriendRequests = async (next?: string): Promise<apiResponse<UserDetails[]>> => {
   const endPoint = `/api/v1/friend-requests`
-  const endpointWithNextPage = `/api/v1/friend-requests?last=${lastEvalKey}`
+  const endpointWithNextPage = `/api/v1/friend-requests?next=${next}`
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[], last?: string }>(lastEvalKey ? endpointWithNextPage : endPoint)
+    const { data } = await axiosInstance.get<{ message: UserDetails[], next?: string }>(next ? endpointWithNextPage : endPoint)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

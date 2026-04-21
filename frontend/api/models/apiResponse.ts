@@ -1,5 +1,5 @@
 export type apiResponse<T> = {
   message: T
-  last?: string
+  next?: string
   error: string | null
 }

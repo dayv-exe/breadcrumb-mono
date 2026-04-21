@@ -42,6 +42,28 @@ export type crumbText = {
   content: string
 }
 
+export type Viewport = {
+  swLat: number
+  swLon: number
+  neLat: number
+  neLon: number
+  zoom: number
+}
+
+export const fetchCrumbs = async (viewport: Viewport, from?: string, next?: string): Promise<apiResponse<Crumb[]>> => {
+  let url = "/api/v1/crumbs/received"
+  if (from) url += `?from=${from}`
+  if (next) url += from ? `&next=${next}` : `?next=${next}`
+
+  try {
+    const { data } = await axiosInstance.post<{ message: Crumb[], next: string }>(url, viewport)
+    return { message: data.message, error: null, next: data.next }
+  } catch (error) {
+    console.log((error as AxiosError).message)
+    return { message: [], error: (error as AxiosError).message }
+  }
+}
+
 export const getCrumbs = async (from: string): Promise<apiResponse<Crumb[]>> => {
   try {
     const { data } = await axiosInstance.get<{ message: Crumb[] }>(`/api/v1/crumbs/received`)

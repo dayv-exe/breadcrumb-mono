@@ -33,6 +33,11 @@ export enum FRIENDSHIP_STATUS {
   NOT_FRIENDS = STATUS_NOT_FRIENDS,
 }
 
+export enum TIME {
+  MINUTE = (60 * 1000),
+  hOUR = 60 * (60 * 1000)
+}
+
 export const MAX_PREVIEW_MEDIA = 5;
 
 export const PRESET_COLORS = [

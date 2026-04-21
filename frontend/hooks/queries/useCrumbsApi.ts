@@ -1,5 +1,6 @@
-import { getCrumbs, shareCrumb } from "@/api/crumbsApi";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { fetchCrumbs, getCrumbs, shareCrumb, Viewport } from "@/api/crumbsApi";
+import { TIME } from "@/constants/appConstants";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export const useShareCrumb = () => useMutation({
   mutationFn: shareCrumb
@@ -8,5 +9,15 @@ export const useShareCrumb = () => useMutation({
 export const useGetCrumbs = (from?: string) => useQuery({
   queryFn: () => getCrumbs(from ?? ""),
   queryKey: ["crumbs"],
-  staleTime: 1 * (60 * 1000)
+  staleTime: 1 * TIME.MINUTE
 })
+
+export const useFetchCrumbs = (viewport: Viewport, from?: string) => {
+  return useInfiniteQuery({
+    queryKey: ["fetched-crumbs"],
+    queryFn: ({ pageParam }) => fetchCrumbs(viewport, from, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
+    staleTime: 5 * TIME.MINUTE
+  })
+}

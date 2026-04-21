@@ -58,7 +58,7 @@ export const getMyProfile = async (): Promise<apiResponse<UserDetails | null>> =
 
 type ApiErrorResponse = {
   message: string
-  last?: unknown
+  next?: unknown
 }
 export const updateProfilePicture = async ({ imageKey, thumbnailKey }: { imageKey: string, thumbnailKey: string }): Promise<apiResponse<string>> => {
   try {

@@ -3,12 +3,12 @@ import { AxiosError } from "axios"
 import { apiResponse } from "./models/apiResponse"
 import { UserDetails } from "./models/userDetails"
 
-export const getFriends = async (id: string, lastEvalKey?: string): Promise<apiResponse<UserDetails[]>> => {
+export const getFriends = async (id: string, next?: string): Promise<apiResponse<UserDetails[]>> => {
   const endPoint = `/api/v1/friends/${id}`
-  const endPointNextPage = `/api/v1/friends/${id}?last=${lastEvalKey}`
+  const endPointNextPage = `/api/v1/friends/${id}?next=${next}`
   try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[], last?: string }>(lastEvalKey ? endPointNextPage : endPoint)
-    return { message: data.message, last: data.last, error: null }
+    const { data } = await axiosInstance.get<{ message: UserDetails[], next?: string }>(next ? endPointNextPage : endPoint)
+    return { message: data.message, next: data.next, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
     return { message: [], error: (error as AxiosError).message }
