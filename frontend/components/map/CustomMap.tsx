@@ -113,6 +113,7 @@ export default function CustomMap({
   const { hideModal, showModal } = useModal()
 
   const showMed = (mediaKey: string) => {
+    if (!mediaKey) return
     showModal({
       content: (
         <>
@@ -147,7 +148,7 @@ export default function CustomMap({
             handlePress(e);
           }}
           attributionPosition={{ bottom: 80, left: 5 }}
-          logoPosition={{ top: -15, left: 15 }} 
+          logoPosition={{ top: -15, left: 15 }}
           attributionEnabled={true}
           logoEnabled={false}
           onTouchStart={(e) => {
@@ -189,7 +190,7 @@ export default function CustomMap({
                 key={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
                 id={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
                 coordinate={[crumb.lon, crumb.lat]}
-                onSelected={() => showMed(crumb.media[0].media)}
+                onSelected={() => showMed(crumb.media[0].media ?? "")}
               >
                 <View style={styles.crumbMarker}>
                   <CustomLabel labelText="🍞" fontSize={30} />
