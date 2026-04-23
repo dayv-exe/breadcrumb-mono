@@ -12,6 +12,6 @@ export const useGetCrumbs = () => {
     queryFn: ({ pageParam }) => getCrumbs(pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
-    staleTime: 0 * TIME.MINUTE
+    staleTime: 1 * TIME.MINUTE
   })
 }

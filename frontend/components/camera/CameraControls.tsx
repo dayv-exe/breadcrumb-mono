@@ -2,6 +2,7 @@ import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import CustomImageButton from "../buttons/CustomImageButton";
 
@@ -23,6 +24,8 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
+  const insets = useSafeAreaInsets()
+
   const { isRecording, previews } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
     previews: s.mediaPreview
@@ -31,7 +34,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
 
   return (
     <View style={[styles.cameraControls, {
-      justifyContent: isRecording ? "center" : "center"
+      // paddingTop: insets.top 
     }]}>
       {<CustomImageButton
         handleClick={() => {
@@ -61,11 +64,11 @@ const styles = StyleSheet.create({
   cameraControls: {
     position: "absolute",
     height: "100%",
-    left: 0,
+    right: 0,
     zIndex: 100,
     flexDirection: "column-reverse",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     paddingHorizontal: 5
   },
   imageButtons: {

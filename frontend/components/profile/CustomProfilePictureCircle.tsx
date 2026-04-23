@@ -1,7 +1,7 @@
 import { useGetProfilePicture } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { AnimatableNumericValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 
 type props = {
   size?: number
@@ -9,10 +9,11 @@ type props = {
   userId?: string | null | undefined
   customStyle?: StyleProp<ViewStyle>
   customTextStyle?: StyleProp<TextStyle>
+  borderRadius?:  string | AnimatableNumericValue | undefined
   handleClick?: (src: string,) => void
 }
 
-export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle }: props) {
+export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius }: props) {
   const { data, isLoading } = useGetProfilePicture(userId ?? "");
   const mode = useColorScheme();
 
@@ -35,7 +36,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
         height: size,
         alignItems: "center",
         justifyContent: "center",
-        borderRadius: size / 2,
+        borderRadius: borderRadius ?? size / 2,
         overflow: "hidden",
         borderColor: "rgba(0, 0, 0, .1)",
         borderWidth: 1
@@ -45,7 +46,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
       {url ? (
         <Image
           source={{ uri: url }}
-          style={{ width: size, height: size, borderRadius: size / 2 }}
+          style={{ width: size, height: size, borderRadius: borderRadius ?? size / 2 }}
           resizeMode="cover"
         />
       ) : (

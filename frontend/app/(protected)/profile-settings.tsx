@@ -293,12 +293,12 @@ export default function ProfileSettingsScreen() {
           }} />
           <CustomButton type="text" labelText="Take photo" adaptToTheme handleClick={() => {
             takePhoto({
-              aspect: [1, 1], onPictureChosen: image => {
+              aspect: [1, 1], onPictureChosen: image => { 
                 handleChangePic(image)
               }
             })
           }} />
-          <CustomButton type="text" labelText="Delete" customTextStyle={{ color: "red" }} adaptToTheme handleClick={handleDeletePic} />
+          <CustomButton type="text" labelText="Remove" customTextStyle={{ color: "red" }} adaptToTheme handleClick={handleDeletePic} />
         </View>
       ),
       dynamicHeight: true,

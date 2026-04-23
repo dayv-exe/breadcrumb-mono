@@ -1,5 +1,4 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
-import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
@@ -8,7 +7,6 @@ import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
-import SnapCarousel from "@/components/inputs/SnapCarousel";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
@@ -148,7 +146,7 @@ export default function AddScreen() {
             alignItems: "center",
             justifyContent: "center",
           }}>
-            <SnapCarousel style={{ height: "auto" }} onSelect={mi => {
+            {/* <SnapCarousel style={{ height: "auto" }} onSelect={mi => {
               if (mi === 0) {
                 setRecMode("image")
               } else if (mi === 1) {
@@ -182,7 +180,7 @@ export default function AddScreen() {
               <CustomButton fontSize={18} bold labelText="Photo" type="text" handleClick={() => setModeIndex(0)} />
               <CustomButton fontSize={18} bold labelText="Audio" type="text" handleClick={() => setModeIndex(1)} />
               <CustomButton fontSize={18} bold labelText="Text" type="text" handleClick={() => setModeIndex(2)} />
-            </SnapCarousel>
+            </SnapCarousel> */}
           </View>}
           {isFocused && (
             <View style={styles.container}>

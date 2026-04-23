@@ -12,9 +12,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
-import { MediaView } from "../media/MediaView";
-import { useModal } from "../modals/ModalContext";
-import Spacer from "../Spacer";
+import CrumbItem from "./CrumbItem";
 
 export interface mapMethods {
   moveTo: (position: Position | undefined, newZoomLevel?: number, animationDuration?: number) => void
@@ -110,25 +108,6 @@ export default function CustomMap({
     handlePermissions(false);
   }, []);
 
-  const { hideModal, showModal } = useModal()
-
-  const showMed = (mediaKey: string) => {
-    if (!mediaKey) return
-    showModal({
-      content: (
-        <>
-          <MediaView style={{
-            aspectRatio: 9 / 16,
-          }} mediaKey={mediaKey} fallback={
-            <CustomLabel labelText="Failed to load" adaptToTheme />
-          } />
-          <Spacer />
-          <CustomButton labelText="close" type="less-prominent" handleClick={hideModal} />
-        </>
-      )
-    })
-  }
-
   return (
     <View style={styles.container}>
       {permissionGranted && (
@@ -174,7 +153,7 @@ export default function CustomMap({
             pitch={pitch}
           />
 
-          {coordinates && (
+          {mapReady && coordinates && (
             <Mapbox.UserLocation
               onPress={handleUserLocPress}
               visible={true}
@@ -186,16 +165,7 @@ export default function CustomMap({
 
           {mapReady &&
             crumbs.map((crumb: Crumb) => (
-              <Mapbox.PointAnnotation
-                key={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
-                id={crumb.id ?? `${crumb.lat}-${crumb.lon}`}
-                coordinate={[crumb.lon, crumb.lat]}
-                onSelected={() => showMed(crumb.media[0].media ?? "")}
-              >
-                <View style={styles.crumbMarker}>
-                  <CustomLabel labelText="🍞" fontSize={30} />
-                </View>
-              </Mapbox.PointAnnotation>
+              <CrumbItem usingSatellite={useSatellite} key={crumb.id} crumb={crumb} sentCrumb={false} />
             ))}
         </Mapbox.MapView>
       )}
@@ -213,11 +183,5 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-  },
-  crumbMarker: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 60,
-    height: 60,
   },
 });

@@ -288,7 +288,7 @@ export default function MainScreen() {
             tabBarIcon: ({ focused }) => (
               <CustomTabIcon
                 name={"map"}
-                size={24}
+                size={25}
                 focused={focused}
                 darkMode={isDarkMode}
               />
@@ -317,7 +317,7 @@ export default function MainScreen() {
               //   darkMode={isDarkMode}
               // />
 
-              <Search fontSize={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <Search size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel
@@ -346,7 +346,7 @@ export default function MainScreen() {
               //   size={23}
               //   darkMode={isDarkMode}
               // />
-              <Plus size={32} strokeWidth={1.5} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <Plus size={35} strokeWidth={1.5} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel
@@ -376,7 +376,7 @@ export default function MainScreen() {
               //   size={21}
               // />
 
-              <Heart size={22} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <Heart size={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Chat" focused={focused} />
@@ -400,7 +400,7 @@ export default function MainScreen() {
               //   focused={focused}
               //   darkMode={isDarkMode}
               // />
-              <User fontSize={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <User size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Me" focused={focused} />
