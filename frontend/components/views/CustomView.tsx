@@ -11,7 +11,7 @@ type cvProps = {
   adaptToTheme?: boolean
 }
 
-export default function CustomView({ children, backgroundColor = "#FFF", verticalAlign = "flex-start", horizontalPadding = 40, adaptToTheme = false, topPadding }: PropsWithChildren<cvProps>) {
+export default function CustomView({ children, backgroundColor = "#FFF", verticalAlign = "flex-start", horizontalPadding = 15, adaptToTheme = false, topPadding }: PropsWithChildren<cvProps>) {
   const theme = useThemeColor
 
   return (
