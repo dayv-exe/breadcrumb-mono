@@ -2,21 +2,16 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"mime"
 	"strings"
-	"time"
 
+	"backend/constants"
 	"backend/helpers"
 	"backend/models"
 	"backend/utils"
 
 	"github.com/aws/aws-lambda-go/events"
 )
-
-type mediaAccessRequest struct {
-	Key string `json:"key"`
-}
 
 type mediaAccessResponse struct {
 	URL       string `json:"url"`
@@ -42,7 +37,6 @@ func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 	switch strings.ToLower(action) {
 	case "sign":
 		return handleSignMediaUrl(ctx, req)
-
 	case "presign":
 		return handleGeneratePresignedUrls(ctx, req)
 
@@ -52,27 +46,66 @@ func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 }
 
 func handleSignMediaUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	if utils.GetAuthUserId(req) == "" {
+	crumbId := strings.TrimSpace(strings.ToLower(req.QueryStringParameters["crumbId"]))
+	sentCrumb := strings.TrimSpace(strings.ToLower(req.QueryStringParameters["sent"])) == "true"
+	userId := utils.GetAuthUserId(req)
+	if crumbId == "" {
+		return models.InvalidRequestErrorResponse("No id provided!"), nil
+	}
+
+	if userId == "" {
 		return models.UnauthorizedErrorResponse("Unauthorized"), nil
 	}
 
-	var body mediaAccessRequest
-	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
-		return models.InvalidRequestErrorResponse("Invalid JSON body"), nil
-	}
-
-	signedUrl, expiresAt, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(body.Key, 15)
-
+	crumbHelper := helpers.NewCrumbHelper(ctx)
+	crumb, err := crumbHelper.GetCrumb(userId, crumbId, sentCrumb)
 	if err != nil {
-		return models.ServerSideErrorResponse("Failed to sign media key!", err), nil
+		return models.ServerSideErrorResponse("Failed to get crumb, try again!", err), nil
 	}
 
-	resp := mediaAccessResponse{
-		URL:       signedUrl,
-		ExpiresAt: expiresAt.Format(time.RFC3339),
+	if crumb == nil {
+		return models.NotFoundResponse("No such crumb exists!"), nil
 	}
 
-	return models.SuccessfulGetRequestResponse(resp, nil), nil
+	type resItem struct {
+		Index     int              `json:"index"`
+		Media     string           `json:"media"`
+		Overlay   string           `json:"overlay"`
+		Thumbnail string           `json:"thumbnail"`
+		Text      models.CrumbText `json:"text,omitempty"`
+	}
+
+	res := make(map[int]resItem, 0)
+	cloudfrontHelper := helpers.NewCloudfrontHelper(ctx)
+
+	for _, media := range crumb.Media {
+		mediaKey, _, _ := cloudfrontHelper.GetSignedUrl(media.MediaKey, constants.CRUMB_MEDIA_URL_TTL)
+		thumbnailKey, _, _ := cloudfrontHelper.GetSignedUrl(media.ThumbnailKey, constants.CRUMB_MEDIA_URL_TTL)
+		overlayKey, _, _ := cloudfrontHelper.GetSignedUrl(media.OverlayKey, constants.CRUMB_MEDIA_URL_TTL)
+
+		res[media.Index] = resItem{
+			Index:     media.Index,
+			Media:     mediaKey,
+			Overlay:   overlayKey,
+			Thumbnail: thumbnailKey,
+		}
+	}
+
+	type crumbText struct {
+		Text models.CrumbText `json:"text"`
+	}
+
+	for _, text := range crumb.Text {
+		res[text.Index] = resItem{
+			Index: text.Index,
+			Text: models.CrumbText{
+				Index:   text.Index,
+				Content: text.Content,
+			},
+		}
+	}
+
+	return models.SuccessfulGetRequestResponse(res, nil), nil
 }
 
 func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -86,7 +119,7 @@ func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTP
 		return models.ServerSideErrorResponse("Failed to get media key!", err), nil
 	}
 
-	signedKeyUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key.MediaKey, 15)
+	signedKeyUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key.MediaKey, constants.PROFILE_PICTURE_URL_TTL)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
 	}

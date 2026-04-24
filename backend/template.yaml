@@ -436,11 +436,19 @@ Resources:
               Authorizer: CognitoAuthorizer
 
         # for media access stuff
-        MediaAccess:
+        PresignedUrl:
           Type: HttpApi
           Properties:
             Path: /api/v1/media-access
             Method: POST
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+        MediaAccess:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/media-access
+            Method: GET
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
