@@ -27,7 +27,7 @@ export default function CrumbItem({ crumb, sentCrumb, usingSatellite }: props) {
   const getGold = () => mode === "dark" ? darkGold : lightGold
   const user = data?.message
   const mode = useColorScheme()
-  const isViewable = false
+  const isViewable = false 
 
   return (
     <Mapbox.MarkerView
