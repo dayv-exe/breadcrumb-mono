@@ -141,10 +141,13 @@ func DeleteItem(deps *helper, key *map[string]types.AttributeValue) error {
 
 func getItem(deps *helper, key *map[string]types.AttributeValue, expression *expression.Expression) (*dynamodb.GetItemOutput, error) {
 	input := &dynamodb.GetItemInput{
-		Key:                      *key,
-		TableName:                &deps.TableName,
-		ProjectionExpression:     expression.Projection(),
-		ExpressionAttributeNames: expression.Names(),
+		Key:       *key,
+		TableName: &deps.TableName,
+	}
+
+	if expression != nil {
+		input.ProjectionExpression = expression.Projection()
+		input.ExpressionAttributeNames = expression.Names()
 	}
 
 	// gets item from db
