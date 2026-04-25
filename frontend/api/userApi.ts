@@ -2,7 +2,7 @@ import axiosInstance, { editUserDetailsData } from "@/constants/axios"
 import { GetId } from "@/constants/userAccountDetails"
 import axios, { AxiosError } from "axios"
 import { MediaItem } from "./getPresignedUrl"
-import { apiResponse } from "./models/apiResponse"
+import { apiResponse, extractBackendMsg } from "./models/apiResponse"
 import { UserDetails } from "./models/userDetails"
 export type UserInitialDetails = {
   sub: string
@@ -47,7 +47,8 @@ export const getUser = async (idOrNickname: string): Promise<apiResponse<UserDet
     const { data } = await axiosInstance.get<{ message: UserDetails }>(`/api/v1/users/${idOrNickname}`)
     return { message: data.message, error: null }
   } catch (error) {
-    console.error((error as AxiosError).message)
+    console.error(extractBackendMsg(error))
+    console.log(extractBackendMsg(error))
     return { message: null, error: (error as AxiosError).message }
   }
 }
@@ -75,7 +76,7 @@ export const updateProfilePicture = async ({ imageKey, thumbnailKey }: { imageKe
 
 export const getProfilePicture = async (userid: string): Promise<apiResponse<MediaItem | null>> => {
   try {
-    const { data } = await axiosInstance.get<{ message: MediaItem }>(`/api/v1/profile-picture?userid=${userid}`)
+    const { data } = await axiosInstance.get<{ message: MediaItem }>(`/api/v1/profile-picture/${userid}`)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)
