@@ -27,7 +27,8 @@ const (
 	MAP_ZOOM_VBIG            = 0                // for geo hashing
 	LOCATION_TYPE_MINE       = "mine"
 	LOCATION_TYPE_FRIEND     = "friend"
-	LOCATION_TYPE_GPS        = "gps"
+	LOCATION_TYPE_GPS        = "map"
+	EARTH_RADIUS             = 6_371_000 // meters
 )
 
 var ALLOWED_FILE_TYPES = map[string]struct{}{

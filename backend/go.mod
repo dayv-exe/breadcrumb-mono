@@ -38,4 +38,5 @@ require (
 	github.com/aws/smithy-go v1.24.2 // indirect
 	github.com/google/uuid v1.6.0
 	github.com/mmcloughlin/geohash v0.10.0
+	golang.org/x/sync v0.17.0
 )

@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"golang.org/x/sync/errgroup"
 )
 
 type crumbHelper struct {
@@ -48,18 +49,16 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 	helper := newHelper(h.Ctx, nil)
 	switch sentCrumb {
 	case false:
-		// get crumb received by id
-		result, err := getItem(
+		return GetAndConvertItem(
 			helper,
-			models.CrumbKey(userId, crumbId),
+			*models.CrumbKey(userId, crumbId),
+			nil,
+			func(c map[string]types.AttributeValue) models.Crumb {
+				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{
+					c,
+				}))[0]
+			},
 		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return &(*models.ConvertToCrumbs([]map[string]types.AttributeValue{result.Item}))[0], nil
-
 	default:
 		// get sent crumb by id
 		keyCond := expression.KeyEqual(
@@ -94,6 +93,53 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 
 		return &result.Items[0], nil
 	}
+}
+
+func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) (map[int]resItem, error) {
+	key := models.CrumbKey(userId, crumbId)
+	expr, err := expression.NewBuilder().WithUpdate(
+		expression.Set(
+			expression.Name("opened"),
+			expression.Value(true),
+		),
+	).WithCondition(
+		expression.Or(
+			expression.Name("opened").AttributeNotExists(),
+			expression.Name("opened").Equal(expression.Value(false)),
+		),
+	).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	helper := newHelper(h.Ctx, nil)
+
+	var (
+		content map[int]resItem
+		g       errgroup.Group
+	)
+
+	g.Go(func() error {
+		err := UpdateItem(
+			helper,
+			key,
+			expr,
+		)
+
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		content, err = h.getCrumbContent(userId, crumbId, sentCrumb)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return content, nil
 }
 
 func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
@@ -150,4 +196,118 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 			return *models.ConvertToCrumbs(c)
 		},
 	)
+}
+
+type resItem struct {
+	Index     int              `json:"index"`
+	Media     string           `json:"media"`
+	Overlay   string           `json:"overlay"`
+	Thumbnail string           `json:"thumbnail"`
+	Text      models.CrumbText `json:"text,omitempty"`
+}
+
+func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) (map[int]resItem, error) {
+	key := models.CrumbKey(userId, crumbId)
+	helper := newHelper(h.Ctx, nil)
+	var crumb models.Crumb
+
+	switch sentCrumb {
+	case true:
+		// sender wants to view crumb
+		keyCond := expression.KeyEqual(
+			expression.Key("gsi"),
+			expression.Value(models.CrumbSenderPrefix+userId),
+		).And(
+			expression.KeyEqual(
+				expression.Key("gsiSk"),
+				expression.Value(models.CrumbIdPrefix+crumbId),
+			),
+		)
+
+		proj := expression.NamesList(
+			expression.Name("text"),
+			expression.Name("media"),
+		)
+
+		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
+
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := QueryItems(
+			helper,
+			nil,
+			aws.String("GSIndex"),
+			expr,
+			aws.Int32(1),
+			func(c []map[string]types.AttributeValue) []models.Crumb {
+				return *models.ConvertToCrumbs(c)
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if len(result.Items) < 1 {
+			return nil, fmt.Errorf("No such crumb exists!")
+		}
+
+		crumb = result.Items[0]
+	default:
+		// receiver wants to view crumb
+		expr, err := expression.NewBuilder().WithProjection(
+			expression.NamesList(
+				expression.Name("media"),
+				expression.Name("text"),
+			),
+		).Build()
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := GetAndConvertItem(
+			helper,
+			*key,
+			&expr,
+			func(m map[string]types.AttributeValue) models.Crumb {
+				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{m}))[0]
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		crumb = *result
+	}
+
+	res := make(map[int]resItem, 0)
+	cloudfrontHelper := NewCloudfrontHelper(h.Ctx)
+
+	for _, media := range crumb.Media {
+		mediaKey, _, _ := cloudfrontHelper.GetSignedUrl(media.MediaKey, constants.CRUMB_MEDIA_URL_TTL)
+		thumbnailKey, _, _ := cloudfrontHelper.GetSignedUrl(media.ThumbnailKey, constants.CRUMB_MEDIA_URL_TTL)
+		overlayKey, _, _ := cloudfrontHelper.GetSignedUrl(media.OverlayKey, constants.CRUMB_MEDIA_URL_TTL)
+
+		res[media.Index] = resItem{
+			Index:     media.Index,
+			Media:     mediaKey,
+			Overlay:   overlayKey,
+			Thumbnail: thumbnailKey,
+		}
+	}
+
+	for _, text := range crumb.Text {
+		res[text.Index] = resItem{
+			Index: text.Index,
+			Text: models.CrumbText{
+				Index:   text.Index,
+				Content: text.Content,
+			},
+		}
+	}
+
+	return res, nil
 }

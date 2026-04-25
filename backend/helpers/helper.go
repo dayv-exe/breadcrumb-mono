@@ -3,6 +3,7 @@ package helpers
 import (
 	"backend/utils"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -112,6 +113,10 @@ func UpdateItem(deps *helper, key *map[string]types.AttributeValue, expr express
 	}
 
 	_, err := utils.GetDependencies().DbClient.UpdateItem(deps.Ctx, input)
+	var ccf *types.ConditionalCheckFailedException
+	if errors.As(err, &ccf) {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -134,10 +139,12 @@ func DeleteItem(deps *helper, key *map[string]types.AttributeValue) error {
 	return nil
 }
 
-func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetItemOutput, error) {
+func getItem(deps *helper, key *map[string]types.AttributeValue, expression *expression.Expression) (*dynamodb.GetItemOutput, error) {
 	input := &dynamodb.GetItemInput{
-		Key:       *key,
-		TableName: &deps.TableName,
+		Key:                      *key,
+		TableName:                &deps.TableName,
+		ProjectionExpression:     expression.Projection(),
+		ExpressionAttributeNames: expression.Names(),
 	}
 
 	// gets item from db
@@ -151,7 +158,7 @@ func getItem(deps *helper, key *map[string]types.AttributeValue) (*dynamodb.GetI
 }
 
 func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error) {
-	output, err := getItem(deps, &key)
+	output, err := getItem(deps, &key, nil)
 	if err != nil {
 		return false, err
 	}
@@ -159,8 +166,8 @@ func ItemExists(deps *helper, key map[string]types.AttributeValue) (bool, error)
 	return len(output.Item) > 0, nil
 }
 
-func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue, convertToStruct conversionFunc[T]) (*T, error) {
-	output, err := getItem(deps, &key)
+func GetAndConvertItem[T any](deps *helper, key map[string]types.AttributeValue, expression *expression.Expression, convertToStruct conversionFunc[T]) (*T, error) {
+	output, err := getItem(deps, &key, expression)
 	if err != nil {
 		return nil, err
 	}

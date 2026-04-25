@@ -1,7 +1,9 @@
 package models
 
 import (
+	"backend/constants"
 	"backend/utils"
+	"math"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/mmcloughlin/geohash"
@@ -87,6 +89,9 @@ type CrumbCoordinates struct {
 
 // Returns a slice of crumb models one for each receiver
 func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
+	if b.LocationType == constants.LOCATION_TYPE_FRIEND {
+		b.LocationAccuracy = math.MaxInt32
+	}
 	crumbs := make([]Crumb, 0)
 	for _, receiver := range b.Receivers {
 		crumbs = append(crumbs, Crumb{

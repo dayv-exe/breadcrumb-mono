@@ -112,7 +112,7 @@ func (this *userHelper) FindByNickname(nickname string) (*models.User, error) {
 
 func (this *userHelper) FindById(id string) (*models.User, error) {
 	helper := newHelper(this.Ctx, nil)
-	return GetAndConvertItem(helper, *models.UserKey(id), this.typeConverter)
+	return GetAndConvertItem(helper, *models.UserKey(id), nil, this.typeConverter)
 }
 
 func (this *userHelper) DeleteFromDynamo(u *models.User) error {
