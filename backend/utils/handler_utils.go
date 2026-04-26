@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
@@ -21,6 +22,7 @@ const (
 	MEDIA_BUCKET           = "MEDIA_BUCKET"
 	QUEUE                  = "QUEUE_URL"
 	SECRET_ARN             = "CF_PRIVATE_KEY_SECRET_ARN"
+	MAPBOX_SECRET_ARN      = "MAPBOX_SECRET_ARN"
 )
 
 type handlerDependenciesType struct {
@@ -34,7 +36,9 @@ type handlerDependenciesType struct {
 	UserPoolId           string
 	CloudFrontDomainName string
 	QueueUrl             string
+	SecretsManager       *secretsmanager.Client
 	SecretArn            string
+	MapboxSecretArn      string
 }
 
 var handlerDependencies handlerDependenciesType //
@@ -107,12 +111,19 @@ func WithBucket() option {
 	}
 }
 
+func WithSecrets() option {
+	return func(hd *handlerDependenciesType, c aws.Config) {
+		hd.SecretArn = getEnvironmentVariable(SECRET_ARN)
+		hd.MapboxSecretArn = getEnvironmentVariable(MAPBOX_SECRET_ARN)
+		hd.SecretsManager = secretsmanager.NewFromConfig(c)
+	}
+}
+
 func InitHandlerDependencies(opts ...option) {
 	cfg := getConfig()
 
 	// init cloudfront always
 	handlerDependencies.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
-	handlerDependencies.SecretArn = getEnvironmentVariable(SECRET_ARN)
 
 	for _, opt := range opts {
 		opt(&handlerDependencies, cfg)

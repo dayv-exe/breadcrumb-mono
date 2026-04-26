@@ -233,6 +233,16 @@ Resources:
         SecretStringTemplate: '{"private_key":"","public_key":"","key_pair_id":""}'
         GenerateStringKey: "placeholder"
 
+  MapboxSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${AWS::StackName}-${EnvironmentName}-mapbox-key"
+      Description: "Mapbox API key"
+      GenerateSecretString:
+        SecretStringTemplate: '{"api_key":""}'
+        GenerateStringKey: "placeholder"
+    
+
   PreSignUp:
     Type: AWS::Serverless::Function
     Properties:
@@ -290,6 +300,7 @@ Resources:
           USER_POOL_ID: !Ref CognitoUserPool
           MEDIA_BUCKET: !Ref MediaBucket
           SECRETS_MANAGER_ARN: !Ref CloudFrontKeysSecret
+          MAPBOX_SECRET_ARN: !Ref MapboxSecret
           CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
           CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
       Events:
@@ -486,6 +497,11 @@ Resources:
             Action:
               - secretsmanager:GetSecretValue
             Resource: !Ref CloudFrontKeysSecret
+        - Statement:
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Ref MapboxSecret
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:

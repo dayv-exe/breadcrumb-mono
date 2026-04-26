@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	cfsign "github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 )
@@ -74,14 +73,7 @@ func (h *cloudfrontHelper) GetSignedUrl(mediaKey string, ttl int16) (string, tim
 }
 
 func getCloudFrontSecret(ctx context.Context) (cloudFrontSecret, error) {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return cloudFrontSecret{}, err
-	}
-
-	client := secretsmanager.NewFromConfig(cfg)
-
-	out, err := client.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{
+	out, err := utils.GetDependencies().SecretsManager.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{
 		SecretId: &utils.GetDependencies().SecretArn,
 	})
 	if err != nil {
