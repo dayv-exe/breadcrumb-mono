@@ -6,7 +6,7 @@ set -euo pipefail
 
 SECRET_NAME="${1:?Usage: $0 <secret-name> <mapbox-api-key> [region]}"
 API_KEY="${2:?Usage: $0 <secret-name> <mapbox-api-key> [region]}"
-REGION="${3:-eu-west-1}"
+REGION="${3:-eu-west-2}"
 
 SECRET_JSON=$(jq -nc --arg key "$API_KEY" '{api_key: $key}')
 
@@ -17,12 +17,13 @@ if aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region "$REGI
     --secret-string "$SECRET_JSON" \
     --region "$REGION"
 else
-  echo "Creating $SECRET_NAME..."
-  aws secretsmanager create-secret \
-    --name "$SECRET_NAME" \
-    --description "Mapbox API key" \
-    --secret-string "$SECRET_JSON" \
-    --region "$REGION"
+  echo "No existing secret found to update!"
+  # echo "Creating $SECRET_NAME..."
+  # aws secretsmanager create-secret \
+  #   --name "$SECRET_NAME" \
+  #   --description "Mapbox API key" \
+  #   --secret-string "$SECRET_JSON" \
+  #   --region "$REGION"
 fi
 
 echo "Done."
