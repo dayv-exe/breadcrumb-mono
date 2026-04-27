@@ -36,8 +36,19 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 	transactions := make([]types.TransactWriteItem, 0)
 
+	placeIds := make([]string, 0)
+	if crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
+		ids, err := NewMapboxHelper(h.Ctx).GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
+		if err != nil {
+			return fmt.Errorf("Failed to send crumb. ERROR: %v", err)
+		}
+
+		placeIds = append(placeIds, ids...)
+	}
+
 	for _, crumb := range *crumbs {
 		// unread crumbs to be sent to recipient
+		crumb.PlaceId = placeIds
 		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
 	}
 
@@ -96,6 +107,7 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 }
 
 func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) (map[int]resItem, error) {
+	// based on location manner, do a check to see if user can open crumb
 	key := models.CrumbKey(userId, crumbId)
 	expr, err := expression.NewBuilder().WithUpdate(
 		expression.Set(

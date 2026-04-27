@@ -30,6 +30,8 @@ const (
 	LOCATION_TYPE_LABEL       = "label"
 	LOCATION_TYPE_DROPPED_PIN = "dropped-pin"
 	EARTH_RADIUS              = 6_371_000 // meters
+	MAPBOX_TILEQUERY_API      = "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery"
+	MAPBOX_TILEQUERY_LIMIT    = 15
 )
 
 var ALLOWED_FILE_TYPES = map[string]struct{}{

@@ -12,7 +12,6 @@ const (
 	QUEUE_ACTION_UPDATE_FRIENDS_DISPLAY_INFO  = "update_friends_display_info"
 	QUEUE_ACTION_UPDATE_REQUESTS_DISPLAY_INFO = "update_requests_display_info"
 	QUEUE_ACTION_PROCESS_VIDEO                = "process_video"
-	MAPBOX_TILEQUERY_API                      = "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery/"
 )
 
 type CRUMB_STATUS string
