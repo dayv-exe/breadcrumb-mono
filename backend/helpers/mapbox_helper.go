@@ -89,13 +89,13 @@ type Tilequery struct {
 
 func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 	out, err := utils.GetDependencies().SecretsManager.GetSecretValue(ctx, &secretsmanager.GetSecretValueInput{
-		SecretId: &utils.GetDependencies().SecretArn,
+		SecretId: &utils.GetDependencies().MapboxSecretArn,
 	})
 	if err != nil {
 		log.Panicf("Failed to get mapbox api key from secret manager. ERROR: %v", err)
 	}
 	if out.SecretString == nil {
-		// log.Panicf("secret has no string value")
+		log.Panicf("secret has no string value")
 	}
 
 	var s mapboxSecret
