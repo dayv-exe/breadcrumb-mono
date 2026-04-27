@@ -122,7 +122,7 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 
 func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelectionManner string) ([]string, error) {
 	if locationSelectionManner == constants.LOCATION_TYPE_DROPPED_PIN {
-		fmt.Printf("location manner not valid for getting nearby place id")
+		log.Printf("location manner not valid for getting nearby place id")
 		return make([]string, 0), nil
 	}
 
@@ -140,7 +140,7 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 
 	fullURL := endpoint + "?" + q.Encode()
 
-	fmt.Printf("full url: %s", fullURL)
+	log.Printf("full url: %s", fullURL)
 
 	req, err := http.NewRequestWithContext(h.Ctx, http.MethodGet, fullURL, nil)
 	if err != nil {
@@ -157,7 +157,7 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 		return nil, fmt.Errorf("mapbox tilequery returned status %d", resp.StatusCode)
 	}
 
-	fmt.Printf("mapbox query ok: %v", resp)
+	log.Printf("mapbox query ok: %v", resp)
 
 	var fc FeatureCollection
 	if err := json.NewDecoder(resp.Body).Decode(&fc); err != nil {
@@ -166,11 +166,11 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 
 	switch locationSelectionManner {
 	case constants.LOCATION_TYPE_MINE, constants.LOCATION_TYPE_FRIEND:
-		fmt.Printf("location selection manner: %s\nGetting gps sel places", locationSelectionManner)
+		log.Printf("location selection manner: %s\nGetting gps sel places", locationSelectionManner)
 		return getGpsSelectedPlacesId(fc), nil
 
 	case constants.LOCATION_TYPE_LABEL:
-		fmt.Printf("location selection manner: %s\nGetting map clicked sel places", locationSelectionManner)
+		log.Printf("location selection manner: %s\nGetting map clicked sel places", locationSelectionManner)
 		return getLabelSelectedPlacesIds(fc), nil
 
 	default:
@@ -184,7 +184,7 @@ func getGpsSelectedPlacesId(fc FeatureCollection) []string {
 		ids = append(ids, feature.ID)
 	}
 
-	fmt.Printf("gps sel places ids: %v", ids)
+	log.Printf("gps sel places ids: %v", ids)
 
 	return ids
 }
@@ -199,7 +199,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 		}
 	}
 
-	fmt.Printf("clicked label: %v", clickedLabel)
+	log.Printf("clicked label: %v", clickedLabel)
 
 	// place all the features inside a hash map with their corresponding layer
 	items := make(map[string][]Feature, 0)
@@ -208,7 +208,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 		items[layer] = append(items[layer], feature)
 	}
 
-	fmt.Printf("mapped features: %v", items)
+	log.Printf("mapped features: %v", items)
 
 	ids := make([]string, 0)
 
@@ -229,7 +229,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 			landuseClass == targetClass ||
 			landuseMaki == targetMaki ||
 			landuseCategory == targetCategory {
-			fmt.Printf("found match landuse: %v, target: %v", landuse, clickedLabel)
+			log.Printf("found match landuse: %v, target: %v", landuse, clickedLabel)
 			ids = append(ids, landuse.ID)
 		}
 	}
@@ -241,7 +241,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	// for building, distance from clicked label must be 0
 	for _, building := range items["building"] {
 		if building.Properties.Tilequery.Distance == 0 {
-			fmt.Printf("found match building: %v, target: %v", building, clickedLabel)
+			log.Printf("found match building: %v, target: %v", building, clickedLabel)
 			ids = append(ids, building.ID)
 		}
 	}
@@ -253,7 +253,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	// for structure, distance from clicked label must be 0
 	for _, structure := range items["structure"] {
 		if structure.Properties.Tilequery.Distance == 0 {
-			fmt.Printf("found match structure: %v, target: %v", structure, clickedLabel)
+			log.Printf("found match structure: %v, target: %v", structure, clickedLabel)
 			ids = append(ids, structure.ID)
 		}
 	}
@@ -262,12 +262,12 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 		return ids
 	}
 
-	fmt.Printf("found NO matches, returning all ids!")
+	log.Printf("found NO matches, returning all ids!")
 
 	// if none of the conditions above are met, return ids of all features
 	for _, feature := range fc.Features {
 		ids = append(ids, feature.ID)
 	}
-	fmt.Printf("ids: %v", ids)
+	log.Printf("ids: %v", ids)
 	return ids
 }
