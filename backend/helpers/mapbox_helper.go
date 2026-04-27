@@ -128,7 +128,10 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 
 	locationSelectionManner = strings.ToLower(locationSelectionManner)
 
-	layers := "poi_label,landuse,building,structure,water,transit_stop_label"
+	layers := "poi_label,building,structure,water,transit_stop_label"
+	if locationSelectionManner == constants.LOCATION_TYPE_LABEL {
+		layers += ",landuse"
+	}
 	endpoint := fmt.Sprintf("%s/%f,%f.json", constants.MAPBOX_TILEQUERY_API, lon, lat)
 
 	q := url.Values{}
