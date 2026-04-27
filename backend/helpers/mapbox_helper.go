@@ -95,7 +95,7 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 		log.Panicf("Failed to get mapbox api key from secret manager. ERROR: %v", err)
 	}
 	if out.SecretString == nil {
-		log.Panicf("secret has no string value")
+		// log.Panicf("secret has no string value")
 	}
 
 	var s mapboxSecret
