@@ -14,7 +14,15 @@ func HandleUserActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 		return handleCreateUser(ctx, req)
 
 	case "get":
-		return handleGetUser(ctx, req)
+		resource := strings.ToLower(getResourceName(req, 1))
+		switch resource {
+		case "places":
+			// to get places nearby user
+			return handleGetPlacesNearbyUser(ctx, req)
+		default:
+			// to get user info
+			return handleGetUser(ctx, req)
+		}
 
 	case "put":
 		return handleEditUser(ctx, req)

@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"backend/constants"
 	"backend/helpers"
 	"backend/models"
 	"backend/utils"
 	"context"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -90,4 +92,32 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		UserDisplayInfo: user.UserDisplayInfo,
 		UserAccountInfo: user.UserAccountInfo,
 	}, nil), nil
+}
+
+func handleGetPlacesNearbyUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	latStr := req.QueryStringParameters["lat"]
+	lonStr := req.QueryStringParameters["lon"]
+	radiusStr := req.QueryStringParameters["radius"]
+
+	lat, err := strconv.ParseFloat(latStr, 64)
+	if err != nil {
+		return models.InvalidRequestErrorResponse("Invalid latitude!"), nil
+	}
+
+	lon, err := strconv.ParseFloat(lonStr, 64)
+	if err != nil {
+		return models.InvalidRequestErrorResponse("Invalid longitude!"), nil
+	}
+
+	radius, err := strconv.ParseFloat(radiusStr, 64)
+	if err != nil {
+		return models.InvalidRequestErrorResponse("Invalid radius!"), nil
+	}
+
+	places, err := helpers.NewMapboxHelper(ctx).GetNearbyPlaceIds(lat, lon, radius, constants.LOCATION_TYPE_MINE)
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to get places nearby user!", err), nil
+	}
+
+	return models.SuccessfulGetRequestResponse(places, nil), nil
 }

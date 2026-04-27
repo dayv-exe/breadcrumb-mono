@@ -373,6 +373,14 @@ Resources:
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer
+        GetPlaceIdsNearUser:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/users/places
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
         CreateUser:
           Type: HttpApi
           Properties:
