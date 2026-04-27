@@ -149,6 +149,7 @@ export default function MapScreen() {
 
       <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} handleCancelPress={() => closeSheet()} handlePress={async e => {
         const result = await getPressedLocationInfo(e, mapRef);
+        console.log(result)
       }} />
 
       <View>

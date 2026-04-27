@@ -3,6 +3,8 @@ import { MediaType } from "@/constants/media"
 import { AxiosError } from "axios"
 import { apiResponse, extractBackendMsg } from "./models/apiResponse"
 
+export type LocationTypes = "gps" | "friend-gps" | "label" | "dropped-pin"
+
 type crumbMedia = {
   index: number
   media?: string
@@ -17,7 +19,7 @@ export type crumbBody = {
   lat: number
   lon: number
   locationAccuracy: number
-  locationType: "mine" | "friend" | "map"
+  locationType: LocationTypes
   mediaItems: crumbMedia[]
   text?: crumbText[]
 }
@@ -29,7 +31,7 @@ export type Crumb = {
   lat: number
   lon: number
   locationAccuracy: number
-  locationType: "mine" | "friend" | "map"
+  locationType: LocationTypes
   placeId: string
   text?: crumbText[]
   media: crumbMedia[]

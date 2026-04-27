@@ -248,7 +248,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           thumbnail: f.thumbnail?.mediaKey,
         })),
         locationAccuracy: coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS,
-        locationType: selLoc === sendOpt[2] ? "map" : selLoc === sendOpt[1] ? "friend" : "mine",
+        locationType: selLoc === sendOpt[2] ? "label" : selLoc === sendOpt[1] ? "friend-gps" : "gps",
         receivers: selectedFriends.map(f => f.id),
       }, {
         onSuccess: (s) => {
