@@ -33,10 +33,10 @@ type FeatureCollection struct {
 // ID is json.Number to preserve large integer IDs (e.g. 31340153450)
 // without precision loss from float64 conversion.
 type Feature struct {
-	Type       string     `json:"type"`
-	ID         string     `json:"id"`
-	Geometry   Geometry   `json:"geometry"`
-	Properties Properties `json:"properties"`
+	Type       string      `json:"type"`
+	ID         json.Number `json:"id"`
+	Geometry   Geometry    `json:"geometry"`
+	Properties Properties  `json:"properties"`
 }
 
 // Geometry is a GeoJSON Point geometry.
@@ -181,7 +181,7 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 func getGpsSelectedPlacesId(fc FeatureCollection) []string {
 	ids := make([]string, 0)
 	for _, feature := range fc.Features {
-		ids = append(ids, feature.ID)
+		ids = append(ids, feature.ID.String())
 	}
 
 	log.Printf("gps sel places ids: %v", ids)
@@ -230,7 +230,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 			landuseMaki == targetMaki ||
 			landuseCategory == targetCategory {
 			log.Printf("found match landuse: %v, target: %v", landuse, clickedLabel)
-			ids = append(ids, landuse.ID)
+			ids = append(ids, landuse.ID.String())
 		}
 	}
 
@@ -242,7 +242,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	for _, building := range items["building"] {
 		if building.Properties.Tilequery.Distance == 0 {
 			log.Printf("found match building: %v, target: %v", building, clickedLabel)
-			ids = append(ids, building.ID)
+			ids = append(ids, building.ID.String())
 		}
 	}
 
@@ -254,7 +254,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	for _, structure := range items["structure"] {
 		if structure.Properties.Tilequery.Distance == 0 {
 			log.Printf("found match structure: %v, target: %v", structure, clickedLabel)
-			ids = append(ids, structure.ID)
+			ids = append(ids, structure.ID.String())
 		}
 	}
 
@@ -266,7 +266,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 
 	// if none of the conditions above are met, return ids of all features
 	for _, feature := range fc.Features {
-		ids = append(ids, feature.ID)
+		ids = append(ids, feature.ID.String())
 	}
 	log.Printf("ids: %v", ids)
 	return ids
