@@ -12,7 +12,7 @@ import (
 
 func handleOpenCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userID := utils.GetAuthUserId(req)
-	crumbId := strings.ToLower(req.QueryStringParameters["id"])
+	crumbId := strings.ToLower(req.PathParameters["id"])
 	sentCrumb := strings.ToLower(strings.TrimSpace(req.QueryStringParameters["sent"])) == "true"
 
 	if userID == "" {
