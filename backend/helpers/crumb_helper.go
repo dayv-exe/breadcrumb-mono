@@ -253,7 +253,7 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([
 		crumb = *result
 	}
 
-	res := make([]resItem, 0)
+	res := make([]resItem, len(crumb.Media)+len(crumb.Text))
 	cloudfrontHelper := NewCloudfrontHelper(h.Ctx)
 
 	for _, media := range crumb.Media {
