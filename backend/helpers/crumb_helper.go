@@ -107,7 +107,7 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 	}
 }
 
-func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) (map[int]resItem, error) {
+func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) ([]resItem, error) {
 	// based on location manner, do a check to see if user can open crumb
 	return h.getCrumbContent(userId, crumbId, sentCrumb)
 }
@@ -176,7 +176,7 @@ type resItem struct {
 	Text      models.CrumbText `json:"text,omitempty"`
 }
 
-func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) (map[int]resItem, error) {
+func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([]resItem, error) {
 	key := models.CrumbKey(userId, crumbId)
 	helper := newHelper(h.Ctx, nil)
 	var crumb models.Crumb
@@ -253,7 +253,7 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) (m
 		crumb = *result
 	}
 
-	res := make(map[int]resItem, 0)
+	res := make([]resItem, 0)
 	cloudfrontHelper := NewCloudfrontHelper(h.Ctx)
 
 	for _, media := range crumb.Media {
