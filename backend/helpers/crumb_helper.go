@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"golang.org/x/sync/errgroup"
 )
 
 type crumbHelper struct {
@@ -110,50 +109,7 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 
 func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) (map[int]resItem, error) {
 	// based on location manner, do a check to see if user can open crumb
-	key := models.CrumbKey(userId, crumbId)
-	expr, err := expression.NewBuilder().WithUpdate(
-		expression.Set(
-			expression.Name("opened"),
-			expression.Value(true),
-		),
-	).WithCondition(
-		expression.Or(
-			expression.Name("opened").AttributeNotExists(),
-			expression.Name("opened").Equal(expression.Value(false)),
-		),
-	).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	helper := newHelper(h.Ctx, nil)
-
-	var (
-		content map[int]resItem
-		g       errgroup.Group
-	)
-
-	g.Go(func() error {
-		err := UpdateItem(
-			helper,
-			key,
-			expr,
-		)
-
-		return err
-	})
-
-	g.Go(func() error {
-		var err error
-		content, err = h.getCrumbContent(userId, crumbId, sentCrumb)
-		return err
-	})
-
-	if err := g.Wait(); err != nil {
-		return nil, err
-	}
-
-	return content, nil
+	return h.getCrumbContent(userId, crumbId, sentCrumb)
 }
 
 func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
