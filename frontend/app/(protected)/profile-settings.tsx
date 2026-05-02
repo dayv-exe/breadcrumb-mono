@@ -72,7 +72,7 @@ export default function ProfileSettingsScreen() {
   const {
     userid,
   } = useLocalSearchParams<{ userid: string }>()
-  const { data: user, error, isFetching: isPending } = useGetUser(userid)
+  const { data: user, error, isFetching: isPending } = useGetUser(userid ?? "")
   const { mutate: delAccount } = useDeleteUser()
   const fadedBgColor = useThemeColor({}, "fadedBackground")
   const bgCol = useThemeColor({}, "background")

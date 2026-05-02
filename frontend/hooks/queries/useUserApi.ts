@@ -49,7 +49,6 @@ export const useUpdateProfilePicture = () => {
 
 export const useGetProfilePicture = (userid: string) => useQuery({
   queryKey: ["profile-picture", userid],
-  enabled: userid.length > 0,
   queryFn: () => getProfilePicture(userid),
   staleTime: 10 * TIME.MINUTE
 })

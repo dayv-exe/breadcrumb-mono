@@ -1,4 +1,5 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
+import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
@@ -7,12 +8,15 @@ import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
+import SnapCarousel from "@/components/inputs/SnapCarousel";
 import { useModal } from "@/components/modals/ModalContext";
+import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -119,6 +123,7 @@ export default function AddScreen() {
   const maxHeight = height - insets.top
   const [recMode, setRecMode] = useState<recMode>("image")
   const [modeIndex, setModeIndex] = useState(0)
+  const router = useRouter()
 
   const handleCloseTextCrumb = () => {
     closeSheet()
@@ -146,12 +151,10 @@ export default function AddScreen() {
             alignItems: "center",
             justifyContent: "center",
           }}>
-            {/* <SnapCarousel style={{ height: "auto" }} onSelect={mi => {
+            <SnapCarousel style={{ height: "auto" }} onSelect={mi => {
               if (mi === 0) {
                 setRecMode("image")
-              } else if (mi === 1) {
-                setRecMode("audio")
-              } else if (mi === 2) {
+              } else {
                 openSheet({
                   content: (
                     <WriteCrumb
@@ -177,10 +180,23 @@ export default function AddScreen() {
                 return
               }
             }} selectedIndex={modeIndex}>
-              <CustomButton fontSize={18} bold labelText="Photo" type="text" handleClick={() => setModeIndex(0)} />
-              <CustomButton fontSize={18} bold labelText="Audio" type="text" handleClick={() => setModeIndex(1)} />
-              <CustomButton fontSize={18} bold labelText="Text" type="text" handleClick={() => setModeIndex(2)} />
-            </SnapCarousel> */}
+              <CustomButton fontSize={18} bold labelText="Photo" type="text" handleClick={() => setModeIndex(0)} customTextStyle={{
+                elevation: 7,
+                textShadowColor: "#000",
+                textShadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 1,
+                textShadowRadius: 20,
+              }} />
+              <CustomButton fontSize={18} bold labelText="Text" type="text" handleClick={() => setModeIndex(1)}
+                customTextStyle={{
+                  elevation: 7,
+                  textShadowColor: "#000",
+                  textShadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 1,
+                  textShadowRadius: 20,
+                }}
+              />
+            </SnapCarousel>
           </View>}
           {isFocused && (
             <View style={styles.container}>
@@ -214,6 +230,22 @@ export default function AddScreen() {
             </View>
           )}
           <PreviewBunch />
+
+          <CustomProfilePictureCircle
+            size={40}
+            customStyle={{
+              position: "absolute",
+              top: insets.top + 10,
+              left: 15,
+              zIndex: 11000,
+            }}
+            customTextStyle={{
+              fontWeight: "700"
+            }}
+            handleClick={() => {
+              router.push("/(protected)/profile-settings")
+            }}
+          />
         </View>
       )}
       {(showMediaPreviews) && (

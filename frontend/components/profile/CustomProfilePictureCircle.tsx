@@ -1,4 +1,4 @@
-import { useGetProfilePicture } from "@/hooks/queries/useUserApi";
+import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AnimatableNumericValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
@@ -9,21 +9,22 @@ type props = {
   userId?: string | null | undefined
   customStyle?: StyleProp<ViewStyle>
   customTextStyle?: StyleProp<TextStyle>
-  borderRadius?:  string | AnimatableNumericValue | undefined
+  borderRadius?: string | AnimatableNumericValue | undefined
   handleClick?: (src: string,) => void
 }
 
 export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius }: props) {
-  const { data, isLoading } = useGetProfilePicture(userId ?? "");
+  const { data: profilePicture } = useGetProfilePicture(userId ?? "");
+  const { data: userDetails } = useGetUser(userId ?? "")
   const mode = useColorScheme();
 
   const fgColLight = "#555";
   const fgColDark = "#fff";
   const bgCol = useThemeColor({}, "fadedBackground");
 
-  const url = (data?.message && !data.error) ? data?.message?.thumbnail : null;
+  const url = (profilePicture?.message && !profilePicture.error) ? profilePicture?.message?.thumbnail : null;
 
-  nickname = nickname ?? "";
+  nickname = nickname ?? ((userDetails?.message && !userDetails.error) ? userDetails.message.nickname ?? "" : "")
   const parts = nickname.split(/[._]/);
   const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "");
 

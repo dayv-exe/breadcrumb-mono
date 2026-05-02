@@ -108,7 +108,7 @@ function CarouselItem({ children, index, scrollX, itemWidth }: CarouselItemProps
     const opacity = interpolate(
       scrollX.value,
       inputRange,
-      [0.5, 1, 0.5],
+      [0.75, 1, 0.75],
       Extrapolation.CLAMP
     );
 

@@ -31,6 +31,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
     previews: s.mediaPreview
   })))
   const { pickFromGallery, isLoading } = useImagePicker()
+  const size = 24
 
   return (
     <View style={[styles.cameraControls, {
@@ -50,12 +51,12 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
         }]}
         type="text"
         src={icons.gallery}
-        size={27}
+        size={size}
       />}
-      {<CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={27} type="text" customStyle={[styles.imageButtons, {
+      {<CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={size} type="text" customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
       }]} handleClick={toggleFlash} />}
-      <CustomImageButton src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={27} type="text" customStyle={styles.imageButtons} handleClick={flipCamera} />
+      <CustomImageButton src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={size} type="text" customStyle={styles.imageButtons} handleClick={flipCamera} />
     </View>
   )
 }
@@ -69,10 +70,11 @@ const styles = StyleSheet.create({
     flexDirection: "column-reverse",
     alignItems: "center",
     justifyContent: "flex-end",
-    paddingHorizontal: 5
+    paddingHorizontal: 5,
+    marginTop: 5,
   },
   imageButtons: {
-    marginVertical: 10,
+    marginVertical: 5,
     elevation: 7,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
