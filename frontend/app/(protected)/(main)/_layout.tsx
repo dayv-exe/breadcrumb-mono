@@ -170,6 +170,7 @@ function MediaActionButtons({
       {!showMediaPreviews &&
         <>
           <CustomButton
+          slim
             type="text"
             customTextStyle={{ color: showMediaPreviews ? "red" : "red" }}
             labelText={showMediaPreviews ? "Delete" : "Discard"}
@@ -188,12 +189,12 @@ function MediaActionButtons({
           />
         </>
       }
-      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
+      {showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} type="dark-faded" customTextStyle={{ color: "white" }} labelText="Back" imgSrc={require("../../../assets/images/icons/longback_sel_light.png")} handleClick={() => setShowMediaPreviews(false)} />}
       <Spacer size="small" />
-      {showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
+      {showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} type="less-prominent" customTextStyle={{ color: "white" }} labelText="Share" imgSrc={require("../../../assets/images/icons/userlocation_sel_light.png")} handleClick={() => {
         setSharing(true)
       }} />}
-      {!showMediaPreviews && <CustomButton customStyle={{ minWidth: 100 }} handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
+      {!showMediaPreviews && <CustomButton slim customStyle={{ minWidth: 100 }} handleClick={() => setShowMediaPreviews(true)} type="less-prominent" customTextStyle={{ color: "white", paddingHorizontal: 12.5 }} labelText="Edit & Share" />}
     </View>
   );
 }
@@ -214,9 +215,9 @@ function CroppingActionButtons() {
 
   return (
     <View style={styles.navbar}>
-      <CustomButton labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} useMinWidth handleClick={revertCrop} />
+      <CustomButton slim labelText="Revert" imgSrc={require("../../../assets/images/icons/reset_unsel_light.png")} useMinWidth handleClick={revertCrop} />
       <Spacer size="small" />
-      <CustomButton labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{ backgroundColor: "#00c04b" }} />
+      <CustomButton slim labelText="Apply" imgSrc={require("../../../assets/images/icons/check_unsel_light.png")} useMinWidth type="less-prominent" handleClick={applyCrop} customStyle={{ backgroundColor: "#00c04b" }} />
     </View>
   )
 }
