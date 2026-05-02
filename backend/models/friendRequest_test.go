@@ -3,17 +3,19 @@ package models
 import (
 	"backend/utils"
 	"reflect"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 func TestFriendRequestDbFormat(t *testing.T) {
-	d := utils.GetTimeNow()
+	d := utils.GetUnixTimestamp()
 	expected := map[string]types.AttributeValue{
 		"pk":       &types.AttributeValueMemberS{Value: "USER#rec"},
 		"sk":       &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
-		"date":     &types.AttributeValueMemberS{Value: d},
+		"date":     &types.AttributeValueMemberN{Value: strconv.FormatInt(d, 10)},
 		"fullname": &types.AttributeValueMemberS{Value: "test"},
 		"gsi":      &types.AttributeValueMemberS{Value: "test"},
 		"gsi2Sk":   &types.AttributeValueMemberS{Value: "USER#rec"},
@@ -56,7 +58,7 @@ func TestFriendRequestDbFormat(t *testing.T) {
 }
 
 func TestConvertToFriendRequest(t *testing.T) {
-	d := utils.GetTimeNow()
+	d := utils.GetUnixTimestamp()
 	expected := UserDisplayInfo{
 		Userid:   "send",
 		Nickname: "send",
@@ -71,7 +73,7 @@ func TestConvertToFriendRequest(t *testing.T) {
 			"gsi2":     &types.AttributeValueMemberS{Value: "USER#rec"},
 			"gsi2Sk":   &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
 			"fullname": &types.AttributeValueMemberS{Value: "send"},
-			"date":     &types.AttributeValueMemberS{Value: d},
+			"date":     &types.AttributeValueMemberN{Value: strconv.FormatInt(d, 10)},
 		},
 	}
 
@@ -82,6 +84,7 @@ func TestConvertToFriendRequest(t *testing.T) {
 }
 
 func TestFriendRequestToUserInfoStruct(t *testing.T) {
+	d := time.Now().Unix()
 	friendReqDbItem := []map[string]types.AttributeValue{
 		{
 			"pk":       &types.AttributeValueMemberS{Value: "123"},
@@ -90,7 +93,7 @@ func TestFriendRequestToUserInfoStruct(t *testing.T) {
 			"gsi2":     &types.AttributeValueMemberS{Value: "USER#rec"},
 			"gsi2Sk":   &types.AttributeValueMemberS{Value: "FRIEND_REQUEST_FROM#send"},
 			"fullname": &types.AttributeValueMemberS{Value: "other"},
-			"date":     &types.AttributeValueMemberS{Value: ""},
+			"date":     &types.AttributeValueMemberN{Value: strconv.FormatInt(d, 10)},
 		},
 	}
 

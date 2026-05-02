@@ -140,6 +140,7 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		expression.Name("id"),
 		expression.Name("lat"),
 		expression.Name("lon"),
+		expression.Name("accuracy"),
 		expression.Name("receiver"),
 		expression.Name("sender"),
 		expression.Name("time"),

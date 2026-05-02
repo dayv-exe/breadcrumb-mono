@@ -5,14 +5,22 @@ import (
 	"time"
 )
 
-func GetTimeNow() string {
+func GetNormalTimeNow() string {
 	return time.Now().Format(constants.FULL_DATE_LAYOUT)
 }
 
-func GetDateAndTime() string {
+func GetNormalDateAndTime() string {
 	return time.Now().Format(constants.FULL_DATE_TIME_LAYOUT)
 }
 
-func GetDateNow() string {
+func GetNormalDateNow() string {
 	return time.Now().Format(constants.FULL_DATE_LAYOUT)
+}
+
+func GetUnixTimestamp() int64 {
+	return time.Now().Unix()
+}
+
+func GetOffsetMonthUnixTimestamp(months int) int64 {
+	return time.Now().AddDate(0, months, 0).Unix()
 }

@@ -16,7 +16,7 @@ type Friend struct {
 	ThisUserId          string `dynamodbav:"pk"`
 	OtherUserID         string `dynamodbav:"sk"`
 	UserDisplayInfoNoId        // this denormalized info of the other user
-	Date                string `dynamodbav:"date"`
+	Date                int64  `dynamodbav:"date"`
 }
 
 func NewFriendship(thisUserId string, otherUser *User) *Friend {
@@ -25,7 +25,7 @@ func NewFriendship(thisUserId string, otherUser *User) *Friend {
 		ThisUserId:          thisUserId,
 		OtherUserID:         otherUser.Userid,
 		UserDisplayInfoNoId: *GetUserDisplayInfoNoId(otherUser),
-		Date:                utils.GetTimeNow(),
+		Date:                utils.GetUnixTimestamp(),
 	}
 }
 

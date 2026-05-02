@@ -11,7 +11,7 @@ type friendRequest struct {
 	RecipientId string `dynamodbav:"pk"`
 	SenderId    string `dynamodbav:"sk" json:"userId"`
 	UserDisplayInfoNoId
-	Date  string `dynamodbav:"date" json:"date"`
+	Date  int64  `dynamodbav:"date" json:"date"`
 	Gsi   string `dynamodbav:"gsi2" json:"-"`
 	GsiSk string `dynamodbav:"gsi2Sk" json:"-"`
 }
@@ -27,7 +27,7 @@ func NewFriendRequest(recipientUserId string, sender *User) *friendRequest {
 	fr := friendRequest{
 		RecipientId: recipientUserId,
 		SenderId:    sender.Userid,
-		Date:        utils.GetTimeNow(),
+		Date:        utils.GetUnixTimestamp(),
 		UserDisplayInfoNoId: UserDisplayInfoNoId{
 			Nickname: sender.Nickname,
 			Name:     sender.Name,

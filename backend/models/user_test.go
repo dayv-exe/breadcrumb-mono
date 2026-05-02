@@ -3,6 +3,7 @@ package models
 import (
 	"backend/utils"
 	"reflect"
+	"strconv"
 	"testing"
 
 	dbTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -16,12 +17,12 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"bio":                   &dbTypes.AttributeValueMemberS{Value: ""},
 	"is_suspended":          &dbTypes.AttributeValueMemberBOOL{Value: false},
 	"is_deactivated":        &dbTypes.AttributeValueMemberBOOL{Value: false},
-	"date":                  &dbTypes.AttributeValueMemberS{Value: utils.GetTimeNow()},
+	"date":                  &dbTypes.AttributeValueMemberN{Value: strconv.FormatInt(utils.GetUnixTimestamp(), 10)},
 	"can_change_birthdate":  &dbTypes.AttributeValueMemberBOOL{Value: true},
-	"last_nickname_change":  &dbTypes.AttributeValueMemberS{Value: ""},
-	"last_name_change":      &dbTypes.AttributeValueMemberS{Value: ""},
-	"last_email_change":     &dbTypes.AttributeValueMemberS{Value: ""},
-	"last_login":            &dbTypes.AttributeValueMemberS{Value: utils.GetTimeNow()},
+	"last_nickname_change":  &dbTypes.AttributeValueMemberN{Value: strconv.FormatInt(utils.GetOffsetMonthUnixTimestamp(-6), 10)},
+	"last_name_change":      &dbTypes.AttributeValueMemberN{Value: strconv.FormatInt(utils.GetOffsetMonthUnixTimestamp(-6), 10)},
+	"last_email_change":     &dbTypes.AttributeValueMemberN{Value: strconv.FormatInt(utils.GetOffsetMonthUnixTimestamp(-6), 10)},
+	"last_login":            &dbTypes.AttributeValueMemberN{Value: strconv.FormatInt(utils.GetUnixTimestamp(), 10)},
 	"force_change_nickname": &dbTypes.AttributeValueMemberBOOL{Value: false},
 	"suspension_reason":     &dbTypes.AttributeValueMemberS{Value: ""},
 	"friends":               &dbTypes.AttributeValueMemberS{Value: ""},

@@ -8,12 +8,25 @@ import (
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 	sentCrumb := strings.ToLower(req.QueryStringParameters["sent"]) == "true"
-	lastKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
+	lastKeyParam, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
+	lastPk := strings.TrimSpace(req.QueryStringParameters["pk"])
+	lastSk := strings.TrimSpace(req.QueryStringParameters["sk"])
+	compositeLastKey := map[string]types.AttributeValue{
+		"pk": &types.AttributeValueMemberS{Value: lastPk},
+		"sk": &types.AttributeValueMemberS{Value: lastSk},
+	}
+
+	lastKey := compositeLastKey
+	if lastPk == "" {
+		lastKey = lastKeyParam
+	}
+
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}

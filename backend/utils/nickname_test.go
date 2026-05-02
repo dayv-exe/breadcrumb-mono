@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"backend/constants"
 	"testing"
 	"time"
 	"unicode"
@@ -45,31 +44,31 @@ func TestIsNicknameValid(t *testing.T) {
 func TestNameChangeAllowed(t *testing.T) {
 	tests := []struct {
 		name              string
-		lastChangeDate    string
+		lastChangeDate    int64
 		expectAllowChange bool
 	}{
 		{
 			// dd/mm/yyyy
 			name:              "last changed a day ago",
-			lastChangeDate:    time.Now().AddDate(0, 0, -1).Format(constants.FULL_DATE_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(0, 0, -1).Unix(),
 			expectAllowChange: false,
 		},
 		{
 			// dd/mm/yyyy
 			name:              "last changed 2 years ago",
-			lastChangeDate:    time.Now().AddDate(-2, 0, 0).Format(constants.FULL_DATE_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(-2, 0, 0).Unix(),
 			expectAllowChange: true,
 		},
 		{
 			// dd/mm/yyyy
 			name:              "last changed 0 days ago",
-			lastChangeDate:    time.Now().AddDate(0, 0, 0).Format(constants.FULL_DATE_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(0, 0, 0).Unix(),
 			expectAllowChange: false,
 		},
 		{
 			// dd/mm/yyyy
 			name:              "last changed 31 days ago",
-			lastChangeDate:    time.Now().AddDate(0, 0, -31).Format(constants.FULL_DATE_LAYOUT),
+			lastChangeDate:    time.Now().AddDate(0, 0, -31).Unix(),
 			expectAllowChange: true,
 		},
 	}

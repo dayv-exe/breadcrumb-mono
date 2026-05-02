@@ -32,19 +32,19 @@ type UserAccountInfo struct {
 	FriendshipStatus string `dynamodbav:"friends" json:"friends"`
 	IsSuspended      bool   `dynamodbav:"is_suspended" json:"isSuspended"`
 	IsDeactivated    bool   `dynamodbav:"is_deactivated" json:"isDeactivated"`
-	DateJoined       string `dynamodbav:"date" json:"date"`
+	DateJoined       int64  `dynamodbav:"date" json:"date"`
 }
 
 type UserPersonalInfo struct {
 	ProfilePicture      CrumbMedia `json:"profilePicture" dynamodbav:"profilePicture"`
 	CanChangeBirthdate  bool       `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
-	LastNicknameChange  string     `dynamodbav:"last_nickname_change" json:"-"`
-	LastEmailChange     string     `dynamodbav:"last_email_change" json:"-"`
-	LastNameChange      string     `dynamodbav:"last_name_change" json:"-"`
+	LastNicknameChange  int64      `dynamodbav:"last_nickname_change" json:"-"`
+	LastEmailChange     int64      `dynamodbav:"last_email_change" json:"-"`
+	LastNameChange      int64      `dynamodbav:"last_name_change" json:"-"`
 	AllowNicknameChange bool       `dynamodbav:"-" json:"allowNicknameChange,omitempty"`
 	AllowEmailChange    bool       `dynamodbav:"-" json:"allowEmailChange,omitempty"`
 	AllowNameChange     bool       `dynamodbav:"-" json:"allowNameChange,omitempty"`
-	LastLogin           string     `dynamodbav:"last_login" json:"lastLogin,omitempty"`
+	LastLogin           int64      `dynamodbav:"last_login" json:"lastLogin,omitempty"`
 	ForceChangeNickname bool       `dynamodbav:"force_change_nickname" json:"forceChangeNickname,omitempty"`
 	SuspensionReason    string     `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
 }
@@ -65,14 +65,14 @@ func NewUser(userid string, nickname string, name string, isSuspended bool) *Use
 			Bio:           "",
 			IsSuspended:   isSuspended,
 			IsDeactivated: false,
-			DateJoined:    utils.GetTimeNow(),
+			DateJoined:    utils.GetUnixTimestamp(),
 		},
 		UserPersonalInfo: UserPersonalInfo{
 			CanChangeBirthdate:  true,
-			LastNicknameChange:  "",
-			LastEmailChange:     "",
-			LastLogin:           utils.GetTimeNow(),
-			LastNameChange:      "",
+			LastLogin:           utils.GetUnixTimestamp(),
+			LastNicknameChange:  utils.GetOffsetMonthUnixTimestamp(-6),
+			LastEmailChange:     utils.GetOffsetMonthUnixTimestamp(-6),
+			LastNameChange:      utils.GetOffsetMonthUnixTimestamp(-6),
 			ForceChangeNickname: false,
 			SuspensionReason:    "",
 		},

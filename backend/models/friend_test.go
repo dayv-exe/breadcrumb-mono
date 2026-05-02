@@ -3,20 +3,22 @@ package models
 import (
 	"backend/utils"
 	"reflect"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 func TestFriendDatabaseFormat(t *testing.T) {
-	d := utils.GetTimeNow()
+	d := utils.GetUnixTimestamp()
 
 	expected := map[string]types.AttributeValue{
 		"pk":       &types.AttributeValueMemberS{Value: "USER#123"},
 		"sk":       &types.AttributeValueMemberS{Value: "FRIEND#321"},
 		"fullname": &types.AttributeValueMemberS{Value: "sender"},
 		"gsi":      &types.AttributeValueMemberS{Value: "sndr"},
-		"date":     &types.AttributeValueMemberS{Value: d},
+		"date":     &types.AttributeValueMemberN{Value: strconv.FormatInt(d, 10)},
 	}
 
 	otherUser := NewUser("321", "sndr", "sender", false)
@@ -53,7 +55,7 @@ func TestFriendToUserInfoStruct(t *testing.T) {
 			"sk":       &types.AttributeValueMemberS{Value: "321"},
 			"gsi":      &types.AttributeValueMemberS{Value: "other"},
 			"fullname": &types.AttributeValueMemberS{Value: "other"},
-			"date":     &types.AttributeValueMemberS{Value: ""},
+			"date":     &types.AttributeValueMemberN{Value: strconv.FormatInt(time.Now().Unix(), 10)},
 		},
 	}
 

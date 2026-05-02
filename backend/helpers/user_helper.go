@@ -161,7 +161,7 @@ func (u *userHelper) updateNameOrNickname(user *models.User, newName string, tra
 			expression.Value(newName),
 		).Set(
 			expression.Name(dateAttr),
-			expression.Value(utils.GetDateNow()),
+			expression.Value(utils.GetUnixTimestamp()),
 		),
 	).Build()
 

@@ -18,7 +18,7 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"locationAccuracy": &dbTypes.AttributeValueMemberN{Value: "10"},
 	"locationType":     &dbTypes.AttributeValueMemberS{Value: "gps"},
 	"placeId":          &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{&dbTypes.AttributeValueMemberS{Value: "p1"}}},
-	"time":             &dbTypes.AttributeValueMemberS{Value: "100"},
+	"time":             &dbTypes.AttributeValueMemberN{Value: "100"},
 	"text": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
@@ -66,7 +66,7 @@ func TestCrumb_DatabaseFormat(t *testing.T) {
 	result := (*body.GetCrumbs("s1"))[0]
 	result.Geohash = "hash"
 	result.PlaceId = []string{"p1"}
-	result.Time = "100"
+	result.Time = 100
 
 	expected := TestCrumbDbItem
 	AssertDatabaseFormat(t, &result, expected, map[string]dbTypes.AttributeValue{
@@ -81,7 +81,7 @@ func TestConvertToCrumbs(t *testing.T) {
 	expected.Geohash = "hash"
 	expected.PlaceId = []string{"p1"}
 	expected.ApplyPrefixes()
-	expected.Time = "100"
+	expected.Time = 100
 	expected.Gsi2Sk = "TS#100CRUMB_ID#c1"
 	expected.Gsi3Sk = "TS#100CRUMB_ID#c1"
 

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"backend/constants"
-	"log"
 	"strings"
 	"time"
 )
@@ -19,24 +18,19 @@ func NameIsValid(name *string) bool {
 	return true
 }
 
-func NameChangeAllowed(lastChangedOn string) bool {
-	// format is yyyy/mm/dd
-	if strings.TrimSpace(lastChangedOn) == "" {
+func NameChangeAllowed(lastChangedOn int64) bool {
+	// if never changed (0 or invalid)
+	if lastChangedOn == 0 {
 		return true
 	}
 
-	lastChangeDate, err := time.Parse(constants.FULL_DATE_LAYOUT, lastChangedOn)
-	if err != nil {
-		log.Fatalf("Failed to parse last name change date %v", err)
-	}
+	// convert unix timestamp → time
+	lastChangeDate := time.Unix(lastChangedOn, 0).UTC()
 
+	// apply delay (days)
 	changeUnfreezeDate := lastChangeDate.AddDate(0, 0, constants.NAME_CHANGE_DELAY)
-	lastChangeDate.Add(time.Hour)
-	if time.Now().After(changeUnfreezeDate) {
-		return true
-	}
 
-	return false
+	return time.Now().UTC().After(changeUnfreezeDate)
 }
 
 func IsNameBanned(name string) bool {
