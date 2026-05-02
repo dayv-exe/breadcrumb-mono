@@ -1,4 +1,4 @@
-import { Crumb } from "@/api/crumbsApi";
+import { Crumb } from "@/api/models/crumb";
 import { useGetCrumbs } from "@/hooks/queries/useCrumbsApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useCustomGestures } from "@/hooks/useCustomGestures";

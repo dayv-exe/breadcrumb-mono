@@ -1,4 +1,4 @@
-import { Crumb } from "@/api/crumbsApi";
+import { Crumb } from "@/api/models/crumb";
 import { Colors } from "@/constants/Colors";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/use-theme-color";

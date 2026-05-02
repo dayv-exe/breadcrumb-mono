@@ -1,16 +1,8 @@
 import axiosInstance from "@/constants/axios";
 import { MediaType } from "@/constants/media";
-import { crumbText } from "./crumbsApi";
 import { apiResponse, extractBackendMsg } from "./models/apiResponse";
-
-export type MediaItem = {
-  index: number
-  media: string
-  overlay?: string
-  thumbnail?: string
-  text?: crumbText
-  type: MediaType
-}
+import { crumbText } from "./models/crumbText";
+import { MediaItem } from "./models/mediaItem";
 
 export type PresignedMediaItem = {
   index: number

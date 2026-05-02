@@ -1,17 +1,13 @@
 import axiosInstance from "@/constants/axios"
-import { MediaType } from "@/constants/media"
 import { AxiosError } from "axios"
+import { UpsertCrumbs } from "./db/crumbsDb"
 import { apiResponse, extractBackendMsg } from "./models/apiResponse"
+import { Crumb } from "./models/crumb"
+import { crumbMedia } from "./models/crumbMedia"
+import { crumbText } from "./models/crumbText"
+import { LocationTypes } from "./models/locationTypes"
 
-export type LocationTypes = "gps" | "friend-gps" | "label" | "dropped-pin"
 
-type crumbMedia = {
-  index: number
-  media?: string
-  type: MediaType
-  overlay?: string
-  thumbnail?: string
-}
 
 export type crumbBody = {
   id: string
@@ -24,31 +20,12 @@ export type crumbBody = {
   text?: crumbText[]
 }
 
-export type Crumb = {
-  id: string
-  sender: string
-  receiver: string
-  lat: number
-  lon: number
-  locationAccuracy: number
-  locationType: LocationTypes
-  placeId: string
-  text?: crumbText[]
-  media: crumbMedia[]
-  geohash: string
-  time: string
-}
-
-export type crumbText = {
-  index: number
-  content: string
-}
-
 export const getCrumbs = async (next?: string): Promise<apiResponse<Crumb[]>> => {
   let url = "/api/v1/crumbs"
   url += next ? `?next=${next}` : ""
   try {
     const { data } = await axiosInstance.get<{ message: Crumb[] }>(url)
+    UpsertCrumbs(data.message)
     return { message: data.message, error: null }
   } catch (error) {
     console.log(extractBackendMsg(error))
