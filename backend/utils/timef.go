@@ -10,7 +10,7 @@ func GetNormalTimeNow() string {
 }
 
 func GetNormalDateAndTime() string {
-	return time.Now().Format(constants.FULL_DATE_TIME_LAYOUT)
+	return time.Now().UTC().Format(time.RFC3339Nano)
 }
 
 func GetNormalDateNow() string {

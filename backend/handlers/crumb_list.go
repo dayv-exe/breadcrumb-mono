@@ -13,17 +13,28 @@ import (
 
 func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
+
 	sentCrumb := strings.ToLower(req.QueryStringParameters["sent"]) == "true"
+
 	lastKeyParam, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	lastPk := strings.TrimSpace(req.QueryStringParameters["pk"])
 	lastSk := strings.TrimSpace(req.QueryStringParameters["sk"])
-	compositeLastKey := map[string]types.AttributeValue{
-		"pk": &types.AttributeValueMemberS{Value: lastPk},
-		"sk": &types.AttributeValueMemberS{Value: lastSk},
-	}
 
-	lastKey := compositeLastKey
-	if lastPk == "" {
+	var lastKey map[string]types.AttributeValue
+
+	if lastPk != "" && lastSk != "" {
+		lastKey = map[string]types.AttributeValue{
+			"gsi2":   &types.AttributeValueMemberS{Value: lastPk},
+			"gsi2Sk": &types.AttributeValueMemberS{Value: lastSk},
+		}
+
+		if sentCrumb {
+			lastKey = map[string]types.AttributeValue{
+				"gsi3":   &types.AttributeValueMemberS{Value: lastPk},
+				"gsi3Sk": &types.AttributeValueMemberS{Value: lastSk},
+			}
+		}
+	} else {
 		lastKey = lastKeyParam
 	}
 

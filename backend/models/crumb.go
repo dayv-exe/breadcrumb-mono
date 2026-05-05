@@ -4,7 +4,6 @@ import (
 	"backend/constants"
 	"backend/utils"
 	"math"
-	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/mmcloughlin/geohash"
@@ -62,7 +61,7 @@ type Crumb struct {
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 	Opened           bool         `json:"opened" dynamodbav:"opened"`
 
-	Time int64 `json:"time" dynamodbav:"time"`
+	Time string `json:"time" dynamodbav:"time"`
 
 	PK string `json:"-" dynamodbav:"pk"`
 	SK string `json:"-" dynamodbav:"sk"`
@@ -106,7 +105,7 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 			Text:             b.Text,
 			Media:            b.MediaKeys,
 			Geohash:          geohash.Encode(b.Lat, b.Lon),
-			Time:             utils.GetUnixTimestamp(),
+			Time:             utils.GetNormalDateAndTime(),
 			Opened:           false,
 		})
 	}
@@ -128,12 +127,12 @@ func (c *Crumb) ApplyPrefixes() {
 	// access received crumbs by timestamp
 	// GSI2: CRUMB_RECEIVER#{userid} GSI2SK: TS#{timestamp}CRUMB_ID{crumbId}
 	c.Gsi2 = CrumbReceiverPrefix + c.Receiver
-	c.Gsi2Sk = CrumbTimePrefix + strconv.FormatInt(c.Time, 10) + CrumbIdPrefix + c.Id
+	c.Gsi2Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
 
 	// access sent crumbs by timestamp
 	// GSI3: CRUMB_SENDER#{userid} GSI3SK: TS#{timestamp}CRUMB_ID#{crumbId}
 	c.Gsi3 = CrumbSenderPrefix + c.SenderId
-	c.Gsi3Sk = CrumbTimePrefix + strconv.FormatInt(c.Time, 10) + CrumbIdPrefix + c.Id
+	c.Gsi3Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
 }
 
 func (c *Crumb) RemovePrefixes() {
