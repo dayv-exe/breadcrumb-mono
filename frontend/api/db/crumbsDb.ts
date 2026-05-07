@@ -13,7 +13,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     crumb.lon,
     crumb.sender,
     crumb.receiver,
-    crumb.opened,
+    crumb.opened ? 1 : 0,
     crumb.time,
   ]);
   return {
@@ -52,4 +52,28 @@ export async function UpsertCrumbs(crumbs: Crumb[]) {
       await db.runAsync(sql, values);
     }
   });
+}
+
+export async function GetLastReceivedCrumbDetails(): Promise<Crumb | null> {
+  const db = await getDb()
+  const c: Crumb | null = await db.getFirstAsync(
+    `SELECT id,receiver,time FROM crumbs ORDER BY time DESC LIMIT 1`
+  )
+  if (!c) {
+    return null
+  }
+
+  return c
+}
+
+export async function GetCrumbsInViewport(maxLat: number, minLat: number, minLon: number, maxLon: number): Promise<Crumb | null> {
+  const db = await getDb()
+  const c: Crumb | null = await db.getFirstAsync(
+    `SELECT * FROM crumbs ORDER BY time DESC LIMIT 1`
+  )
+  if (!c) {
+    return null
+  }
+
+  return c
 }

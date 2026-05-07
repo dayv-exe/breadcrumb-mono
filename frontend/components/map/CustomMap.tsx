@@ -1,35 +1,25 @@
-import { Crumb } from "@/api/models/crumb";
-import { useGetCrumbs } from "@/hooks/queries/useCrumbsApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useCustomGestures } from "@/hooks/useCustomGestures";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
-import Mapbox from "@rnmapbox/maps";
-import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
+import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
-import CrumbItem from "./CrumbItem";
+import CustomButton from "../buttons/CustomButton";
 
-export interface mapMethods {
-  moveTo: (position: Position | undefined, newZoomLevel?: number, animationDuration?: number) => void
-  centerMap: () => void
-  getCurrentCenter: () => Promise<{ position: Position, zoomLevel: number } | null>
-}
 
 type customMapProps = {
   mapRef?: React.RefObject<Mapbox.MapView | null>
   cameraRef?: React.RefObject<Mapbox.Camera | null>
-  handleCancelPress?: () => void
-  handlePress?: (v: any) => void
-  handleLongPress?: (v: any) => void
-  handleUserLocPress?: () => void
-  userPosition?: Position
+  onMapPress?: (v: any) => void
+  onMapLongPress?: (v: any) => void
+  onLocationPuckPress?: () => void
   zoomLevel?: number
   pitch?: number
+  zoom?: number
   useSatellite?: boolean
 }
 
@@ -55,12 +45,11 @@ function PermissionScreen({ handleGrantPermission }: permissionProps) {
 }
 
 export default function CustomMap({
-  handleCancelPress = () => { },
-  handlePress = () => { },
-  handleLongPress = () => { },
+  onMapPress = () => { },
+  onMapLongPress = () => { },
   mapRef,
   cameraRef,
-  handleUserLocPress,
+  onLocationPuckPress,
   zoomLevel = 3,
   pitch = 0,
   useSatellite = false,
@@ -70,17 +59,32 @@ export default function CustomMap({
   const satelliteUrl = Constants.expoConfig?.extra?.satelliteUrl;
   const mode = useColorScheme();
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const { coordinates } = useLocationStore();
+  const coordinates = useLocationStore(s => s.coordinates);
   const [mapReady, setMapReady] = useState(false);
   const movedMap = useRef<boolean>(false);
 
-  const { data: crumbsResponse, refetch: refetchCrumbs } = useGetCrumbs();
-  const crumbs = crumbsResponse?.pages.flatMap(crumb => crumb.message.map(c => c)) ?? [];
+  const featureCollection = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        id: '1',
+        properties: { icon: 'pin' },
+        geometry: { type: 'Point', coordinates: [-73.99, 40.72] },
+      },
+      {
+        type: 'Feature',
+        id: '2',
+        properties: { icon: 'pin' },
+        geometry: { type: 'Point', coordinates: [-73.98, 40.73] },
+      },
+    ],
+  };
 
   const gestures = useCustomGestures(
     {
       onLongPress: (pos) => {
-        handleLongPress(pos);
+        onMapLongPress(pos);
       },
     },
     {
@@ -108,6 +112,13 @@ export default function CustomMap({
     handlePermissions(false);
   }, []);
 
+  const offsets = {
+    "cluster": [-70, -75],
+    "single": [-45, -45]
+  }
+
+  const getOffset = mode === "dark" ? offsets.single : offsets.cluster
+
   return (
     <View style={styles.container}>
       {permissionGranted && (
@@ -124,7 +135,7 @@ export default function CustomMap({
           }}
           styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
           onPress={(e) => {
-            handlePress(e);
+            onMapPress(e);
           }}
           attributionPosition={{ bottom: 80, left: 5 }}
           logoPosition={{ top: -15, left: 15 }}
@@ -136,8 +147,7 @@ export default function CustomMap({
           }}
           onTouchEnd={gestures.handleTouchEnd}
           onTouchMove={(e) => {
-            refetchCrumbs()
-            // gestures.handleTouchMove(e);
+
           }}
           onTouchCancel={gestures.handleTouchCancel}
         >
@@ -155,18 +165,44 @@ export default function CustomMap({
 
           {mapReady && coordinates && (
             <Mapbox.UserLocation
-              onPress={handleUserLocPress}
+              onPress={onLocationPuckPress}
               visible={true}
               minDisplacement={5}
               requestsAlwaysUse={true}
               showsUserHeadingIndicator
             />
           )}
-
-          {mapReady &&
-            crumbs.map((crumb: Crumb) => (
-              <CrumbItem usingSatellite={useSatellite} key={crumb.id} crumb={crumb} sentCrumb={false} />
-            ))}
+          <Images
+            images={{
+              lightFrame: require("../../assets/map_bg_light.png"),
+              darkFrame: require("../../assets/map_bg_dark.png"),
+              clusterFrame: require("../../assets/map_cluster.png"),
+              pin: require("../../assets/images/icons/bread_1f35e.png"),
+              // avatar: require("../../assets/images/icons/add_sel_vib.png"),
+              avatar: require("../../assets/images/icons/test_avatar.jpg")
+            }}
+          />
+          <ShapeSource id="markers" shape={featureCollection}>
+            <SymbolLayer
+              id="frameLayer"
+              style={{
+                iconImage: "clusterFrame", // pulls from feature properties
+                iconSize: .4,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+              }}
+            />
+            <SymbolLayer
+              id="pinLayer"
+              style={{
+                iconImage: 'avatar', // pulls from feature properties
+                iconSize: .125,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconOffset: offsets.cluster
+              }}
+            />
+          </ShapeSource>
         </Mapbox.MapView>
       )}
 

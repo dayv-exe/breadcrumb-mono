@@ -1,4 +1,4 @@
-import { getCrumbs, shareCrumb } from "@/api/crumbsApi";
+import { getCrumbs, getLatestCrumbs, shareCrumb } from "@/api/crumbsApi";
 import { TIME } from "@/constants/appConstants";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 
@@ -12,6 +12,15 @@ export const useGetCrumbs = () => {
     queryFn: ({ pageParam }) => getCrumbs(pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
-    staleTime: 1 * TIME.MINUTE
+    staleTime: 15 * TIME.MINUTE
+  })
+}
+
+export const useGetLatestCrumbs = (sentCrumbs: boolean, userId?: string, lastTimeStamp?: string) => {
+  return useInfiniteQuery({
+    queryKey: [`latest-crumbs-${sentCrumbs ? "sent" : "received"}`],
+    queryFn: () => getLatestCrumbs(sentCrumbs, userId, lastTimeStamp),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
   })
 }

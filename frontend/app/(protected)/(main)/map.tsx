@@ -147,7 +147,7 @@ export default function MapScreen() {
         </View>
       </SafeAreaView>
 
-      <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} handleCancelPress={() => closeSheet()} handlePress={async e => {
+      <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
         const result = await getPressedLocationInfo(e, mapRef);
         console.log(result)
       }} />
