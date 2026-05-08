@@ -46,7 +46,7 @@ export default function TextPreview({ media }: props) {
           </View>
         </View>
         <Spacer size="small" />
-        <CustomLabel labelText={media.text} adaptToTheme customStyle={{ paddingHorizontal: 10, lineHeight: 24 }} />
+        <CustomLabel labelText={media.text?.content} adaptToTheme customStyle={{ paddingHorizontal: 10, lineHeight: 24 }} />
         <Spacer size="small" />
         <View style={{
           width: "auto",
@@ -63,7 +63,7 @@ export default function TextPreview({ media }: props) {
                     updateText(crumb)
                     closeSheet()
                   }}
-                  text={media.text}
+                  text={media.text?.content}
                 />
               ),
               snapPoints: [maxSheetHeight],

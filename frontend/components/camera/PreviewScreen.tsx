@@ -1,4 +1,3 @@
-import { MediaItem } from "@/api/getPresignedUrl";
 import { EmojiCategory } from "@/constants/appConstants";
 import { createDefaultCropTransform, MediaData } from "@/constants/media";
 import { useDropZone } from "@/hooks/useDropZone";
@@ -399,7 +398,7 @@ export default function PreviewScreen({
           <NewShareScreen height={height}
             usePlural={mediaItems.length > 1}
             handleClose={closeSheet}
-            getProcessedMedia={processMedia}
+            processMedia={processMedia}
           />
         ),
         onSheetDismissed: () => setSharing(false),
@@ -416,13 +415,12 @@ export default function PreviewScreen({
 
   }, [isSharing])
 
-  const processMedia = async (): Promise<MediaItem[]> => {
-    const processed: MediaItem[] = [] //id: {index, uri, overlay}
+  const processMedia = async () => {
     const previousIndex = currentMediaIndex;
 
     for (let i = 0; i < mediaItems.length; i++) {
-      const item = mediaItems[i];
-      setCurrentMediaIndex(i);
+      const item = mediaItems[i]
+      setCurrentMediaIndex(item.index);
       // Let the UI render the new media + overlays
       await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -434,11 +432,7 @@ export default function PreviewScreen({
             quality: 1,
           })
           if (uri) {
-            processed.push({
-              index: i,
-              media: uri,
-              type: "photo",
-            })
+            item.media = uri // set processed media
           }
           break;
         }
@@ -449,39 +443,23 @@ export default function PreviewScreen({
             format: "png",
             quality: 1,
           }) : ""
-          processed.push({
-            index: i,
-            media: item.uri,
-            type: "video",
-            overlay: overlayUri ?? null,
-            thumbnail: item.thumbnail
-          })
+          item.overlay = overlayUri // set processed overlay
+          item.media = item.uri // set processed media
           break;
         }
 
         case "text": {
-          processed.push({
-            index: i,
-            text: { index: i, content: item.text ?? "" },
-            media: "",
-            type: "text",
-          })
           break;
         }
 
         case "audio":
-          processed.push({
-            index: i,
-            media: item.uri,
-            type: "audio",
-          })
+          item.media = item.uri // set processed media
           break;
       }
     }
 
     // Restore original index
     setCurrentMediaIndex(previousIndex);
-    return processed;
   };
 
   const spawnTextOverlay = () => {

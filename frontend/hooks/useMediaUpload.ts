@@ -1,10 +1,26 @@
-import { MediaItem, PresignedMediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
+import { PresignedMediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
+import { MediaData } from "@/constants/media";
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
+import { File } from "expo-file-system";
 
 interface UseMediaUploadOptions {
   isProfilePicture?: boolean
   onSuccess?: (files: PresignedMediaItem[]) => void;
   onError?: (error: unknown) => void;
+}
+
+function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
+  for (const med of processedMedia) {
+    for (const path of [med.uri, med.media, med.overlay, med.thumbnail]) {
+      if (!path) continue;
+      try {
+        const f = new File(path);
+        if (f.exists) f.delete();
+      } catch (e) {
+        console.warn("cleanup failed", path, e);
+      }
+    }
+  }
 }
 
 export function useMediaUpload(options?: UseMediaUploadOptions) {
@@ -41,7 +57,7 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
 
   };
 
-  const upload = async (processedMedia: MediaItem[]) => {
+  const upload = async (processedMedia: MediaData[]) => {
     presignedUrl(processedMedia, {
       onSuccess: async (s) => {
         try {
@@ -63,7 +79,8 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
           });
 
           await Promise.all(uploads.map(uploadFile));
-
+          // delete all files from cache
+          deleteUploadedFilesLocally(processedMedia)
           options?.onSuccess?.(validFiles);
         } catch (err) {
           console.log("Upload error:", err);

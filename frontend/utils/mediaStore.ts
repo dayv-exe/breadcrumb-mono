@@ -135,6 +135,10 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     const newIndex = state.mediaPreview.length;
     const nextMedia = normalizeMedia(media);
 
+    // set indexes
+    nextMedia.index = newIndex
+    nextMedia.text = { index: newIndex, content: nextMedia.text?.content ?? "" }
+
     set({
       mediaPreview: [...state.mediaPreview, nextMedia],
       currentMediaIndex: newIndex,
@@ -236,7 +240,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     set((state) =>
       updateCurrentMedia(state, (media) => ({
         ...media,
-        text,
+        text: { index: media.index, content: text },
       }))
     ),
 

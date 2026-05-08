@@ -1,4 +1,3 @@
-import { MediaItem } from "@/api/getPresignedUrl";
 import { UserDetails } from "@/api/models/userDetails";
 import { DEFAULT_CRUMB_RADIUS, ShowToast } from "@/constants/appConstants";
 import { useShareCrumb } from "@/hooks/queries/useCrumbsApi";
@@ -27,7 +26,7 @@ interface props {
   height: number;
   usePlural?: boolean;
   handleClose: () => void;
-  getProcessedMedia: () => Promise<MediaItem[]>;
+  processMedia: () => void;
 }
 interface iSelectedFriend {
   name: string
@@ -206,7 +205,7 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, 
   );
 };
 
-export default function NewShareScreen({ title, height, handleClose, usePlural, getProcessedMedia }: props) {
+export default function NewShareScreen({ title, height, handleClose, usePlural, processMedia }: props) {
   const insets = useSafeAreaInsets();
   const mode = useColorScheme();
   const bgCol = mode === "dark" ? "#181818" : "#F4F5F7";
@@ -219,6 +218,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const [shareIsPending, setShareIsPending] = useState(false)
   const { showModal, hideModal } = useModal()
   const resetMediaStore = useMediaStore(s => s.reset)
+  const crumbMedia = useMediaStore(s => s.mediaPreview)
 
   const handleNotifyErr = (err: any) => {
     console.log("Share failed:", err);
@@ -299,8 +299,8 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         </View>
       )
     })
-    const processMedia = await getProcessedMedia()
-    upload(processMedia);
+    await processMedia()
+    upload(crumbMedia);
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, error } = useGetFriends("")

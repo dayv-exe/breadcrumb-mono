@@ -1,4 +1,4 @@
-import { MediaItem } from "@/api/getPresignedUrl"
+import { MediaData } from "@/constants/media"
 import { useEvent } from "expo"
 import { useVideoPlayer, VideoView } from "expo-video"
 import { BookmarkIcon, HeartIcon, Reply } from "lucide-react-native"
@@ -18,7 +18,7 @@ import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle"
 import Spacer from "../Spacer"
 
 type Props = {
-  items: MediaItem[]
+  items: MediaData[]
   userId: string
   nickname: string
   onClose?: () => void
@@ -43,7 +43,7 @@ export default function StoryViewer({ items, onClose, onComplete, initialIndex =
   const isVideo = current?.type === "video"
 
   // Player is created once and its source is swapped per item
-  const player = useVideoPlayer(isVideo ? current.media : null, p => {
+  const player = useVideoPlayer(isVideo ? current.media ?? null : null, p => {
     p.loop = false
     p.timeUpdateEventInterval = 0.1 // seconds
   })
@@ -53,7 +53,7 @@ export default function StoryViewer({ items, onClose, onComplete, initialIndex =
 
   // Swap source when item changes
   useEffect(() => {
-    if (isVideo) {
+    if (isVideo && current.media) {
       player.replace(current.media)
       if (!paused) player.play()
     }

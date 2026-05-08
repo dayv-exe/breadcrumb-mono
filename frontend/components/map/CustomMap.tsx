@@ -70,13 +70,19 @@ export default function CustomMap({
         type: 'Feature',
         id: '1',
         properties: { icon: 'pin' },
-        geometry: { type: 'Point', coordinates: [-73.99, 40.72] },
+        geometry: { type: 'Point', coordinates: [-1.4119485819435904, 50.90357624958019] },
       },
       {
         type: 'Feature',
         id: '2',
         properties: { icon: 'pin' },
-        geometry: { type: 'Point', coordinates: [-73.98, 40.73] },
+        geometry: { type: 'Point', coordinates: [-1.4003734693118226, 50.90843458227937] },
+      },
+      {
+        type: 'Feature',
+        id: '3',
+        properties: { icon: 'pin' },
+        geometry: { type: 'Point', coordinates: [-1.4101579464572567, 50.92902669308694] },
       },
     ],
   };
@@ -113,9 +119,11 @@ export default function CustomMap({
   }, []);
 
   const offsets = {
-    "cluster": [-70, -75],
-    "single": [-45, -45]
+    "cluster": [-35, -35],
+    "single": [-22, -22]
   }
+
+  const useCluster = false
 
   const getOffset = mode === "dark" ? offsets.single : offsets.cluster
 
@@ -178,16 +186,16 @@ export default function CustomMap({
               darkFrame: require("../../assets/map_bg_dark.png"),
               clusterFrame: require("../../assets/map_cluster.png"),
               pin: require("../../assets/images/icons/bread_1f35e.png"),
-              // avatar: require("../../assets/images/icons/add_sel_vib.png"),
-              avatar: require("../../assets/images/icons/test_avatar.jpg")
+              bread: require("../../assets/images/icons/bread_1f35e.png"),
+              avatar: require("../../assets/images/icons/test_avatar_4.jpg")
             }}
           />
           <ShapeSource id="markers" shape={featureCollection}>
             <SymbolLayer
               id="frameLayer"
               style={{
-                iconImage: "clusterFrame", // pulls from feature properties
-                iconSize: .4,
+                iconImage: useCluster ? "clusterFrame" : mode === "light" ? "lightFrame" : "darkFrame", // pulls from feature properties
+                iconSize: .36,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
               }}
@@ -196,13 +204,70 @@ export default function CustomMap({
               id="pinLayer"
               style={{
                 iconImage: 'avatar', // pulls from feature properties
-                iconSize: .125,
+                iconSize: .225,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: offsets.cluster
+                iconOffset: useCluster ? offsets.cluster : offsets.single
+              }}
+            />
+
+            <SymbolLayer
+              id="clusterTextLayer"
+              style={{
+                textAllowOverlap: true,
+                textAnchor: "top-left",
+                textColor: "#fff",
+                textField: "+2",
+                textJustify: "center",
+                textOffset: [.5, -2.65],
+                textHaloColor: "#000",
+                textHaloWidth: 10,
+                textOpacity: useCluster ? 0 : 0,
               }}
             />
           </ShapeSource>
+
+          {/* <ShapeSource id="markers" shape={featureCollection}>
+            <SymbolLayer
+              id="pinLayer"
+              style={{
+                iconImage: 'bread', // pulls from feature properties
+                iconSize: .1,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconOffset: offsets.single
+              }}
+            />
+
+            <SymbolLayer
+              id="frameLayer"
+              style={{
+                iconImage: "avatar", // pulls from feature properties
+                iconSize: .125,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconOffset: [200, -250],
+                iconOpacity: 1,
+                iconHaloColor: "#fff",
+                iconHaloWidth: 2,
+              }}
+            />
+
+            <SymbolLayer
+              id="clusterTextLayer"
+              style={{
+                textAllowOverlap: true,
+                textAnchor: "top-left",
+                textColor: "#fff",
+                textField: "DA",
+                textJustify: "center",
+                textOffset: [.5, -2.65],
+                textHaloColor: "#000",
+                textHaloWidth: 10,
+                textOpacity: 0,
+              }}
+            />
+          </ShapeSource> */}
         </Mapbox.MapView>
       )}
 

@@ -21,7 +21,7 @@ import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
-import { generateThumbnail } from "@/utils/thumbnailGen";
+import * as ImageManipulator from "expo-image-manipulator";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -293,7 +293,7 @@ export default function ProfileSettingsScreen() {
           }} />
           <CustomButton type="text" labelText="Take photo" adaptToTheme handleClick={() => {
             takePhoto({
-              aspect: [1, 1], onPictureChosen: image => { 
+              aspect: [1, 1], onPictureChosen: image => {
                 handleChangePic(image)
               }
             })
@@ -306,8 +306,19 @@ export default function ProfileSettingsScreen() {
   }
 
   const handleChangePic = async (image: MediaData) => {
-    image.thumbnail = await generateThumbnail(image.uri, "image")
-    await upload([{ index: 0, media: image.uri, type: "profilePhoto", thumbnail: image.thumbnail }])
+    const context = ImageManipulator.ImageManipulator.manipulate(image.uri)
+
+    const original = (await context.renderAsync()).saveAsync({ compress: .8 })
+    const thumbnail = (await context.resize({ width: 200 }).renderAsync()).saveAsync({ compress: .8 })
+    await upload([{
+      index: 0,
+      id: "",
+      uri: (await original).uri,
+      media: (await original).uri,
+      thumbnail: (await thumbnail).uri,
+      type: "profilePhoto",
+      resizeMode: "contain",
+    }])
     closeSheet()
   }
 

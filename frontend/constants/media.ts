@@ -1,3 +1,5 @@
+import { crumbText } from "@/api/models/crumbText";
+
 export type MediaType = "photo" | "video" | "audio" | "text" | "profilePhoto" | null;
 
 export type CropTransform = {
@@ -53,17 +55,20 @@ export type EditOverlay = TextOverlay | StickerOverlay | DrawingOverlay;
 // --- Media Data ---
 export type MediaData = {
   id: string
-  uri: string;
+  index: number
+  uri: string; // raw
+  media?: string // processed
+  overlay?: string // processed
+  thumbnail?: string; // processed
+  overlays?: EditOverlay[]; // raw
   type: MediaType;
   duration?: number;
-  thumbnail?: string;
   width?: number;
   height?: number;
   fileName?: string;
   fileSize?: number;
   resizeMode: "cover" | "contain";
-  text?: string
-  overlays?: EditOverlay[];
+  text?: crumbText
   cropTransform?: CropTransform
   pendingCropTransform?: CropTransform
   isPlaceholder?: boolean

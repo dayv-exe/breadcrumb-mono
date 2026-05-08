@@ -1,5 +1,4 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
-import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
@@ -8,7 +7,6 @@ import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
-import SnapCarousel from "@/components/inputs/SnapCarousel";
 import { useModal } from "@/components/modals/ModalContext";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import Spacer from "@/components/Spacer";
@@ -66,10 +64,11 @@ function CrumbTypePicker({ maxSheetHeight, recMode, setRecMode }: { maxSheetHeig
               handleSave={crumb => {
                 addToPreview({
                   id: uuidv4(),
+                  index: 0,
                   resizeMode: "contain",
                   type: "text",
                   uri: "",
-                  text: crumb
+                  text: { index: 0, content: crumb },
                 })
                 closeSheet()
                 setShowMediaPreviews(true)
@@ -151,52 +150,6 @@ export default function AddScreen() {
             alignItems: "center",
             justifyContent: "center",
           }}>
-            <SnapCarousel style={{ height: "auto" }} onSelect={mi => {
-              if (mi === 0) {
-                setRecMode("image")
-              } else {
-                openSheet({
-                  content: (
-                    <WriteCrumb
-                      handleCancel={handleCloseTextCrumb}
-                      handleSave={crumb => {
-                        addPreview({
-                          id: uuidv4(),
-                          resizeMode: "contain",
-                          type: "text",
-                          uri: "",
-                          text: crumb
-                        })
-                        handleCloseTextCrumb()
-                        setShowMediaPreviews(true)
-                      }}
-                    />
-                  ),
-                  snapPoints: [maxHeight],
-                  showHandle: false,
-                  reduceAnimations: true,
-                  borderRadius: 25
-                })
-                return
-              }
-            }} selectedIndex={modeIndex}>
-              <CustomButton fontSize={18} bold labelText="Photo" type="text" handleClick={() => setModeIndex(0)} customTextStyle={{
-                elevation: 7,
-                textShadowColor: "#000",
-                textShadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 1,
-                textShadowRadius: 20,
-              }} />
-              <CustomButton fontSize={18} bold labelText="Text" type="text" handleClick={() => setModeIndex(1)}
-                customTextStyle={{
-                  elevation: 7,
-                  textShadowColor: "#000",
-                  textShadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 1,
-                  textShadowRadius: 20,
-                }}
-              />
-            </SnapCarousel>
           </View>}
           {isFocused && (
             <View style={styles.container}>
@@ -231,7 +184,7 @@ export default function AddScreen() {
           )}
           <PreviewBunch />
 
-          <CustomProfilePictureCircle
+          {!isRecording && <CustomProfilePictureCircle
             size={40}
             customStyle={{
               position: "absolute",
@@ -245,7 +198,7 @@ export default function AddScreen() {
             handleClick={() => {
               router.push("/(protected)/profile-settings")
             }}
-          />
+          />}
         </View>
       )}
       {(showMediaPreviews) && (

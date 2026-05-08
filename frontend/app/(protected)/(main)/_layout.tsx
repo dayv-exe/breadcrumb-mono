@@ -170,7 +170,7 @@ function MediaActionButtons({
       {!showMediaPreviews &&
         <>
           <CustomButton
-          slim
+            slim
             type="text"
             customTextStyle={{ color: showMediaPreviews ? "red" : "red" }}
             labelText={showMediaPreviews ? "Delete" : "Discard"}
@@ -318,7 +318,21 @@ export default function MainScreen() {
               //   darkMode={isDarkMode}
               // />
 
-              <Search size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <>
+                <Search size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                {focused && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      width: 7,
+                      height: 4,
+                      backgroundColor: mode === "light" ? Colors.light.text : Colors.dark.text,
+                      bottom: -17,
+                      borderRadius: 100,
+                    }}
+                  ></View>
+                )}
+              </>
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel
@@ -341,13 +355,21 @@ export default function MainScreen() {
           options={{
             title: "Post",
             tabBarIcon: ({ focused }) => (
-              // <CustomTabIcon
-              //   name={"add"}
-              //   focused={focused}
-              //   size={23}
-              //   darkMode={isDarkMode}
-              // />
-              <Plus size={35} strokeWidth={1.5} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <>
+                <Plus size={35} strokeWidth={focused ? 2 : 1.5} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                {focused && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      width: 7,
+                      height: 4,
+                      backgroundColor: Colors.dark.text,
+                      bottom: -17,
+                      borderRadius: 100,
+                    }}
+                  ></View>
+                )}
+              </>
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel
@@ -370,14 +392,21 @@ export default function MainScreen() {
           options={{
             title: "Message",
             tabBarIcon: ({ focused }) => (
-              // <CustomTabIcon
-              //   name={"notifications"}
-              //   focused={focused}
-              //   darkMode={isDarkMode}
-              //   size={21}
-              // />
-
-              <Heart size={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <>
+                <Heart size={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                {focused && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      width: 7,
+                      height: 4,
+                      backgroundColor: mode === "light" ? Colors.light.text : Colors.dark.text,
+                      bottom: -17,
+                      borderRadius: 100,
+                    }}
+                  ></View>
+                )}
+              </>
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Chat" focused={focused} />
@@ -396,12 +425,21 @@ export default function MainScreen() {
           options={{
             title: "Me",
             tabBarIcon: ({ focused }) => (
-              // <CustomTabIcon
-              //   name={"profile"}
-              //   focused={focused}
-              //   darkMode={isDarkMode}
-              // />
-              <User size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+              <>
+                <User size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                {focused && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      width: 7,
+                      height: 4,
+                      backgroundColor: mode === "light" ? Colors.light.text : Colors.dark.text,
+                      bottom: -17,
+                      borderRadius: 100,
+                    }}
+                  ></View>
+                )}
+              </>
             ),
             tabBarLabel: ({ focused }) => (
               <CustomTabLabel color={textColor} text="Me" focused={focused} />

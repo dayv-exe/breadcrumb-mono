@@ -17,6 +17,7 @@ const icons = {
   noFlash: require("../../assets/images/icons/noflash_sel_light.png"),
   friends: require("../../assets/images/icons/searchfriends_sel_light.png"),
   gallery: require("../../assets/images/icons/gallery_unsel_light.png"),
+  text: require("../../assets/images/icons/crumbtext_sel_light.png"),
 }
 
 export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ctrlProps) {
@@ -36,23 +37,44 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
   return (
     <View style={[styles.cameraControls, {
       // paddingTop: insets.top 
+      alignItems: 'flex-end'
     }]}>
-      {<CustomImageButton
-        handleClick={() => {
-          pickFromGallery({
-            allowsEditing: false,
-            mediaTypes: ["images", "videos"],
-            allowMultipleSel: true,
-            selectionLimit: MAX_PREVIEW_MEDIA - previews.length
-          });
-        }}
-        customStyle={[styles.imageButtons, {
-          opacity: isRecording ? 0 : 1
-        }]}
-        type="text"
-        src={icons.gallery}
-        size={size}
-      />}
+      {
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "flex-end"
+        }}>
+          <CustomImageButton
+            handleClick={() => {
+              
+            }}
+            customStyle={[styles.imageButtons, {
+              opacity: isRecording ? 0 : 1,
+              marginHorizontal: 7,
+            }]}
+            type="text"
+            src={icons.text}
+            size={size}
+          />
+          <CustomImageButton
+            handleClick={() => {
+              pickFromGallery({
+                allowsEditing: false,
+                mediaTypes: ["images", "videos"],
+                allowMultipleSel: true,
+                selectionLimit: MAX_PREVIEW_MEDIA - previews.length
+              });
+            }}
+            customStyle={[styles.imageButtons, {
+              opacity: isRecording ? 0 : 1
+            }]}
+            type="text"
+            src={icons.gallery}
+            size={size}
+          />
+        </View>
+      }
       {<CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={size} type="text" customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
       }]} handleClick={toggleFlash} />}
@@ -67,9 +89,9 @@ const styles = StyleSheet.create({
     height: "100%",
     right: 0,
     zIndex: 100,
-    flexDirection: "column-reverse",
+    flexDirection: "column",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     paddingHorizontal: 5,
     marginTop: 5,
   },
