@@ -4,16 +4,18 @@ import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
+import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
 import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const token = Constants.expoConfig?.extra?.mapboxToken;
 if (!token) {
@@ -75,6 +77,7 @@ export default function MapScreen() {
   const mapRef = useRef<Mapbox.MapView>(null);
   const mapCamRef = useRef<Mapbox.Camera>(null)
   const bgCol = useThemeColor({}, "background")
+  const txtCol = useThemeColor({}, "text")
   const router = useRouter()
   const { coordinates } = useLocationStore()
   const [selPlace, setSelPlace] = useState<{ name?: string, type?: string } | null>(null)
@@ -82,10 +85,11 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top
-  const [pageName, setPageName] = useState("map")
+  const [pageName, setPageName] = useState("Unopened")
   const [search, setSearch] = useState("")
   const searchRef = useRef(null)
   const [useSat, setUseSat] = useState(false)
+  const [forceDark, setForceDark] = useState(false)
 
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -98,7 +102,7 @@ export default function MapScreen() {
       snapPoints: ["25%", availableHeight],
       fullExpansionOnOpen: false,
       reduceAnimations: true,
-      onSheetDismissed: () => setPageName("map")
+      onSheetDismissed: () => setPageName("Unopened")
     })
   }
 
@@ -138,59 +142,100 @@ export default function MapScreen() {
     router.push("/find-friends")
   }
 
+  const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
+
   return (
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
-      <SafeAreaView pointerEvents="box-none" style={[styles.headerWrapper]}>
-        <View style={[styles.headerTextContainer, { backgroundColor: mode === "dark" ? Colors.dark.background : Colors.light.background }]}>
-          <CustomLabel bold adaptToTheme fade labelText={pageName} />
-        </View>
-      </SafeAreaView>
-
-      <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
-        const result = await getPressedLocationInfo(e, mapRef);
-        console.log(result)
-      }} />
-
-      <View>
-        <View style={[styles.bottomSheet, {
-          backgroundColor: bgCol,
-          position: "absolute",
-          bottom: 0,
+      <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "88", gradCol + "66", gradCol + "00"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
+        paddingTop: insets.top + 5,
+        paddingBottom: 0,
+        top: 0,
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: 'flex-start',
+      }]}>
+        <CustomLabel bold adaptToTheme labelText={pageName} fontSize={21} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
+        <Spacer size="small" />
+        <View style={[{
           width: "100%",
           alignItems: "center",
           justifyContent: "flex-start",
           flexDirection: "row",
-          paddingTop: 17,
-          paddingBottom: 15,
         }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{
-              paddingHorizontal: 20
+              paddingHorizontal: 10
             }}
           >
-            <CustomButton labelText="📬 Crumbs" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
-              handleShowFiltered("crumbs")
+            <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              handleShowFiltered("Unopened")
+            }} customStyle={{
+              shadowColor: "#000",
+              shadowOffset: { height: 2, width: 2, },
+              shadowOpacity: .25,
+              shadowRadius: 2,
+              marginBottom: 5,
+              elevation: 5
             }} />
             <Spacer size="small" />
-            <CustomButton labelText="🧱 Walls" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
-              handleShowFiltered("walls")
+            <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              handleShowFiltered("Sent")
+            }} customStyle={{
+              shadowColor: "#000",
+              shadowOffset: { height: 2, width: 2, },
+              shadowOpacity: .25,
+              shadowRadius: 2,
+              marginBottom: 5,
+              elevation: 5
             }} />
             <Spacer size="small" />
-            <CustomButton labelText="❤️ favorites" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
-              handleShowFiltered("❤️ favorites")
+            <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              handleShowFiltered("❤️ Saved")
+            }} customStyle={{
+              shadowColor: "#000",
+              shadowOffset: { height: 2, width: 2, },
+              shadowOpacity: .25,
+              shadowRadius: 2,
+              marginBottom: 5,
+              elevation: 5,
             }} />
             <Spacer size="small" />
-            <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="theme-faded" handleClick={() => {
-              handleShowFiltered("🔒 private")
+            <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              handleShowFiltered("🔒 Private")
+            }} customStyle={{
+              shadowColor: "#000",
+              shadowOffset: { height: 2, width: 2, },
+              shadowOpacity: .25,
+              shadowRadius: 2,
+              marginBottom: 5,
+              elevation: 5
+            }} />
+            <Spacer size="small" />
+
+            <CustomButton labelText="👀 Opened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              handleShowFiltered("👀 Opened")
+            }} customStyle={{
+              shadowColor: "#000",
+              shadowOffset: { height: 2, width: 2, },
+              shadowOpacity: .25,
+              shadowRadius: 2,
+              marginBottom: 5,
+              elevation: 5
             }} />
             <Spacer size="small" />
           </ScrollView>
         </View>
-      </View>
+      </GradientView>
+
+
+      <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
+        const result = await getPressedLocationInfo(e, mapRef);
+        console.log(result)
+      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} />
 
       <View style={styles.mapControls}>
         <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />
@@ -202,30 +247,66 @@ export default function MapScreen() {
         }} src={getIconImage("focusUserLoc", mode === "light")} />
         <Spacer size="small" />
       </View>
+
+      <BottomSheet handleIndicatorStyle={{
+        backgroundColor: txtCol,
+      }} handleStyle={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+      }} containerStyle={{
+        zIndex: 200,
+        width: "100%",
+      }} backgroundStyle={{
+        borderRadius: 30,
+        elevation: 20,
+        shadowColor: "#000",
+        shadowOffset: { height: 0, width: 0 },
+        shadowOpacity: .175,
+        shadowRadius: 10,
+        width: "100%",
+        backgroundColor: bgCol
+      }}>
+        <BottomSheetScrollView>
+          <View style={{
+            flexDirection: "column",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            width: "100%",
+          }}>
+            <CustomButton labelText="Add friend" type="theme-faded" customStyle={{
+              height: 40,
+              width: 120,
+              marginTop: 15,
+              marginHorizontal: 15,
+              padding: 0,
+            }} />
+          </View>
+          <Spacer size="small" />
+        </BottomSheetScrollView>
+      </BottomSheet>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   headerWrapper: {
-    flex: 1,
     position: "absolute",
-    marginTop: 10,
-    top: 0,
-    left: 15,
-    right: 15,
     alignItems: "flex-start",
     justifyContent: "center",
     flexDirection: "row",
     zIndex: 10,
+    width: "100%",
   },
   headerText: {
     fontSize: 16
   },
   mapControls: {
     position: "absolute",
-    bottom: 70,
+    bottom: 85,
     right: 10,
+    zIndex: 100
   },
   headerTextContainer: {
     paddingHorizontal: 20,
@@ -241,13 +322,7 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
   },
-  bottomSheet: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowRadius: 7,
-    shadowOpacity: .1,
-    elevation: 4,
-  },
+
   searchBar: {
     opacity: .8,
     elevation: 6,

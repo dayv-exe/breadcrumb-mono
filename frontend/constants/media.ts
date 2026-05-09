@@ -52,6 +52,12 @@ export type DrawingOverlay = {
 
 export type EditOverlay = TextOverlay | StickerOverlay | DrawingOverlay;
 
+type UploadState = {
+  uploadUrl: string
+  error: Error | null
+  pending: boolean
+}
+
 // --- Media Data ---
 export type MediaData = {
   id: string
@@ -72,6 +78,7 @@ export type MediaData = {
   cropTransform?: CropTransform
   pendingCropTransform?: CropTransform
   isPlaceholder?: boolean
+  uploadState: UploadState
 };
 
 export const createDefaultCropTransform = (): CropTransform => ({

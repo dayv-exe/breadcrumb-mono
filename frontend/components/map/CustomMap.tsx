@@ -17,6 +17,8 @@ type customMapProps = {
   onMapPress?: (v: any) => void
   onMapLongPress?: (v: any) => void
   onLocationPuckPress?: () => void
+  maxZoomLvlToDark: number
+  setForceDark: (s: boolean) => void
   zoomLevel?: number
   pitch?: number
   zoom?: number
@@ -53,6 +55,8 @@ export default function CustomMap({
   zoomLevel = 3,
   pitch = 0,
   useSatellite = false,
+  maxZoomLvlToDark,
+  setForceDark,
 }: customMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -145,10 +149,10 @@ export default function CustomMap({
           onPress={(e) => {
             onMapPress(e);
           }}
-          attributionPosition={{ bottom: 80, left: 5 }}
-          logoPosition={{ top: -15, left: 15 }}
+          attributionPosition={{ bottom: 100, left: 10 }}
+          logoPosition={{ bottom: 75, left: 10 }}
           attributionEnabled={true}
-          logoEnabled={false}
+          logoEnabled={true}
           onTouchStart={(e) => {
             movedMap.current = true;
             gestures.handleTouchStart(e);
@@ -158,6 +162,13 @@ export default function CustomMap({
 
           }}
           onTouchCancel={gestures.handleTouchCancel}
+          onCameraChanged={e => {
+            if (e.properties.zoom <= maxZoomLvlToDark) {
+              setForceDark(true)
+            } else {
+              setForceDark(false)
+            }
+          }}
         >
           <Mapbox.Camera
             ref={cameraRef}
@@ -194,7 +205,7 @@ export default function CustomMap({
             <SymbolLayer
               id="frameLayer"
               style={{
-                iconImage: useCluster ? "clusterFrame" : mode === "light" ? "lightFrame" : "darkFrame", // pulls from feature properties
+                iconImage: useCluster ? "clusterFrame" : mode === "light" && !useSatellite ? "lightFrame" : "darkFrame", // pulls from feature properties
                 iconSize: .36,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
