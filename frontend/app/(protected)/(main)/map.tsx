@@ -13,6 +13,7 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useFocusEffect, useRouter } from "expo-router";
+import type { FeatureCollection } from "geojson";
 import { useCallback, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -90,6 +91,30 @@ export default function MapScreen() {
   const searchRef = useRef(null)
   const [useSat, setUseSat] = useState(false)
   const [forceDark, setForceDark] = useState(false)
+
+  const featureCollection: FeatureCollection = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        id: '1',
+        properties: { icon: 'avatar', initial: "DA" },
+        geometry: { type: 'Point', coordinates: [-1.4119485819435904, 50.90357624958019] },
+      },
+      {
+        type: 'Feature',
+        id: '2',
+        properties: { icon: '', initial: "LM" },
+        geometry: { type: 'Point', coordinates: [-1.4003734693118226, 50.90843458227937] },
+      },
+      {
+        type: 'Feature',
+        id: '3',
+        properties: { icon: '', initial: "CR" },
+        geometry: { type: 'Point', coordinates: [-1.4101579464572567, 50.92902669308694] },
+      },
+    ],
+  };
 
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -235,7 +260,7 @@ export default function MapScreen() {
       <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
         const result = await getPressedLocationInfo(e, mapRef);
         console.log(result)
-      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} />
+      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} featureCollection={featureCollection} />
 
       <View style={styles.mapControls}>
         <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />

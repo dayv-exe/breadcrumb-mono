@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useCustomGestures } from "@/hooks/useCustomGestures";
 import { showSettingsAlert } from "@/utils/helpers";
@@ -5,11 +6,11 @@ import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
+import type { FeatureCollection } from "geojson";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import CustomLabel from "../CustomLabel";
 import CustomButton from "../buttons/CustomButton";
-
+import CustomLabel from "../CustomLabel";
 
 type customMapProps = {
   mapRef?: React.RefObject<Mapbox.MapView | null>
@@ -23,6 +24,7 @@ type customMapProps = {
   pitch?: number
   zoom?: number
   useSatellite?: boolean
+  featureCollection?: FeatureCollection
 }
 
 type permissionProps = {
@@ -57,6 +59,7 @@ export default function CustomMap({
   useSatellite = false,
   maxZoomLvlToDark,
   setForceDark,
+  featureCollection
 }: customMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -66,30 +69,6 @@ export default function CustomMap({
   const coordinates = useLocationStore(s => s.coordinates);
   const [mapReady, setMapReady] = useState(false);
   const movedMap = useRef<boolean>(false);
-
-  const featureCollection = {
-    type: 'FeatureCollection',
-    features: [
-      {
-        type: 'Feature',
-        id: '1',
-        properties: { icon: 'pin' },
-        geometry: { type: 'Point', coordinates: [-1.4119485819435904, 50.90357624958019] },
-      },
-      {
-        type: 'Feature',
-        id: '2',
-        properties: { icon: 'pin' },
-        geometry: { type: 'Point', coordinates: [-1.4003734693118226, 50.90843458227937] },
-      },
-      {
-        type: 'Feature',
-        id: '3',
-        properties: { icon: 'pin' },
-        geometry: { type: 'Point', coordinates: [-1.4101579464572567, 50.92902669308694] },
-      },
-    ],
-  };
 
   const gestures = useCustomGestures(
     {
@@ -126,8 +105,6 @@ export default function CustomMap({
     "cluster": [-35, -35],
     "single": [-22, -22]
   }
-
-  const useCluster = false
 
   const getOffset = mode === "dark" ? offsets.single : offsets.cluster
 
@@ -193,57 +170,53 @@ export default function CustomMap({
           )}
           <Images
             images={{
-              lightFrame: require("../../assets/map_bg_light.png"),
-              darkFrame: require("../../assets/map_bg_dark.png"),
+              frame: mode === "dark" ? require("../../assets/map_bg_dark.png") : require("../../assets/map_bg_light.png"),
               clusterFrame: require("../../assets/map_cluster.png"),
+              clusterFg: require("../../assets/cluster_fg.png"),
               pin: require("../../assets/images/icons/bread_1f35e.png"),
               bread: require("../../assets/images/icons/bread_1f35e.png"),
               avatar: require("../../assets/images/icons/test_avatar_4.jpg")
             }}
           />
-          <ShapeSource id="markers" shape={featureCollection}>
+          <ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={14}>
             <SymbolLayer
               id="frameLayer"
               style={{
-                iconImage: useCluster ? "clusterFrame" : mode === "light" && !useSatellite ? "lightFrame" : "darkFrame", // pulls from feature properties
+                iconImage: "frame",
                 iconSize: .36,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
               }}
             />
+
             <SymbolLayer
-              id="pinLayer"
+              id="bgLayer"
               style={{
-                iconImage: 'avatar', // pulls from feature properties
-                iconSize: .225,
+                iconImage: 'clusterFg',
+                iconSize: .3,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: useCluster ? offsets.cluster : offsets.single
+                iconOffset: [-17, -17]
               }}
             />
 
             <SymbolLayer
-              id="clusterTextLayer"
+              id="textLayer"
               style={{
+                textField: ["get", "initial"],
+                textSize: 17,
+                textColor: Colors.light.text,
+                textIgnorePlacement: true,
                 textAllowOverlap: true,
-                textAnchor: "top-left",
-                textColor: "#fff",
-                textField: "+2",
-                textJustify: "center",
-                textOffset: [.5, -2.65],
-                textHaloColor: "#000",
-                textHaloWidth: 10,
-                textOpacity: useCluster ? 0 : 0,
+                textOffset: [-.275, -.25],
               }}
             />
-          </ShapeSource>
 
-          {/* <ShapeSource id="markers" shape={featureCollection}>
             <SymbolLayer
               id="pinLayer"
               style={{
-                iconImage: 'bread', // pulls from feature properties
-                iconSize: .1,
+                iconImage: ["get", "icon"], 
+                iconSize: .225,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
                 iconOffset: offsets.single
@@ -251,34 +224,41 @@ export default function CustomMap({
             />
 
             <SymbolLayer
-              id="frameLayer"
+              id="clusteredPoints"
+              filter={["has", "point_count"]}
               style={{
-                iconImage: "avatar", // pulls from feature properties
-                iconSize: .125,
+                iconImage: "clusterFrame",
+                iconSize: .36,
                 iconAllowOverlap: true,
-                iconAnchor: 'center',
-                iconOffset: [200, -250],
-                iconOpacity: 1,
-                iconHaloColor: "#fff",
-                iconHaloWidth: 2,
+                iconIgnorePlacement: true,
               }}
             />
 
             <SymbolLayer
-              id="clusterTextLayer"
+              id="clusterimg"
+              filter={["has", "point_count"]}
               style={{
-                textAllowOverlap: true,
-                textAnchor: "top-left",
-                textColor: "#fff",
-                textField: "DA",
-                textJustify: "center",
-                textOffset: [.5, -2.65],
-                textHaloColor: "#000",
-                textHaloWidth: 10,
-                textOpacity: 0,
+                iconImage: 'clusterFg',
+                iconSize: .29,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconOffset: [-27, -27]
               }}
             />
-          </ShapeSource> */}
+
+            <SymbolLayer
+              id="clusterCount"
+              filter={["has", "point_count"]}
+              style={{
+                textField: ["concat", "+", ["get", "point_count_abbreviated"]],
+                textSize: 17,
+                textColor: Colors.light.text,
+                textIgnorePlacement: true,
+                textAllowOverlap: true,
+                textOffset: [-.5, -.5],
+              }}
+            />
+          </ShapeSource>
         </Mapbox.MapView>
       )}
 
