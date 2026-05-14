@@ -80,41 +80,39 @@ export default function MapScreen() {
   const bgCol = useThemeColor({}, "background")
   const txtCol = useThemeColor({}, "text")
   const router = useRouter()
-  const { coordinates } = useLocationStore()
-  const [selPlace, setSelPlace] = useState<{ name?: string, type?: string } | null>(null)
   const { openSheet, closeSheet } = useBottomSheet()
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top
   const [pageName, setPageName] = useState("Unopened")
-  const [search, setSearch] = useState("")
-  const searchRef = useRef(null)
   const [useSat, setUseSat] = useState(false)
   const [forceDark, setForceDark] = useState(false)
-
-  const featureCollection: FeatureCollection = {
+  const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
+    "user_3": require("../../../assets/images/icons/test_avatar_4.jpg"),
+  })
+  const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
     features: [
       {
         type: 'Feature',
         id: '1',
-        properties: { icon: 'avatar', initial: "DA" },
+        properties: { profilePicture: 'user_1', nickname: "L", prompt: "" },
         geometry: { type: 'Point', coordinates: [-1.4119485819435904, 50.90357624958019] },
       },
       {
         type: 'Feature',
         id: '2',
-        properties: { icon: '', initial: "LM" },
+        properties: { profilePicture: 'user_2', nickname: "F", prompt: "" },
         geometry: { type: 'Point', coordinates: [-1.4003734693118226, 50.90843458227937] },
       },
       {
         type: 'Feature',
         id: '3',
-        properties: { icon: '', initial: "CR" },
+        properties: { profilePicture: 'user_3', nickname: "D", prompt: "" },
         geometry: { type: 'Point', coordinates: [-1.4101579464572567, 50.92902669308694] },
       },
     ],
-  };
+  })
 
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -140,6 +138,21 @@ export default function MapScreen() {
       pitch: 0,
       heading: 0,
     })
+
+    setCrumbFeatures(prev => ({
+      ...prev,
+      features: prev.features.map(feature =>
+        feature.id === "2"
+          ? {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              prompt: "Tap to view"
+            },
+          }
+          : feature
+      ),
+    }))
   }
 
   async function getMapCenter() {
@@ -259,8 +272,8 @@ export default function MapScreen() {
 
       <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
         const result = await getPressedLocationInfo(e, mapRef);
-        console.log(result)
-      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} featureCollection={featureCollection} />
+        // console.log(result?.features[0])
+      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} featureCollection={crumbFeatures} featureCollectionImages={crumbImages} />
 
       <View style={styles.mapControls}>
         <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />

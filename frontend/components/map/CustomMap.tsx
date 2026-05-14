@@ -24,6 +24,7 @@ type customMapProps = {
   pitch?: number
   zoom?: number
   useSatellite?: boolean
+  featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
   featureCollection?: FeatureCollection
 }
 
@@ -59,7 +60,8 @@ export default function CustomMap({
   useSatellite = false,
   maxZoomLvlToDark,
   setForceDark,
-  featureCollection
+  featureCollection,
+  featureCollectionImages
 }: customMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -106,7 +108,8 @@ export default function CustomMap({
     "single": [-22, -22]
   }
 
-  const getOffset = mode === "dark" ? offsets.single : offsets.cluster
+  const promptTextCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
+  const promptTextBgCol = mode === "dark" || useSatellite ? Colors.dark.background : Colors.light.background
 
   return (
     <View style={styles.container}>
@@ -170,12 +173,10 @@ export default function CustomMap({
           )}
           <Images
             images={{
-              frame: mode === "dark" ? require("../../assets/map_bg_dark.png") : require("../../assets/map_bg_light.png"),
+              frame: mode === "dark" || useSatellite ? require("../../assets/map_bg_dark.png") : require("../../assets/map_bg_light.png"),
               clusterFrame: require("../../assets/map_cluster.png"),
               clusterFg: require("../../assets/cluster_fg.png"),
-              pin: require("../../assets/images/icons/bread_1f35e.png"),
-              bread: require("../../assets/images/icons/bread_1f35e.png"),
-              avatar: require("../../assets/images/icons/test_avatar_4.jpg")
+              ...(featureCollectionImages || {}),
             }}
           />
           <ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={14}>
@@ -203,7 +204,7 @@ export default function CustomMap({
             <SymbolLayer
               id="textLayer"
               style={{
-                textField: ["get", "initial"],
+                textField: ["get", "nickname"],
                 textSize: 17,
                 textColor: Colors.light.text,
                 textIgnorePlacement: true,
@@ -213,9 +214,23 @@ export default function CustomMap({
             />
 
             <SymbolLayer
+              id="promptLayer"
+              style={{
+                textField: ["get", "prompt"],
+                textSize: 11,
+                textColor: promptTextCol,
+                textHaloColor: promptTextBgCol,
+                textHaloWidth: 1,
+                textIgnorePlacement: true,
+                textAllowOverlap: true,
+                textOffset: [-.5, 3],
+              }}
+            />
+
+            <SymbolLayer
               id="pinLayer"
               style={{
-                iconImage: ["get", "icon"], 
+                iconImage: ["get", "profilePicture"],
                 iconSize: .225,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',

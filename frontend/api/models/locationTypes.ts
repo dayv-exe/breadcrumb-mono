@@ -1,1 +1,1 @@
-export type LocationTypes = "gps" | "friend-gps" | "label" | "dropped-pin"
+export type LocationTypes = "gps" | "label" | "dropped-pin" | "none"

@@ -8,6 +8,7 @@ import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
+import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -48,7 +49,7 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme];
 }
 
-const sendOpt = ["My location", "Friends' location", "Choose on map"];
+const sendOpt = ["My location", "Choose on map", "Global"];
 const ShareListItem = ({
   title,
   subtitle,
@@ -215,6 +216,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const [selectedFriends, setSelectedFriends] = useState<iSelectedFriend[]>([]);
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
   const { address, coordinates } = useLocationStore();
+  const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
   const [shareIsPending, setShareIsPending] = useState(false)
   const { showModal, hideModal } = useModal()
   const resetMediaStore = useMediaStore(s => s.reset)
@@ -234,8 +236,8 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
     onSuccess: files => {
       shareCrumb({
         id: files[0].crumbId,
-        lat: coordinates?.latitude ?? 0,
-        lon: coordinates?.longitude ?? 0,
+        lat: (selLoc === sendOpt[1] ? getSelectedAddress().lat : coordinates?.latitude) ?? 0,
+        lon: (selLoc === sendOpt[1] ? getSelectedAddress().lon : coordinates?.longitude) ?? 0,
         text: files.filter(f => f.type === "text").map(f => ({
           index: f.index,
           content: f.text?.content ?? ""
@@ -248,7 +250,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           thumbnail: f.thumbnail?.mediaKey,
         })),
         locationAccuracy: coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS,
-        locationType: selLoc === sendOpt[2] ? "label" : selLoc === sendOpt[1] ? "friend-gps" : "gps",
+        locationType: selLoc === sendOpt[0] ? "gps" : selLoc === sendOpt[1] ? "label" : "none",
         receivers: selectedFriends.map(f => f.id),
       }, {
         onSuccess: (s) => {
@@ -271,10 +273,25 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
     },
   });
 
+  const getSelectedAddress = (): { address: string, lat: number, lon: number } => {
+    if (activePoi) {
+      return {
+        address: (activePoi?.properties as any).name,
+        lat: (activePoi?.geometry as any).coordinates[1],
+        lon: (activePoi?.geometry as any).coordinates[0]
+      }
+    }
+
+    return {
+      address: "",
+      lat: 0,
+      lon: 0,
+    }
+  }
+
   const getLocText = () => {
-    if (selLoc === sendOpt[0]) return `📍${address ?? "your current location"}`;
-    else if (selLoc === sendOpt[1]) return `📍their location`;
-    else return `📍custom location`;
+    if (selLoc === sendOpt[1]) return `📍${getSelectedAddress().address ?? "custom location"}`;
+    else return `📍${address ?? "your current location"}`;
   };
 
   const { mutate: shareCrumb } = useShareCrumb()
@@ -342,13 +359,23 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           selected={selLoc === item}
           setSelected={() => setSelLoc(item)}
           onPressed={s => {
-            if (item !== sendOpt[2]) return
-            showModal({
-              overrideDefaultBg: true,
-              content: (
-                <ChooseOnMap handleCancel={hideModal} handleChooseLocation={(lat, lon) => { }} />
-              ),
-            })
+            if (item === sendOpt[1]) {
+              showModal({
+                overrideDefaultBg: true,
+                content: (
+                  <ChooseOnMap selectedPoi={activePoi} handleCancel={() => {
+                    hideModal()
+                    if (activePoi) return
+                    setSelLoc(sendOpt[0])
+                  }} handleChooseLocation={(poi) => {
+                    setActivePoi(poi)
+                    hideModal()
+                  }} />
+                ),
+              })
+            } else {
+              setActivePoi(null)
+            }
           }}
           onChanged={s => {
             if (item === sendOpt[3]) {
@@ -358,8 +385,8 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           selText={
             item === sendOpt[0]
               ? `Crumb${usePlural ? "s" : ""} can only be viewed here`
-              : item === sendOpt[1] ? `They can view crumb${usePlural ? "s" : ""} immediately`
-                : item === sendOpt[2] ? `Crumb${usePlural ? "s" : ""} can only be viewed there`
+              : item === sendOpt[1] ? `Crumb${usePlural ? "s" : ""} can only be viewed there`
+                : item === sendOpt[2] ? `Crumb${usePlural ? "s" : ""} can be viewed from anywhere`
                   : `Visible to all your friends for 24h`
           }
         />

@@ -1,19 +1,43 @@
 import Mapbox from "@rnmapbox/maps";
-import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
+import type { Position } from "geojson";
+import React from "react";
+import { PixelRatio, Platform } from "react-native";
 
-export const getPressedLocationInfo = async (e: any, mapRef: React.RefObject<Mapbox.MapView | null>) => {
-  const screenPoint: Position = [e.properties.screenPointX, e.properties.screenPointY];
-  const res = await mapRef.current?.queryRenderedFeaturesAtPoint(screenPoint, null, [
-    "poi-label",
-    "transit-label",
-    "continent-label",
-    "country-label",
-    "state-label",
-    "settlement-major-label",
-    "settlement-minor-label",
-    "settlement-subdivision-label",
-  ]);
-  return res?.features[0]
+export const SELECTABLE_MAPBOX_LAYER = [
+  "poi-label",
+  "transit-label",
+  "airport-label",
+  "continent-label",
+  "country-label",
+  "state-label",
+  "settlement-major-label",
+  "settlement-minor-label",
+  // "settlement-subdivision-label",
+]
+
+export const getPressedLocationInfo = async (
+  e: any,
+  mapRef: React.RefObject<Mapbox.MapView | null>
+) => {
+  let x = e.properties.screenPointX;
+  let y = e.properties.screenPointY;
+
+  // On Android, screenPointX/Y come back in raw device pixels,
+  // but queryRenderedFeaturesAtPoint expects density-independent pixels.
+  if (Platform.OS === "android") {
+    const ratio = PixelRatio.get();
+    x = x / ratio;
+    y = y / ratio;
+  }
+
+  const screenPoint: Position = [x, y];
+
+  const res = await mapRef.current?.queryRenderedFeaturesAtPoint(
+    screenPoint,
+    undefined,
+    SELECTABLE_MAPBOX_LAYER
+  );
+  return res;
 };
 
 type FeatureProps = {

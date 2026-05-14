@@ -1,20 +1,66 @@
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
+import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../buttons/CustomButton";
+import CustomImageButton from "../buttons/CustomImageButton";
+import CustomLabel from "../CustomLabel";
+import CustomMap from "../map/CustomMap2";
 import Spacer from "../Spacer";
 import CustomSearchInput from "./CustomSearchInput";
 
 interface props {
+  selectedPoi: Feature<Geometry, GeoJsonProperties> | null
   handleCancel: () => void
-  handleChooseLocation: (latitude: number, longitude: number) => void
+  handleChooseLocation: (p: Feature<Geometry, GeoJsonProperties> | null) => void
 }
 
-export default function ChooseOnMap({ handleCancel, handleChooseLocation }: props) {
+const icons = {
+  focusUserLoc: {
+    light: require("../../assets/images/icons/userlocation_sel_light.png"),
+    dark: require("../../assets/images/icons/userlocation_sel_dark.png")
+  },
+  mapToggle: {
+    light: require("../../assets/images/icons/maptoggle_sel_light.png"),
+    dark: require("../../assets/images/icons/maptoggle_sel_dark.png")
+  },
+  satellite: {
+    light: require("../../assets/images/icons/satellite_sel_light.png"),
+    dark: require("../../assets/images/icons/satellite_sel_dark.png")
+  },
+}
+
+function getIconImage(name: keyof typeof icons, darkMode: boolean) {
+  const theme = darkMode ? "dark" : "light"
+  return icons[name][theme]
+}
+
+export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLocation }: props) {
   const insets = useSafeAreaInsets()
+
+  const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(selectedPoi)
+
   const searchRef = useRef(null)
   const [searchStr, setSearchStr] = useState("")
+
+  const mapRef = useRef<Mapbox.MapView>(null)
+  const camRef = useRef<Mapbox.Camera>(null)
+  const [useSatellite, setUseSatellite] = useState(false)
+  const bgCol = useThemeColor({}, "background")
+
+  const coords = useLocationStore(s => s.coordinates)
+  const focusOnUser = () => {
+    camRef.current?.setCamera({
+      centerCoordinate: [coords?.longitude ?? 0, coords?.latitude ?? 0],
+      zoomLevel: 12.5,
+      animationDuration: 1000,
+      pitch: 0,
+      heading: 0,
+    })
+  }
 
   return (
     <View style={styles.container}>
@@ -30,17 +76,36 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation }: prop
           }
         ]} slim labelText="Cancel" type="less-prominent" handleClick={handleCancel} />
       </View>
-      <Mapbox.MapView
-        focusable
-        rotateEnabled={true}
-        compassFadeWhenNorth
-        compassEnabled
-        compassPosition={{ top: 65, right: 12 }}
-        scaleBarEnabled={false}
-        style={styles.map}
-      >
+      <CustomMap useSatellite={useSatellite} mapRef={mapRef} cameraRef={camRef} activePoi={activePoi} setActivePoi={setActivePoi} />
 
-      </Mapbox.MapView>
+      <View style={[styles.controlsContainer, {
+        bottom: insets.bottom + 100,
+      }]}>
+        <CustomImageButton size={21} src={getIconImage("satellite", true)} handleClick={() => setUseSatellite(s => !s)} />
+        <Spacer size="small" />
+        <CustomImageButton size={21} src={getIconImage("focusUserLoc", true)} handleClick={focusOnUser} />
+      </View>
+
+      <View style={[styles.bottomSheet, { bottom: 0, backgroundColor: bgCol, minHeight: 100 }]}>
+        {!activePoi && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
+        {activePoi &&
+          <>
+            <View style={{
+              flexGrow: 1,
+              flexShrink: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: 'column',
+            }}>
+              <CustomLabel adaptToTheme labelText={(activePoi.properties as any).name} customStyle={{ padding: 0 }} allowTruncate />
+              <CustomLabel adaptToTheme fade fontSize={13} labelText={(activePoi.properties as any).type ?? (activePoi.properties as any).maki} customStyle={{ padding: 0 }} />
+            </View>
+            <CustomButton handleClick={() => handleChooseLocation(
+              activePoi
+            )} type="less-prominent" labelText="Select" slim useMinWidth />
+          </>
+        }
+      </View>
     </View>
   )
 }
@@ -69,5 +134,26 @@ const styles = StyleSheet.create({
 
   searchBar: {
     zIndex: 1000,
+  },
+
+  controlsContainer: {
+    position: "absolute",
+    right: 15
+  },
+
+  bottomSheet: {
+    position: "absolute",
+    width: "100%",
+    paddingHorizontal: 25,
+    paddingBottom: 25,
+    zIndex: 1000,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { height: 0, width: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   }
 })
