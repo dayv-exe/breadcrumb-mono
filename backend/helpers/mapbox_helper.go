@@ -168,7 +168,7 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 	}
 
 	switch locationSelectionManner {
-	case constants.LOCATION_TYPE_MINE, constants.LOCATION_TYPE_FRIEND:
+	case constants.LOCATION_TYPE_MINE, constants.LOCATION_TYPE_NONE:
 		log.Printf("location selection manner: %s\nGetting gps sel places", locationSelectionManner)
 		return getGpsSelectedPlacesId(fc), nil
 
@@ -196,7 +196,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	var clickedLabel Feature
 	// first find the label that was clicked
 	for _, feature := range fc.Features {
-		if feature.Properties.Tilequery.Layer == "poi_label" && feature.Properties.Tilequery.Distance == 0 {
+		if (feature.Properties.Tilequery.Layer == "poi_label" || feature.Properties.Tilequery.Layer == "airport_label" || feature.Properties.Tilequery.Layer == "transit_stop_label") && feature.Properties.Tilequery.Distance == 0 {
 			clickedLabel = feature
 			break
 		}

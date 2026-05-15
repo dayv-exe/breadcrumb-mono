@@ -28,7 +28,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 		return fmt.Errorf("Crumb id cannot be empty")
 	}
 
-	if crumb.LocationType != constants.LOCATION_TYPE_MINE && crumb.LocationType != constants.LOCATION_TYPE_FRIEND && crumb.LocationType != constants.LOCATION_TYPE_LABEL && crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
+	if crumb.LocationType != constants.LOCATION_TYPE_MINE && crumb.LocationType != constants.LOCATION_TYPE_NONE && crumb.LocationType != constants.LOCATION_TYPE_LABEL && crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
 		return fmt.Errorf("Invalid crumb location type")
 	}
 

@@ -26,7 +26,7 @@ const (
 	MAP_ZOOM_BIG              = 2                // for geo hashing
 	MAP_ZOOM_VBIG             = 0                // for geo hashing
 	LOCATION_TYPE_MINE        = "gps"
-	LOCATION_TYPE_FRIEND      = "friend-gps"
+	LOCATION_TYPE_NONE        = "none" // crumb visibility is global
 	LOCATION_TYPE_LABEL       = "label"
 	LOCATION_TYPE_DROPPED_PIN = "dropped-pin"
 	EARTH_RADIUS              = 6_371_000 // meters

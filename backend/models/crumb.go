@@ -89,7 +89,7 @@ type CrumbCoordinates struct {
 
 // Returns a slice of crumb models one for each receiver
 func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
-	if b.LocationType == constants.LOCATION_TYPE_FRIEND {
+	if b.LocationType == constants.LOCATION_TYPE_NONE {
 		b.LocationAccuracy = math.MaxInt32
 	}
 	crumbs := make([]Crumb, 0)
