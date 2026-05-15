@@ -156,6 +156,7 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		expression.Name("placeId"),
 		expression.Name("locationType"),
 		expression.Name("locationAccuracy"),
+		expression.Name("formattedAddress"),
 	)
 
 	indexName := "GSIndex2"
