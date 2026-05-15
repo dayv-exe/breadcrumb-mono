@@ -2,12 +2,13 @@ import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
-import Mapbox from "@rnmapbox/maps";
+import Mapbox, { Images } from "@rnmapbox/maps";
 import Constants from "expo-constants";
+import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 
@@ -22,6 +23,8 @@ type CustomMapProps = {
   onLocationPuckPress?: () => void;
   activePoi: Feature<Geometry, GeoJsonProperties> | null
   setActivePoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
+  dropPinCoord: [number, number] | null
+  setDropPinCoord: (coords: [number, number] | null) => void
   useSatellite?: boolean;
 };
 
@@ -65,6 +68,8 @@ export default function CustomMap({
   pitch = 0,
   activePoi,
   setActivePoi,
+  dropPinCoord,
+  setDropPinCoord,
   onMapPress = () => { },
   onMapLongPress = () => { },
   onLocationPuckPress,
@@ -109,7 +114,9 @@ export default function CustomMap({
       const poi = features?.[0];
 
       if (poi) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setActivePoi(poi);
+        setDropPinCoord(null)
         requestAnimationFrame(() => setHasAnimatedIn(true));
         cameraRef?.current?.setCamera({
           centerCoordinate: (poi.geometry as any).coordinates as [number, number],
@@ -121,10 +128,20 @@ export default function CustomMap({
       }
     }
 
-    // No POI was pressed — clear active state and fall through to default handler
     setActivePoi(null);
+    setDropPinCoord(null)
     onMapPress(e);
   };
+
+  const handleMapLongPress = (e: Feature<Geometry, GeoJsonProperties>) => {
+    if (e.geometry.type === "Point") {
+      const coords = e.geometry.coordinates as [number, number];
+      setDropPinCoord(coords);
+      setActivePoi(null)
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    onMapLongPress(e);
+  }
 
   const initialCenter =
     centerCoordinate ??
@@ -147,7 +164,7 @@ export default function CustomMap({
           logoPosition={{ bottom: 75, left: 10 }}
           onDidFinishLoadingMap={() => setMapReady(true)}
           onPress={handleMapPress}
-          onLongPress={onMapLongPress}
+          onLongPress={handleMapLongPress}
           onTouchStart={() => {
             movedMap.current = true;
           }}
@@ -158,6 +175,12 @@ export default function CustomMap({
             zoomLevel={zoomLevel}
             pitch={pitch}
             animationDuration={0}
+          />
+
+          <Images
+            images={{
+              "droppedPin": require("../../assets/drop_pin.png")
+            }}
           />
 
           {/* Hide the base style's version of the active feature on every selectable layer */}
@@ -176,7 +199,23 @@ export default function CustomMap({
               />
             ))} */}
 
-          {/* Active POI highlight — render the POI's own icon, bigger and bolder */}
+          {dropPinCoord && (
+            <Mapbox.PointAnnotation
+              id="dropped-pin"
+              coordinate={dropPinCoord}
+              anchor={{x: 0.5, y: 1}}
+              draggable
+              onDragEnd={(e) => {
+                const coords = (e.geometry as any).coordinates as [number, number];
+                setDropPinCoord(coords);
+              }}
+            >
+              <Image source={require("../../assets/drop_pin.png")} style={{
+                width: 40, height: 40
+              }} />
+            </Mapbox.PointAnnotation>
+          )}
+
           {activePoi && activePoi.geometry.type === "Point" && (
             <Mapbox.ShapeSource id="active-poi-source" shape={activePoi}>
               {/* Category icon on top */}
@@ -229,4 +268,20 @@ export default function CustomMap({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
+  pin: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#ff3b30",
+    borderWidth: 2,
+    borderColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pinInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#fff",
+  },
 });

@@ -42,6 +42,7 @@ export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLoc
   const insets = useSafeAreaInsets()
 
   const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(selectedPoi)
+  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
 
   const searchRef = useRef(null)
   const [searchStr, setSearchStr] = useState("")
@@ -76,10 +77,10 @@ export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLoc
           }
         ]} slim labelText="Cancel" type="less-prominent" handleClick={handleCancel} />
       </View>
-      <CustomMap useSatellite={useSatellite} mapRef={mapRef} cameraRef={camRef} activePoi={activePoi} setActivePoi={setActivePoi} />
+      <CustomMap useSatellite={useSatellite} mapRef={mapRef} cameraRef={camRef} activePoi={activePoi} setActivePoi={setActivePoi} dropPinCoord={droppedPin} setDropPinCoord={setDroppedPin} />
 
       <View style={[styles.controlsContainer, {
-        bottom: insets.bottom + 100,
+        bottom: insets.bottom + 130,
       }]}>
         <CustomImageButton size={21} src={getIconImage("satellite", true)} handleClick={() => setUseSatellite(s => !s)} />
         <Spacer size="small" />
@@ -87,7 +88,7 @@ export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLoc
       </View>
 
       <View style={[styles.bottomSheet, { bottom: 0, backgroundColor: bgCol, minHeight: 100 }]}>
-        {!activePoi && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
+        {!activePoi && !droppedPin && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
         {activePoi &&
           <>
             <View style={{
@@ -99,6 +100,25 @@ export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLoc
             }}>
               <CustomLabel adaptToTheme labelText={(activePoi.properties as any).name} customStyle={{ padding: 0 }} allowTruncate />
               <CustomLabel adaptToTheme fade fontSize={13} labelText={(activePoi.properties as any).type ?? (activePoi.properties as any).maki} customStyle={{ padding: 0 }} />
+            </View>
+            <CustomButton handleClick={() => handleChooseLocation(
+              activePoi
+            )} type="less-prominent" labelText="Select" slim useMinWidth />
+          </>
+        }
+        {droppedPin &&
+          <>
+            <View style={{
+              flexGrow: 1,
+              flexShrink: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: 'column',
+            }}>
+              <CustomLabel adaptToTheme labelText="Dropped pin" customStyle={{ padding: 0 }} allowTruncate />
+              <Spacer size="small" />
+              <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lat: ${droppedPin[1]}`} customStyle={{ padding: 0 }} />
+              <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lon: ${droppedPin[0]}`} customStyle={{ padding: 0 }} />
             </View>
             <CustomButton handleClick={() => handleChooseLocation(
               activePoi
@@ -145,7 +165,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     paddingHorizontal: 25,
-    paddingBottom: 25,
+    paddingVertical: 15,
+    paddingBottom: 50,
     zIndex: 1000,
     elevation: 10,
     shadowColor: "#000",
