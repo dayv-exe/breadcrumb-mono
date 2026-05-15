@@ -16,14 +16,15 @@ export async function InitDb() {
   PRAGMA journal_mode = WAL;
   CREATE TABLE IF NOT EXISTS crumbs (
   id TEXT PRIMARY KEY NOT NULL,
-  lat REAL,
-  lon REAL,
-  receiver TEXT NOT NULL,
-  sender TEXT NOT NULL,
-  opened INTEGER NOT NULL,
-  time INTEGER NOT NULL
+    lat REAL,
+    lon REAL,
+    receiver TEXT NOT NULL,
+    sender TEXT NOT NULL,
+    opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
+    time INTEGER NOT NULL,
+    placeId TEXT,
+    locationType TEXT NOT NULL CHECK(locationType IN ('gps', 'label', 'dropped-pin', 'none')),
+    locationAccuracy REAL
   );
 `);
-
-  console.log(await db.getAllAsync("SELECT id,receiver,time FROM crumbs ORDER BY time DESC LIMIT 1"))
 }

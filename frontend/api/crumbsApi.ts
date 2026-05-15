@@ -1,7 +1,8 @@
 import axiosInstance from "@/constants/axios"
 import { AxiosError } from "axios"
+import { UpsertCrumbs } from "./db/crumbsDb"
 import { apiResponse, extractBackendMsg } from "./models/apiResponse"
-import { Crumb, CrumbIdPrefix, CrumbReceiverPrefix, CrumbSenderPrefix, CrumbTimePrefix } from "./models/crumb"
+import { Crumb } from "./models/crumb"
 import { crumbMedia } from "./models/crumbMedia"
 import { crumbText } from "./models/crumbText"
 import { LocationTypes } from "./models/locationTypes"
@@ -19,15 +20,14 @@ export type crumbBody = {
   text?: crumbText[]
 }
 
-export const getLatestCrumbs = async (sentCrumbs: boolean, userId?: string, crumbId?: string, lastTimeStamp?: string): Promise<apiResponse<Crumb[]>> => {
+export const getLatestCrumbs = async (sentCrumbs: boolean, crumbId?: string, lastTimeStamp?: string): Promise<apiResponse<Crumb[]>> => {
   let url = `/api/v1/crumbs`
-  if (userId) {
-    userId = sentCrumbs ? CrumbSenderPrefix + userId : CrumbReceiverPrefix + userId
-    lastTimeStamp = CrumbTimePrefix + lastTimeStamp + CrumbIdPrefix + crumbId
-    url += `?pk=${userId}&sk=${lastTimeStamp}&sent=${sentCrumbs}`
+  if (crumbId) {
+    url += `?crumbId=${crumbId}&time=${lastTimeStamp}&sent=${sentCrumbs}`
   }
   try {
     const { data } = await axiosInstance.get<{ message: Crumb[] }>(url)
+    UpsertCrumbs(data.message)
     return { message: data.message, error: null }
   } catch (error) {
     console.error(extractBackendMsg(error))

@@ -5,7 +5,7 @@ const CHUNK_SIZE = 120
 
 
 function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
-  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?)").join(", ");
+  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
 
   const values = crumbs.flatMap((crumb) => [
     crumb.id,
@@ -15,6 +15,9 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     crumb.receiver,
     crumb.opened ? 1 : 0,
     crumb.time,
+    crumb.placeId,
+    crumb.locationAccuracy,
+    crumb.locationType
   ]);
   return {
     sql: `
@@ -25,7 +28,10 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         sender,
         receiver,
         opened,
-        time
+        time,
+        placeId,
+        locationAccuracy,
+        locationType
       )
       VALUES ${placeholders}
       ON CONFLICT(id) DO UPDATE SET
@@ -34,7 +40,10 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         sender = excluded.sender,
         receiver = excluded.receiver,
         opened = excluded.opened,
-        time = excluded.time
+        time = excluded.time,
+        placeId = excluded.placeId,
+        locationAccuracy = excluded.locationAccuracy,
+        locationType = excluded.locationType
     `,
     values,
   };
@@ -66,14 +75,44 @@ export async function GetLastReceivedCrumbDetails(): Promise<Crumb | null> {
   return c
 }
 
-export async function GetCrumbsInViewport(maxLat: number, minLat: number, minLon: number, maxLon: number): Promise<Crumb | null> {
-  const db = await getDb()
-  const c: Crumb | null = await db.getFirstAsync(
-    `SELECT * FROM crumbs ORDER BY time DESC LIMIT 1`
-  )
-  if (!c) {
-    return null
-  }
+export async function GetCrumbsInViewport(
+  maxLat: number,
+  minLat: number,
+  minLon: number,
+  maxLon: number
+): Promise<Crumb[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<Crumb>(
+    `SELECT * FROM crumbs 
+     WHERE lat <= ? AND lat >= ? AND lon <= ? AND lon >= ? 
+     ORDER BY time DESC`,
+    [maxLat, minLat, maxLon, minLon]
+  );
 
-  return c
+  return rows
+}
+
+export async function GetCrumbsByDistance(
+  userLat: number,
+  userLon: number
+): Promise<(Crumb)[]> {
+  const db = await getDb();
+
+  // Pre-compute the longitude scaling factor once.
+  // At higher latitudes, a degree of longitude covers less ground than a degree of latitude.
+  const lonScale = Math.cos((userLat * Math.PI) / 180);
+
+  const rows = await db.getAllAsync<Crumb>(
+    `SELECT *,
+      (
+        ((lat - ?) * 111320.0) * ((lat - ?) * 111320.0) +
+        ((lon - ?) * 111320.0 * ?) * ((lon - ?) * 111320.0 * ?)
+      ) AS distanceSq
+     FROM crumbs
+     WHERE lat IS NOT NULL AND lon IS NOT NULL
+     ORDER BY distanceSq ASC`,
+    [userLat, userLat, userLon, lonScale, userLon, lonScale]
+  );
+
+  return rows
 }

@@ -16,10 +16,10 @@ export const useGetCrumbs = () => {
   })
 }
 
-export const useGetLatestCrumbs = (sentCrumbs: boolean, userId?: string, lastTimeStamp?: string) => {
+export const useGetLatestCrumbs = (sentCrumbs: boolean, crumbId?: string, lastTimeStamp?: string) => {
   return useInfiniteQuery({
     queryKey: [`latest-crumbs-${sentCrumbs ? "sent" : "received"}`],
-    queryFn: () => getLatestCrumbs(sentCrumbs, userId, lastTimeStamp),
+    queryFn: () => getLatestCrumbs(sentCrumbs, crumbId, lastTimeStamp),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
   })
