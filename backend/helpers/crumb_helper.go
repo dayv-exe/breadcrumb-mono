@@ -6,7 +6,6 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -38,7 +37,6 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	transactions := make([]types.TransactWriteItem, 0)
 
 	placeIds := make([]string, 0)
-	log.Printf("Crumb body: %v", crumb)
 	if crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
 		ids, err := NewMapboxHelper(h.Ctx).GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
 		if err != nil {
