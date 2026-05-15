@@ -18,25 +18,34 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 	sentCrumb := strings.ToLower(req.QueryStringParameters["sent"]) == "true"
 
 	lastKeyParam, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
-	lastSk := strings.TrimSpace(req.QueryStringParameters["sk"])
+	crumbId := strings.TrimSpace(req.QueryStringParameters["crumbId"])
+	timestamp := strings.TrimSpace(req.QueryStringParameters["time"])
 
 	var lastKey map[string]types.AttributeValue
 
 	pk := models.CrumbSenderPrefix + userId
+	gsi := models.CrumbSenderPrefix + userId
 	if !sentCrumb {
 		pk = models.CrumbReceiverPrefix + userId
+		gsi = models.CrumbReceiverPrefix + userId
 	}
 
-	if lastSk != "" {
+	gsiSk := models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
+
+	if crumbId != "" && timestamp != "" {
 		lastKey = map[string]types.AttributeValue{
-			"gsi2":   &types.AttributeValueMemberS{Value: pk},
-			"gsi2Sk": &types.AttributeValueMemberS{Value: lastSk},
+			"pk":     &types.AttributeValueMemberS{Value: pk},
+			"sk":     &types.AttributeValueMemberS{Value: models.CrumbIdPrefix + crumbId},
+			"gsi2":   &types.AttributeValueMemberS{Value: gsi},
+			"gsi2Sk": &types.AttributeValueMemberS{Value: gsiSk},
 		}
 
 		if sentCrumb {
 			lastKey = map[string]types.AttributeValue{
-				"gsi3":   &types.AttributeValueMemberS{Value: pk},
-				"gsi3Sk": &types.AttributeValueMemberS{Value: lastSk},
+				"pk":     &types.AttributeValueMemberS{Value: pk},
+				"sk":     &types.AttributeValueMemberS{Value: models.CrumbIdPrefix + crumbId},
+				"gsi3":   &types.AttributeValueMemberS{Value: gsi},
+				"gsi3Sk": &types.AttributeValueMemberS{Value: gsiSk},
 			}
 		}
 	} else {
