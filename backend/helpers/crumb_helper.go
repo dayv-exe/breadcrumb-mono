@@ -36,9 +36,16 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 	transactions := make([]types.TransactWriteItem, 0)
 
+	mapboxHelper := NewMapboxHelper(h.Ctx)
+
 	placeIds := make([]string, 0)
+	formattedAddress, err := mapboxHelper.GetFormattedAddress(crumb.Lat, crumb.Lon)
+	if err != nil {
+		return err
+	}
+
 	if crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
-		ids, err := NewMapboxHelper(h.Ctx).GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
+		ids, err := mapboxHelper.GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
 		if err != nil {
 			return fmt.Errorf("Failed to send crumb. ERROR: %v", err)
 		}
@@ -49,6 +56,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	for _, crumb := range *crumbs {
 		// unread crumbs to be sent to recipient
 		crumb.PlaceId = strings.Join(placeIds, ",")
+		crumb.FormattedAddress = formattedAddress
 		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
 	}
 

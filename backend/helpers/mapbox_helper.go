@@ -274,3 +274,40 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	log.Printf("ids: %v", ids)
 	return ids
 }
+
+func (h *mapboxHelper) GetFormattedAddress(lat, lon float64) (string, error) {
+	endpoint := fmt.Sprintf("%s.json", constants.MAPBOX_GEOCODING_API)
+
+	q := url.Values{}
+	q.Set("longitude", fmt.Sprintf("%f", lon))
+	q.Set("latitude", fmt.Sprintf("%f", lat))
+	q.Set("access_token", h.MapboxToken)
+
+	fullURL := endpoint + "?" + q.Encode()
+
+	log.Printf("full url: %s", fullURL)
+
+	req, err := http.NewRequestWithContext(h.Ctx, http.MethodGet, fullURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("build request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("mapbox geocoding request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("mapbox geocoding returned status %d", resp.StatusCode)
+	}
+
+	log.Printf("mapbox query ok: %v", resp)
+
+	var collection GeocodingResponse
+	if err := json.NewDecoder(resp.Body).Decode(&collection); err != nil {
+		return "", fmt.Errorf("decode response: %w", err)
+	}
+
+	return collection.Features[0].Properties.FullAddress, nil
+}
