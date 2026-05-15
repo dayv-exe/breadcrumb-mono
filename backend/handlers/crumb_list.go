@@ -5,6 +5,7 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -41,6 +42,8 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 	} else {
 		lastKey = lastKeyParam
 	}
+
+	fmt.Printf("the last key: %v", lastKey)
 
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
