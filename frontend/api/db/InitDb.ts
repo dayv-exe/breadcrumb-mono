@@ -24,7 +24,8 @@ export async function InitDb() {
     time INTEGER NOT NULL,
     placeId TEXT,
     locationType TEXT NOT NULL CHECK(locationType IN ('gps', 'label', 'dropped-pin', 'none')),
-    locationAccuracy REAL
+    locationAccuracy REAL,
+    formattedAddress TEXT
   );
 `);
 }

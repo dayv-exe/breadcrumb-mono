@@ -5,7 +5,7 @@ const CHUNK_SIZE = 120
 
 
 function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
-  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
 
   const values = crumbs.flatMap((crumb) => [
     crumb.id,
@@ -17,7 +17,8 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     crumb.time,
     crumb.placeId,
     crumb.locationAccuracy,
-    crumb.locationType
+    crumb.locationType,
+    crumb.formattedAddress
   ]);
   return {
     sql: `
@@ -31,7 +32,8 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         time,
         placeId,
         locationAccuracy,
-        locationType
+        locationType,
+        formattedAddress
       )
       VALUES ${placeholders}
       ON CONFLICT(id) DO UPDATE SET
@@ -43,7 +45,8 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         time = excluded.time,
         placeId = excluded.placeId,
         locationAccuracy = excluded.locationAccuracy,
-        locationType = excluded.locationType
+        locationType = excluded.locationType,
+        formattedAddress = excluded.formattedAddress
     `,
     values,
   };
@@ -125,4 +128,15 @@ export async function GetAllCrumbs(): Promise<Crumb[]> {
   );
 
   return rows
+}
+
+export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<Crumb>(
+    `SELECT * FROM crumbs  
+     WHERE id = ?`,
+    [crumbId]
+  );
+
+  return row
 }

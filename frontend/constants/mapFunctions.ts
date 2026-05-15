@@ -40,7 +40,7 @@ export const getPressedLocationInfo = async (
   return res;
 };
 
-export async function getViewportBounds(mapRef: React.RefObject<Mapbox.MapView|null>) {
+export async function getViewportBounds(mapRef: React.RefObject<Mapbox.MapView | null>) {
   if (!mapRef?.current) return null;
 
   // Returns [[neLon, neLat], [swLon, swLat]]
@@ -143,3 +143,30 @@ export const getEmojiForFeature = (props: any): string => {
 
   return "📍"; // default emoji
 };
+
+const EARTH_RADIUS_METERS = 6_371_000;
+
+/**
+ * Returns the great-circle distance in meters between two points specified
+ * by latitude/longitude in decimal degrees, using the Haversine formula.
+ */
+export function distanceMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+  const lat1Rad = toRad(lat1);
+  const lat2Rad = toRad(lat2);
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return EARTH_RADIUS_METERS * c;
+}
