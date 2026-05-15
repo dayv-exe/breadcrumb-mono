@@ -40,6 +40,16 @@ export const getPressedLocationInfo = async (
   return res;
 };
 
+export async function getViewportBounds(mapRef: React.RefObject<Mapbox.MapView|null>) {
+  if (!mapRef?.current) return null;
+
+  // Returns [[neLon, neLat], [swLon, swLat]]
+  const bounds = await mapRef.current.getVisibleBounds();
+  const [[maxLon, maxLat], [minLon, minLat]] = bounds;
+
+  return { minLat, maxLat, minLon, maxLon };
+}
+
 type FeatureProps = {
   category_en?: string;
   class?: string;

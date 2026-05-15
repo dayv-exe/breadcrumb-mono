@@ -1,3 +1,5 @@
+import { getLatestCrumbs } from "@/api/crumbsApi";
+import { GetAllCrumbs, GetLastReceivedCrumbDetails } from "@/api/db/crumbsDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
@@ -13,7 +15,7 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useFocusEffect, useRouter } from "expo-router";
-import type { FeatureCollection } from "geojson";
+import type { Feature, FeatureCollection, Point } from "geojson";
 import { useCallback, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -93,24 +95,6 @@ export default function MapScreen() {
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
     features: [
-      {
-        type: 'Feature',
-        id: '1',
-        properties: { profilePicture: 'user_1', nickname: "L", prompt: "" },
-        geometry: { type: 'Point', coordinates: [-1.4119485819435904, 50.90357624958019] },
-      },
-      {
-        type: 'Feature',
-        id: '2',
-        properties: { profilePicture: 'user_2', nickname: "F", prompt: "" },
-        geometry: { type: 'Point', coordinates: [-1.4003734693118226, 50.90843458227937] },
-      },
-      {
-        type: 'Feature',
-        id: '3',
-        properties: { profilePicture: 'user_3', nickname: "D", prompt: "" },
-        geometry: { type: 'Point', coordinates: [-1.4101579464572567, 50.92902669308694] },
-      },
     ],
   })
 
@@ -179,6 +163,71 @@ export default function MapScreen() {
   function handleAddFriend() {
     router.push("/find-friends")
   }
+
+  const updateCrumbs = async () => {
+    try {
+      const lastCrumb = await GetLastReceivedCrumbDetails();
+
+      const latestCrumb = await getLatestCrumbs(
+        false,
+        lastCrumb?.id,
+        lastCrumb?.time
+      );
+
+      if (latestCrumb.message.length > 0) {
+        const newFeatures: Feature<Point>[] = latestCrumb.message.map(crumb => ({
+          type: 'Feature',
+          id: crumb.id,
+          properties: {
+            profilePicture: crumb.sender + ".jpg",
+            nickname: "C",
+            prompt: ""
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [crumb.lon, crumb.lat]
+          }
+        }));
+
+        setCrumbFeatures(prev => ({
+          ...prev,
+          features: [...prev.features, ...newFeatures]
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const loadCrumbs = async () => {
+    const crumbsInView = await GetAllCrumbs()
+    const features: Feature<Point>[] = crumbsInView.map(crumb => ({
+      type: 'Feature',
+      id: crumb.id,
+      properties: {
+        profilePicture: crumb.sender + ".jpg",
+        nickname: "C",
+        prompt: ""
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [crumb.lon, crumb.lat]
+      }
+    }));
+
+    setCrumbFeatures({
+      type: 'FeatureCollection',
+      features
+    });
+  }
+
+  useFocusEffect(() => {
+    const interval = setInterval(() => {
+      updateCrumbs();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  });
 
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
 
@@ -273,7 +322,7 @@ export default function MapScreen() {
       <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
         const result = await getPressedLocationInfo(e, mapRef);
         // console.log(result?.features[0])
-      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} featureCollection={crumbFeatures} featureCollectionImages={crumbImages} />
+      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} featureCollection={crumbFeatures} featureCollectionImages={crumbImages} onMapReady={loadCrumbs} />
 
       <View style={styles.mapControls}>
         <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />

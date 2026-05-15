@@ -116,3 +116,13 @@ export async function GetCrumbsByDistance(
 
   return rows
 }
+
+export async function GetAllCrumbs(): Promise<Crumb[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<Crumb>(
+    `SELECT * FROM crumbs  
+     ORDER BY time DESC`,
+  );
+
+  return rows
+}

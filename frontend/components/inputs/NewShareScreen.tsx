@@ -251,7 +251,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           thumbnail: f.thumbnail?.mediaKey,
         })),
         locationAccuracy: coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS,
-        locationType: selLoc === sendOpt[0] ? "gps" : selLoc === sendOpt[1] ? "label" : "none",
+        locationType: selLoc === sendOpt[0] ? "gps" : selLoc === sendOpt[1] ? activePoi ? "label" : "dropped-pin" : "none",
         receivers: selectedFriends.map(f => f.id),
       }, {
         onSuccess: (s) => {
@@ -280,6 +280,12 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         address: (activePoi?.properties as any).name,
         lat: (activePoi?.geometry as any).coordinates[1],
         lon: (activePoi?.geometry as any).coordinates[0]
+      }
+    } else if (droppedPin) {
+      return {
+        address: "dropped pin",
+        lat: droppedPin[1],
+        lon: droppedPin[0]
       }
     }
 

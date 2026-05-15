@@ -133,7 +133,15 @@ export default function RootLayout() {
   const mode = useColorScheme()
 
   useEffect(() => {
-    InitDb().catch(console.error)
+    const init = async () => {
+      try {
+        await InitDb();
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    init();
     checkAuthStatus()
   }, [])
 

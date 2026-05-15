@@ -15,6 +15,8 @@ import CustomLabel from "../CustomLabel";
 type customMapProps = {
   mapRef?: React.RefObject<Mapbox.MapView | null>
   cameraRef?: React.RefObject<Mapbox.Camera | null>
+  onMapReady?: () => void
+  onMapMove?: () => void
   onMapPress?: (v: any) => void
   onMapLongPress?: (v: any) => void
   onLocationPuckPress?: () => void
@@ -25,7 +27,7 @@ type customMapProps = {
   zoom?: number
   useSatellite?: boolean
   featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
-  featureCollection?: FeatureCollection
+  featureCollection?: FeatureCollection,
 }
 
 type permissionProps = {
@@ -61,7 +63,9 @@ export default function CustomMap({
   maxZoomLvlToDark,
   setForceDark,
   featureCollection,
-  featureCollectionImages
+  featureCollectionImages,
+  onMapMove,
+  onMapReady
 }: customMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -124,6 +128,7 @@ export default function CustomMap({
           scaleBarEnabled={false}
           onDidFinishLoadingMap={() => {
             setMapReady(true);
+            onMapReady?.()
           }}
           styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
           onPress={(e) => {
@@ -148,6 +153,8 @@ export default function CustomMap({
             } else {
               setForceDark(false)
             }
+
+            onMapMove?.()
           }}
         >
           <Mapbox.Camera
@@ -179,7 +186,7 @@ export default function CustomMap({
               ...(featureCollectionImages || {}),
             }}
           />
-          <ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={14}>
+          <ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22}>
             <SymbolLayer
               id="frameLayer"
               style={{
