@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -41,6 +42,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	placeIds := make([]string, 0)
 	formattedAddress, err := mapboxHelper.GetFormattedAddress(crumb.Lat, crumb.Lon)
 	if err != nil {
+		log.Printf("FAILED TO GET FORMATTED ADDRESS. ERROR: %v", err)
 		return err
 	}
 
