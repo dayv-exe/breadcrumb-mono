@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -49,7 +50,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 	for _, crumb := range *crumbs {
 		// unread crumbs to be sent to recipient
-		crumb.PlaceId = placeIds
+		crumb.PlaceId = strings.Join(placeIds, ",")
 		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
 	}
 
@@ -140,11 +141,13 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		expression.Name("id"),
 		expression.Name("lat"),
 		expression.Name("lon"),
-		expression.Name("accuracy"),
 		expression.Name("receiver"),
 		expression.Name("sender"),
 		expression.Name("time"),
 		expression.Name("opened"),
+		expression.Name("placeId"),
+		expression.Name("locationType"),
+		expression.Name("locationAccuracy"),
 	)
 
 	indexName := "GSIndex2"

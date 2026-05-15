@@ -55,7 +55,7 @@ type Crumb struct {
 	Lon              float64      `json:"lon" dynamodbav:"lon"`
 	LocationAccuracy float32      `json:"locationAccuracy" dynamodbav:"locationAccuracy"`
 	LocationType     string       `json:"locationType" dynamodbav:"locationType"`
-	PlaceId          []string     `json:"placeId" dynamodbav:"placeId"`
+	PlaceId          string       `json:"placeId" dynamodbav:"placeId"`
 	Text             []CrumbText  `json:"text" dynamodbav:"text"`
 	Media            []CrumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
