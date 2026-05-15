@@ -31,7 +31,7 @@ const (
 	LOCATION_TYPE_DROPPED_PIN = "dropped-pin"
 	EARTH_RADIUS              = 6_371_000 // meters
 	MAPBOX_TILEQUERY_API      = "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery"
-	MAPBOX_GEOCODING_API      = "https://api.mapbox.com/search/geocode/v6/reverse"
+	MAPBOX_GEOCODING_API      = "https://api.mapbox.com/search/geocode/v6/reverse.json"
 	MAPBOX_TILEQUERY_LIMIT    = 15
 )
 
