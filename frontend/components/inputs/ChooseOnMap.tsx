@@ -13,9 +13,11 @@ import Spacer from "../Spacer";
 import CustomSearchInput from "./CustomSearchInput";
 
 interface props {
+  droppedPinCoord: [number, number] | null
   selectedPoi: Feature<Geometry, GeoJsonProperties> | null
   handleCancel: () => void
   handleChooseLocation: (p: Feature<Geometry, GeoJsonProperties> | null) => void
+  handleDroppedPin: (coords: [number, number]) => void
 }
 
 const icons = {
@@ -38,11 +40,11 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme]
 }
 
-export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLocation }: props) {
+export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel, handleChooseLocation, handleDroppedPin }: props) {
   const insets = useSafeAreaInsets()
 
   const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(selectedPoi)
-  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
+  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(droppedPinCoord)
 
   const searchRef = useRef(null)
   const [searchStr, setSearchStr] = useState("")
@@ -101,9 +103,10 @@ export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLoc
               <CustomLabel adaptToTheme labelText={(activePoi.properties as any).name} customStyle={{ padding: 0 }} allowTruncate />
               <CustomLabel adaptToTheme fade fontSize={13} labelText={(activePoi.properties as any).type ?? (activePoi.properties as any).maki} customStyle={{ padding: 0 }} />
             </View>
-            <CustomButton handleClick={() => handleChooseLocation(
-              activePoi
-            )} type="less-prominent" labelText="Select" slim useMinWidth />
+            <CustomButton handleClick={() => {
+              setDroppedPin(droppedPin)
+              handleChooseLocation(activePoi)
+            }} type="less-prominent" labelText="Select" slim useMinWidth />
           </>
         }
         {droppedPin &&
@@ -120,9 +123,10 @@ export default function ChooseOnMap({ selectedPoi, handleCancel, handleChooseLoc
               <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lat: ${droppedPin[1]}`} customStyle={{ padding: 0 }} />
               <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lon: ${droppedPin[0]}`} customStyle={{ padding: 0 }} />
             </View>
-            <CustomButton handleClick={() => handleChooseLocation(
-              activePoi
-            )} type="less-prominent" labelText="Select" slim useMinWidth />
+            <CustomButton handleClick={() => {
+              setActivePoi(activePoi)
+              handleDroppedPin(droppedPin)
+            }} type="less-prominent" labelText="Select" slim useMinWidth />
           </>
         }
       </View>

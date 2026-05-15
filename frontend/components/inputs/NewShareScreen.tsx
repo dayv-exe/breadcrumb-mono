@@ -217,6 +217,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
   const { address, coordinates } = useLocationStore();
   const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
+  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
   const [shareIsPending, setShareIsPending] = useState(false)
   const { showModal, hideModal } = useModal()
   const resetMediaStore = useMediaStore(s => s.reset)
@@ -365,16 +366,22 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
                 content: (
                   <ChooseOnMap selectedPoi={activePoi} handleCancel={() => {
                     hideModal()
-                    if (activePoi) return
+                    if (activePoi || droppedPin) return
                     setSelLoc(sendOpt[0])
                   }} handleChooseLocation={(poi) => {
                     setActivePoi(poi)
+                    setDroppedPin(null)
+                    hideModal()
+                  }} droppedPinCoord={droppedPin} handleDroppedPin={c => {
+                    setDroppedPin(c)
+                    setActivePoi(null)
                     hideModal()
                   }} />
                 ),
               })
             } else {
               setActivePoi(null)
+              setDroppedPin(null)
             }
           }}
           onChanged={s => {
