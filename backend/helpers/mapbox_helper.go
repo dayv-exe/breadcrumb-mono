@@ -276,7 +276,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 }
 
 func (h *mapboxHelper) GetFormattedAddress(lat, lon float64) (string, error) {
-	endpoint := fmt.Sprintf("%s.json", constants.MAPBOX_GEOCODING_API)
+	endpoint := fmt.Sprintf("%s", constants.MAPBOX_GEOCODING_API)
 
 	q := url.Values{}
 	q.Set("longitude", fmt.Sprintf("%f", lon))
