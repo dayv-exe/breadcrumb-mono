@@ -92,7 +92,7 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 		SecretId: &utils.GetDependencies().MapboxSecretArn,
 	})
 	if err != nil {
-		log.Panicf("Failed to get mapbox api key from secret manager. ERROR: %v", err)
+		log.Panicf("Failed to get mapbox api key from secret manager. ERROR:  %#v", err)
 	}
 	if out.SecretString == nil {
 		log.Panicf("secret has no string value")
@@ -100,7 +100,7 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 
 	var s mapboxSecret
 	if err := json.Unmarshal([]byte(*out.SecretString), &s); err != nil {
-		log.Panicf("Failed to unmarshal mapbox api key from secrets. ERROR: %v", err)
+		log.Panicf("Failed to unmarshal mapbox api key from secrets. ERROR:  %#v", err)
 	}
 
 	if strings.TrimSpace(s.ApiKey) == "" {
@@ -168,7 +168,7 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 		return placeIdResponse{}, fmt.Errorf("mapbox tilequery returned status %d", resp.StatusCode)
 	}
 
-	log.Printf("mapbox query ok: %v", resp)
+	log.Printf("mapbox query ok:  %#v", resp)
 
 	var fc FeatureCollection
 	if err := json.NewDecoder(resp.Body).Decode(&fc); err != nil {
@@ -199,7 +199,7 @@ func getGpsSelectedPlacesId(fc FeatureCollection) placeIdResponse {
 		ids = append(ids, feature.ID.String())
 	}
 
-	log.Printf("gps sel places ids: %v", ids)
+	log.Printf("gps sel places ids: %#v", ids)
 
 	return placeIdResponse{
 		placeIds:  ids,
@@ -213,11 +213,12 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	for _, feature := range fc.Features {
 		if (feature.Properties.Tilequery.Layer == "poi_label" || feature.Properties.Tilequery.Layer == "airport_label" || feature.Properties.Tilequery.Layer == "transit_stop_label" || feature.Properties.Tilequery.Layer == "housenum_label") && feature.Properties.Tilequery.Distance == 0 {
 			clickedLabel = feature
+			log.Printf("FOUND THE LABEL CLICKED!  %#v", clickedLabel.ID)
 			break
 		}
 	}
 
-	log.Printf("clicked label: %v", clickedLabel.ID)
+	log.Printf("clicked label:  %#v", clickedLabel.ID)
 
 	// place all the features inside a hash map with their corresponding layer
 	items := make(map[string][]Feature, 0)
@@ -226,15 +227,15 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 		items[layer] = append(items[layer], feature)
 	}
 
-	log.Printf("mapped features: %v", items)
+	log.Printf("mapped features:  %#v", items)
 
 	ids := []string{
 		clickedLabel.ID.String(),
 	}
 
-	log.Printf("CLICKED LABEL NAME: %v", clickedLabel.Properties.Name)
+	log.Printf("CLICKED LABEL NAME:  %#v", clickedLabel.Properties.Name)
 
-	log.Printf("ids: %v", ids)
+	log.Printf("ids:  %#v", ids)
 
 	// then find either:
 	// landuse where the class type or class == label type or class or maki or category_en
@@ -253,7 +254,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 			landuseClass == targetClass ||
 			landuseMaki == targetMaki ||
 			landuseCategory == targetCategory {
-			log.Printf("found match landuse: %v, target: %v", landuse.Properties, clickedLabel.Properties)
+			log.Printf("found match landuse:  %#v, target:  %#v", landuse.Properties, clickedLabel.Properties)
 			ids = append(ids, landuse.ID.String())
 		}
 	}
@@ -268,7 +269,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	// for building, distance from clicked label must be 0
 	for _, building := range items["building"] {
 		if building.Properties.Tilequery.Distance == 0 {
-			log.Printf("found match building: %v, target: %v", building.Properties, clickedLabel.Properties)
+			log.Printf("found match building:  %#v, target:  %#v", building.Properties, clickedLabel.Properties)
 			ids = append(ids, building.ID.String())
 		}
 	}
@@ -283,7 +284,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	// for structure, distance from clicked label must be 0
 	for _, structure := range items["structure"] {
 		if structure.Properties.Tilequery.Distance == 0 {
-			log.Printf("found match structure: %v, target: %v", structure.Properties, clickedLabel.Properties)
+			log.Printf("found match structure:  %#v, target:  %#v", structure.Properties, clickedLabel.Properties)
 			ids = append(ids, structure.ID.String())
 		}
 	}
@@ -299,7 +300,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 
 	// if none of the conditions above are met, return only clicked poi id
 
-	log.Printf("ids: %v", ids)
+	log.Printf("ids:  %#v", ids)
 	return placeIdResponse{
 		placeIds:  ids,
 		placeName: clickedLabel.Properties.Name,
@@ -333,7 +334,7 @@ func (h *mapboxHelper) GetFormattedAddress(lat, lon float64) (string, error) {
 		return "", fmt.Errorf("mapbox geocoding returned status %d", resp.StatusCode)
 	}
 
-	log.Printf("mapbox query ok: %v", resp)
+	log.Printf("mapbox query ok:  %#v", resp)
 
 	var collection GeocodingResponse
 	if err := json.NewDecoder(resp.Body).Decode(&collection); err != nil {
