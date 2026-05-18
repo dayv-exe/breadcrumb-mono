@@ -45,6 +45,7 @@ type CrumbBody struct {
 	LocationType     string       `json:"locationType"`
 	Text             []CrumbText  `json:"text"`
 	MediaKeys        []CrumbMedia `json:"media"`
+	ClickedFeatureId string       `json:"clickedFeatureId"`
 }
 
 type Crumb struct {

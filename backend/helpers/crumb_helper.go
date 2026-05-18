@@ -48,7 +48,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	}
 
 	if crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
-		placesInfo, err := mapboxHelper.GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
+		placesInfo, err := mapboxHelper.GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType, crumb.ClickedFeatureId)
 		if err != nil {
 			return fmt.Errorf("Failed to send crumb. ERROR: %v", err)
 		}

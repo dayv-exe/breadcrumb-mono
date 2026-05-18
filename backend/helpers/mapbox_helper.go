@@ -125,7 +125,7 @@ type placeIdResponse struct {
 
 // for dropped pin, user should provide radius, if recipient is inside then show crumb
 
-func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelectionManner string) (placeIdResponse, error) {
+func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelectionManner, clickedFeatureId string) (placeIdResponse, error) {
 	if locationSelectionManner == constants.LOCATION_TYPE_DROPPED_PIN {
 		log.Printf("location manner not valid for getting nearby place id")
 		return placeIdResponse{
@@ -182,7 +182,10 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 
 	case constants.LOCATION_TYPE_LABEL:
 		log.Printf("location selection manner: %s\nGetting map clicked sel places", locationSelectionManner)
-		return getLabelSelectedPlacesIds(fc), nil
+		if strings.TrimSpace(clickedFeatureId) == "" {
+			return placeIdResponse{}, fmt.Errorf("No clicked feature id provided!")
+		}
+		return getLabelSelectedPlacesIds(fc, clickedFeatureId), nil
 
 	default:
 		return placeIdResponse{}, fmt.Errorf("Invalid location manner given!")
@@ -207,14 +210,13 @@ func getGpsSelectedPlacesId(fc FeatureCollection) placeIdResponse {
 	}
 }
 
-func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
+func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) placeIdResponse {
 	var clickedLabel Feature
+	clickedLabel.Properties.Tilequery.Distance = 1000
 	// first find the label that was clicked
 	for _, feature := range fc.Features {
-		if (feature.Properties.Tilequery.Layer == "poi_label" || feature.Properties.Tilequery.Layer == "airport_label" || feature.Properties.Tilequery.Layer == "transit_stop_label" || feature.Properties.Tilequery.Layer == "housenum_label") && feature.Properties.Tilequery.Distance == 0 {
+		if feature.ID.String() == clickedFeatureId {
 			clickedLabel = feature
-			log.Printf("FOUND THE LABEL CLICKED!  %#v", clickedLabel.ID)
-			break
 		}
 	}
 
