@@ -193,20 +193,34 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 }
 
 func getGpsSelectedPlacesId(fc FeatureCollection) placeIdResponse {
+	featuresMap := make(map[string][]Feature)
 	ids := make([]string, 0)
-	nearestFeature := Feature{}
 	for _, feature := range fc.Features {
-		if nearestFeature.Properties.Tilequery.Distance > feature.Properties.Tilequery.Distance {
-			nearestFeature = feature
-		}
+		featuresMap[feature.Properties.Tilequery.Layer] = append(featuresMap[feature.Properties.Tilequery.Layer], feature)
 		ids = append(ids, feature.ID.String())
+	}
+
+	var nearestLabel *Feature
+	for _, label := range constants.ALLOWED_LABELS {
+		for _, labelFeat := range featuresMap[label] {
+			if nearestLabel == nil || labelFeat.Properties.Tilequery.Distance < nearestLabel.Properties.Tilequery.Distance {
+				nearestLabel = &labelFeat
+			}
+		}
 	}
 
 	log.Printf("gps sel places ids: %#v", ids)
 
+	placename := ""
+	if nearestLabel != nil {
+		placename = nearestLabel.Properties.Name
+		if placename == "" {
+			placename = nearestLabel.Properties.HouseNum
+		}
+	}
 	return placeIdResponse{
 		placeIds:  ids,
-		placeName: nearestFeature.Properties.Name,
+		placeName: placename,
 	}
 }
 

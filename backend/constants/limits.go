@@ -35,6 +35,13 @@ const (
 	MAPBOX_TILEQUERY_LIMIT    = 15
 )
 
+var ALLOWED_LABELS = []string{
+	"poi_label",
+	"transit_stop_label",
+	"housenum_label",
+	"airport_label",
+}
+
 var ALLOWED_FILE_TYPES = map[string]struct{}{
 	".jpg": {},
 	".mp4": {},
