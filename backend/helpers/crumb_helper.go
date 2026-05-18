@@ -40,6 +40,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	mapboxHelper := NewMapboxHelper(h.Ctx)
 
 	placeIds := make([]string, 0)
+	placeName := ""
 	formattedAddress, err := mapboxHelper.GetFormattedAddress(crumb.Lat, crumb.Lon)
 	if err != nil {
 		log.Printf("FAILED TO GET FORMATTED ADDRESS. ERROR: %v", err)
@@ -47,18 +48,20 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 	}
 
 	if crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
-		ids, err := mapboxHelper.GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
+		placesInfo, err := mapboxHelper.GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType)
 		if err != nil {
 			return fmt.Errorf("Failed to send crumb. ERROR: %v", err)
 		}
 
-		placeIds = append(placeIds, ids...)
+		placeName = placesInfo.placeName
+		placeIds = append(placeIds, placesInfo.placeIds...)
 	}
 
 	for _, crumb := range *crumbs {
 		// unread crumbs to be sent to recipient
 		crumb.PlaceId = strings.Join(placeIds, ",")
 		crumb.FormattedAddress = formattedAddress
+		crumb.PlaceName = placeName
 		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
 	}
 
@@ -157,6 +160,7 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		expression.Name("locationType"),
 		expression.Name("locationAccuracy"),
 		expression.Name("formattedAddress"),
+		expression.Name("placename"),
 	)
 
 	indexName := "GSIndex2"

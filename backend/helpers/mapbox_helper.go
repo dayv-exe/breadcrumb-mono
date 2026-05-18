@@ -113,6 +113,11 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 	}
 }
 
+type placeIdResponse struct {
+	placeIds  []string
+	placeName string
+}
+
 // for gps location use these layers: poi_label, building, structure, transit_stop_label
 // if the place ids of the user cur loc matches any of these layers ids then show crumb
 
@@ -120,10 +125,13 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 
 // for dropped pin, user should provide radius, if recipient is inside then show crumb
 
-func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelectionManner string) ([]string, error) {
+func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelectionManner string) (placeIdResponse, error) {
 	if locationSelectionManner == constants.LOCATION_TYPE_DROPPED_PIN {
 		log.Printf("location manner not valid for getting nearby place id")
-		return make([]string, 0), nil
+		return placeIdResponse{
+			placeIds:  make([]string, 0),
+			placeName: "",
+		}, nil
 	}
 
 	locationSelectionManner = strings.ToLower(locationSelectionManner)
@@ -147,24 +155,24 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 
 	req, err := http.NewRequestWithContext(h.Ctx, http.MethodGet, fullURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("build request: %w", err)
+		return placeIdResponse{}, fmt.Errorf("build request: %w", err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("mapbox tilequery request: %w", err)
+		return placeIdResponse{}, fmt.Errorf("mapbox tilequery request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("mapbox tilequery returned status %d", resp.StatusCode)
+		return placeIdResponse{}, fmt.Errorf("mapbox tilequery returned status %d", resp.StatusCode)
 	}
 
 	log.Printf("mapbox query ok: %v", resp)
 
 	var fc FeatureCollection
 	if err := json.NewDecoder(resp.Body).Decode(&fc); err != nil {
-		return nil, fmt.Errorf("decode response: %w", err)
+		return placeIdResponse{}, fmt.Errorf("decode response: %w", err)
 	}
 
 	switch locationSelectionManner {
@@ -177,26 +185,33 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 		return getLabelSelectedPlacesIds(fc), nil
 
 	default:
-		return nil, fmt.Errorf("Invalid location manner given!")
+		return placeIdResponse{}, fmt.Errorf("Invalid location manner given!")
 	}
 }
 
-func getGpsSelectedPlacesId(fc FeatureCollection) []string {
+func getGpsSelectedPlacesId(fc FeatureCollection) placeIdResponse {
 	ids := make([]string, 0)
+	nearestFeature := Feature{}
 	for _, feature := range fc.Features {
+		if nearestFeature.Properties.Tilequery.Distance > feature.Properties.Tilequery.Distance {
+			nearestFeature = feature
+		}
 		ids = append(ids, feature.ID.String())
 	}
 
 	log.Printf("gps sel places ids: %v", ids)
 
-	return ids
+	return placeIdResponse{
+		placeIds:  ids,
+		placeName: nearestFeature.Properties.Name,
+	}
 }
 
-func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
+func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	var clickedLabel Feature
 	// first find the label that was clicked
 	for _, feature := range fc.Features {
-		if (feature.Properties.Tilequery.Layer == "poi_label" || feature.Properties.Tilequery.Layer == "airport_label" || feature.Properties.Tilequery.Layer == "transit_stop_label") && feature.Properties.Tilequery.Distance == 0 {
+		if (feature.Properties.Tilequery.Layer == "poi_label" || feature.Properties.Tilequery.Layer == "airport_label" || feature.Properties.Tilequery.Layer == "transit_stop_label" || feature.Properties.Tilequery.Layer == "housenum_label") && feature.Properties.Tilequery.Distance == 0 {
 			clickedLabel = feature
 			break
 		}
@@ -213,7 +228,9 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 
 	log.Printf("mapped features: %v", items)
 
-	ids := make([]string, 0)
+	ids := []string{
+		clickedLabel.ID.String(),
+	}
 
 	// then find either:
 	// landuse where the class type or class == label type or class or maki or category_en
@@ -238,7 +255,10 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	}
 
 	if len(ids) > 0 {
-		return ids
+		return placeIdResponse{
+			placeIds:  ids,
+			placeName: clickedLabel.Properties.Name,
+		}
 	}
 
 	// for building, distance from clicked label must be 0
@@ -250,7 +270,10 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	}
 
 	if len(ids) > 0 {
-		return ids
+		return placeIdResponse{
+			placeIds:  ids,
+			placeName: clickedLabel.Properties.Name,
+		}
 	}
 
 	// for structure, distance from clicked label must be 0
@@ -262,7 +285,10 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 	}
 
 	if len(ids) > 0 {
-		return ids
+		return placeIdResponse{
+			placeIds:  ids,
+			placeName: clickedLabel.Properties.Name,
+		}
 	}
 
 	log.Printf("found NO matches, returning all ids!")
@@ -272,7 +298,10 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) []string {
 		ids = append(ids, feature.ID.String())
 	}
 	log.Printf("ids: %v", ids)
-	return ids
+	return placeIdResponse{
+		placeIds:  ids,
+		placeName: clickedLabel.Properties.Name,
+	}
 }
 
 func (h *mapboxHelper) GetFormattedAddress(lat, lon float64) (string, error) {
