@@ -114,7 +114,7 @@ func handleGetPlacesNearbyUser(ctx context.Context, req events.APIGatewayV2HTTPR
 		return models.InvalidRequestErrorResponse("Invalid radius!"), nil
 	}
 
-	places, err := helpers.NewMapboxHelper(ctx).GetNearbyPlaceIds(lat, lon, radius, constants.LOCATION_TYPE_MINE)
+	places, err := helpers.NewMapboxHelper(ctx).GetNearbyPlaceIds(lat, lon, radius, constants.LOCATION_TYPE_MINE, "")
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get places nearby user!", err), nil
 	}
