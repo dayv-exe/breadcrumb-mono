@@ -217,7 +217,7 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 		}
 	}
 
-	log.Printf("clicked label: %v", clickedLabel)
+	log.Printf("clicked label: %v", clickedLabel.ID)
 
 	// place all the features inside a hash map with their corresponding layer
 	items := make(map[string][]Feature, 0)
@@ -231,6 +231,10 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	ids := []string{
 		clickedLabel.ID.String(),
 	}
+
+	log.Printf("CLICKED LABEL NAME: %v", clickedLabel.Properties.Name)
+
+	log.Printf("ids: %v", ids)
 
 	// then find either:
 	// landuse where the class type or class == label type or class or maki or category_en
@@ -249,12 +253,12 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 			landuseClass == targetClass ||
 			landuseMaki == targetMaki ||
 			landuseCategory == targetCategory {
-			log.Printf("found match landuse: %v, target: %v", landuse, clickedLabel)
+			log.Printf("found match landuse: %v, target: %v", landuse.Properties, clickedLabel.Properties)
 			ids = append(ids, landuse.ID.String())
 		}
 	}
 
-	if len(ids) > 0 {
+	if len(ids) > 1 {
 		return placeIdResponse{
 			placeIds:  ids,
 			placeName: clickedLabel.Properties.Name,
@@ -264,12 +268,12 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	// for building, distance from clicked label must be 0
 	for _, building := range items["building"] {
 		if building.Properties.Tilequery.Distance == 0 {
-			log.Printf("found match building: %v, target: %v", building, clickedLabel)
+			log.Printf("found match building: %v, target: %v", building.Properties, clickedLabel.Properties)
 			ids = append(ids, building.ID.String())
 		}
 	}
 
-	if len(ids) > 0 {
+	if len(ids) > 1 {
 		return placeIdResponse{
 			placeIds:  ids,
 			placeName: clickedLabel.Properties.Name,
@@ -279,12 +283,12 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 	// for structure, distance from clicked label must be 0
 	for _, structure := range items["structure"] {
 		if structure.Properties.Tilequery.Distance == 0 {
-			log.Printf("found match structure: %v, target: %v", structure, clickedLabel)
+			log.Printf("found match structure: %v, target: %v", structure.Properties, clickedLabel.Properties)
 			ids = append(ids, structure.ID.String())
 		}
 	}
 
-	if len(ids) > 0 {
+	if len(ids) > 1 {
 		return placeIdResponse{
 			placeIds:  ids,
 			placeName: clickedLabel.Properties.Name,
@@ -293,10 +297,8 @@ func getLabelSelectedPlacesIds(fc FeatureCollection) placeIdResponse {
 
 	log.Printf("found NO matches, returning all ids!")
 
-	// if none of the conditions above are met, return ids of all features
-	for _, feature := range fc.Features {
-		ids = append(ids, feature.ID.String())
-	}
+	// if none of the conditions above are met, return only clicked poi id
+
 	log.Printf("ids: %v", ids)
 	return placeIdResponse{
 		placeIds:  ids,
