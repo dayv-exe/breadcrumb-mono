@@ -212,7 +212,6 @@ func getGpsSelectedPlacesId(fc FeatureCollection) placeIdResponse {
 
 func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) placeIdResponse {
 	var clickedLabel Feature
-	clickedLabel.Properties.Tilequery.Distance = 1000
 	// first find the label that was clicked
 	for _, feature := range fc.Features {
 		if feature.ID.String() == clickedFeatureId {
