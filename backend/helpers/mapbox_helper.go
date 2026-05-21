@@ -358,3 +358,97 @@ func (h *mapboxHelper) GetFormattedAddress(lat, lon float64) (string, error) {
 
 	return collection.Features[0].Properties.FullAddress, nil
 }
+
+type Location struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+type SearchBody struct {
+	SessionToken string   `json:"sessionToken"`
+	Proximity    Location `json:"proximity"`
+	Origin       Location `json:"origin"`
+}
+
+type RetrieveBody struct {
+	SessionToken string   `json:"sessionToken"`
+	Origin       Location `json:"origin"`
+}
+
+func (h *mapboxHelper) SearchPlace(query string, body SearchBody) (SuggestResponse, error) {
+	endpoint := fmt.Sprintf("%s", constants.MAPBOX_SEARCH_API)
+	prox := fmt.Sprintf("%f %f", body.Proximity.Lon, body.Proximity.Lat)
+	og := fmt.Sprintf("%f %f", body.Origin.Lon, body.Origin.Lat)
+
+	q := url.Values{}
+	q.Set("q", fmt.Sprintf("%s", query))
+	q.Set("sessionToken", fmt.Sprintf("%s", body.SessionToken))
+	q.Set("proximity", fmt.Sprintf("%s", prox))
+	q.Set("origin", fmt.Sprintf("%s", og))
+	q.Set("access_token", h.MapboxToken)
+
+	fullURL := endpoint + "?" + q.Encode()
+
+	log.Printf("full url: %s", fullURL)
+
+	req, err := http.NewRequestWithContext(h.Ctx, http.MethodGet, fullURL, nil)
+	if err != nil {
+		return SuggestResponse{}, fmt.Errorf("build request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return SuggestResponse{}, fmt.Errorf("mapbox search request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return SuggestResponse{}, fmt.Errorf("mapbox search returned status %d", resp.StatusCode)
+	}
+
+	log.Printf("mapbox query ok:  %#v", resp)
+
+	var results SuggestResponse
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return SuggestResponse{}, fmt.Errorf("decode response: %w", err)
+	}
+
+	return results, nil
+}
+
+func (h *mapboxHelper) RetrievePlace(placeId string, body RetrieveBody) (RetrieveResponse, error) {
+	endpoint := fmt.Sprintf("%s/%s", constants.MAPBOX_RETRIEVE_API, placeId)
+	og := fmt.Sprintf("%f %f", body.Origin.Lon, body.Origin.Lat)
+	q := url.Values{}
+	q.Set("sessionToken", fmt.Sprintf("%s", body.SessionToken))
+	q.Set("origin", fmt.Sprintf("%s", og))
+	q.Set("access_token", h.MapboxToken)
+
+	fullURL := endpoint + "?" + q.Encode()
+
+	log.Printf("full url: %s", fullURL)
+
+	req, err := http.NewRequestWithContext(h.Ctx, http.MethodGet, fullURL, nil)
+	if err != nil {
+		return RetrieveResponse{}, fmt.Errorf("build request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return RetrieveResponse{}, fmt.Errorf("mapbox retrieve request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return RetrieveResponse{}, fmt.Errorf("mapbox retrieve returned status %d", resp.StatusCode)
+	}
+
+	log.Printf("mapbox query ok:  %#v", resp)
+
+	var result RetrieveResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return RetrieveResponse{}, fmt.Errorf("decode response: %w", err)
+	}
+
+	return result, nil
+}

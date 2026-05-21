@@ -32,6 +32,8 @@ const (
 	EARTH_RADIUS              = 6_371_000 // meters
 	MAPBOX_TILEQUERY_API      = "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/tilequery"
 	MAPBOX_GEOCODING_API      = "https://api.mapbox.com/search/geocode/v6/reverse"
+	MAPBOX_SEARCH_API         = "https://api.mapbox.com/search/searchbox/v1/suggest"
+	MAPBOX_RETRIEVE_API       = "https://api.mapbox.com/search/searchbox/v1/retrieve"
 	MAPBOX_TILEQUERY_LIMIT    = 15
 )
 

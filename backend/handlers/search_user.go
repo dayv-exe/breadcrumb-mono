@@ -5,6 +5,7 @@ import (
 	"backend/helpers"
 	"backend/models"
 	"context"
+	"encoding/json"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -39,4 +40,52 @@ func handleSearchUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	}
 
 	return models.SuccessfulGetRequestResponse(results, nil), nil
+}
+
+func handleSearchPlace(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	// query, session token, proximity, origin
+	query := strings.TrimSpace(strings.ToLower(req.PathParameters["str"]))
+	if query == "" {
+		return models.InvalidRequestErrorResponse("No query string provided!"), nil
+	}
+
+	var body helpers.SearchBody
+	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
+		return models.ServerSideErrorResponse("Failed to unmarshal request body!", err), nil
+	}
+
+	if strings.TrimSpace(body.SessionToken) == "" {
+		return models.InvalidRequestErrorResponse("No session token provided!"), nil
+	}
+
+	results, err := helpers.NewMapboxHelper(ctx).SearchPlace(query, body)
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to search for place!", err), nil
+	}
+
+	return models.SuccessfulGetRequestResponse(results, nil), nil
+}
+
+func handleRetrievePlace(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	// query, session token, proximity, origin
+	placeId := strings.TrimSpace(strings.ToLower(req.PathParameters["str"]))
+	if placeId == "" {
+		return models.InvalidRequestErrorResponse("No query string provided!"), nil
+	}
+
+	var body helpers.RetrieveBody
+	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
+		return models.ServerSideErrorResponse("Failed to unmarshal request body!", err), nil
+	}
+
+	if strings.TrimSpace(body.SessionToken) == "" {
+		return models.InvalidRequestErrorResponse("No session token provided!"), nil
+	}
+
+	result, err := helpers.NewMapboxHelper(ctx).RetrievePlace(placeId, body)
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to retrieve place!", err), nil
+	}
+
+	return models.SuccessfulGetRequestResponse(result, nil), nil
 }

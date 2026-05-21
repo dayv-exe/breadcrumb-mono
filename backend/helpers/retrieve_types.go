@@ -8,19 +8,6 @@ type RetrieveResponse struct {
 	Attribution string    `json:"attribution"`
 }
 
-// Feature represents a single GeoJSON feature in the retrieve response.
-type RetrieveFeature struct {
-	Type       string            `json:"type"` // Always "Feature"
-	Geometry   Geometry          `json:"geometry"`
-	Properties FeatureProperties `json:"properties"`
-}
-
-// Geometry describes the spatial geometry of a returned feature.
-type RetrieveGeometry struct {
-	Type        string    `json:"type"`        // Always "Point"
-	Coordinates []float64 `json:"coordinates"` // [longitude, latitude]
-}
-
 // FeatureProperties contains the specific properties associated with a feature.
 type FeatureProperties struct {
 	// Required fields
@@ -51,7 +38,7 @@ type FeatureProperties struct {
 type Coordinates struct {
 	Longitude      float64         `json:"longitude"`
 	Latitude       float64         `json:"latitude"`
-	Accuracy       string          `json:"accuracy,omitempty"` // rooftop, parcel, point, interpolated, intersection, approximate, street
+	Accuracy       string          `json:"accuracy,omitempty"`
 	RoutablePoints []RoutablePoint `json:"routable_points,omitempty"`
 }
 
@@ -62,14 +49,3 @@ type RoutablePoint struct {
 	Longitude float64 `json:"longitude"`
 	Note      string  `json:"note,omitempty"`
 }
-
-// CoordinateAccuracy values for Coordinates.Accuracy on address-type results.
-const (
-	AccuracyRooftop      = "rooftop"
-	AccuracyParcel       = "parcel"
-	AccuracyPoint        = "point"
-	AccuracyInterpolated = "interpolated"
-	AccuracyIntersection = "intersection"
-	AccuracyApproximate  = "approximate"
-	AccuracyStreet       = "street"
-)
