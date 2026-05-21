@@ -5,19 +5,23 @@ import CustomButton from "@/components/buttons/CustomButton";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
+import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
+import { useRetrievePlace } from "@/hooks/queries/usePlacesSearchApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
+import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry, Point } from "geojson";
-import { useRef, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { v4 as GenerateUUID } from "uuid";
 
 const token = Constants.expoConfig?.extra?.mapboxToken;
 if (!token) {
@@ -75,6 +79,62 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function MapScreen() {
+  // map poi click states
+  const originalZoom = useRef<Promise<number> | null>(null)
+  const resetZoomOnUnselect = useRef(false)
+  const allowAutoPitch = true
+
+  const setCameraFn = (config: Mapbox.CameraStop) => {
+    if (!mapCamRef?.current) return
+    if (!allowAutoPitch) config.pitch = undefined
+    mapCamRef.current.setCamera(config)
+  }
+
+  const focusOnCoords = async (coords: [number, number], curZoom: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setCameraFn({
+      centerCoordinate: coords,
+      animationDuration: 400,
+      animationMode: "easeTo",
+      pitch: 45,
+      zoomLevel: Math.max(17, curZoom)
+    })
+  }
+
+  const handleSaveOriginalZoomLevel = (): Promise<number> | undefined => {
+    const curZoom = mapRef?.current?.getZoom()
+    if (!selPoi && !droppedPin) {
+      resetZoomOnUnselect.current = true
+      originalZoom.current = curZoom ?? null
+    }
+    return curZoom
+  }
+
+  const focusOnPoi = async (poi: Feature<Geometry, GeoJsonProperties> | null) => {
+    setDroppedPin(null)
+    setSelPoi(poi)
+    const curZoom = handleSaveOriginalZoomLevel()
+    if (poi) {
+      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await curZoom) ?? 0)
+      return;
+    }
+
+    if (resetZoomOnUnselect.current) {
+      setCameraFn({
+        pitch: 0,
+        zoomLevel: (await originalZoom.current) ?? undefined,
+        animationDuration: 300,
+      })
+    }
+  }
+
+  const focusOnDroppedPin = async (coords: [number, number]) => {
+    const curZoom = handleSaveOriginalZoomLevel()
+    focusOnCoords(coords, (await curZoom) ?? 0)
+    setDroppedPin(coords)
+    setSelPoi(null)
+  }
+
   const mode = useColorScheme() ?? "light";
   const mapRef = useRef<Mapbox.MapView>(null);
   const mapCamRef = useRef<Mapbox.Camera>(null)
@@ -93,13 +153,23 @@ export default function MapScreen() {
   const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
     "user_3": require("../../../assets/images/icons/test_avatar_4.jpg"),
   })
+  const [sessionToken] = useState(() => GenerateUUID())
+  const [placeId, setPlaceId] = useState("")
+  const { coordinates } = useLocationStore()
+  const { data: placeInfo, isError: retrieveFailed, isPending: retrievePending } = useRetrievePlace(sessionToken, placeId, coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 })
+  useEffect(() => {
+    const place = placeInfo?.features[0]
+    if (!place) return
+    const coords = (place.geometry as any).coordinates as [number, number]
+    focusOnCoords(coords, 0)
+  }, [placeInfo, retrieveFailed, retrievePending])
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
     features: [
     ],
   })
   const [selPoi, setSelPoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
-
+  const searchBgCol = useThemeColor({}, "darkBackground")
   function handleShowFiltered(name: string) {
     setPageName(name)
     openSheet({
@@ -141,20 +211,10 @@ export default function MapScreen() {
     }))
   }
 
-  async function getMapCenter() {
-    try {
-      const center = await mapRef?.current?.getCenter();
-      const zoom = await mapRef?.current?.getZoom()
-      if (!center || !zoom) return null
-      return { position: center, zoomLevel: zoom };
-    } catch (error) {
-      console.error("Error getting map center:", error);
-      return null;
-    }
-  }
-
-  function handleAddFriend() {
-    router.push("/find-friends")
+  const handlePlaceSelected = (id: string) => {
+    closeSheet()
+    setPlaceId(id)
+    // focus map on place or drop pin or something
   }
 
   const newCrumbFeature = (crumbId: string, crumbSender: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
@@ -223,106 +283,123 @@ export default function MapScreen() {
     });
   }
 
-  useFocusEffect(() => {
+  const headerOpacity = useRef(new Animated.Value(1)).current;
 
-    const interval = setInterval(() => {
-      // updateCrumbs();
-    }, 5000);
+  const fadeHeader = (visible: boolean) => {
+    Animated.timing(headerOpacity, {
+      toValue: visible ? 1 : 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
 
-    return () => {
-      clearInterval(interval);
-      closeSheet();
-    }
-  });
+
+  useFocusEffect(
+    useCallback(() => {
+      const interval = setInterval(() => {
+        // updateCrumbs();
+      }, 5000);
+
+      return () => {
+        clearInterval(interval);
+        closeSheet();
+      };
+    }, [closeSheet])
+  );
 
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
 
   return (
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
-      <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "88", gradCol + "66", gradCol + "00"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
-        paddingTop: insets.top + 5,
-        paddingBottom: 0,
+      <Animated.View style={[styles.headerWrapper, {
         top: 0,
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: 'flex-start',
+        opacity: headerOpacity,
       }]}>
-        <CustomLabel bold adaptToTheme labelText={pageName} fontSize={21} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
-        <Spacer size="small" />
-        <View style={[{
-          width: "100%",
+        <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "88", gradCol + "66", gradCol + "00"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
+          paddingTop: insets.top + 5,
+          paddingBottom: 0,
+          top: 0,
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
-          flexDirection: "row",
+          justifyContent: 'flex-start',
         }]}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{
-              paddingHorizontal: 10
-            }}
-          >
-            <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              handleShowFiltered("Unopened")
-            }} customStyle={{
-              shadowColor: "#000",
-              shadowOffset: { height: 2, width: 2, },
-              shadowOpacity: .25,
-              shadowRadius: 2,
-              marginBottom: 5,
-              elevation: 5
-            }} />
-            <Spacer size="small" />
-            <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              handleShowFiltered("Sent")
-            }} customStyle={{
-              shadowColor: "#000",
-              shadowOffset: { height: 2, width: 2, },
-              shadowOpacity: .25,
-              shadowRadius: 2,
-              marginBottom: 5,
-              elevation: 5
-            }} />
-            <Spacer size="small" />
-            <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              handleShowFiltered("❤️ Saved")
-            }} customStyle={{
-              shadowColor: "#000",
-              shadowOffset: { height: 2, width: 2, },
-              shadowOpacity: .25,
-              shadowRadius: 2,
-              marginBottom: 5,
-              elevation: 5,
-            }} />
-            <Spacer size="small" />
-            <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              handleShowFiltered("🔒 Private")
-            }} customStyle={{
-              shadowColor: "#000",
-              shadowOffset: { height: 2, width: 2, },
-              shadowOpacity: .25,
-              shadowRadius: 2,
-              marginBottom: 5,
-              elevation: 5
-            }} />
-            <Spacer size="small" />
+          <CustomLabel bold adaptToTheme labelText={pageName} fontSize={21} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
+          <Spacer size="small" />
+          <View style={[{
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            flexDirection: "row",
+          }]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{
+                paddingHorizontal: 10
+              }}
+            >
+              <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+                handleShowFiltered("Unopened")
+              }} customStyle={{
+                shadowColor: "#000",
+                shadowOffset: { height: 2, width: 2, },
+                shadowOpacity: .25,
+                shadowRadius: 2,
+                marginBottom: 5,
+                elevation: 5
+              }} />
+              <Spacer size="small" />
+              <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+                handleShowFiltered("Sent")
+              }} customStyle={{
+                shadowColor: "#000",
+                shadowOffset: { height: 2, width: 2, },
+                shadowOpacity: .25,
+                shadowRadius: 2,
+                marginBottom: 5,
+                elevation: 5
+              }} />
+              <Spacer size="small" />
+              <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+                handleShowFiltered("❤️ Saved")
+              }} customStyle={{
+                shadowColor: "#000",
+                shadowOffset: { height: 2, width: 2, },
+                shadowOpacity: .25,
+                shadowRadius: 2,
+                marginBottom: 5,
+                elevation: 5,
+              }} />
+              <Spacer size="small" />
+              <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+                handleShowFiltered("🔒 Private")
+              }} customStyle={{
+                shadowColor: "#000",
+                shadowOffset: { height: 2, width: 2, },
+                shadowOpacity: .25,
+                shadowRadius: 2,
+                marginBottom: 5,
+                elevation: 5
+              }} />
+              <Spacer size="small" />
 
-            <CustomButton labelText="👀 Opened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              handleShowFiltered("👀 Opened")
-            }} customStyle={{
-              shadowColor: "#000",
-              shadowOffset: { height: 2, width: 2, },
-              shadowOpacity: .25,
-              shadowRadius: 2,
-              marginBottom: 5,
-              elevation: 5
-            }} />
-            <Spacer size="small" />
-          </ScrollView>
-        </View>
-      </GradientView>
+              <CustomButton labelText="👀 Opened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+                handleShowFiltered("👀 Opened")
+              }} customStyle={{
+                shadowColor: "#000",
+                shadowOffset: { height: 2, width: 2, },
+                shadowOpacity: .25,
+                shadowRadius: 2,
+                marginBottom: 5,
+                elevation: 5
+              }} />
+              <Spacer size="small" />
+            </ScrollView>
+          </View>
+        </GradientView>
+      </Animated.View>
 
 
       <CustomMap
@@ -334,17 +411,41 @@ export default function MapScreen() {
         setForceDark={setForceDark}
         featureCollection={crumbFeatures}
         featureCollectionImages={crumbImages}
+        onMapPress={() => setDroppedPin(null)}
         onMapReady={loadCrumbs}
         allowAutoPitch
         activePoi={selPoi}
-        setActivePoi={setSelPoi}
         dropPinCoord={droppedPin}
-        setDropPinCoord={setDroppedPin}
+        focusOnDroppedPin={focusOnDroppedPin}
+        focusOnPoi={focusOnPoi}
         droppedPinRadius={droppedPinRadius}
       />
 
       <View style={styles.mapControls}>
-        <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />
+        <CustomImageButton
+          size={21}
+          src={getIconImage("search", mode === "light")}
+          handleClick={() => {
+            fadeHeader(false)
+            openSheet({
+              content: (
+                <PlaceSearch
+                  availableHeight={availableHeight}
+                  HandleClosePress={closeSheet}
+                  mapRef={mapRef}
+                  userLocation={coordinates}
+                  OnPlaceSelect={handlePlaceSelected}
+                  sessionToken={sessionToken}
+                />
+              ),
+              snapPoints: [availableHeight],
+              reduceAnimations: false,
+              onSheetDismissed: () => fadeHeader(true),
+              showOverlay: false,
+              backgroundStyle: { backgroundColor: searchBgCol }
+            })
+          }}
+        />
         <Spacer size="small" />
         <CustomImageButton size={23} src={getIconImage("satellite", mode === "light")} handleClick={() => setUseSat(s => !s)} />
         <Spacer size="small" />

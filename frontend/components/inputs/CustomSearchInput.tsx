@@ -36,10 +36,10 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function CustomSearchInput({ value, handleChange, placeholder, borderRadius, imageSize = 18, ref, useRedBorders = false, handleOnFocus, handleOnBlur, customStyle, customInputStyle, solidAppearance }: props) {
-  const theme = useThemeColor
   const mode = useColorScheme()
-  const fadedBg = theme({}, "fadedBackground")
-  const bgCol = theme({}, "background")
+  const fadedBg = useThemeColor({}, "fadedBackground")
+  const bgCol = useThemeColor({}, "background")
+  const textCol = useThemeColor({}, "text")
 
   return (
     <View style={[
@@ -60,7 +60,7 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
       <TextInput ref={ref} style={[
         styles.input,
         {
-          color: theme({}, "text"),
+          color: textCol,
         }
         , customInputStyle]}
         value={value}

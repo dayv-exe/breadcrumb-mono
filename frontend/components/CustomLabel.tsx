@@ -29,7 +29,7 @@ export default function CustomLabel({ labelText = "Label", textAlign = "left", a
         styles.labelText,
         {
           color: adaptToTheme ? textCol : textColor ? textColor : "#fff",
-          fontWeight: bold ? "600" : "normal",
+          fontWeight: bold ? "600" : "regular",
           textAlign: textAlign,
           opacity: fade ? .7 : 1,
           width: fitContent ? "auto" : width,

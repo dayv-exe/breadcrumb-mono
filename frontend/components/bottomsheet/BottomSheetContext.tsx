@@ -120,7 +120,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         enableContentPanningGesture={true}
         enableHandlePanningGesture={sheetOptions.allowDrag ?? true}
         handleIndicatorStyle={{ backgroundColor: handleCol }}
-        handleStyle={{ backgroundColor: "transparent" }}
+        handleStyle={{
+          backgroundColor: sheetOptions.backgroundStyle?.backgroundColor ?? "transparent", borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
+          borderTopRightRadius: sheetOptions.borderRadius ?? 35
+        }}
         handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
@@ -135,11 +138,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         } : {
           stiffness: 500,
           damping: 120,
-          mass: 0.5,
+          mass: 2,
         }}
         onClose={handleSheetClose}
         onChange={(index, pos, type) => {
-
           sheetOptions.onChange?.(pos)
         }}
       >

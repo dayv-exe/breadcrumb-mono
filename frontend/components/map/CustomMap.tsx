@@ -6,7 +6,6 @@ import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import circle from "@turf/circle";
 import Constants from "expo-constants";
-import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
 import React, { useEffect, useRef, useState } from "react";
@@ -25,9 +24,9 @@ type CustomMapProps = {
   onMapLongPress?: (e: Feature<Geometry, GeoJsonProperties>) => void;
   onLocationPuckPress?: () => void;
   activePoi?: Feature<Geometry, GeoJsonProperties> | null
-  setActivePoi?: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   dropPinCoord?: [number, number] | null
-  setDropPinCoord?: (coords: [number, number] | null) => void
+  focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
+  focusOnDroppedPin: (coords: [number, number]) => void
   droppedPinRadius?: number
   maxZoomLvlToDark?: number
   setForceDark?: (s: boolean) => void
@@ -78,21 +77,20 @@ export default function CustomMap({
   zoomLevel = 14,
   pitch = 0,
   activePoi,
-  setActivePoi,
   dropPinCoord,
-  setDropPinCoord,
   onMapPress = () => { },
   onMapLongPress = () => { },
   onLocationPuckPress,
   useSatellite,
   is2dButtonVisible,
   set2dButtonVisible,
-  allowAutoPitch,
   droppedPinRadius,
   featureCollection,
   featureCollectionImages,
   maxZoomLvlToDark,
   onMapReady,
+  focusOnDroppedPin,
+  focusOnPoi,
   setForceDark,
 }: CustomMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
@@ -103,8 +101,7 @@ export default function CustomMap({
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const movedMap = useRef(false);
-  const originalZoom = useRef<Promise<number> | null>(null)
-  const resetZoomOnUnselect = useRef(false)
+
 
   const coordinates = useLocationStore((s) => s.coordinates);
 
@@ -125,81 +122,23 @@ export default function CustomMap({
     handlePermissions(false);
   }, []);
 
-  const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
-
-  const setCameraFn = (config: Mapbox.CameraStop) => {
-    if (!cameraRef?.current) return
-    if (!allowAutoPitch) config.pitch = undefined
-    cameraRef.current.setCamera(config)
-  }
-
-  const handleSaveOriginalZoomLevel = (): Promise<number> | undefined => {
-    const curZoom = mapRef?.current?.getZoom()
-    if (!activePoi && !dropPinCoord) {
-      resetZoomOnUnselect.current = true
-      originalZoom.current = curZoom ?? null
-    }
-    return curZoom
-  }
 
   const handleMapPress = async (e: Feature<Geometry, GeoJsonProperties>) => {
-    if (!setActivePoi) return
-    movedMap.current = true
-    const curZoom = handleSaveOriginalZoomLevel()
-    setHasAnimatedIn(false);
+    onMapPress(e);
     if (mapRef?.current) {
       const collection = await getPressedLocationInfo(e, mapRef);
       const features = collection?.features
       const poi = features?.[0];
-
-      if (poi) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        setActivePoi(poi);
-        setDropPinCoord?.(null)
-        requestAnimationFrame(() => setHasAnimatedIn(true));
-        setCameraFn({
-          centerCoordinate: (poi.geometry as any).coordinates as [number, number],
-          animationDuration: 400,
-          animationMode: "easeTo",
-          pitch: 45,
-          zoomLevel: Math.max(17, await curZoom ?? 0)
-        })
-
-        return;
-      }
+      focusOnPoi(poi ?? null)
     }
-
-    setActivePoi(null);
-    setDropPinCoord?.(null)
-
-    if (resetZoomOnUnselect.current) {
-      setCameraFn({
-        pitch: 0,
-        zoomLevel: await originalZoom.current ?? undefined,
-        animationDuration: 300,
-      })
-    }
-    onMapPress(e);
   };
 
   const handleMapLongPress = async (e: Feature<Geometry, GeoJsonProperties>) => {
-    if (!setDropPinCoord) return
-    movedMap.current = true
-    const curZoom = handleSaveOriginalZoomLevel()
+    onMapLongPress(e);
     if (e.geometry.type === "Point") {
       const coords = e.geometry.coordinates as [number, number];
-      setDropPinCoord(coords);
-      setActivePoi?.(null)
-      setCameraFn({
-        centerCoordinate: coords,
-        animationDuration: 400,
-        animationMode: "easeTo",
-        pitch: 45,
-        zoomLevel: Math.max(17, await curZoom ?? 0)
-      })
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      focusOnDroppedPin(coords)
     }
-    onMapLongPress(e);
   }
 
   const initialCenter =

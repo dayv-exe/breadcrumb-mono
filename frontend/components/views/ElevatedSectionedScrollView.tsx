@@ -155,6 +155,8 @@ export function ElevatedSectionedScrollView({
       }
       showsVerticalScrollIndicator={false}
       {...scrollViewProps}
+      keyboardShouldPersistTaps={"handled"}
+      keyboardDismissMode="on-drag"
     >
       {children}
     </ScrollView>

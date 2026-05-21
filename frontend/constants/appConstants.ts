@@ -34,8 +34,9 @@ export enum FRIENDSHIP_STATUS {
 }
 
 export enum TIME {
+  SECOND = 1000,
   MINUTE = (60 * 1000),
-  hOUR = 60 * (60 * 1000)
+  HOUR = 60 * (60 * 1000)
 }
 
 export const MAX_PREVIEW_MEDIA = 5;

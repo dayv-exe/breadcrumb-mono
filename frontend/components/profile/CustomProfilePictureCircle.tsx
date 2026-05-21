@@ -11,12 +11,11 @@ type props = {
   customTextStyle?: StyleProp<TextStyle>
   borderRadius?: string | AnimatableNumericValue | undefined
   handleClick?: (src: string,) => void
-  showCurUserIfEmpty?: boolean
 }
 
-export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, showCurUserIfEmpty }: props) {
-  const { data: profilePicture } = useGetProfilePicture(showCurUserIfEmpty ? (userId ?? "") : "disabled");
-  const { data: userDetails } = useGetUser(showCurUserIfEmpty ? (userId ?? "") : "disabled")
+export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius }: props) {
+  const { data: profilePicture } = useGetProfilePicture(userId ?? "");
+  const { data: userDetails } = useGetUser(userId ?? "")
   const mode = useColorScheme();
 
   const fgColLight = "#555";

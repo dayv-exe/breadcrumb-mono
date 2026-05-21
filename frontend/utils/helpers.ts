@@ -11,3 +11,7 @@ export const showSettingsAlert = (permissionType: string, permissionReqBody?: st
     ]
   );
 };
+
+export const convertToPreferredDistance = (meter: number): string => {
+  return meter === 0 ? "0 mi" : (meter / 1609.344).toFixed(1) + " mi"
+}
