@@ -68,7 +68,7 @@ func handleSearchPlace(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 
 func handleRetrievePlace(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	// query, session token, proximity, origin
-	placeId := strings.TrimSpace(strings.ToLower(req.PathParameters["str"]))
+	placeId := strings.TrimSpace(req.PathParameters["str"])
 	if placeId == "" {
 		return models.InvalidRequestErrorResponse("No query string provided!"), nil
 	}
