@@ -386,6 +386,8 @@ func (h *mapboxHelper) SearchPlace(query string, body SearchBody) (SuggestRespon
 	q.Set("proximity", fmt.Sprintf("%s", prox))
 	q.Set("origin", fmt.Sprintf("%s", og))
 	q.Set("access_token", h.MapboxToken)
+	q.Set("limit", fmt.Sprintf("%d", constants.MAPBOX_PLACE_SEARCH_LIMIT))
+	q.Set("types", "poi")
 
 	fullURL := endpoint + "?" + q.Encode()
 

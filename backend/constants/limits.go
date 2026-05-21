@@ -35,6 +35,7 @@ const (
 	MAPBOX_SEARCH_API         = "https://api.mapbox.com/search/searchbox/v1/suggest"
 	MAPBOX_RETRIEVE_API       = "https://api.mapbox.com/search/searchbox/v1/retrieve"
 	MAPBOX_TILEQUERY_LIMIT    = 15
+	MAPBOX_PLACE_SEARCH_LIMIT = 10
 )
 
 var ALLOWED_LABELS = []string{
