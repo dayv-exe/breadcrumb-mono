@@ -5,13 +5,14 @@ import { PixelRatio, Platform } from "react-native";
 
 export const SELECTABLE_MAPBOX_LAYER = [
   "poi-label",
+  "building-number-label",
   "transit-label",
   "airport-label",
-  "continent-label",
-  "country-label",
-  "state-label",
-  "settlement-major-label",
-  "settlement-minor-label",
+  // "continent-label",
+  // "country-label",
+  // "state-label",
+  // "settlement-major-label",
+  // "settlement-minor-label",
   // "settlement-subdivision-label",
 ]
 

@@ -3,7 +3,9 @@ import * as SQLite from "expo-sqlite";
 let db: SQLite.SQLiteDatabase;
 
 export async function getDb() {
+
   if (!db) {
+    console.log("init db...")
     db = await SQLite.openDatabaseAsync("app.db");
   }
   return db;
@@ -11,7 +13,6 @@ export async function getDb() {
 
 export async function InitDb() {
   const db = await getDb()
-  // await db.execAsync(`drop table if exists crumbs`)
   await db.execAsync(`
   PRAGMA journal_mode = WAL;
   CREATE TABLE IF NOT EXISTS crumbs (
@@ -25,7 +26,13 @@ export async function InitDb() {
     placeId TEXT,
     locationType TEXT NOT NULL CHECK(locationType IN ('gps', 'label', 'dropped-pin', 'none')),
     locationAccuracy REAL,
-    formattedAddress TEXT
+    formattedAddress TEXT,
+    placename TEXT
   );
 `);
+}
+
+export async function DeleteDb() {
+  const db = await getDb()
+  db.execAsync(`drop table IF EXISTS crumbs`)
 }

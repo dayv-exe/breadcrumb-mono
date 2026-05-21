@@ -1,3 +1,4 @@
+import { DeleteDb } from "@/api/db/InitDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -243,6 +244,26 @@ export default function ProfileSettingsScreen() {
         <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
       )
     },
+    {
+      type: "static",
+      key: "devtools",
+      title: '👾 Developer tools',
+      keyExtractor: (opt: SettingOption) => opt.name,
+      data: [
+        {
+          name: 'Delete local db', value: "", handleClick: () => {
+            Toast.show({
+              text1: "Deleting local db...",
+              type: "info",
+            })
+            DeleteDb()
+          }
+        },
+      ],
+      renderItem: (opt: SettingOption) => (
+        <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
+      )
+    },
   ]
 
   const { showModal, hideModal } = useModal()
@@ -318,6 +339,7 @@ export default function ProfileSettingsScreen() {
       thumbnail: (await thumbnail).uri,
       type: "profilePhoto",
       resizeMode: "contain",
+      uploadState: { pending: false, uploadUrl: "", error: null }
     }])
     closeSheet()
   }

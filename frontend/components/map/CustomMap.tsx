@@ -1,94 +1,112 @@
 import { Colors } from "@/constants/Colors";
+import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { useCustomGestures } from "@/hooks/useCustomGestures";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
+import circle from "@turf/circle";
 import Constants from "expo-constants";
+import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
-import type { FeatureCollection } from "geojson";
+import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 
-type customMapProps = {
-  mapRef?: React.RefObject<Mapbox.MapView | null>
-  cameraRef?: React.RefObject<Mapbox.Camera | null>
+type CustomMapProps = {
   onMapReady?: () => void
-  onMapMove?: () => void
-  onMapPress?: (v: any) => void
-  onMapLongPress?: (v: any) => void
-  onLocationPuckPress?: () => void
-  maxZoomLvlToDark: number
-  setForceDark: (s: boolean) => void
-  zoomLevel?: number
-  pitch?: number
-  zoom?: number
-  useSatellite?: boolean
+  mapRef?: React.RefObject<Mapbox.MapView | null>;
+  cameraRef?: React.RefObject<Mapbox.Camera | null>;
+  centerCoordinate?: [number, number];
+  zoomLevel?: number;
+  pitch?: number;
+  onMapPress?: (e: Feature<Geometry, GeoJsonProperties>) => void;
+  onMapLongPress?: (e: Feature<Geometry, GeoJsonProperties>) => void;
+  onLocationPuckPress?: () => void;
+  activePoi?: Feature<Geometry, GeoJsonProperties> | null
+  setActivePoi?: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
+  dropPinCoord?: [number, number] | null
+  setDropPinCoord?: (coords: [number, number] | null) => void
+  droppedPinRadius?: number
+  maxZoomLvlToDark?: number
+  setForceDark?: (s: boolean) => void
+  useSatellite?: boolean;
+  allowAutoPitch?: boolean
+  is2dButtonVisible?: boolean
+  set2dButtonVisible?: (s: boolean) => void
   featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
   featureCollection?: FeatureCollection,
-}
+};
 
-type permissionProps = {
-  handleGrantPermission: () => void
-}
+type PermissionProps = {
+  handleGrantPermission: () => void;
+};
 
-function PermissionScreen({ handleGrantPermission }: permissionProps) {
-  const mode = useColorScheme()
+function PermissionScreen({ handleGrantPermission }: PermissionProps) {
+  const mode = useColorScheme();
 
   return (
-    <View style={{
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: mode === "dark" ? "#1c1c1c" : "#fafafa"
-    }}>
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: mode === "dark" ? "#1c1c1c" : "#fafafa",
+      }}
+    >
       <CustomLabel textAlign="center" adaptToTheme labelText="🔐" fontSize={21} />
-      <CustomLabel width="80%" textAlign="center" adaptToTheme labelText="Allow location access to see nearby walls and crumbs on the map." />
-      <CustomButton type="less-vibrant-text" labelText="Grant Permission" handleClick={handleGrantPermission} />
+      <CustomLabel
+        width="80%"
+        textAlign="center"
+        adaptToTheme
+        labelText="Allow location access to see your position on the map."
+      />
+      <CustomButton
+        type="less-vibrant-text"
+        labelText="Grant Permission"
+        handleClick={handleGrantPermission}
+      />
     </View>
-  )
+  );
 }
 
 export default function CustomMap({
-  onMapPress = () => { },
-  onMapLongPress = () => { },
   mapRef,
   cameraRef,
-  onLocationPuckPress,
-  zoomLevel = 3,
+  centerCoordinate,
+  zoomLevel = 14,
   pitch = 0,
-  useSatellite = false,
-  maxZoomLvlToDark,
-  setForceDark,
+  activePoi,
+  setActivePoi,
+  dropPinCoord,
+  setDropPinCoord,
+  onMapPress = () => { },
+  onMapLongPress = () => { },
+  onLocationPuckPress,
+  useSatellite,
+  is2dButtonVisible,
+  set2dButtonVisible,
+  allowAutoPitch,
+  droppedPinRadius,
   featureCollection,
   featureCollectionImages,
-  onMapMove,
-  onMapReady
-}: customMapProps) {
+  maxZoomLvlToDark,
+  onMapReady,
+  setForceDark,
+}: CustomMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
   const satelliteUrl = Constants.expoConfig?.extra?.satelliteUrl;
   const mode = useColorScheme();
-  const [permissionGranted, setPermissionGranted] = useState(false);
-  const coordinates = useLocationStore(s => s.coordinates);
-  const [mapReady, setMapReady] = useState(false);
-  const movedMap = useRef<boolean>(false);
 
-  const gestures = useCustomGestures(
-    {
-      onLongPress: (pos) => {
-        onMapLongPress(pos);
-      },
-    },
-    {
-      doubleTapDelay: 300,
-      swipeThreshold: 5,
-      longPressDelay: 250,
-      tapMovementThreshold: 1,
-    }
-  );
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const movedMap = useRef(false);
+  const originalZoom = useRef<Promise<number> | null>(null)
+  const resetZoomOnUnselect = useRef(false)
+
+  const coordinates = useLocationStore((s) => s.coordinates);
 
   async function handlePermissions(showPopUp: boolean = true) {
     const status = await Location.requestForegroundPermissionsAsync();
@@ -107,6 +125,89 @@ export default function CustomMap({
     handlePermissions(false);
   }, []);
 
+  const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
+
+  const setCameraFn = (config: Mapbox.CameraStop) => {
+    if (!cameraRef?.current) return
+    if (!allowAutoPitch) config.pitch = undefined
+    cameraRef.current.setCamera(config)
+  }
+
+  const handleSaveOriginalZoomLevel = (): Promise<number> | undefined => {
+    const curZoom = mapRef?.current?.getZoom()
+    if (!activePoi && !dropPinCoord) {
+      resetZoomOnUnselect.current = true
+      originalZoom.current = curZoom ?? null
+    }
+    return curZoom
+  }
+
+  const handleMapPress = async (e: Feature<Geometry, GeoJsonProperties>) => {
+    if (!setActivePoi) return
+    movedMap.current = true
+    const curZoom = handleSaveOriginalZoomLevel()
+    setHasAnimatedIn(false);
+    if (mapRef?.current) {
+      const collection = await getPressedLocationInfo(e, mapRef);
+      const features = collection?.features
+      const poi = features?.[0];
+
+      if (poi) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setActivePoi(poi);
+        setDropPinCoord?.(null)
+        requestAnimationFrame(() => setHasAnimatedIn(true));
+        setCameraFn({
+          centerCoordinate: (poi.geometry as any).coordinates as [number, number],
+          animationDuration: 400,
+          animationMode: "easeTo",
+          pitch: 45,
+          zoomLevel: Math.max(17, await curZoom ?? 0)
+        })
+
+        return;
+      }
+    }
+
+    setActivePoi(null);
+    setDropPinCoord?.(null)
+
+    if (resetZoomOnUnselect.current) {
+      setCameraFn({
+        pitch: 0,
+        zoomLevel: await originalZoom.current ?? undefined,
+        animationDuration: 300,
+      })
+    }
+    onMapPress(e);
+  };
+
+  const handleMapLongPress = async (e: Feature<Geometry, GeoJsonProperties>) => {
+    if (!setDropPinCoord) return
+    movedMap.current = true
+    const curZoom = handleSaveOriginalZoomLevel()
+    if (e.geometry.type === "Point") {
+      const coords = e.geometry.coordinates as [number, number];
+      setDropPinCoord(coords);
+      setActivePoi?.(null)
+      setCameraFn({
+        centerCoordinate: coords,
+        animationDuration: 400,
+        animationMode: "easeTo",
+        pitch: 45,
+        zoomLevel: Math.max(17, await curZoom ?? 0)
+      })
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    onMapLongPress(e);
+  }
+
+  const initialCenter =
+    centerCoordinate ??
+    (coordinates
+      ? [coordinates.longitude, coordinates.latitude]
+      : [0, 0]);
+
   const offsets = {
     "cluster": [-35, -35],
     "single": [-22, -22]
@@ -117,75 +218,154 @@ export default function CustomMap({
 
   return (
     <View style={styles.container}>
-      {permissionGranted && (
+      {permissionGranted ? (
         <Mapbox.MapView
-          rotateEnabled={true}
-          compassFadeWhenNorth
-          compassEnabled
-          compassPosition={{ top: 65, right: 12 }}
           ref={mapRef}
           style={styles.map}
-          scaleBarEnabled={false}
-          onDidFinishLoadingMap={() => {
-            setMapReady(true);
-            onMapReady?.()
-          }}
           styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
-          onPress={(e) => {
-            onMapPress(e);
-          }}
+          scaleBarEnabled={false}
+          compassEnabled
+          compassFadeWhenNorth
+          compassPosition={{ top: 65, right: 12 }}
           attributionPosition={{ bottom: 100, left: 10 }}
           logoPosition={{ bottom: 75, left: 10 }}
-          attributionEnabled={true}
-          logoEnabled={true}
-          onTouchStart={(e) => {
+          onDidFinishLoadingMap={() => setMapReady(true)}
+          onPress={handleMapPress}
+          onLongPress={handleMapLongPress}
+          onTouchStart={() => {
             movedMap.current = true;
-            gestures.handleTouchStart(e);
           }}
-          onTouchEnd={gestures.handleTouchEnd}
-          onTouchMove={(e) => {
+          onCameraChanged={async e => {
 
-          }}
-          onTouchCancel={gestures.handleTouchCancel}
-          onCameraChanged={e => {
-            if (e.properties.zoom <= maxZoomLvlToDark) {
-              setForceDark(true)
-            } else {
-              setForceDark(false)
+            if (maxZoomLvlToDark && setForceDark) {
+              if (e.properties.zoom <= maxZoomLvlToDark) {
+                setForceDark(true)
+              } else {
+                setForceDark(false)
+              }
             }
 
-            onMapMove?.()
+            if (!set2dButtonVisible) return
+            if (e.properties.pitch !== 0) {
+              if (is2dButtonVisible) return
+              set2dButtonVisible(true)
+            } else {
+              if (!is2dButtonVisible) return
+              set2dButtonVisible(false)
+            }
           }}
         >
           <Mapbox.Camera
             ref={cameraRef}
-            centerCoordinate={
-              !movedMap.current
-                ? [coordinates?.longitude ?? 0, coordinates?.latitude ?? 0]
-                : undefined
-            }
+            centerCoordinate={!movedMap.current ? initialCenter : undefined}
             zoomLevel={zoomLevel}
-            animationDuration={0}
             pitch={pitch}
+            animationDuration={0}
           />
 
-          {mapReady && coordinates && (
-            <Mapbox.UserLocation
-              onPress={onLocationPuckPress}
-              visible={true}
-              minDisplacement={5}
-              requestsAlwaysUse={true}
-              showsUserHeadingIndicator
-            />
-          )}
           <Images
             images={{
+              dropped_pin: require("../../assets/map_pin.png"),
               frame: mode === "dark" || useSatellite ? require("../../assets/map_bg_dark.png") : require("../../assets/map_bg_light.png"),
               clusterFrame: require("../../assets/map_cluster.png"),
               clusterFg: require("../../assets/cluster_fg.png"),
               ...(featureCollectionImages || {}),
             }}
           />
+
+          {dropPinCoord && droppedPinRadius && (
+            <>
+              <Mapbox.ShapeSource
+                id="pin-radius-source"
+                shape={circle(dropPinCoord, droppedPinRadius, {
+                  steps: 64,
+                  units: "meters",
+                })}
+              >
+                <Mapbox.FillLayer
+                  id="pin-radius-fill"
+                  style={{
+                    fillColor: mode === "dark" ? "purple" : Colors.light.tint,
+                    fillOpacity: mode === "dark" ? 0.4 : 0.15,
+                  }}
+                />
+                <Mapbox.LineLayer
+                  id="pin-radius-outline"
+                  style={{
+                    lineColor: mode === "dark" ? "purple" : Colors.light.tint,
+                    lineWidth: 2,
+                    lineOpacity: mode === "dark" ? 0.8 : 0.6,
+                  }}
+                />
+              </Mapbox.ShapeSource>
+
+              {/* Then your existing pin SymbolLayer below so it renders on top */}
+              <Mapbox.ShapeSource
+                id="dropped-pin-source"
+                shape={{
+                  type: "Feature",
+                  geometry: { type: "Point", coordinates: dropPinCoord },
+                  properties: {},
+                }}
+              >
+                <Mapbox.SymbolLayer
+                  id="dropped-pin-layer"
+                  style={{
+                    iconImage: "dropped_pin",
+                    iconSize: 0.175,
+                    iconAnchor: "bottom",
+                    iconAllowOverlap: true,
+                  }}
+                />
+              </Mapbox.ShapeSource>
+            </>
+          )}
+
+          {activePoi && activePoi.geometry.type === "Point" && (
+            <Mapbox.ShapeSource id="active-poi-source" shape={activePoi}>
+              {/* Category icon on top */}
+              <Mapbox.SymbolLayer
+                id="active-poi-icon"
+                style={{
+                  iconImage: ["coalesce", ["get", "maki"], ["get", "icon"], ["get", "class"], ["literal", "marker"]],
+                  iconSize: 2.5,
+                  iconColor: "#ffffff",
+                  iconAllowOverlap: true,
+                  iconIgnorePlacement: false,
+                  textAllowOverlap: true,
+                  textIgnorePlacement: false,
+                  iconOffset: [0, -5],
+                }}
+              />
+              {/* Label below */}
+              <Mapbox.SymbolLayer
+                id="active-poi-label"
+                style={{
+                  textField: ["coalesce", ["get", "name_en"], ["get", "name"], ["get", "house_num"]],
+                  textSize: 15,
+                  textMaxWidth: 7,
+                  textOffset: [0, .75],
+                  textAnchor: "top",
+                  textHaloColor: mode === "dark" ? "#000" : "#ffffff",
+                  textHaloWidth: 1,
+                  textColor: mode === "dark" ? "#ffffff" : "#000000",
+                  textAllowOverlap: false,
+                  textIgnorePlacement: false,
+                }}
+              />
+            </Mapbox.ShapeSource>
+          )}
+
+          {mapReady && coordinates && (
+            <Mapbox.UserLocation
+              visible
+              minDisplacement={5}
+              requestsAlwaysUse
+              showsUserHeadingIndicator
+              onPress={onLocationPuckPress}
+            />
+          )}
+
           <ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22}>
             <SymbolLayer
               id="frameLayer"
@@ -194,6 +374,7 @@ export default function CustomMap({
                 iconSize: .36,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
+                iconIgnorePlacement: true,
               }}
             />
 
@@ -204,7 +385,8 @@ export default function CustomMap({
                 iconSize: .3,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: [-17, -17]
+                iconOffset: [-17, -17],
+                iconIgnorePlacement: true
               }}
             />
 
@@ -223,14 +405,19 @@ export default function CustomMap({
             <SymbolLayer
               id="promptLayer"
               style={{
-                textField: ["get", "prompt"],
-                textSize: 11,
+                textField: [
+                  "case",
+                  ["==", ["get", "prompt"], ""],
+                  ["get", "placename"],
+                  ["get", "prompt"]
+                ],
+                textSize: 12,
                 textColor: promptTextCol,
                 textHaloColor: promptTextBgCol,
                 textHaloWidth: 1,
                 textIgnorePlacement: true,
                 textAllowOverlap: true,
-                textOffset: [-.5, 3],
+                textOffset: [-.5, 3.2],
               }}
             />
 
@@ -241,7 +428,8 @@ export default function CustomMap({
                 iconSize: .225,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: offsets.single
+                iconOffset: offsets.single,
+                iconIgnorePlacement: true
               }}
             />
 
@@ -264,7 +452,8 @@ export default function CustomMap({
                 iconSize: .29,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: [-27, -27]
+                iconOffset: [-27, -27],
+                iconIgnorePlacement: true
               }}
             />
 
@@ -282,9 +471,7 @@ export default function CustomMap({
             />
           </ShapeSource>
         </Mapbox.MapView>
-      )}
-
-      {!permissionGranted && (
+      ) : (
         <PermissionScreen handleGrantPermission={handlePermissions} />
       )}
     </View>
@@ -292,10 +479,22 @@ export default function CustomMap({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  map: { flex: 1 },
+  pin: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#ff3b30",
+    borderWidth: 2,
+    borderColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  map: {
-    flex: 1,
+  pinInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#fff",
   },
 });

@@ -24,4 +24,5 @@ export type Crumb = {
   time: string
   opened: boolean
   formattedAddress: string
+  placename: string
 }

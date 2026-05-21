@@ -60,7 +60,7 @@ export function ElevatedSectionedScrollView({
 }: ElevatedSectionedScrollViewProps) {
   const [refreshing, setRefreshing] = useState(false);
 
-  const fadedBg = useThemeColor({}, "fadedBackground");
+  const fadedBg = useThemeColor({}, "fadedBackgroundElevated");
   const darkBg = useThemeColor({}, "darkBackground")
   const textCol = useThemeColor({}, "text")
 
@@ -163,7 +163,7 @@ export function ElevatedSectionedScrollView({
 
 const styles = StyleSheet.create({
   stickyHeader: {
-    paddingBottom: 10,
+    paddingBottom: 2.5,
   },
   loader: {
     paddingVertical: 12,

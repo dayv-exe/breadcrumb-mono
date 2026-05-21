@@ -63,7 +63,7 @@ const ShareListItem = ({
   onChange: (s: boolean) => void;
   selectedTxt: string;
 }) => {
-  const fadedBg = useThemeColor({}, "fadedBackground");
+  const fadedBg = useThemeColor({}, "fadedBackgroundElevated");
   const vibCol = useThemeColor({}, "darkenVibrant");
   const [selected, setSelected] = useState(false);
   return (
@@ -91,7 +91,7 @@ const ShareListItem = ({
       >
         <CustomLabel
           allowTruncate
-          customStyle={{ padding: 0, fontSize: 15, fontWeight: "500" }}
+          customStyle={{ padding: 0, fontSize: 15 }}
           labelText={title}
           bold={selected}
           adaptToTheme
@@ -139,7 +139,7 @@ interface locationItemProps {
   onPressed?: (s: boolean) => void
 }
 const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, onPressed }: locationItemProps) => {
-  const fadedBg = useThemeColor({}, "fadedBackground");
+  const fadedBg = useThemeColor({}, "fadedBackgroundElevated");
   const vibCol = useThemeColor({}, "darkenVibrant");
   return (
     <TouchableOpacity
@@ -167,7 +167,7 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, 
       >
         <CustomLabel
           allowTruncate
-          customStyle={{ padding: 0, fontSize: 15, fontWeight: "500" }}
+          customStyle={{ padding: 0, fontSize: 15 }}
           labelText={locationStr}
           bold={selected}
           adaptToTheme
@@ -217,6 +217,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
   const { address, coordinates } = useLocationStore();
   const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
+  const [crumbRadius, setCrumbRadius] = useState(15)
   const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
   const [shareIsPending, setShareIsPending] = useState(false)
   const { showModal, hideModal } = useModal()
@@ -235,10 +236,12 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
 
   const { upload } = useMediaUpload({
     onSuccess: files => {
+      console.log(selLoc === sendOpt[1] ? activePoi ? activePoi?.id?.toString() : undefined : undefined)
       shareCrumb({
         id: files[0].crumbId,
         lat: (selLoc === sendOpt[1] ? getSelectedAddress().lat : coordinates?.latitude) ?? 0,
         lon: (selLoc === sendOpt[1] ? getSelectedAddress().lon : coordinates?.longitude) ?? 0,
+        clickedFeatureId: selLoc === sendOpt[1] ? activePoi ? activePoi?.id?.toString() : undefined : undefined,
         text: files.filter(f => f.type === "text").map(f => ({
           index: f.index,
           content: f.text?.content ?? ""
@@ -250,7 +253,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           overlay: f.overlay?.mediaKey,
           thumbnail: f.thumbnail?.mediaKey,
         })),
-        locationAccuracy: coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS,
+        locationAccuracy: (selLoc === sendOpt[1] && droppedPin) ? crumbRadius : coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS,
         locationType: selLoc === sendOpt[0] ? "gps" : selLoc === sendOpt[1] ? activePoi ? "label" : "dropped-pin" : "none",
         receivers: selectedFriends.map(f => f.id),
       }, {
@@ -362,7 +365,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
       keyExtractor: (item) => item,
       renderItem: (item) => (
         <LocationItem
-          locationStr={item}
+          locationStr={item === sendOpt[1] && (activePoi || droppedPin) ? getSelectedAddress().address : item}
           selected={selLoc === item}
           setSelected={() => setSelLoc(item)}
           onPressed={s => {
@@ -382,7 +385,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
                     setDroppedPin(c)
                     setActivePoi(null)
                     hideModal()
-                  }} />
+                  }} droppedPinRadius={crumbRadius} setDroppedPinRadius={setCrumbRadius} />
                 ),
               })
             } else {
@@ -397,9 +400,9 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           }}
           selText={
             item === sendOpt[0]
-              ? `Crumb${usePlural ? "s" : ""} can only be viewed here`
-              : item === sendOpt[1] ? `Crumb${usePlural ? "s" : ""} can only be viewed there`
-                : item === sendOpt[2] ? `Crumb${usePlural ? "s" : ""} can be viewed from anywhere`
+              ? `Crumb${usePlural ? "s" : ""} can only be opened here`
+              : item === sendOpt[1] ? `Crumb${usePlural ? "s" : ""} can only be opened there`
+                : item === sendOpt[2] ? `Crumb${usePlural ? "s" : ""} can be opened anywhere`
                   : `Visible to all your friends for 24h`
           }
         />

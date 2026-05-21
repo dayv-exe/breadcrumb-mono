@@ -18,6 +18,7 @@ export type crumbBody = {
   locationType: LocationTypes
   mediaItems: crumbMedia[]
   text?: crumbText[]
+  clickedFeatureId?: string
 }
 
 export const getLatestCrumbs = async (sentCrumbs: boolean, crumbId?: string, lastTimeStamp?: string): Promise<apiResponse<Crumb[]>> => {
@@ -49,17 +50,7 @@ export const getCrumbs = async (next?: string): Promise<apiResponse<Crumb[]>> =>
 
 export const shareCrumb = async (crumb: crumbBody): Promise<apiResponse<crumbBody[]>> => {
   try {
-    const { data } = await axiosInstance.post<{ message: crumbBody[] }>(`/api/v1/crumbs`,
-      {
-        id: crumb.id,
-        receivers: crumb.receivers,
-        lat: crumb.lat,
-        lon: crumb.lon,
-        locationAccuracy: crumb.locationAccuracy,
-        locationType: crumb.locationType,
-        media: crumb.mediaItems,
-        text: crumb.text
-      })
+    const { data } = await axiosInstance.post<{ message: crumbBody[] }>(`/api/v1/crumbs`, crumb)
     return { message: data.message, error: null }
   } catch (error) {
     console.log((error as AxiosError).message)

@@ -8,15 +8,14 @@ import CustomMap from "@/components/map/CustomMap";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
-import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useFocusEffect, useRouter } from "expo-router";
-import type { Feature, FeatureCollection, Point } from "geojson";
-import { useCallback, useRef, useState } from "react";
+import type { Feature, FeatureCollection, GeoJsonProperties, Geometry, Point } from "geojson";
+import { useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -89,6 +88,8 @@ export default function MapScreen() {
   const [pageName, setPageName] = useState("Unopened")
   const [useSat, setUseSat] = useState(false)
   const [forceDark, setForceDark] = useState(false)
+  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
+  const [droppedPinRadius, setDroppedPinRadius] = useState<number>(15)
   const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
     "user_3": require("../../../assets/images/icons/test_avatar_4.jpg"),
   })
@@ -97,6 +98,7 @@ export default function MapScreen() {
     features: [
     ],
   })
+  const [selPoi, setSelPoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
 
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -151,17 +153,25 @@ export default function MapScreen() {
     }
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        closeSheet();
-      };
-    }, [closeSheet])
-  );
-
-
   function handleAddFriend() {
     router.push("/find-friends")
+  }
+
+  const newCrumbFeature = (crumbId: string, crumbSender: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
+    return {
+      type: 'Feature',
+      id: crumbId,
+      properties: {
+        profilePicture: crumbSender + ".jpg",
+        nickname: senderNickname,
+        prompt: prompt,
+        placename: placename,
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [lon, lat]
+      }
+    }
   }
 
   const updateCrumbs = async () => {
@@ -175,19 +185,15 @@ export default function MapScreen() {
       );
 
       if (latestCrumb.message.length > 0) {
-        const newFeatures: Feature<Point>[] = latestCrumb.message.map(crumb => ({
-          type: 'Feature',
-          id: crumb.id,
-          properties: {
-            profilePicture: crumb.sender + ".jpg",
-            nickname: "C",
-            prompt: ""
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: [crumb.lon, crumb.lat]
-          }
-        }));
+        const newFeatures: Feature<Point>[] = latestCrumb.message.map(crumb => (newCrumbFeature(
+          crumb.id,
+          crumb.sender,
+          crumb.lat,
+          crumb.lon,
+          "C",
+          "",
+          crumb.placename,
+        )));
 
         setCrumbFeatures(prev => ({
           ...prev,
@@ -201,19 +207,15 @@ export default function MapScreen() {
 
   const loadCrumbs = async () => {
     const crumbsInView = await GetAllCrumbs()
-    const features: Feature<Point>[] = crumbsInView.map(crumb => ({
-      type: 'Feature',
-      id: crumb.id,
-      properties: {
-        profilePicture: crumb.sender + ".jpg",
-        nickname: "C",
-        prompt: ""
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [crumb.lon, crumb.lat]
-      }
-    }));
+    const features: Feature<Point>[] = crumbsInView.map(crumb => (newCrumbFeature(
+      crumb.id,
+      crumb.sender,
+      crumb.lat,
+      crumb.lon,
+      "C",
+      "",
+      crumb.placename,
+    )));
 
     setCrumbFeatures({
       type: 'FeatureCollection',
@@ -222,11 +224,15 @@ export default function MapScreen() {
   }
 
   useFocusEffect(() => {
+
     const interval = setInterval(() => {
-      updateCrumbs();
+      // updateCrumbs();
     }, 5000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      closeSheet();
+    }
   });
 
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
@@ -319,10 +325,23 @@ export default function MapScreen() {
       </GradientView>
 
 
-      <CustomMap mapRef={mapRef} cameraRef={mapCamRef} zoomLevel={12.25} useSatellite={useSat} onMapLongPress={() => closeSheet()} onMapPress={async e => {
-        const result = await getPressedLocationInfo(e, mapRef);
-        // console.log(result?.features[0])
-      }} maxZoomLvlToDark={2.075} setForceDark={setForceDark} featureCollection={crumbFeatures} featureCollectionImages={crumbImages} onMapReady={loadCrumbs} />
+      <CustomMap
+        mapRef={mapRef}
+        cameraRef={mapCamRef}
+        zoomLevel={12.25}
+        useSatellite={useSat}
+        maxZoomLvlToDark={2.075}
+        setForceDark={setForceDark}
+        featureCollection={crumbFeatures}
+        featureCollectionImages={crumbImages}
+        onMapReady={loadCrumbs}
+        allowAutoPitch
+        activePoi={selPoi}
+        setActivePoi={setSelPoi}
+        dropPinCoord={droppedPin}
+        setDropPinCoord={setDroppedPin}
+        droppedPinRadius={droppedPinRadius}
+      />
 
       <View style={styles.mapControls}>
         <CustomImageButton size={21} src={getIconImage("search", mode === "light")} />
