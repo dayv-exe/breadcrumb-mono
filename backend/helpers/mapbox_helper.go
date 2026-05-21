@@ -382,7 +382,7 @@ func (h *mapboxHelper) SearchPlace(query string, body SearchBody) (SuggestRespon
 
 	q := url.Values{}
 	q.Set("q", fmt.Sprintf("%s", query))
-	q.Set("sessionToken", fmt.Sprintf("%s", body.SessionToken))
+	q.Set("session_token", fmt.Sprintf("%s", body.SessionToken))
 	q.Set("proximity", fmt.Sprintf("%s", prox))
 	q.Set("origin", fmt.Sprintf("%s", og))
 	q.Set("access_token", h.MapboxToken)
@@ -420,7 +420,7 @@ func (h *mapboxHelper) RetrievePlace(placeId string, body RetrieveBody) (Retriev
 	endpoint := fmt.Sprintf("%s/%s", constants.MAPBOX_RETRIEVE_API, placeId)
 	og := fmt.Sprintf("%f,%f", body.Origin.Lon, body.Origin.Lat)
 	q := url.Values{}
-	q.Set("sessionToken", fmt.Sprintf("%s", body.SessionToken))
+	q.Set("session_token", fmt.Sprintf("%s", body.SessionToken))
 	q.Set("origin", fmt.Sprintf("%s", og))
 	q.Set("access_token", h.MapboxToken)
 
