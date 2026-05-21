@@ -377,8 +377,8 @@ type RetrieveBody struct {
 
 func (h *mapboxHelper) SearchPlace(query string, body SearchBody) (SuggestResponse, error) {
 	endpoint := fmt.Sprintf("%s", constants.MAPBOX_SEARCH_API)
-	prox := fmt.Sprintf("%f %f", body.Proximity.Lon, body.Proximity.Lat)
-	og := fmt.Sprintf("%f %f", body.Origin.Lon, body.Origin.Lat)
+	prox := fmt.Sprintf("%f,%f", body.Proximity.Lon, body.Proximity.Lat)
+	og := fmt.Sprintf("%f,%f", body.Origin.Lon, body.Origin.Lat)
 
 	q := url.Values{}
 	q.Set("q", fmt.Sprintf("%s", query))
@@ -418,7 +418,7 @@ func (h *mapboxHelper) SearchPlace(query string, body SearchBody) (SuggestRespon
 
 func (h *mapboxHelper) RetrievePlace(placeId string, body RetrieveBody) (RetrieveResponse, error) {
 	endpoint := fmt.Sprintf("%s/%s", constants.MAPBOX_RETRIEVE_API, placeId)
-	og := fmt.Sprintf("%f %f", body.Origin.Lon, body.Origin.Lat)
+	og := fmt.Sprintf("%f,%f", body.Origin.Lon, body.Origin.Lat)
 	q := url.Values{}
 	q.Set("sessionToken", fmt.Sprintf("%s", body.SessionToken))
 	q.Set("origin", fmt.Sprintf("%s", og))
