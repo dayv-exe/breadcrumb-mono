@@ -73,6 +73,10 @@ func handleRetrievePlace(ctx context.Context, req events.APIGatewayV2HTTPRequest
 		return models.InvalidRequestErrorResponse("No query string provided!"), nil
 	}
 
+	if len(placeId) < 2 {
+		return models.SuccessfulGetRequestResponse([]any{}, nil), nil
+	}
+
 	var body helpers.RetrieveBody
 	if err := json.Unmarshal([]byte(req.Body), &body); err != nil {
 		return models.ServerSideErrorResponse("Failed to unmarshal request body!", err), nil
