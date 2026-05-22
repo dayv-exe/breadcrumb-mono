@@ -28,8 +28,8 @@ type CustomMapProps = {
   activePoi?: Feature<Geometry, GeoJsonProperties> | null
   dropPinCoord?: [number, number] | null
   searchResult?: RetrieveResponse | null
-  focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
-  focusOnDroppedPin: (coords: [number, number]) => void
+  onPoiSelect: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
+  onDroppedPin: (coords: [number, number]) => void
   droppedPinRadius?: number
   maxZoomLvlToDark?: number
   setForceDark?: (s: boolean) => void
@@ -93,8 +93,8 @@ export default function CustomMap({
   featureCollectionImages,
   maxZoomLvlToDark,
   onMapReady,
-  focusOnDroppedPin,
-  focusOnPoi,
+  onDroppedPin,
+  onPoiSelect,
   setForceDark,
   searchResult,
   onMapMove,
@@ -135,7 +135,7 @@ export default function CustomMap({
       const collection = await getPressedLocationInfo(e, mapRef);
       const features = collection?.features
       const poi = features?.[0];
-      focusOnPoi(poi ?? null)
+      onPoiSelect(poi ?? null)
     }
   };
 
@@ -143,7 +143,7 @@ export default function CustomMap({
     onMapLongPress(e);
     if (e.geometry.type === "Point") {
       const coords = e.geometry.coordinates as [number, number];
-      focusOnDroppedPin(coords)
+      onDroppedPin(coords)
     }
   }
 
@@ -177,7 +177,10 @@ export default function CustomMap({
           compassPosition={{ top: 65, right: 12 }}
           attributionPosition={{ bottom: 100, left: 10 }}
           logoPosition={{ bottom: 75, left: 10 }}
-          onDidFinishLoadingMap={() => setMapReady(true)}
+          onDidFinishLoadingMap={() => {
+            setMapReady(true)
+            onMapReady?.()
+          }}
           onPress={handleMapPress}
           onLongPress={handleMapLongPress}
           onTouchStart={() => {

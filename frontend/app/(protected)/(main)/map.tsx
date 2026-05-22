@@ -9,16 +9,15 @@ import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
-import { getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
 import { usePlaceSearchResult } from "@/hooks/usePlaceSearchResult";
+import { useSelectLocation } from "@/hooks/useSelectLocation";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
-import * as Haptics from "expo-haptics";
-import { useFocusEffect, useRouter } from "expo-router";
-import type { Feature, FeatureCollection, GeoJsonProperties, Geometry, Point } from "geojson";
+import { useFocusEffect } from "expo-router";
+import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
 import { useCallback, useRef, useState } from "react";
 import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -80,79 +79,33 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function MapScreen() {
-  // map poi click states
-  const preLocationSelectCamPos = useRef<Promise<MapCamPosition | null>>(null)
-  const resetZoomOnUnselect = useRef(false)
-  const allowAutoPitch = true
-
-  const { coordinates } = useLocationStore()
-
-  const setCameraFn = (config: Mapbox.CameraStop) => {
-    if (!mapCamRef?.current) return
-    if (!allowAutoPitch) config.pitch = undefined
-    mapCamRef.current.setCamera(config)
-  }
-
-  const focusOnCoords = async (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, maintainPitch?: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setCameraFn({
-      centerCoordinate: coords,
-      animationDuration: 400,
-      animationMode: "easeTo",
-      pitch: maintainPitch ? undefined : 45,
-      zoomLevel: Math.max(17, preLocationSelCamPos?.zoom ?? 0)
-    })
-  }
-
-  const handleSavePreLocationSelectCameraPosition = (): Promise<MapCamPosition | null> => {
-    const camPos = getMapCamPosition(mapRef)
-    if (!selPoi && !droppedPin) {
-      // zoom before location selection
-      resetZoomOnUnselect.current = true
-      preLocationSelectCamPos.current = camPos
-    }
-    return camPos
-  }
-
+  const mapRef = useRef<Mapbox.MapView>(null);
+  const mapCamRef = useRef<Mapbox.Camera>(null)
+  const coordinates = useLocationStore(s => s.coordinates)
+  const {
+    droppedPin,
+    droppedPinRadius,
+    focusOnCoords,
+    focusOnDroppedPin,
+    focusOnPoi,
+    focusOnUserLocation,
+    selectedPoi,
+    setDroppedPin,
+    setDroppedPinRadius,
+    setSelectedPoi,
+  } = useSelectLocation(
+    mapRef,
+    mapCamRef
+  )
   const { clearSearchResult, searchResult, sessionToken, setPlaceId, setSessionToken } = usePlaceSearchResult(coordinates, coords => {
-    setSelPoi(null)
     setDroppedPin(null)
+    setSelectedPoi(null)
     focusOnCoords(coords, null, true)
   })
 
-  const focusOnPoi = async (poi: Feature<Geometry, GeoJsonProperties> | null) => {
-    setDroppedPin(null)
-    clearSearchResult()
-    setSelPoi(poi)
-    if (poi) {
-      const camPos = handleSavePreLocationSelectCameraPosition()
-      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos))
-      return;
-    }
-
-    if (resetZoomOnUnselect.current) {
-      // setCameraFn({
-      //   pitch: 0,
-      //   zoomLevel: (await preLocationSelectCamPos.current)?.zoom ?? undefined,
-      //   animationDuration: 300,
-      // })
-    }
-  }
-
-  const focusOnDroppedPin = async (coords: [number, number]) => {
-    const camPos = handleSavePreLocationSelectCameraPosition()
-    focusOnCoords(coords, await camPos)
-    setDroppedPin(coords)
-    setSelPoi(null)
-    clearSearchResult()
-  }
-
   const mode = useColorScheme() ?? "light";
-  const mapRef = useRef<Mapbox.MapView>(null);
-  const mapCamRef = useRef<Mapbox.Camera>(null)
   const bgCol = useThemeColor({}, "background")
   const txtCol = useThemeColor({}, "text")
-  const router = useRouter()
   const { openSheet, closeSheet } = useBottomSheet()
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
@@ -160,8 +113,6 @@ export default function MapScreen() {
   const [pageName, setPageName] = useState("Unopened")
   const [useSat, setUseSat] = useState(false)
   const [forceDark, setForceDark] = useState(false)
-  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
-  const [droppedPinRadius, setDroppedPinRadius] = useState<number>(15)
   const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
     "user_3": require("../../../assets/images/icons/test_avatar_4.jpg"),
   })
@@ -171,7 +122,7 @@ export default function MapScreen() {
     features: [
     ],
   })
-  const [selPoi, setSelPoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
+
   const searchBgCol = useThemeColor({}, "darkBackground")
   function handleShowFiltered(name: string) {
     setPageName(name)
@@ -186,32 +137,6 @@ export default function MapScreen() {
       reduceAnimations: true,
       onSheetDismissed: () => setPageName("Unopened")
     })
-  }
-
-  async function focusOnUserLocation() {
-    const curCoord = useLocationStore.getState().coordinates
-    mapCamRef?.current?.setCamera({
-      centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
-      zoomLevel: 12.5,
-      animationDuration: 1000,
-      pitch: 0,
-      heading: 0,
-    })
-
-    setCrumbFeatures(prev => ({
-      ...prev,
-      features: prev.features.map(feature =>
-        feature.id === "2"
-          ? {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              prompt: "Tap to view"
-            },
-          }
-          : feature
-      ),
-    }))
   }
 
   const handlePlaceSelected = (id: string) => {
@@ -415,19 +340,19 @@ export default function MapScreen() {
         featureCollection={crumbFeatures}
         featureCollectionImages={crumbImages}
         searchResult={searchResult}
-        onMapMove={() => {
-          // if (searchResult) setSearchResult(null)
-        }}
         onMapPress={() => {
           setDroppedPin(null)
           clearSearchResult()
         }}
+        onMapLongPress={() => {
+          clearSearchResult()
+        }}
         onMapReady={loadCrumbs}
         allowAutoPitch
-        activePoi={selPoi}
+        activePoi={selectedPoi}
         dropPinCoord={droppedPin}
-        focusOnDroppedPin={focusOnDroppedPin}
-        focusOnPoi={focusOnPoi}
+        onDroppedPin={focusOnDroppedPin}
+        onPoiSelect={focusOnPoi}
         droppedPinRadius={droppedPinRadius}
       />
 

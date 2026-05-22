@@ -373,7 +373,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
               showModal({
                 overrideDefaultBg: true,
                 content: (
-                  <ChooseOnMap selectedPoi={activePoi} handleCancel={() => {
+                  <ChooseOnMap inheritedSelectedPoi={activePoi} handleCancel={() => {
                     hideModal()
                     if (activePoi || droppedPin) return
                     setSelLoc(sendOpt[0])
@@ -381,11 +381,11 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
                     setActivePoi(poi)
                     setDroppedPin(null)
                     hideModal()
-                  }} droppedPinCoord={droppedPin} handleDroppedPin={c => {
+                  }} inheritedDroppedPin={droppedPin} handleDroppedPin={c => {
                     setDroppedPin(c)
                     setActivePoi(null)
                     hideModal()
-                  }} droppedPinRadius={crumbRadius} setDroppedPinRadius={setCrumbRadius} />
+                  }} inheritedDroppedPinRadius={crumbRadius} setIDroppedPinRadius={setCrumbRadius} />
                 ),
               })
             } else {

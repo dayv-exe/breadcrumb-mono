@@ -1,5 +1,5 @@
+import { useSelectLocation } from "@/hooks/useSelectLocation";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import React, { useRef, useState } from "react";
@@ -15,10 +15,10 @@ import Spacer from "../Spacer";
 import CustomSearchInput from "./CustomSearchInput";
 
 interface props {
-  droppedPinCoord: [number, number] | null
-  droppedPinRadius: number
-  setDroppedPinRadius: (r: number) => void
-  selectedPoi: Feature<Geometry, GeoJsonProperties> | null
+  inheritedDroppedPin: [number, number] | null
+  inheritedDroppedPinRadius: number
+  setIDroppedPinRadius: (r: number) => void
+  inheritedSelectedPoi: Feature<Geometry, GeoJsonProperties> | null
   handleCancel: () => void
   handleChooseLocation: (p: Feature<Geometry, GeoJsonProperties> | null) => void
   handleDroppedPin: (coords: [number, number]) => void
@@ -44,13 +44,8 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme]
 }
 
-export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel, handleChooseLocation, handleDroppedPin, droppedPinRadius, setDroppedPinRadius }: props) {
+export default function ChooseOnMap({ handleCancel, handleChooseLocation, handleDroppedPin, inheritedDroppedPin, inheritedDroppedPinRadius, inheritedSelectedPoi, setIDroppedPinRadius }: props) {
   const insets = useSafeAreaInsets()
-
-  const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(selectedPoi)
-  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(droppedPinCoord)
-  const [radius, setRadius] = useState(droppedPinRadius)
-
   const searchRef = useRef(null)
   const [searchStr, setSearchStr] = useState("")
 
@@ -59,20 +54,21 @@ export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel
   const [useSatellite, setUseSatellite] = useState(false)
   const bgCol = useThemeColor({}, "background")
 
-  const [is2dButtonVisible, set2dButtonVisible] = useState(false)
-  const [autoPitch, setAutoPitch] = useState(true)
-  const lock2DButtonAsHidden = useRef(false)
-
-  const coords = useLocationStore(s => s.coordinates)
-  const focusOnUser = () => {
-    camRef.current?.setCamera({
-      centerCoordinate: [coords?.longitude ?? 0, coords?.latitude ?? 0],
-      zoomLevel: 12.5,
-      animationDuration: 1000,
-      pitch: 0,
-      heading: 0,
-    })
-  }
+  const {
+    droppedPin,
+    selectedPoi,
+    focusOnPoi,
+    focusOnDroppedPin,
+    is2dButtonVisible,
+    lock2DButtonAsHidden,
+    set2dButtonVisible,
+    allowAutoPitch,
+    setAllowAutoPitch,
+    droppedPinRadius,
+    focusOnUserLocation,
+    setDroppedPinRadius,
+    setLockButtonAsHidden,
+  } = useSelectLocation(mapRef, camRef, inheritedDroppedPin ?? undefined, inheritedDroppedPinRadius, inheritedSelectedPoi ?? undefined)
 
   return (
     <View style={styles.container}>
@@ -88,19 +84,34 @@ export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel
           }
         ]} slim labelText="Cancel" type="less-prominent" handleClick={handleCancel} />
       </View>
-      <CustomMap useSatellite={useSatellite} mapRef={mapRef} cameraRef={camRef} activePoi={activePoi} setActivePoi={setActivePoi} dropPinCoord={droppedPin} setDropPinCoord={setDroppedPin} centerCoordinate={activePoi ? (activePoi.geometry as any).coordinates : droppedPin ? droppedPin : undefined} is2dButtonVisible={is2dButtonVisible} set2dButtonVisible={(s) => {
-        set2dButtonVisible(s)
-        if (!s) lock2DButtonAsHidden.current = false
-      }} allowAutoPitch={autoPitch} droppedPinRadius={radius} />
+      <CustomMap
+        useSatellite={useSatellite}
+        mapRef={mapRef}
+        cameraRef={camRef}
+        activePoi={selectedPoi}
+        onPoiSelect={focusOnPoi}
+        dropPinCoord={droppedPin}
+        onDroppedPin={focusOnDroppedPin}
+        centerCoordinate={selectedPoi ? (selectedPoi.geometry as any).coordinates : droppedPin ? droppedPin : undefined}
+        is2dButtonVisible={is2dButtonVisible} set2dButtonVisible={(s) => {
+          set2dButtonVisible(s)
+          if (!s) setLockButtonAsHidden(false)
+        }}
+        allowAutoPitch={allowAutoPitch} droppedPinRadius={droppedPinRadius}
+        onMapReady={() => {
+          if (selectedPoi) focusOnPoi(selectedPoi)
+          else if (droppedPin) focusOnDroppedPin(droppedPin)
+        }}
+      />
 
       <View style={[styles.controlsContainer, {
         bottom: insets.bottom + 130,
       }]}>
-        {is2dButtonVisible && !lock2DButtonAsHidden.current && <>
+        {is2dButtonVisible && !lock2DButtonAsHidden && <>
           <CustomFloatingSquare type="themed" handleClick={() => {
-            lock2DButtonAsHidden.current = true
+            setLockButtonAsHidden(true)
             set2dButtonVisible(false)
-            if (activePoi || droppedPin) setAutoPitch(false)
+            if (selectedPoi || droppedPin) setAllowAutoPitch(false)
             camRef.current?.setCamera({
               pitch: 0,
               animationDuration: 300,
@@ -113,12 +124,12 @@ export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel
         </>}
         <CustomImageButton size={21} src={getIconImage("satellite", true)} handleClick={() => setUseSatellite(s => !s)} />
         <Spacer size="small" />
-        <CustomImageButton size={21} src={getIconImage("focusUserLoc", true)} handleClick={focusOnUser} />
+        <CustomImageButton size={21} src={getIconImage("focusUserLoc", true)} handleClick={focusOnUserLocation} />
       </View>
 
       <View style={[styles.bottomSheet, { bottom: 0, backgroundColor: bgCol, minHeight: 100 }]}>
-        {!activePoi && !droppedPin && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
-        {activePoi &&
+        {!selectedPoi && !droppedPin && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
+        {selectedPoi &&
           <>
             <View style={{
               flexGrow: 1,
@@ -127,12 +138,11 @@ export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel
               justifyContent: "center",
               flexDirection: 'column',
             }}>
-              <CustomLabel adaptToTheme labelText={(activePoi.properties as any).name ?? (activePoi.properties as any).house_num} customStyle={{ padding: 0 }} allowTruncate />
-              <CustomLabel adaptToTheme fade fontSize={13} labelText={(activePoi.properties as any).type ?? (activePoi.properties as any).maki} customStyle={{ padding: 0 }} />
+              <CustomLabel adaptToTheme labelText={(selectedPoi.properties as any).name ?? (selectedPoi.properties as any).house_num} customStyle={{ padding: 0 }} allowTruncate />
+              <CustomLabel adaptToTheme fade fontSize={13} labelText={(selectedPoi.properties as any).type ?? (selectedPoi.properties as any).maki} customStyle={{ padding: 0 }} />
             </View>
             <CustomButton handleClick={() => {
-              setDroppedPin(droppedPin)
-              handleChooseLocation(activePoi)
+              handleChooseLocation(selectedPoi)
             }} type="less-prominent" labelText="Select" slim useMinWidth />
           </>
         }
@@ -149,13 +159,13 @@ export default function ChooseOnMap({ selectedPoi, droppedPinCoord, handleCancel
               <Spacer size="small" />
               <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lat: ${droppedPin[1]}`} customStyle={{ padding: 0 }} />
               <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lon: ${droppedPin[0]}`} customStyle={{ padding: 0 }} />
-              <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={radius} onValueChange={r => {
-                setRadius(r)
+              <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={droppedPinRadius} onValueChange={r => {
+                setDroppedPinRadius(r)
               }} />
             </View>
             <CustomButton handleClick={() => {
-              setDroppedPinRadius(radius)
-              setActivePoi(activePoi)
+              setDroppedPinRadius(droppedPinRadius)
+              setIDroppedPinRadius(droppedPinRadius)
               handleDroppedPin(droppedPin)
             }} type="less-prominent" labelText="Select" slim useMinWidth />
           </>

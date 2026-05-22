@@ -138,7 +138,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         } : {
           stiffness: 500,
           damping: 120,
-          mass: 2,
+          mass: 0.5,
         }}
         onClose={handleSheetClose}
         onChange={(index, pos, type) => {

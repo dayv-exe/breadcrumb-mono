@@ -25,7 +25,10 @@ export const usePlaceSearchResult = (userlocation: Coordinates | null,
     onPlaceFound(coords)
   }, [placeInfo, retrieveFailed, retrievePending])
 
-  const clearSearchResult = () => setSearchResult(null)
+  const clearSearchResult = () => {
+    setSearchResult(null)
+    setPlaceId("")
+  }
 
   return {
     sessionToken,
