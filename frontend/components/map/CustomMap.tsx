@@ -1,6 +1,8 @@
+import { RetrieveResponse } from "@/api/models/placeSearch";
 import { Colors } from "@/constants/Colors";
 import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
@@ -25,6 +27,7 @@ type CustomMapProps = {
   onLocationPuckPress?: () => void;
   activePoi?: Feature<Geometry, GeoJsonProperties> | null
   dropPinCoord?: [number, number] | null
+  searchResult?: RetrieveResponse | null
   focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   focusOnDroppedPin: (coords: [number, number]) => void
   droppedPinRadius?: number
@@ -36,6 +39,7 @@ type CustomMapProps = {
   set2dButtonVisible?: (s: boolean) => void
   featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
   featureCollection?: FeatureCollection,
+  onMapMove?: () => void
 };
 
 type PermissionProps = {
@@ -92,6 +96,8 @@ export default function CustomMap({
   focusOnDroppedPin,
   focusOnPoi,
   setForceDark,
+  searchResult,
+  onMapMove,
 }: CustomMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -155,6 +161,9 @@ export default function CustomMap({
   const promptTextCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
   const promptTextBgCol = mode === "dark" || useSatellite ? Colors.dark.background : Colors.light.background
 
+  const textCol = useThemeColor({}, "text")
+  const textHalo = useThemeColor({}, "background")
+
   return (
     <View style={styles.container}>
       {permissionGranted ? (
@@ -175,7 +184,7 @@ export default function CustomMap({
             movedMap.current = true;
           }}
           onCameraChanged={async e => {
-
+            onMapMove?.()
             if (maxZoomLvlToDark && setForceDark) {
               if (e.properties.zoom <= maxZoomLvlToDark) {
                 setForceDark(true)
@@ -238,7 +247,6 @@ export default function CustomMap({
                 />
               </Mapbox.ShapeSource>
 
-              {/* Then your existing pin SymbolLayer below so it renders on top */}
               <Mapbox.ShapeSource
                 id="dropped-pin-source"
                 shape={{
@@ -260,9 +268,47 @@ export default function CustomMap({
             </>
           )}
 
+          {
+            searchResult?.features[0] &&
+            <Mapbox.ShapeSource
+              id="search-pin-source"
+              shape={{
+                type: "Feature",
+                geometry: { type: "Point", coordinates: searchResult?.features[0].geometry.coordinates },
+                properties: searchResult.features[0].properties,
+              }}
+            >
+              <Mapbox.SymbolLayer
+                id="search-pin-layer"
+                style={{
+                  iconImage: "dropped_pin",
+                  iconSize: 0.15,
+                  iconAnchor: "bottom",
+                  iconAllowOverlap: true,
+                  iconIgnorePlacement: true
+                }}
+              />
+
+              <Mapbox.SymbolLayer
+                id="search-text-layer"
+                style={{
+                  textAllowOverlap: true,
+                  textIgnorePlacement: true,
+                  textAnchor: "left",
+                  textField: ["get", "name"],
+                  textHaloColor: textHalo,
+                  textColor: textCol,
+                  textHaloWidth: 1,
+                  textMaxWidth: 7,
+                  textSize: 12,
+                  textOffset: [1.75, -2]
+                }}
+              />
+            </Mapbox.ShapeSource>
+          }
+
           {activePoi && activePoi.geometry.type === "Point" && (
             <Mapbox.ShapeSource id="active-poi-source" shape={activePoi}>
-              {/* Category icon on top */}
               <Mapbox.SymbolLayer
                 id="active-poi-icon"
                 style={{
@@ -276,7 +322,6 @@ export default function CustomMap({
                   iconOffset: [0, -5],
                 }}
               />
-              {/* Label below */}
               <Mapbox.SymbolLayer
                 id="active-poi-label"
                 style={{

@@ -9,7 +9,8 @@ import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
-import { useRetrievePlace } from "@/hooks/queries/usePlacesSearchApi";
+import { getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
+import { usePlaceSearchResult } from "@/hooks/usePlaceSearchResult";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
@@ -18,7 +19,7 @@ import Constants from "expo-constants";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry, Point } from "geojson";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as GenerateUUID } from "uuid";
@@ -80,9 +81,11 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 
 export default function MapScreen() {
   // map poi click states
-  const originalZoom = useRef<Promise<number> | null>(null)
+  const preLocationSelectCamPos = useRef<Promise<MapCamPosition | null>>(null)
   const resetZoomOnUnselect = useRef(false)
   const allowAutoPitch = true
+
+  const { coordinates } = useLocationStore()
 
   const setCameraFn = (config: Mapbox.CameraStop) => {
     if (!mapCamRef?.current) return
@@ -90,49 +93,58 @@ export default function MapScreen() {
     mapCamRef.current.setCamera(config)
   }
 
-  const focusOnCoords = async (coords: [number, number], curZoom: number) => {
+  const focusOnCoords = async (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, maintainPitch?: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setCameraFn({
       centerCoordinate: coords,
       animationDuration: 400,
       animationMode: "easeTo",
-      pitch: 45,
-      zoomLevel: Math.max(17, curZoom)
+      pitch: maintainPitch ? undefined : 45,
+      zoomLevel: Math.max(17, preLocationSelCamPos?.zoom ?? 0)
     })
   }
 
-  const handleSaveOriginalZoomLevel = (): Promise<number> | undefined => {
-    const curZoom = mapRef?.current?.getZoom()
+  const handleSavePreLocationSelectCameraPosition = (): Promise<MapCamPosition | null> => {
+    const camPos = getMapCamPosition(mapRef)
     if (!selPoi && !droppedPin) {
+      // zoom before location selection
       resetZoomOnUnselect.current = true
-      originalZoom.current = curZoom ?? null
+      preLocationSelectCamPos.current = camPos
     }
-    return curZoom
+    return camPos
   }
+
+  const { clearSearchResult, searchResult, sessionToken, setPlaceId, setSessionToken } = usePlaceSearchResult(coordinates, coords => {
+    setSelPoi(null)
+    setDroppedPin(null)
+    focusOnCoords(coords, null, true)
+  })
 
   const focusOnPoi = async (poi: Feature<Geometry, GeoJsonProperties> | null) => {
     setDroppedPin(null)
+    clearSearchResult()
     setSelPoi(poi)
-    const curZoom = handleSaveOriginalZoomLevel()
     if (poi) {
-      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await curZoom) ?? 0)
+      const camPos = handleSavePreLocationSelectCameraPosition()
+      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos))
       return;
     }
 
     if (resetZoomOnUnselect.current) {
-      setCameraFn({
-        pitch: 0,
-        zoomLevel: (await originalZoom.current) ?? undefined,
-        animationDuration: 300,
-      })
+      // setCameraFn({
+      //   pitch: 0,
+      //   zoomLevel: (await preLocationSelectCamPos.current)?.zoom ?? undefined,
+      //   animationDuration: 300,
+      // })
     }
   }
 
   const focusOnDroppedPin = async (coords: [number, number]) => {
-    const curZoom = handleSaveOriginalZoomLevel()
-    focusOnCoords(coords, (await curZoom) ?? 0)
+    const camPos = handleSavePreLocationSelectCameraPosition()
+    focusOnCoords(coords, await camPos)
     setDroppedPin(coords)
     setSelPoi(null)
+    clearSearchResult()
   }
 
   const mode = useColorScheme() ?? "light";
@@ -153,16 +165,7 @@ export default function MapScreen() {
   const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
     "user_3": require("../../../assets/images/icons/test_avatar_4.jpg"),
   })
-  const [sessionToken] = useState(() => GenerateUUID())
-  const [placeId, setPlaceId] = useState("")
-  const { coordinates } = useLocationStore()
-  const { data: placeInfo, isError: retrieveFailed, isPending: retrievePending } = useRetrievePlace(sessionToken, placeId, coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 })
-  useEffect(() => {
-    const place = placeInfo?.features[0]
-    if (!place) return
-    const coords = (place.geometry as any).coordinates as [number, number]
-    focusOnCoords(coords, 0)
-  }, [placeInfo, retrieveFailed, retrievePending])
+
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
     features: [
@@ -411,7 +414,14 @@ export default function MapScreen() {
         setForceDark={setForceDark}
         featureCollection={crumbFeatures}
         featureCollectionImages={crumbImages}
-        onMapPress={() => setDroppedPin(null)}
+        searchResult={searchResult}
+        onMapMove={() => {
+          // if (searchResult) setSearchResult(null)
+        }}
+        onMapPress={() => {
+          setDroppedPin(null)
+          clearSearchResult()
+        }}
         onMapReady={loadCrumbs}
         allowAutoPitch
         activePoi={selPoi}
@@ -426,6 +436,7 @@ export default function MapScreen() {
           size={21}
           src={getIconImage("search", mode === "light")}
           handleClick={() => {
+            setSessionToken(GenerateUUID())
             fadeHeader(false)
             openSheet({
               content: (

@@ -68,7 +68,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, mapRef,
   const debounceInput = useMemo(() => {
     return debounce((value: string) => {
       setDebouncedSearchStr(value);
-    }, 300);
+    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, mapRef,
         <Spacer size="small" />
         {HandleClosePress && <CustomFloatingSquare handleClick={HandleClosePress} isFlat customStyle={{
           backgroundColor: "transparent",
-          width: 35,
+          width: 30,
           height: 30
         }}>
           <ChevronDown color={textCol} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} />

@@ -145,6 +145,18 @@ export const getEmojiForFeature = (props: any): string => {
   return "📍"; // default emoji
 };
 
+export type MapCamPosition = {
+  coords: [number, number]
+  zoom: number
+}
+export async function getMapCamPosition(mapRef: React.RefObject<Mapbox.MapView | null>): Promise<MapCamPosition | null> {
+  if (!mapRef.current) return null
+  const zoom = await mapRef.current.getZoom()
+  const center = await mapRef.current.getCenter()
+
+  return { coords: [center[0], center[1]], zoom: zoom }
+}
+
 const EARTH_RADIUS_METERS = 6_371_000;
 
 /**
