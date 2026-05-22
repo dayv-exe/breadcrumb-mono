@@ -5,7 +5,7 @@ import * as Haptics from "expo-haptics";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import React, { useRef, useState } from "react";
 
-type SelectLocationReturns = {
+export type CustomMapHook = {
   selectedPoi: Feature<Geometry, GeoJsonProperties> | null
   setSelectedPoi: (p: Feature<Geometry, GeoJsonProperties> | null) => void
   droppedPin: [number, number] | null
@@ -19,18 +19,19 @@ type SelectLocationReturns = {
   is2dButtonVisible: boolean
   set2dButtonVisible: (s: boolean) => void
   lock2DButtonAsHidden: boolean
-  setLockButtonAsHidden: (s: boolean) => void
   allowAutoPitch: boolean
   setAllowAutoPitch: (s: boolean) => void
+  make2d: () => void
+  make3d: () => void
 }
 
-export const useSelectLocation = (
+export const useMap = (
   mapRef: React.RefObject<Mapbox.MapView | null>,
   mapCameraRef: React.RefObject<Mapbox.Camera | null>,
   initialDroppedPin?: [number, number],
   initialDroppedPinRadius?: number,
   initialSelectedPoi?: Feature<Geometry, GeoJsonProperties>
-): SelectLocationReturns => {
+): CustomMapHook => {
   const [selectedPoi, setSelectedPoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(initialSelectedPoi ?? null)
   const [droppedPin, setDroppedPin] = useState<[number, number] | null>(initialDroppedPin ?? null)
   const [droppedPinRadius, setDroppedPinRadius] = useState<number>(initialDroppedPinRadius ?? 15)
@@ -38,8 +39,7 @@ export const useSelectLocation = (
   const lock2DButtonAsHidden = useRef(false)
   const resetZoomOnUnselect = useRef(false)
   const preLocationSelectCamPos = useRef<Promise<MapCamPosition | null>>(null)
-  const [allowAutoPitch, setAllowAutoPitch] = useState(true)
-
+  const allowAutoPitch = useRef(true)
   const handleSavePreLocationSelectCameraPosition = (): Promise<MapCamPosition | null> => {
     const camPos = getMapCamPosition(mapRef)
     if (!selectedPoi && !droppedPin) {
@@ -52,7 +52,7 @@ export const useSelectLocation = (
 
   const setCameraFn = (config: Mapbox.CameraStop) => {
     if (!mapCameraRef?.current) return
-    if (!allowAutoPitch) config.pitch = undefined
+    if (!allowAutoPitch.current) config.pitch = undefined
     mapCameraRef.current.setCamera(config)
   }
 
@@ -95,6 +95,26 @@ export const useSelectLocation = (
     })
   }
 
+  const make2d = () => {
+    set2dButtonVisible(false)
+    lock2DButtonAsHidden.current = true
+    allowAutoPitch.current = false
+    mapCameraRef.current?.setCamera({
+      pitch: 0,
+      animationDuration: 300
+    })
+  }
+
+  const make3d = () => {
+    set2dButtonVisible(true)
+    lock2DButtonAsHidden.current = false
+    allowAutoPitch.current = true
+    mapCameraRef.current?.setCamera({
+      pitch: 45,
+      animationDuration: 300
+    })
+  }
+
   return {
     selectedPoi,
     setSelectedPoi,
@@ -107,10 +127,16 @@ export const useSelectLocation = (
     focusOnDroppedPin,
     focusOnUserLocation,
     is2dButtonVisible,
-    set2dButtonVisible,
+    set2dButtonVisible: s => {
+      set2dButtonVisible(s)
+      if (s) {
+        lock2DButtonAsHidden.current = false
+      }
+    },
     lock2DButtonAsHidden: lock2DButtonAsHidden.current,
-    setLockButtonAsHidden: s => lock2DButtonAsHidden.current = s,
-    allowAutoPitch,
-    setAllowAutoPitch,
+    allowAutoPitch: allowAutoPitch.current,
+    setAllowAutoPitch: s => allowAutoPitch.current = s,
+    make2d,
+    make3d,
   }
 }

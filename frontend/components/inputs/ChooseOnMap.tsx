@@ -1,4 +1,4 @@
-import { useSelectLocation } from "@/hooks/useSelectLocation";
+import { useMap } from "@/hooks/useMap";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import Mapbox from "@rnmapbox/maps";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
@@ -63,12 +63,11 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
     lock2DButtonAsHidden,
     set2dButtonVisible,
     allowAutoPitch,
-    setAllowAutoPitch,
     droppedPinRadius,
     focusOnUserLocation,
     setDroppedPinRadius,
-    setLockButtonAsHidden,
-  } = useSelectLocation(mapRef, camRef, inheritedDroppedPin ?? undefined, inheritedDroppedPinRadius, inheritedSelectedPoi ?? undefined)
+    make2d,
+  } = useMap(mapRef, camRef, inheritedDroppedPin ?? undefined, inheritedDroppedPinRadius, inheritedSelectedPoi ?? undefined)
 
   return (
     <View style={styles.container}>
@@ -93,10 +92,9 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
         dropPinCoord={droppedPin}
         onDroppedPin={focusOnDroppedPin}
         centerCoordinate={selectedPoi ? (selectedPoi.geometry as any).coordinates : droppedPin ? droppedPin : undefined}
-        is2dButtonVisible={is2dButtonVisible} set2dButtonVisible={(s) => {
-          set2dButtonVisible(s)
-          if (!s) setLockButtonAsHidden(false)
-        }}
+        is2dButtonVisible={is2dButtonVisible} 
+        set2dButtonVisible={set2dButtonVisible}
+        lock2dButtonAsHidden={lock2DButtonAsHidden}
         allowAutoPitch={allowAutoPitch} droppedPinRadius={droppedPinRadius}
         onMapReady={() => {
           if (selectedPoi) focusOnPoi(selectedPoi)
@@ -107,16 +105,9 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
       <View style={[styles.controlsContainer, {
         bottom: insets.bottom + 130,
       }]}>
-        {is2dButtonVisible && !lock2DButtonAsHidden && <>
+        {is2dButtonVisible && <>
           <CustomFloatingSquare type="themed" handleClick={() => {
-            setLockButtonAsHidden(true)
-            set2dButtonVisible(false)
-            if (selectedPoi || droppedPin) setAllowAutoPitch(false)
-            camRef.current?.setCamera({
-              pitch: 0,
-              animationDuration: 300,
-              animationMode: "easeTo",
-            })
+            make2d()
           }}>
             <CustomLabel labelText="2D" adaptToTheme customStyle={{ padding: 0 }} textAlign="center" />
           </CustomFloatingSquare>

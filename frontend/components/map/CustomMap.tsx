@@ -35,8 +35,9 @@ type CustomMapProps = {
   setForceDark?: (s: boolean) => void
   useSatellite?: boolean;
   allowAutoPitch?: boolean
-  is2dButtonVisible?: boolean
-  set2dButtonVisible?: (s: boolean) => void
+  is2dButtonVisible: boolean
+  set2dButtonVisible: (s: boolean) => void
+  lock2dButtonAsHidden: boolean
   featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
   featureCollection?: FeatureCollection,
   onMapMove?: () => void
@@ -98,6 +99,7 @@ export default function CustomMap({
   setForceDark,
   searchResult,
   onMapMove,
+  lock2dButtonAsHidden
 }: CustomMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -197,7 +199,7 @@ export default function CustomMap({
             }
 
             if (!set2dButtonVisible) return
-            if (e.properties.pitch !== 0) {
+            if (e.properties.pitch !== 0 && !lock2dButtonAsHidden) {
               if (is2dButtonVisible) return
               set2dButtonVisible(true)
             } else {

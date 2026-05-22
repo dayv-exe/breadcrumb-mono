@@ -2,6 +2,7 @@ import { getLatestCrumbs } from "@/api/crumbsApi";
 import { GetAllCrumbs, GetLastReceivedCrumbDetails } from "@/api/db/crumbsDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
+import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
@@ -9,8 +10,8 @@ import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
+import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchResult } from "@/hooks/usePlaceSearchResult";
-import { useSelectLocation } from "@/hooks/useSelectLocation";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
@@ -92,8 +93,14 @@ export default function MapScreen() {
     selectedPoi,
     setDroppedPin,
     setDroppedPinRadius,
+    is2dButtonVisible,
+    set2dButtonVisible,
+    lock2DButtonAsHidden,
+    allowAutoPitch,
+    setAllowAutoPitch,
+    make2d,
     setSelectedPoi,
-  } = useSelectLocation(
+  } = useMap(
     mapRef,
     mapCamRef
   )
@@ -354,9 +361,16 @@ export default function MapScreen() {
         onDroppedPin={focusOnDroppedPin}
         onPoiSelect={focusOnPoi}
         droppedPinRadius={droppedPinRadius}
+        is2dButtonVisible={is2dButtonVisible}
+        set2dButtonVisible={set2dButtonVisible}
+        lock2dButtonAsHidden={lock2DButtonAsHidden}
       />
 
       <View style={styles.mapControls}>
+        {is2dButtonVisible && <CustomFloatingSquare type="themed" handleClick={make2d}>
+          <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold />
+        </CustomFloatingSquare>}
+        <Spacer size="small" />
         <CustomImageButton
           size={21}
           src={getIconImage("search", mode === "light")}
