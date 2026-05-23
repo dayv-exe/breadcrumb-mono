@@ -1,23 +1,9 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
-import { Image, StyleSheet, TextInput, TextStyle, View, ViewStyle } from "react-native";
+import { Image, StyleSheet, TextInput, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
-
-type props = {
-  value: string
-  ref: React.RefObject<TextInput | null>
-  handleChange: (s: string) => void
-  handleOnFocus?: () => void
-  handleOnBlur?: () => void
-  placeholder?: string
-  borderRadius?: number
-  imageSize?: number
-  useRedBorders?: boolean
-  customStyle?: ViewStyle | ViewStyle[]
-  customInputStyle?: TextStyle | TextStyle[]
-  solidAppearance?: boolean
-}
+import { searchInputProps } from "./searchInputProps";
 
 const icons = {
   search: {
@@ -35,7 +21,7 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme]
 }
 
-export default function CustomSearchInput({ value, handleChange, placeholder, borderRadius, imageSize = 18, ref, useRedBorders = false, handleOnFocus, handleOnBlur, customStyle, customInputStyle, solidAppearance }: props) {
+export default function CustomSearchInput({ value, handleChange, placeholder, borderRadius, imageSize = 18, ref, useRedBorders = false, handleOnFocus, handleOnBlur, customStyle, customInputStyle, solidAppearance }: searchInputProps) {
   const mode = useColorScheme()
   const fadedBg = useThemeColor({}, "fadedBackground")
   const bgCol = useThemeColor({}, "background")

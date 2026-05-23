@@ -3,10 +3,10 @@ import { TIME } from "@/constants/appConstants";
 import { Coordinates } from "@/utils/useLocationStore";
 import { useQuery } from "@tanstack/react-query";
 
-export const useSearchPlace = (sessionToken: string, query: string, mapCenter: Coordinates, userLocation: Coordinates) => useQuery({
+export const useSearchPlace = (sessionToken: string, query: string, mapCenter: Coordinates | null, userLocation: Coordinates) => useQuery({
   queryFn: () => searchPlace(sessionToken, query, mapCenter, userLocation),
   queryKey: ["place-search", query],
-  enabled: sessionToken.length > 0 && query.length > 0,
+  enabled: sessionToken.length > 0 && query.length > 0 && mapCenter !== null,
   staleTime: 60 * TIME.MINUTE,
   retry: (count, err) => {
     return count < 1

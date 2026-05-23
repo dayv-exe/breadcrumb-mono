@@ -11,9 +11,9 @@ import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
 import { useMap } from "@/hooks/useMap";
-import { usePlaceSearchResult } from "@/hooks/usePlaceSearchResult";
+import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useLocationStore } from "@/utils/useLocationStore";
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
@@ -80,9 +80,11 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function MapScreen() {
+  const [sessionToken, setSessionToken] = useState("")
   const mapRef = useRef<Mapbox.MapView>(null);
   const mapCamRef = useRef<Mapbox.Camera>(null)
   const coordinates = useLocationStore(s => s.coordinates)
+  const [mapCenter, setMapCenter] = useState<Coordinates | null>(null)
   const {
     droppedPin,
     droppedPinRadius,
@@ -104,10 +106,10 @@ export default function MapScreen() {
     mapRef,
     mapCamRef
   )
-  const { clearSearchResult, searchResult, sessionToken, setPlaceId, setSessionToken } = usePlaceSearchResult(coordinates, coords => {
+  const { clearSearchResult, searchResult, setPlaceId } = usePlaceSearchRetrieve(sessionToken, coordinates, coords => {
     setDroppedPin(null)
     setSelectedPoi(null)
-    focusOnCoords(coords, null, true)
+    focusOnCoords(coords, null, false)
   })
 
   const mode = useColorScheme() ?? "light";
@@ -364,6 +366,7 @@ export default function MapScreen() {
         is2dButtonVisible={is2dButtonVisible}
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
+        setMapCenter={setMapCenter}
       />
 
       <View style={styles.mapControls}>
@@ -383,9 +386,10 @@ export default function MapScreen() {
                   availableHeight={availableHeight}
                   HandleClosePress={closeSheet}
                   mapRef={mapRef}
-                  userLocation={coordinates}
+                  userLocation={coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 }}
                   OnPlaceSelect={handlePlaceSelected}
                   sessionToken={sessionToken}
+                  mapCenter={mapCenter}
                 />
               ),
               snapPoints: [availableHeight],

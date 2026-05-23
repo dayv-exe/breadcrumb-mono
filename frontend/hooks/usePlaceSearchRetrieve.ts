@@ -4,16 +4,13 @@ import { useEffect, useState } from "react"
 import { useRetrievePlace } from "./queries/usePlacesSearchApi"
 
 type returnType = {
-  sessionToken: string
-  setSessionToken: (s: string) => void
   setPlaceId: (p: string) => void
   searchResult: RetrieveResponse | null
   clearSearchResult: () => void
 }
 
-export const usePlaceSearchResult = (userlocation: Coordinates | null,
+export const usePlaceSearchRetrieve = (sessionToken: string, userlocation: Coordinates | null,
   onPlaceFound: (coords: [number, number]) => void): returnType => {
-  const [sessionToken, setSessionToken] = useState("")
   const [placeId, setPlaceId] = useState("")
   const { data: placeInfo, isError: retrieveFailed, isPending: retrievePending } = useRetrievePlace(sessionToken, placeId, userlocation ?? { accuracy: 0, latitude: 0, longitude: 0 })
   const [searchResult, setSearchResult] = useState<RetrieveResponse | null>(null)
@@ -31,8 +28,6 @@ export const usePlaceSearchResult = (userlocation: Coordinates | null,
   }
 
   return {
-    sessionToken,
-    setSessionToken,
     setPlaceId,
     searchResult,
     clearSearchResult

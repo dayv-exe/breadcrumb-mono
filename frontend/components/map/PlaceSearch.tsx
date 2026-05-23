@@ -1,106 +1,51 @@
-import { Suggestion } from "@/api/models/placeSearch";
-import { useSearchPlace } from "@/hooks/queries/usePlacesSearchApi";
+import { usePlaceSearchSuggest } from "@/hooks/usePlaceSearchSuggest";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { debounce } from "@/utils/debounce";
-import { convertToPreferredDistance } from "@/utils/helpers";
 import { Coordinates } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
-import { ChevronDown, MapPin } from "lucide-react-native";
-import React, { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { ChevronDown } from "lucide-react-native";
+import React, { useEffect, useRef } from "react";
+import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import CustomLabel from "../CustomLabel";
 import CustomSearchInput from "../inputs/CustomSearchInput";
 import Spacer from "../Spacer";
-import { ElevatedSectionedScrollView, Section } from "../views/ElevatedSectionedScrollView";
+import { ElevatedSectionedScrollView } from "../views/ElevatedSectionedScrollView";
 
 interface props {
   OnPlaceSelect?: (placeId: string) => void
   OnClose?: () => void
   HandleClosePress?: () => void
-  mapRef: RefObject<Mapbox.MapView | null>
-  userLocation: Coordinates | null
+  mapCenter: Coordinates | null
+  mapRef: React.RefObject<Mapbox.MapView | null>
+  userLocation: Coordinates
   availableHeight?: number
   sessionToken: string
 }
 
-const SearchResult = ({ place, onSelect }: { place: Suggestion, onSelect: (pId: string) => void }) => {
-  return (
-    <TouchableOpacity style={{
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "flex-start",
-      width: "100%",
-      paddingVertical: 7,
-      paddingHorizontal: 5,
-    }}
-      onPress={() => {
-        onSelect(place.mapbox_id)
-      }}
-    >
-      <View style={{
-        backgroundColor: "rgba(0, 0, 0, .05)",
-        borderRadius: "100%",
-        padding: 10,
-      }}>
-        <MapPin strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" color={"rgba(0, 0, 0, .35)"} />
-      </View>
-      <View style={{ flexGrow: 1, flexShrink: 1, }}>
-        <CustomLabel labelText={place.name} adaptToTheme fontSize={15} />
-        <CustomLabel allowTruncate fade labelText={convertToPreferredDistance(place.distance ?? 0) + " • " + (place.full_address ?? place.place_formatted)} adaptToTheme fontSize={14} customStyle={{
-          paddingVertical: 0,
-        }} />
-      </View>
-    </TouchableOpacity>
-  )
-}
-
-export default function PlaceSearch({ HandleClosePress, availableHeight, mapRef, userLocation, OnClose, OnPlaceSelect, sessionToken }: props) {
+export default function PlaceSearch({ HandleClosePress, availableHeight, userLocation, OnClose, OnPlaceSelect, sessionToken, mapRef, mapCenter }: props) {
   const searchInput = useRef<TextInput>(null)
-  const [search, setSearch] = useState("")
   const textCol = useThemeColor({}, "text")
-  const fadedBgCol = useThemeColor({}, "fadedBackgroundElevated")
   const bgCol = useThemeColor({}, "darkBackground")
-  const [mapCenter, setMapCenter] = useState<Coordinates>({ accuracy: 0, latitude: 0, longitude: 0 })
-  const userLoc = userLocation ?? { accuracy: 0, latitude: 0, longitude: 0 }
-  const [debouncedSearchStr, setDebouncedSearchStr] = useState("")
 
-  const debounceInput = useMemo(() => {
-    return debounce((value: string) => {
-      setDebouncedSearchStr(value);
-    }, 1000);
-  }, []);
+  const {
+    setSearch,
+    search,
+    searchFailed,
+    searchPending,
+    places,
+    sections,
+  } = usePlaceSearchSuggest(
+    sessionToken,
+    mapCenter,
+    userLocation,
+    p => {
+      OnPlaceSelect?.(p)
+    }
+  )
 
   useEffect(() => {
     searchInput.current?.focus()
-
-    const getMapCenter = async () => {
-      const c = await mapRef.current?.getCenter()
-      setMapCenter({ accuracy: 0, latitude: c?.[1] ?? 0, longitude: c?.[0] ?? 0 })
-    }
-
-    getMapCenter()
-  }, [mapRef])
-
-  const { data: searchResponse, isError: searchFailed, isFetching: searchPending } = useSearchPlace(sessionToken, debouncedSearchStr, mapCenter, userLoc)
-
-  const places = searchResponse?.suggestions
-
-  const sections: Section[] = [
-    {
-      key: "places",
-      type: "paginated",
-      title: "Results",
-      data: places ?? [],
-      hasMore: false,
-      isFetchingMore: searchPending,
-      keyExtractor: (place: Suggestion) => place.mapbox_id,
-      renderItem: (place: Suggestion) => (
-        <SearchResult place={place} onSelect={p => OnPlaceSelect?.(p)} />
-      ),
-      onEndReached: () => { }
-    },
-  ]
+  }, [])
 
   return (
     <View style={[
@@ -118,7 +63,6 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, mapRef,
         paddingHorizontal: 15,
       }}>
         <CustomSearchInput ref={searchInput} handleChange={e => {
-          debounceInput(e)
           setSearch(e)
         }} value={search} placeholder="Find a place" />
         <Spacer size="small" />
@@ -148,7 +92,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, mapRef,
       }
 
       {
-        searchResponse && places && places.length > 0 &&
+        places && places.length > 0 &&
         <>
           <Spacer />
           <ElevatedSectionedScrollView sections={sections} style={{ padding: 0, margin: 0 }} />
@@ -156,7 +100,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, mapRef,
       }
 
       {
-        searchResponse && places && places.length < 1 &&
+        places && places.length < 1 &&
         <View style={{
           paddingHorizontal: 15,
         }}>

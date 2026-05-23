@@ -12,7 +12,7 @@ export type CustomMapHook = {
   setDroppedPin: (p: [number, number] | null) => void
   droppedPinRadius: number
   setDroppedPinRadius: (r: number) => void
-  focusOnCoords: (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, maintainPitch?: boolean) => void
+  focusOnCoords: (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, allowPitching: boolean) => void
   focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   focusOnDroppedPin: (c: [number, number]) => void
   focusOnUserLocation: () => void
@@ -36,10 +36,10 @@ export const useMap = (
   const [droppedPin, setDroppedPin] = useState<[number, number] | null>(initialDroppedPin ?? null)
   const [droppedPinRadius, setDroppedPinRadius] = useState<number>(initialDroppedPinRadius ?? 15)
   const [is2dButtonVisible, set2dButtonVisible] = useState(false)
-  const lock2DButtonAsHidden = useRef(false)
+  const [lock2DButtonAsHidden, setLock2DButtonAsHidden] = useState(false)
   const resetZoomOnUnselect = useRef(false)
   const preLocationSelectCamPos = useRef<Promise<MapCamPosition | null>>(null)
-  const allowAutoPitch = useRef(true)
+  const [allowAutoPitch, setAllowAutoPitch] = useState(true)
   const handleSavePreLocationSelectCameraPosition = (): Promise<MapCamPosition | null> => {
     const camPos = getMapCamPosition(mapRef)
     if (!selectedPoi && !droppedPin) {
@@ -52,18 +52,18 @@ export const useMap = (
 
   const setCameraFn = (config: Mapbox.CameraStop) => {
     if (!mapCameraRef?.current) return
-    if (!allowAutoPitch.current) config.pitch = undefined
+    // if (!allowAutoPitch) config.pitch = undefined
     mapCameraRef.current.setCamera(config)
   }
 
-  const focusOnCoords = async (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, maintainPitch?: boolean) => {
+  const focusOnCoords = async (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, allowPitch: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setCameraFn({
       centerCoordinate: coords,
       animationDuration: 400,
       animationMode: "easeTo",
-      pitch: maintainPitch ? undefined : 45,
-      zoomLevel: Math.max(17, preLocationSelCamPos?.zoom ?? 0)
+      pitch: allowPitch ? 45 : undefined,
+      zoomLevel: allowPitch ? Math.max(17, preLocationSelCamPos?.zoom ?? 0) : undefined
     })
   }
 
@@ -72,14 +72,14 @@ export const useMap = (
     setSelectedPoi(poi)
     if (poi) {
       const camPos = handleSavePreLocationSelectCameraPosition()
-      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos))
+      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos), allowAutoPitch)
       return;
     }
   }
 
   const focusOnDroppedPin = async (coords: [number, number]) => {
     const camPos = handleSavePreLocationSelectCameraPosition()
-    focusOnCoords(coords, await camPos)
+    focusOnCoords(coords, await camPos, true)
     setDroppedPin(coords)
     setSelectedPoi(null)
   }
@@ -96,9 +96,11 @@ export const useMap = (
   }
 
   const make2d = () => {
-    set2dButtonVisible(false)
-    lock2DButtonAsHidden.current = true
-    allowAutoPitch.current = false
+    if (selectedPoi || droppedPin) {
+      setAllowAutoPitch(false)
+      set2dButtonVisible(false)
+      // setLock2DButtonAsHidden(true)
+    }
     mapCameraRef.current?.setCamera({
       pitch: 0,
       animationDuration: 300
@@ -107,8 +109,8 @@ export const useMap = (
 
   const make3d = () => {
     set2dButtonVisible(true)
-    lock2DButtonAsHidden.current = false
-    allowAutoPitch.current = true
+    setLock2DButtonAsHidden(false)
+    setAllowAutoPitch(true)
     mapCameraRef.current?.setCamera({
       pitch: 45,
       animationDuration: 300
@@ -127,15 +129,10 @@ export const useMap = (
     focusOnDroppedPin,
     focusOnUserLocation,
     is2dButtonVisible,
-    set2dButtonVisible: s => {
-      set2dButtonVisible(s)
-      if (s) {
-        lock2DButtonAsHidden.current = false
-      }
-    },
-    lock2DButtonAsHidden: lock2DButtonAsHidden.current,
-    allowAutoPitch: allowAutoPitch.current,
-    setAllowAutoPitch: s => allowAutoPitch.current = s,
+    set2dButtonVisible,
+    lock2DButtonAsHidden,
+    allowAutoPitch,
+    setAllowAutoPitch,
     make2d,
     make3d,
   }

@@ -1,4 +1,4 @@
-import { InitDb } from '@/api/db/InitDb';
+import { getDb } from '@/api/db/InitDb';
 import { BottomSheetProvider } from '@/components/bottomsheet/BottomSheetContext';
 import { BigActivityIndicatorProvider } from '@/components/modals/BigActivityIndicatorContext';
 import { ModalProvider } from '@/components/modals/ModalContext';
@@ -135,7 +135,7 @@ export default function RootLayout() {
   useEffect(() => {
     const init = async () => {
       try {
-        await InitDb();
+        await getDb();
       } catch (err) {
         console.error(err);
       }

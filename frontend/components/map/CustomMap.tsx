@@ -4,14 +4,14 @@ import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { showSettingsAlert } from "@/utils/helpers";
-import { useLocationStore } from "@/utils/useLocationStore";
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import circle from "@turf/circle";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 
@@ -41,6 +41,7 @@ type CustomMapProps = {
   featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
   featureCollection?: FeatureCollection,
   onMapMove?: () => void
+  setMapCenter?: (c: Coordinates) => void
 };
 
 type PermissionProps = {
@@ -99,7 +100,8 @@ export default function CustomMap({
   setForceDark,
   searchResult,
   onMapMove,
-  lock2dButtonAsHidden
+  lock2dButtonAsHidden,
+  setMapCenter
 }: CustomMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -167,7 +169,7 @@ export default function CustomMap({
   const textHalo = useThemeColor({}, "background")
 
   return (
-    <View style={styles.container}>
+    <View onTouchStart={Keyboard.dismiss} style={styles.container}>
       {permissionGranted ? (
         <Mapbox.MapView
           ref={mapRef}
@@ -179,14 +181,30 @@ export default function CustomMap({
           compassPosition={{ top: 65, right: 12 }}
           attributionPosition={{ bottom: 100, left: 10 }}
           logoPosition={{ bottom: 75, left: 10 }}
-          onDidFinishLoadingMap={() => {
+          onWillStartLoadingMap={() => {
+            setMapReady(false)
+          }}
+          onDidFinishLoadingMap={async () => {
             setMapReady(true)
             onMapReady?.()
+            const c = await mapRef?.current?.getCenter()
+            setMapCenter?.({
+              accuracy: 0,
+              latitude: c?.[1] ?? 0,
+              longitude: c?.[0] ?? 0
+            })
           }}
           onPress={handleMapPress}
           onLongPress={handleMapLongPress}
           onTouchStart={() => {
             movedMap.current = true;
+          }}
+          onMapIdle={e => {
+            setMapCenter?.({
+              accuracy: 0,
+              latitude: e.properties.center[1],
+              longitude: e.properties.center[0]
+            })
           }}
           onCameraChanged={async e => {
             onMapMove?.()
@@ -345,7 +363,7 @@ export default function CustomMap({
             </Mapbox.ShapeSource>
           )}
 
-          {mapReady && coordinates && (
+          {coordinates && (
             <Mapbox.UserLocation
               visible
               minDisplacement={5}
@@ -355,7 +373,7 @@ export default function CustomMap({
             />
           )}
 
-          <ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22}>
+          {<ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22}>
             <SymbolLayer
               id="frameLayer"
               style={{
@@ -458,7 +476,7 @@ export default function CustomMap({
                 textOffset: [-.5, -.5],
               }}
             />
-          </ShapeSource>
+          </ShapeSource>}
         </Mapbox.MapView>
       ) : (
         <PermissionScreen handleGrantPermission={handlePermissions} />

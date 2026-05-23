@@ -2,6 +2,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   NativeScrollEvent,
   NativeSyntheticEvent,
   RefreshControl,
@@ -46,6 +47,7 @@ interface ElevatedSectionedScrollViewProps extends Omit<ScrollViewProps, "onScro
   scrollThreshold?: number;
   sectionTitleStyle?: object;
   /** Called on pull-to-refresh. Should return a Promise that resolves when refresh is done. */
+  hideSectionTitles?: boolean
   onRefresh?: () => Promise<void>;
 }
 
@@ -56,6 +58,7 @@ export function ElevatedSectionedScrollView({
   scrollThreshold = 200,
   sectionTitleStyle,
   onRefresh,
+  hideSectionTitles,
   ...scrollViewProps
 }: ElevatedSectionedScrollViewProps) {
   const [refreshing, setRefreshing] = useState(false);
@@ -105,14 +108,14 @@ export function ElevatedSectionedScrollView({
     const isLast = sectionIdx === visibleSections.length - 1;
 
     // Sticky header (direct child of ScrollView)
-    if (section.title) {
+    if (section.title && !hideSectionTitles) {
       stickyIndices.push(children.length);
       children.push(
         <View
           key={`${section.key}-header`}
           style={[styles.stickyHeader, { backgroundColor: darkBg, paddingHorizontal: 15 }]}
         >
-          <CustomLabel adaptToTheme bold labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, {backgroundColor: darkBg, padding: 0}]} />
+          <CustomLabel adaptToTheme bold labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, { backgroundColor: darkBg, padding: 0 }]} />
         </View>
       );
     }
@@ -157,6 +160,7 @@ export function ElevatedSectionedScrollView({
       {...scrollViewProps}
       keyboardShouldPersistTaps={"handled"}
       keyboardDismissMode="on-drag"
+      onTouchStart={Keyboard.dismiss}
     >
       {children}
     </ScrollView>
