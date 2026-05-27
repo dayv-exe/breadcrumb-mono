@@ -12,6 +12,9 @@ func HandleCrumbActions(ctx context.Context, req events.APIGatewayV2HTTPRequest)
 	method := strings.ToLower(req.RequestContext.HTTP.Method)
 	switch method {
 	case "get":
+		if getResourceName(req, 1) == "markers" {
+			return handleGetCrumbMarkers(ctx, req)
+		}
 		if getResourceName(req, 2) == "open" {
 			return handleOpenCrumb(ctx, req)
 		}

@@ -169,6 +169,75 @@ func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedK
 	}, nil
 }
 
+func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]models.CrumbMarkerDetails, error) {
+	keys := make([]models.CrumbMarkerDetails, 0)
+	// get all your friends sk
+	condition := expression.KeyEqual(expression.Key("pk"), expression.Value(utils.AddPrefix(models.FriendItemPk, userid))).And(
+		expression.KeyBeginsWith(expression.Key("sk"), models.FriendItemSk),
+	)
+
+	proj := expression.NamesList(
+		expression.Name("sk"),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(condition).WithProjection(proj).Build()
+	if err != nil {
+		return keys, err
+	}
+
+	// get all friend ids
+	friendIds := make([]string, 0)
+
+	helper := newHelper(f.Ctx, nil)
+
+	err = QueryAllItemsAndProcess(
+		helper,
+		nil,
+		expr,
+		func(friendRows []map[string]types.AttributeValue) {
+			for _, friendRow := range friendRows {
+				friend := models.DbItemToFriendStruct(friendRow)
+				friendIds = append(friendIds, friend.OtherUserID)
+			}
+		},
+	)
+	if err != nil {
+		return keys, err
+	}
+
+	// get all friend profilePics and sign
+	err = BatchGetAndProcessItems(
+		helper,
+		func(users []map[string]types.AttributeValue) {
+			for _, u := range users {
+				user := models.ConvertToUser(u)
+				thumbnailKey, _, err := NewCloudfrontHelper(f.Ctx).GetSignedUrl(user.ProfilePicture.ThumbnailKey, constants.PROFILE_PICTURE_URL_TTL)
+				if err != nil {
+					return
+				}
+
+				pictureKey, _, err := NewCloudfrontHelper(f.Ctx).GetSignedUrl(user.ProfilePicture.ThumbnailKey, constants.PROFILE_PICTURE_URL_TTL)
+				if err != nil {
+					return
+				}
+
+				keys = append(keys, models.CrumbMarkerDetails{
+					UserId:                  user.Userid,
+					ProfilePicture:          pictureKey,
+					ProfilePictureThumbnail: thumbnailKey,
+					Nickname:                user.Nickname,
+				})
+			}
+		},
+	)
+
+	if err != nil {
+		return keys, err
+	}
+
+	return keys, nil
+}
+
 type getNewFriendItem func(models.Friend) types.WriteRequest
 type getListOfFriends func() (*listResponse[models.UserDisplayInfo], error)
 

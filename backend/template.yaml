@@ -436,6 +436,15 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
+        GetCrumbMarkerDetails:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/crumbs/markers
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
         GetCrumb:
           Type: HttpApi
           Properties:

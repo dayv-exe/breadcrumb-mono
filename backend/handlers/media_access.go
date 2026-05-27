@@ -61,7 +61,7 @@ func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTP
 		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
 	}
 
-	signedThumbnailKeyUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key.ThumbnailKey, 15)
+	signedThumbnailKeyUrl, _, err := helpers.NewCloudfrontHelper(ctx).GetSignedUrl(key.ThumbnailKey, constants.PROFILE_PICTURE_URL_TTL)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
 	}

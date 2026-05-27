@@ -48,6 +48,13 @@ type CrumbBody struct {
 	ClickedFeatureId string       `json:"clickedFeatureId"`
 }
 
+type CrumbMarkerDetails struct {
+	UserId                  string `json:"userid"`
+	Nickname                string `json:"nickname"`
+	ProfilePicture          string `json:"profilePicture"`
+	ProfilePictureThumbnail string `json:"profilePictureThumbnail"`
+}
+
 type Crumb struct {
 	Id               string       `json:"id" dynamodbav:"id"`
 	SenderId         string       `json:"sender" dynamodbav:"sender"`

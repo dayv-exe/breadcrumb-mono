@@ -27,6 +27,7 @@ type listResponse[T any] struct {
 
 type sliceConversionFunc[T any] func([]map[string]types.AttributeValue) []T
 type conversionFunc[T any] func(map[string]types.AttributeValue) T
+type sliceProcessFunc func([]map[string]types.AttributeValue)
 
 // PageResult is the shape returned by a paginated query.
 type PageResult[S any] struct {
@@ -227,6 +228,44 @@ func QueryAllItems[T any](deps *helper, indexName *string, expression expression
 	return &items, nil
 }
 
+func QueryAllItemsAndProcess(deps *helper, indexName *string, expression expression.Expression, processFn sliceProcessFunc) error {
+	input := &dynamodb.QueryInput{
+		TableName:                 &deps.TableName,
+		KeyConditionExpression:    expression.KeyCondition(),
+		ExpressionAttributeNames:  expression.Names(),
+		ExpressionAttributeValues: expression.Values(),
+	}
+
+	if indexName != nil {
+		input.IndexName = indexName
+	}
+
+	var lastEvaluatedKey map[string]types.AttributeValue
+
+	for {
+		if lastEvaluatedKey != nil {
+			input.ExclusiveStartKey = lastEvaluatedKey
+		}
+
+		result, err := utils.GetDependencies().DbClient.Query(deps.Ctx, input)
+
+		if err != nil {
+			log.Print("an error occurred while trying to query")
+			return err
+		}
+
+		processFn(result.Items)
+
+		if result.LastEvaluatedKey == nil {
+			break
+		}
+
+		lastEvaluatedKey = result.LastEvaluatedKey
+	}
+
+	return nil
+}
+
 type queryResult[T any] struct {
 	Items            []T
 	LastEvaluatedKey map[string]types.AttributeValue
@@ -354,6 +393,78 @@ func BatchGetItems[T any](deps *helper, convertToStructs sliceConversionFunc[T],
 	}
 
 	return results, nil
+}
+
+func BatchGetAndProcessItems(deps *helper, processFn sliceProcessFunc, keys ...map[string]types.AttributeValue) error {
+	context, cancel := context.WithTimeout(deps.Ctx, 10*time.Second)
+	defer cancel()
+
+	const chunkSize = 100
+
+	const maxAttempts = 10
+	const baseBackOff = 50 * time.Millisecond
+	const maxJitter = 50 * time.Millisecond
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i < len(keys); i += chunkSize {
+		end := i + chunkSize
+		if end > len(keys) {
+			end = len(keys)
+		}
+
+		unprocessed := map[string]types.KeysAndAttributes{
+			deps.TableName: {Keys: keys[i:end]},
+		}
+
+		for attempt := 0; attempt < maxAttempts && len(unprocessed) > 0; attempt++ {
+			if err := context.Err(); err != nil {
+				return fmt.Errorf("batch get aborted (context): %w", err)
+			}
+
+			input := &dynamodb.BatchGetItemInput{
+				RequestItems: unprocessed,
+			}
+
+			out, err := utils.GetDependencies().DbClient.BatchGetItem(context, input)
+			if err != nil {
+				return fmt.Errorf("batch get from %s failed (chunk %d-%d, attempt %d/%d): %w",
+					deps.TableName, i, end-1, attempt+1, maxAttempts, err)
+			}
+
+			if items, ok := out.Responses[deps.TableName]; ok && len(items) > 0 {
+				processFn(items)
+			}
+
+			unprocessed = out.UnprocessedKeys
+			if len(unprocessed) == 0 {
+				break
+			}
+
+			backoff := baseBackOff * time.Duration(1<<attempt)
+			jitter := time.Duration(rng.Int63n(int64(maxJitter)))
+			sleep := backoff + jitter
+
+			timer := time.NewTimer(sleep)
+			select {
+			case <-context.Done():
+				timer.Stop()
+				return fmt.Errorf("batch get aborted during backoff: %w", context.Err())
+			case <-timer.C:
+			}
+		}
+
+		if len(unprocessed) > 0 {
+			remaining := 0
+			if v, ok := unprocessed[deps.TableName]; ok {
+				remaining = len(v.Keys)
+			}
+			return fmt.Errorf("batch get incomplete for %s (chunk %d-%d): %d unprocessed after %d attempts",
+				deps.TableName, i, end-1, remaining, maxAttempts)
+		}
+	}
+
+	return nil
 }
 
 func BatchWriteItems(deps *helper, requests ...types.WriteRequest) error {
