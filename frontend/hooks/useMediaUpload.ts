@@ -61,10 +61,10 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
     presignedUrl(processedMedia, {
       onSuccess: async (s) => {
         try {
-          s.message?.invalidFiles.map(f => {
+          s?.invalidFiles.map(f => {
             console.log("Name: " + f.fileName + "\n" + "Reason: " + f.reason)
           })
-          const validFiles = s.message?.validFiles;
+          const validFiles = s?.validFiles;
           if (!validFiles?.length) {
             options?.onError?.("No valid files to upload!")
             return;

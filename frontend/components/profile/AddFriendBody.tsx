@@ -28,7 +28,7 @@ export default function AddFriendBody({ name, imgSrc, requestStatus, handleFrien
         <View style={styles.container}>
           <CustomImageButton src={imgSrc} size={40} flat />
           <Spacer size="small" />
-          <CustomLabel width="70%" fade fontSize={15} textAlign="center" adaptToTheme labelText={`Add ${name} as a friend to share crumbs`} />
+          <CustomLabel width="80%" fade fontSize={15} textAlign="center" adaptToTheme labelText={`Add ${name.trim()} as a friend and\nbreadcrumb them`} customStyle={{lineHeight: 20}} />
           <Spacer size="small" />
           {requestStatus === FRIENDSHIP_STATUS.NOT_FRIENDS && <CustomButton paddingHorizontal={25} labelText={buttonTxt()} type="less-prominent" slim handleClick={handleFriendBtnClick} isPending={handleFriendshipPending} />}
           {requestStatus !== FRIENDSHIP_STATUS.NOT_FRIENDS && <CustomButton paddingHorizontal={25} labelText={buttonTxt()} type="theme-faded" slim handleClick={handleFriendBtnClick} isPending={handleFriendshipPending} />}

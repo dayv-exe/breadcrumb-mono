@@ -15,6 +15,7 @@ export type CustomMapHook = {
   focusOnCoords: (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, allowPitching: boolean) => void
   focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   focusOnDroppedPin: (c: [number, number]) => void
+  focusOnSearchResult: (c: [number, number]) => void
   focusOnUserLocation: () => void
   is2dButtonVisible: boolean
   set2dButtonVisible: (s: boolean) => void
@@ -67,12 +68,23 @@ export const useMap = (
     })
   }
 
+  const focusOnSearchResult = async (coords: [number, number]) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setCameraFn({
+      centerCoordinate: coords,
+      animationDuration: 400,
+      animationMode: "easeTo",
+      zoomLevel: 17
+    })
+  }
+
   const focusOnPoi = async (poi: Feature<Geometry, GeoJsonProperties> | null) => {
     setDroppedPin(null)
     setSelectedPoi(poi)
     if (poi) {
       const camPos = handleSavePreLocationSelectCameraPosition()
-      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos), allowAutoPitch)
+      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos), false)
+      console.log(poi)
       return;
     }
   }
@@ -88,7 +100,7 @@ export const useMap = (
     const curCoord = useLocationStore.getState().coordinates
     mapCameraRef?.current?.setCamera({
       centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
-      zoomLevel: 12.5,
+      zoomLevel: 12.6,
       animationDuration: 1000,
       pitch: 0,
       heading: 0,
@@ -125,6 +137,7 @@ export const useMap = (
     droppedPinRadius,
     setDroppedPinRadius,
     focusOnCoords,
+    focusOnSearchResult,
     focusOnPoi,
     focusOnDroppedPin,
     focusOnUserLocation,

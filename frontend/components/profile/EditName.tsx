@@ -39,11 +39,7 @@ export default function EditName({ oldName, onUpdate, allowNameChange }: props) 
 
     editName({ target: "name", payload: name }, {
       onSuccess: res => {
-        if (!res.error) {
-          onUpdate()
-        } else {
-          ShowToast("failed to update name")
-        }
+        onUpdate()
       },
 
       onError: err => {

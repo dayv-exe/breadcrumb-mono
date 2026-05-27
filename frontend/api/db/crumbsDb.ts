@@ -1,3 +1,4 @@
+import type { Position } from "geojson";
 import { Crumb } from "../models/crumb";
 import { getDb } from "./InitDb";
 
@@ -6,6 +7,10 @@ const CHUNK_SIZE = 120
 
 function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
   const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+
+  // split place ids into individual db items
+  // so we can query by place id
+  // then query by radius
 
   const values = crumbs.flatMap((crumb) => [
     crumb.id,
@@ -56,7 +61,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
 }
 
 export async function UpsertCrumbs(crumbs: Crumb[]) {
-  if (!crumbs.length) return;
+  if (!crumbs) return;
   const db = await getDb();
 
   await db.withTransactionAsync(async () => {
@@ -82,20 +87,28 @@ export async function GetLastReceivedCrumbDetails(): Promise<Crumb | null> {
 }
 
 export async function GetCrumbsInViewport(
-  maxLat: number,
-  minLat: number,
-  minLon: number,
-  maxLon: number
+  ne: Position,
+  sw: Position
 ): Promise<Crumb[]> {
+  const [neLon, neLat] = ne;
+  const [swLon, swLat] = sw;
+
   const db = await getDb();
+
+  const crossesAntimeridian = neLon < swLon;
+
+  const lonClause = crossesAntimeridian
+    ? "(lon >= ? OR lon <= ?)"  // wraps the antimeridian
+    : "(lon >= ? AND lon <= ?)";
+
   const rows = await db.getAllAsync<Crumb>(
     `SELECT * FROM crumbs 
-     WHERE lat <= ? AND lat >= ? AND lon <= ? AND lon >= ? 
+     WHERE lat <= ? AND lat >= ? AND ${lonClause}
      ORDER BY time DESC`,
-    [maxLat, minLat, maxLon, minLon]
+    [neLat, swLat, swLon, neLon]
   );
 
-  return rows
+  return rows;
 }
 
 export async function GetCrumbsByDistance(
@@ -104,8 +117,6 @@ export async function GetCrumbsByDistance(
 ): Promise<(Crumb)[]> {
   const db = await getDb();
 
-  // Pre-compute the longitude scaling factor once.
-  // At higher latitudes, a degree of longitude covers less ground than a degree of latitude.
   const lonScale = Math.cos((userLat * Math.PI) / 180);
 
   const rows = await db.getAllAsync<Crumb>(

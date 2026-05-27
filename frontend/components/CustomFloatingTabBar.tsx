@@ -1,4 +1,3 @@
-import { getIconImage } from '@/app/(protected)/(main)/_layout';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { useThemeColor } from '@/hooks/useThemeColor';

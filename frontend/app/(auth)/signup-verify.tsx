@@ -26,8 +26,8 @@ export default function SignupVerifyScreen() {
   })
   const resetCodeCount = useRef(0)
 
-  const { mutate: abort } = useAbortSignup()
-  const { mutate: createUser } = useCreateUser()
+  const { mutate: abort, isError: abortIsError, error: abortError, isPending: abortIsPending } = useAbortSignup()
+  const { mutate: createUser, isError: createUserIsError, error: createUserError, isPending: createUserIsPending } = useCreateUser()
   const { showModal, hideModal } = useModal()
 
   function handleErrorGracefully(err: string) {
@@ -91,13 +91,7 @@ export default function SignupVerifyScreen() {
         sub: res.sub
       }, {
         onSuccess: user => {
-          if (user.error) {
-            handleErrorGracefully(user.error)
-          } else if (!user.error) {
-            res.loginFn()
-          } else {
-            handleErrorGracefully("app in a state of limbo!")
-          }
+          res.loginFn()
         },
         onError: err => {
           handleErrorGracefully(err.message)

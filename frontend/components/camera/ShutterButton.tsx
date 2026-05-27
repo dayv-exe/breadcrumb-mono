@@ -39,7 +39,7 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
   const handleCaptureMedia = (captureFunc: () => void) => {
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
       showModal({
-        message: `Only ${MAX_PREVIEW_MEDIA} items max allowed at a time!`,
+        message: `Only ${MAX_PREVIEW_MEDIA} items max allowed!`,
         showCancelBtn: false,
         primaryBtnText: "Okay",
         onPrimary: () => {

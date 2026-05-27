@@ -7,7 +7,7 @@ export const useAcceptFriendRequests = () => {
     mutationFn: acceptFriendRequest,
     onSuccess(data, variables, onMutateResult, context) {
       qc.invalidateQueries({ queryKey: ["user-friends", variables] })
-      qc.invalidateQueries({ queryKey: ["user-friends", data.message] })
+      qc.invalidateQueries({ queryKey: ["user-friends", data] })
       qc.invalidateQueries({ queryKey: ["user-details", variables] })
       qc.invalidateQueries({ queryKey: ["friend-requests"] })
     },

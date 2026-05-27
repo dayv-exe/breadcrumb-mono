@@ -1,8 +1,7 @@
 import axiosInstance from "@/constants/axios"
-import { AxiosError } from "axios"
 import { UpsertCrumbs } from "./db/crumbsDb"
-import { apiResponse, extractBackendMsg } from "./models/apiResponse"
 import { Crumb } from "./models/crumb"
+import { CrumbMarkerDetails } from "./models/CrumbMarkerDetails"
 import { crumbMedia } from "./models/crumbMedia"
 import { crumbText } from "./models/crumbText"
 import { LocationTypes } from "./models/locationTypes"
@@ -21,39 +20,38 @@ export type crumbBody = {
   clickedFeatureId?: string
 }
 
-export const getLatestCrumbs = async (sentCrumbs: boolean, crumbId?: string, lastTimeStamp?: string): Promise<apiResponse<Crumb[]>> => {
-  let url = `/api/v1/crumbs`
+type CrumbsResponse = {
+  message: Crumb[]
+  next?: string
+}
+
+type CrumbsPage = {
+  crumbs: Crumb[]
+  next?: string
+}
+
+export const getLatestCrumbs = async (sentCrumbs: boolean, crumbId?: string, lastTimeStamp?: string): Promise<CrumbsPage> => {
+  let url = `/crumbs`
   if (crumbId) {
     url += `?crumbId=${crumbId}&time=${lastTimeStamp}&sent=${sentCrumbs}`
   }
-  try {
-    const { data } = await axiosInstance.get<{ message: Crumb[] }>(url)
-    UpsertCrumbs(data.message)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.error(extractBackendMsg(error))
-    return { message: [], error: (error as AxiosError).message }
-  }
+  const { data } = await axiosInstance.get<CrumbsResponse>(url)
+  UpsertCrumbs(data.message)
+  return { crumbs: data.message, next: data.next }
 }
 
-export const getCrumbs = async (next?: string): Promise<apiResponse<Crumb[]>> => {
-  let url = "/api/v1/crumbs"
-  url += next ? `?next=${next}` : ""
-  try {
-    const { data } = await axiosInstance.get<{ message: Crumb[] }>(url)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log(extractBackendMsg(error))
-    return { message: [], error: (error as AxiosError).message }
-  }
+export const getCrumbs = async (next?: string): Promise<CrumbsPage> => {
+  const url = next ? `/crumbs?next=${encodeURIComponent(next)}` : "/crumbs"
+  const { data } = await axiosInstance.get<CrumbsResponse>(url)
+  return { crumbs: data.message, next: data.next }
 }
 
-export const shareCrumb = async (crumb: crumbBody): Promise<apiResponse<crumbBody[]>> => {
-  try {
-    const { data } = await axiosInstance.post<{ message: crumbBody[] }>(`/api/v1/crumbs`, crumb)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: [], error: (error as AxiosError).message }
-  }
+export const getCrumbMarkers = async (): Promise<CrumbMarkerDetails[]> => {
+  const { data } = await axiosInstance.get<{ message: CrumbMarkerDetails[] }>("/crumbs/markers")
+  return data.message
+}
+
+export const shareCrumb = async (crumb: crumbBody): Promise<crumbBody[]> => {
+  const { data } = await axiosInstance.post(`/crumbs`, crumb)
+  return data.message
 }

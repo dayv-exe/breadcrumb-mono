@@ -17,7 +17,7 @@ export const useEditUser = () => {
     mutationFn: editUser,
     onSuccess(data, variables, onMutateResult, context) {
       qc.invalidateQueries({
-        queryKey: ["user-details", data.message]
+        queryKey: ["user-details", data]
       })
     },
   })
@@ -42,7 +42,7 @@ export const useUpdateProfilePicture = () => {
     mutationFn: updateProfilePicture,
 
     onSuccess(data) {
-      queryClient.invalidateQueries({ queryKey: ["profile-picture", data.message] })
+      queryClient.invalidateQueries({ queryKey: ["profile-picture", data] })
     },
   })
 }
@@ -50,6 +50,6 @@ export const useUpdateProfilePicture = () => {
 export const useGetProfilePicture = (userid: string) => useQuery({
   queryKey: ["profile-picture", userid],
   queryFn: () => getProfilePicture(userid),
-  staleTime: 10 * TIME.MINUTE,
+  staleTime: 14 * TIME.MINUTE,
   enabled: userid !== "disabled"
 })

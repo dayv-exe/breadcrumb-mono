@@ -79,6 +79,7 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
     setDroppedPin,
     setSelectedPoi,
     focusOnCoords,
+    focusOnSearchResult,
     make2d,
   } = useMap(mapRef, camRef, inheritedDroppedPin ?? undefined, inheritedDroppedPinRadius, inheritedSelectedPoi ?? undefined)
 
@@ -92,7 +93,7 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
     p => {
       setDroppedPin(null)
       setSelectedPoi(null)
-      focusOnCoords(p, null, false)
+      focusOnSearchResult(p)
     },
   )
 

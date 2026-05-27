@@ -2,7 +2,6 @@ import { RetrieveResponse } from "@/api/models/placeSearch";
 import { Colors } from "@/constants/Colors";
 import { getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { showSettingsAlert } from "@/utils/helpers";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox, { Images, ShapeSource, SymbolLayer } from "@rnmapbox/maps";
@@ -40,7 +39,8 @@ type CustomMapProps = {
   lock2dButtonAsHidden: boolean
   featureCollectionImages?: { [key: string]: Mapbox.ImageEntry; }
   featureCollection?: FeatureCollection,
-  onMapMove?: () => void
+  onMapMove?: (e: Mapbox.MapState) => void
+  onMapIdle?: (e: Mapbox.MapState) => void
   setMapCenter?: (c: Coordinates) => void
 };
 
@@ -100,6 +100,7 @@ export default function CustomMap({
   setForceDark,
   searchResult,
   onMapMove,
+  onMapIdle,
   lock2dButtonAsHidden,
   setMapCenter
 }: CustomMapProps) {
@@ -165,8 +166,8 @@ export default function CustomMap({
   const promptTextCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
   const promptTextBgCol = mode === "dark" || useSatellite ? Colors.dark.background : Colors.light.background
 
-  const textCol = useThemeColor({}, "text")
-  const textHalo = useThemeColor({}, "background")
+  const textCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
+  const textHalo = mode === "dark" || useSatellite ? Colors.dark.background : Colors.light.background
 
   return (
     <View onTouchStart={Keyboard.dismiss} style={styles.container}>
@@ -200,6 +201,7 @@ export default function CustomMap({
             movedMap.current = true;
           }}
           onMapIdle={e => {
+            onMapIdle?.(e)
             setMapCenter?.({
               accuracy: 0,
               latitude: e.properties.center[1],
@@ -207,7 +209,7 @@ export default function CustomMap({
             })
           }}
           onCameraChanged={async e => {
-            onMapMove?.()
+            onMapMove?.(e)
             if (maxZoomLvlToDark && setForceDark) {
               if (e.properties.zoom <= maxZoomLvlToDark) {
                 setForceDark(true)
@@ -256,16 +258,16 @@ export default function CustomMap({
                 <Mapbox.FillLayer
                   id="pin-radius-fill"
                   style={{
-                    fillColor: mode === "dark" ? "purple" : Colors.light.tint,
-                    fillOpacity: mode === "dark" ? 0.4 : 0.15,
+                    fillColor: mode === "dark" || useSatellite ? "red" : Colors.light.tint,
+                    fillOpacity: mode === "dark" ? .6 : 0.15,
                   }}
                 />
                 <Mapbox.LineLayer
                   id="pin-radius-outline"
                   style={{
-                    lineColor: mode === "dark" ? "purple" : Colors.light.tint,
+                    lineColor: mode === "dark" || useSatellite ? "red" : Colors.light.tint,
                     lineWidth: 2,
-                    lineOpacity: mode === "dark" ? 0.8 : 0.6,
+                    lineOpacity: mode === "dark" ? .6 : 0.6,
                   }}
                 />
               </Mapbox.ShapeSource>
@@ -353,9 +355,9 @@ export default function CustomMap({
                   textMaxWidth: 7,
                   textOffset: [0, .75],
                   textAnchor: "top",
-                  textHaloColor: mode === "dark" ? "#000" : "#ffffff",
+                  textHaloColor: textHalo,
                   textHaloWidth: 1,
-                  textColor: mode === "dark" ? "#ffffff" : "#000000",
+                  textColor: textCol,
                   textAllowOverlap: false,
                   textIgnorePlacement: false,
                 }}

@@ -4,6 +4,7 @@ import { useDropZone } from "@/hooks/useDropZone";
 import { useGesture } from "@/hooks/useGestures";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { AudioLines, PlayIcon, Text } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -306,14 +307,18 @@ function Thumbnail({
           resizeMode="cover"
         />
       ) : (
-        <View style={styles.thumbnailVideo}>
+        <View style={[styles.thumbnailVideo, {
+          backgroundColor: "grey"
+        }]}>
           <Image
             source={{ uri: thumbnailUri }}
             style={styles.thumbnailImage}
             resizeMode="cover"
           />
           <View style={styles.videoIndicator}>
-            <View style={styles.playIcon} />
+            {item.type === "video" && <PlayIcon color="#fff" fill="#fff" />}
+            {item.type === "text" && <Text size={30} color="#fff" />}
+            {item.type === "audio" && <AudioLines color="#fff" fill="#fff" />}
           </View>
         </View>
       )}

@@ -1,8 +1,6 @@
 import axiosInstance, { editUserDetailsData } from "@/constants/axios"
 import { MediaData } from "@/constants/media"
 import { GetId } from "@/constants/userAccountDetails"
-import axios, { AxiosError } from "axios"
-import { apiResponse, extractBackendMsg } from "./models/apiResponse"
 import { UserDetails } from "./models/userDetails"
 export type UserInitialDetails = {
   sub: string
@@ -10,76 +8,42 @@ export type UserInitialDetails = {
   name: string
 }
 
-export const createUser = async (userDetails: UserInitialDetails): Promise<apiResponse<string>> => {
-  try {
-    const { data } = await axiosInstance.post<{ message: string }>("/api/v1/users", userDetails)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: "", error: (error as AxiosError).message }
-  }
+export const createUser = async (userDetails: UserInitialDetails): Promise<string> => {
+  const { data } = await axiosInstance.post<{ message: string }>("/users", userDetails)
+  return data.message
 }
 
-export const deleteUser = async (): Promise<apiResponse<string>> => {
-  try {
-    const userId = await GetId()
-    const { data } = await axiosInstance.delete<{ message: string }>(`/api/v1/users/${userId}?action=delete`)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: "", error: (error as AxiosError).message }
-  }
+export const deleteUser = async (): Promise<string> => {
+  const userId = await GetId()
+  const { data } = await axiosInstance.delete<{ message: string }>(`/users/${userId}?action=delete`)
+
+  return data.message
 }
 
-export const editUser = async (edit: editUserDetailsData): Promise<apiResponse<string>> => {
-  try {
-    const userId = await GetId()
-    const { data } = await axiosInstance.put<{ message: string }>(`/api/v1/users/${userId}`, edit)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: "", error: (error as AxiosError).message }
-  }
+export const editUser = async (edit: editUserDetailsData): Promise<string> => {
+  const userId = await GetId()
+  const { data } = await axiosInstance.put<{ message: string }>(`/users/${userId}`, edit)
+  return data.message
 }
 
-export const getUser = async (idOrNickname: string): Promise<apiResponse<UserDetails | null>> => {
-  try {
-    const { data } = await axiosInstance.get<{ message: UserDetails }>(`/api/v1/users/${idOrNickname}`)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.error(extractBackendMsg(error))
-    console.log(extractBackendMsg(error))
-    return { message: null, error: (error as AxiosError).message }
-  }
+export const getUser = async (idOrNickname: string): Promise<UserDetails | null> => {
+  const { data } = await axiosInstance.get<{ message: UserDetails }>(`/users/${idOrNickname}`)
+
+  return data.message
 }
 
-export const getMyProfile = async (): Promise<apiResponse<UserDetails | null>> => {
+export const getMyProfile = async (): Promise<UserDetails | null> => {
   return getUser("")
 }
 
-type ApiErrorResponse = {
-  message: string
-  next?: unknown
-}
-export const updateProfilePicture = async ({ imageKey, thumbnailKey }: { imageKey: string, thumbnailKey: string }): Promise<apiResponse<string>> => {
-  try {
-    const { data } = await axiosInstance.put<{ message: string }>(`/api/v1/profile-picture?imageKey=${imageKey}&thumbnailKey=${thumbnailKey}`)
-    return { message: data.message, error: null }
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.log((error.response?.data as ApiErrorResponse | undefined)?.message)
-    }
+export const updateProfilePicture = async ({ imageKey, thumbnailKey }: { imageKey: string, thumbnailKey: string }): Promise<string> => {
+  const { data } = await axiosInstance.put<{ message: string }>(`/profile-picture?imageKey=${imageKey}&thumbnailKey=${thumbnailKey}`)
 
-    return { message: "", error: (error as AxiosError).message }
-  }
+  return data.message
 }
 
-export const getProfilePicture = async (userid: string): Promise<apiResponse<MediaData | null>> => {
-  try {
-    const { data } = await axiosInstance.get<{ message: MediaData }>(`/api/v1/profile-picture/${userid}`)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: null, error: (error as AxiosError).message }
-  }
+export const getProfilePicture = async (userid: string): Promise<MediaData | null> => {
+  const { data } = await axiosInstance.get<{ message: MediaData }>(`/profile-picture/${userid}`)
+
+  return data.message
 }

@@ -134,8 +134,8 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const { address } = useLocationStore()
 
   const handleShowOptions = () => {
-    if (userData?.message) {
-      const u = userData.message
+    if (userData) {
+      const u = userData
       router.push({
         pathname: "/profile-settings",
         params: {
@@ -164,8 +164,8 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     if (isPending) {
       return "loading..."
     }
-    if (userData?.message?.name) return userData?.message?.name
-    else if (userData?.message?.nickname) return userData.message.nickname
+    if (userData?.name) return userData?.name
+    else if (userData?.nickname) return userData.nickname
     else return "<undefined>"
   }
 
@@ -173,7 +173,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     if (isPending) {
       return "loading..."
     }
-    return userData?.message?.nickname ?? "<undefined>"
+    return userData?.nickname ?? "<undefined>"
   }
 
   async function handleRefresh() {
@@ -185,30 +185,28 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
       // request if not yet friends
       sendFriendReq(userId, {
         onSuccess: res => {
-          if (res.error) {
-            Toast.show({
-              text1: `🤔 Something went wrong, try again.`,
-              position: "bottom",
-              type: "info"
-            })
-          } else {
-            setFriendshipStatus(FRIENDSHIP_STATUS.REQUESTED)
-          }
+          setFriendshipStatus(FRIENDSHIP_STATUS.REQUESTED)
+        },
+        onError: () => {
+          Toast.show({
+            text1: `🤔 Something went wrong, try again.`,
+            position: "bottom",
+            type: "info"
+          })
         }
       })
     } else if (friendshipStatus === FRIENDSHIP_STATUS.REQUESTED) {
       // unsend request if sent
       unsendFriendRequest(userId, {
         onSuccess: res => {
-          if (res.error) {
-            Toast.show({
-              text1: "🤔 hmm, something is not right here.",
-              position: "bottom",
-              type: "info"
-            })
-          } else {
-            setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
-          }
+          setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
+        },
+        onError: () => {
+          Toast.show({
+            text1: "🤔 hmm, something is not right here.",
+            position: "bottom",
+            type: "info"
+          })
         }
       })
     }
@@ -218,15 +216,14 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     if (friendshipStatus === FRIENDSHIP_STATUS.RECEIVED) {
       acceptFriendReq(userId, {
         onSuccess: res => {
-          if (res.error) {
-            Toast.show({
-              text1: "😬 Something went wrong, try again.",
-              position: "bottom",
-              type: "info"
-            })
-          } else {
-            setFriendshipStatus(FRIENDSHIP_STATUS.FRIENDS)
-          }
+          setFriendshipStatus(FRIENDSHIP_STATUS.FRIENDS)
+        },
+        onError: () => {
+          Toast.show({
+            text1: "😬 Something went wrong, try again.",
+            position: "bottom",
+            type: "info"
+          })
         }
       })
     }
@@ -236,11 +233,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     if (friendshipStatus === FRIENDSHIP_STATUS.RECEIVED) {
       rejectFriendReq(userId, {
         onSuccess: res => {
-          if (res.error) {
-            ShowToast("Something went wrong try again.")
-          } else {
-            setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
-          }
+          setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
         },
         onError: err => {
           ShowToast(err.message)
@@ -253,15 +246,14 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     if (friendshipStatus === FRIENDSHIP_STATUS.FRIENDS) {
       endFriendship(userId, {
         onSuccess: res => {
-          if (res.error) {
-            Toast.show({
-              text1: "🤔 Something went wrong.",
-              type: "info",
-              position: "bottom"
-            })
-          } else {
-            setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
-          }
+          setFriendshipStatus(FRIENDSHIP_STATUS.NOT_FRIENDS)
+        },
+        onError: () => {
+          Toast.show({
+            text1: "🤔 Something went wrong.",
+            type: "info",
+            position: "bottom"
+          })
         }
       })
     }
@@ -285,9 +277,9 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   }
 
   useEffect(() => {
-    if (userData && userData.message && !isMyProfile) {
-      user.current = userData.message
-      switch (userData.message.friends) {
+    if (userData && userData && !isMyProfile) {
+      user.current = userData
+      switch (userData.friends) {
         case FRIENDSHIP_STATUS.FRIENDS:
           setFriendshipStatus(FRIENDSHIP_STATUS.FRIENDS)
           break;
@@ -310,7 +302,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
       }
     }
 
-    if ((userData && userData.error) || error) {
+    if (error) {
       Toast.show({
         text1: "🚫 Something went wrong",
         autoHide: true,
@@ -321,11 +313,11 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
       })
     }
 
-  }, [isMyProfile, userData])
+  }, [error, isMyProfile, userData])
 
   return (
     <>
-      {!userData?.error &&
+      {!error &&
         <CustomView horizontalPadding={0} adaptToTheme>
           <SafeAreaView style={[
             styles.container,
@@ -379,7 +371,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
             <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
               <Spacer size="small" />
               <View style={styles.profileHeader}>
-                <CustomProfilePictureCircle size={90} nickname={userData?.message?.nickname} userId={userData?.message?.userId} />
+                <CustomProfilePictureCircle size={90} nickname={userData?.nickname} userId={userData?.userId} />
                 <Spacer />
                 <View style={styles.profileAside}>
                   {!isPending && <CustomLabel fontSize={16} labelText={getName()} textAlign="left" adaptToTheme />}
@@ -392,8 +384,8 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               <Spacer size="small" />
               {!isPending && <View style={styles.bio}>
                 {isMyProfile && address && <CustomLabel fontSize={12} fade adaptToTheme labelText={address} />}
-                {userData?.message?.bio && <CustomLabel width={"90%"} fontSize={16} textAlign="left" labelText={userData.message.bio ?? ""} adaptToTheme />}
-                {!userData?.message?.bio && <CustomLabel width={"80%"} fontSize={16} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
+                {userData?.bio && <CustomLabel width={"90%"} fontSize={16} textAlign="left" labelText={userData.bio ?? ""} adaptToTheme />}
+                {!userData?.bio && <CustomLabel width={"80%"} fontSize={16} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
               </View>}
               {(!isMyProfile && friendshipStatus !== FRIENDSHIP_STATUS.FRIENDS && !isPending) &&
                 <>
@@ -411,7 +403,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
         </CustomView>
       }
 
-      {userData?.error &&
+      {error &&
         <ErrorComponent handleBackClick={handleBackClick} handleRefresh={handleRefresh} isPending={isPending} mode={mode ?? "light"} showBackButton={showBackButton} />
       }
     </>

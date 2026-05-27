@@ -1,5 +1,3 @@
-import { getLatestCrumbs } from "@/api/crumbsApi";
-import { GetAllCrumbs, GetLastReceivedCrumbDetails } from "@/api/db/crumbsDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
@@ -10,6 +8,7 @@ import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
+import { useCrumb } from "@/hooks/useCrumb";
 import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -17,9 +16,7 @@ import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
-import { useFocusEffect } from "expo-router";
-import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as GenerateUUID } from "uuid";
@@ -94,12 +91,10 @@ export default function MapScreen() {
     focusOnUserLocation,
     selectedPoi,
     setDroppedPin,
-    setDroppedPinRadius,
     is2dButtonVisible,
     set2dButtonVisible,
     lock2DButtonAsHidden,
-    allowAutoPitch,
-    setAllowAutoPitch,
+    focusOnSearchResult,
     make2d,
     setSelectedPoi,
   } = useMap(
@@ -109,8 +104,14 @@ export default function MapScreen() {
   const { clearSearchResult, searchResult, setPlaceId } = usePlaceSearchRetrieve(sessionToken, coordinates, coords => {
     setDroppedPin(null)
     setSelectedPoi(null)
-    focusOnCoords(coords, null, false)
+    focusOnSearchResult(coords)
   })
+
+  const {
+    crumbFeatures,
+    crumbImages,
+    fetchCrumbs,
+  } = useCrumb()
 
   const mode = useColorScheme() ?? "light";
   const bgCol = useThemeColor({}, "background")
@@ -122,102 +123,12 @@ export default function MapScreen() {
   const [pageName, setPageName] = useState("Unopened")
   const [useSat, setUseSat] = useState(false)
   const [forceDark, setForceDark] = useState(false)
-  const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
-    "user_3": require("../../../assets/images/icons/test_avatar_4.jpg"),
-  })
-
-  const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
-    type: 'FeatureCollection',
-    features: [
-    ],
-  })
-
   const searchBgCol = useThemeColor({}, "darkBackground")
-  function handleShowFiltered(name: string) {
-    setPageName(name)
-    openSheet({
-      content: (
-        <>
-        </>
-      ),
-      showOverlay: false,
-      snapPoints: ["25%", availableHeight],
-      fullExpansionOnOpen: false,
-      reduceAnimations: true,
-      onSheetDismissed: () => setPageName("Unopened")
-    })
-  }
 
   const handlePlaceSelected = (id: string) => {
     closeSheet()
     setPlaceId(id)
     // focus map on place or drop pin or something
-  }
-
-  const newCrumbFeature = (crumbId: string, crumbSender: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
-    return {
-      type: 'Feature',
-      id: crumbId,
-      properties: {
-        profilePicture: crumbSender + ".jpg",
-        nickname: senderNickname,
-        prompt: prompt,
-        placename: placename,
-      },
-      geometry: {
-        type: 'Point',
-        coordinates: [lon, lat]
-      }
-    }
-  }
-
-  const updateCrumbs = async () => {
-    try {
-      const lastCrumb = await GetLastReceivedCrumbDetails();
-
-      const latestCrumb = await getLatestCrumbs(
-        false,
-        lastCrumb?.id,
-        lastCrumb?.time
-      );
-
-      if (latestCrumb.message.length > 0) {
-        const newFeatures: Feature<Point>[] = latestCrumb.message.map(crumb => (newCrumbFeature(
-          crumb.id,
-          crumb.sender,
-          crumb.lat,
-          crumb.lon,
-          "C",
-          "",
-          crumb.placename,
-        )));
-
-        setCrumbFeatures(prev => ({
-          ...prev,
-          features: [...prev.features, ...newFeatures]
-        }));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const loadCrumbs = async () => {
-    const crumbsInView = await GetAllCrumbs()
-    const features: Feature<Point>[] = crumbsInView.map(crumb => (newCrumbFeature(
-      crumb.id,
-      crumb.sender,
-      crumb.lat,
-      crumb.lon,
-      "C",
-      "",
-      crumb.placename,
-    )));
-
-    setCrumbFeatures({
-      type: 'FeatureCollection',
-      features
-    });
   }
 
   const headerOpacity = useRef(new Animated.Value(1)).current;
@@ -230,20 +141,6 @@ export default function MapScreen() {
     }).start();
   };
 
-
-  useFocusEffect(
-    useCallback(() => {
-      const interval = setInterval(() => {
-        // updateCrumbs();
-      }, 5000);
-
-      return () => {
-        clearInterval(interval);
-        closeSheet();
-      };
-    }, [closeSheet])
-  );
-
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
 
   return (
@@ -254,7 +151,7 @@ export default function MapScreen() {
         opacity: headerOpacity,
       }]}>
         <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "88", gradCol + "66", gradCol + "00"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
-          paddingTop: insets.top + 5,
+          paddingTop: insets.top,
           paddingBottom: 0,
           top: 0,
           flexDirection: "column",
@@ -278,7 +175,6 @@ export default function MapScreen() {
               }}
             >
               <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-                handleShowFiltered("Unopened")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
@@ -289,7 +185,6 @@ export default function MapScreen() {
               }} />
               <Spacer size="small" />
               <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-                handleShowFiltered("Sent")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
@@ -300,7 +195,6 @@ export default function MapScreen() {
               }} />
               <Spacer size="small" />
               <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-                handleShowFiltered("❤️ Saved")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
@@ -311,7 +205,6 @@ export default function MapScreen() {
               }} />
               <Spacer size="small" />
               <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-                handleShowFiltered("🔒 Private")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
@@ -323,7 +216,6 @@ export default function MapScreen() {
               <Spacer size="small" />
 
               <CustomButton labelText="👀 Opened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-                handleShowFiltered("👀 Opened")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
@@ -356,7 +248,6 @@ export default function MapScreen() {
         onMapLongPress={() => {
           clearSearchResult()
         }}
-        onMapReady={loadCrumbs}
         allowAutoPitch
         activePoi={selectedPoi}
         dropPinCoord={droppedPin}
@@ -367,6 +258,7 @@ export default function MapScreen() {
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
+        onMapReady={fetchCrumbs}
       />
 
       <View style={styles.mapControls}>

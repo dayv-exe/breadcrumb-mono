@@ -1,6 +1,6 @@
-import { getCrumbs, getLatestCrumbs, shareCrumb } from "@/api/crumbsApi";
+import { getCrumbMarkers, getCrumbs, getLatestCrumbs, shareCrumb } from "@/api/crumbsApi";
 import { TIME } from "@/constants/appConstants";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export const useShareCrumb = () => useMutation({
   mutationFn: shareCrumb
@@ -24,3 +24,10 @@ export const useGetLatestCrumbs = (sentCrumbs: boolean, crumbId?: string, lastTi
     getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
   })
 }
+
+export const useGetCrumbMarkers = () => useQuery({
+  queryFn: getCrumbMarkers,
+  queryKey: ["crumb", "markers"],
+  staleTime: 1 * TIME.HOUR,
+  enabled: true,
+})

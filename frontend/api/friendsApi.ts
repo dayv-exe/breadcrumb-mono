@@ -1,26 +1,24 @@
 import axiosInstance from "@/constants/axios"
-import { AxiosError } from "axios"
-import { apiResponse } from "./models/apiResponse"
 import { UserDetails } from "./models/userDetails"
 
-export const getFriends = async (id: string, next?: string): Promise<apiResponse<UserDetails[]>> => {
-  const endPoint = `/api/v1/friends/${id}`
-  const endPointNextPage = `/api/v1/friends/${id}?next=${next}`
-  try {
-    const { data } = await axiosInstance.get<{ message: UserDetails[], next?: string }>(next ? endPointNextPage : endPoint)
-    return { message: data.message, next: data.next, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: [], error: (error as AxiosError).message }
-  }
+type FriendsResponse = {
+  message: UserDetails[]
+  next?: string
 }
 
-export const removeFriend = async (id: string): Promise<apiResponse<string>> => {
-  try {
-    const { data } = await axiosInstance.delete<{ message: string }>(`/api/v1/friends/${id}`)
-    return { message: data.message, error: null }
-  } catch (error) {
-    console.log((error as AxiosError).message)
-    return { message: "", error: (error as AxiosError).message }
-  }
+type FriendsPage = {
+  Friends: UserDetails[]
+  next?: string
+}
+
+export const getFriends = async (id: string, next?: string): Promise<FriendsPage> => {
+  const endPoint = `/friends/${id}`
+  const endPointNextPage = `/friends/${id}?next=${next}`
+  const { data } = await axiosInstance.get<FriendsResponse>(next ? endPointNextPage : endPoint)
+  return { Friends: data.message, next: data.next }
+}
+
+export const removeFriend = async (id: string): Promise<string> => {
+  const { data } = await axiosInstance.delete<{ message: string }>(`/friends/${id}`)
+  return data.message
 }

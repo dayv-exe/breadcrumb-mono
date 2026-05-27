@@ -10,6 +10,7 @@ type ctrlProps = {
   useFlash: "on" | "off"
   setUseFlash: (s: "on" | "off") => void
   flipCamera: () => void
+  showTextEditor: () => void
 }
 
 const icons = {
@@ -20,7 +21,7 @@ const icons = {
   text: require("../../assets/images/icons/crumbtext_sel_light.png"),
 }
 
-export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ctrlProps) {
+export default function CameraControls({ useFlash, setUseFlash, flipCamera, showTextEditor }: ctrlProps) {
   function toggleFlash() {
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
@@ -47,7 +48,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera }: ct
         }}>
           <CustomImageButton
             handleClick={() => {
-              
+              showTextEditor()
             }}
             customStyle={[styles.imageButtons, {
               opacity: isRecording ? 0 : 1,

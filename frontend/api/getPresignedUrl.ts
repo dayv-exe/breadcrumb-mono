@@ -1,6 +1,5 @@
 import axiosInstance from "@/constants/axios";
 import { MediaData, MediaType } from "@/constants/media";
-import { apiResponse, extractBackendMsg } from "./models/apiResponse";
 import { crumbText } from "./models/crumbText";
 
 export type PresignedMediaItem = {
@@ -35,18 +34,12 @@ export type presignedUrlResponse = {
 
 export const getPresignedUrls = async (
   files: MediaData[]
-): Promise<apiResponse<presignedUrlResponse | null>> => {
-  const endpoint = files[0].type === "profilePhoto" ? "/api/v1/media-access?action=presign&profilePicture=true" : "/api/v1/media-access?action=presign"
+): Promise<presignedUrlResponse | null> => {
+  const endpoint = files[0].type === "profilePhoto" ? "/media-access?action=presign&profilePicture=true" : "/media-access?action=presign"
+  const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
+    endpoint,
+    { files }
+  );
 
-  try {
-    const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
-      endpoint,
-      { files }
-    );
-    return { message: data.message, error: null };
-  } catch (error) {
-
-    return { message: null, error: extractBackendMsg(error) };
-
-  }
+  return data.message
 };

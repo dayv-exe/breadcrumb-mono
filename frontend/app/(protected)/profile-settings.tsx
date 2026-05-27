@@ -73,8 +73,8 @@ export default function ProfileSettingsScreen() {
   const {
     userid,
   } = useLocalSearchParams<{ userid: string }>()
-  const { data: user, error, isFetching: isPending } = useGetUser(userid ?? "")
-  const { mutate: delAccount } = useDeleteUser()
+  const { data: user, error: userError, isPending: userPending } = useGetUser(userid ?? "")
+  const { mutate: delAccount, error: delAccountError, isPending: delAccountPending } = useDeleteUser()
   const fadedBgColor = useThemeColor({}, "fadedBackground")
   const bgCol = useThemeColor({}, "background")
   const darkBg = useThemeColor({}, "darkBackground")
@@ -102,16 +102,12 @@ export default function ProfileSettingsScreen() {
 
   const handleDelAccount = () => {
     delAccount(undefined, {
-      onSuccess: res => {
-        if (res.error) {
-          Toast.show({
-            type: "info",
-            text1: res.error,
-            position: "top",
-          })
-        } else {
-          logout()
-        }
+      onError: err => {
+        Toast.show({
+          type: "info",
+          text1: err.message,
+          position: "top",
+        })
       }
     })
   }
@@ -150,36 +146,36 @@ export default function ProfileSettingsScreen() {
       keyExtractor: (opt: SettingOption) => opt.name,
       data: [
         {
-          name: 'Username', value: user?.message?.nickname ?? "", handleClick: () => {
+          name: 'Username', value: user?.nickname ?? "", handleClick: () => {
             handleOptClick("Edit username",
-              <EditUsername allowNicknameChange={user?.message?.allowNicknameChange ?? true} onUpdate={() => {
+              <EditUsername allowNicknameChange={user?.allowNicknameChange ?? true} onUpdate={() => {
                 closeSheet()
-              }} oldUsername={user?.message?.nickname ?? ""} />
+              }} oldUsername={user?.nickname ?? ""} />
             )
           }
         },
         {
-          name: "Name", value: user?.message?.name ?? "", handleClick: () => {
+          name: "Name", value: user?.name ?? "", handleClick: () => {
             handleOptClick("Update name",
-              <EditName allowNameChange={user?.message?.allowNameChange ?? true} onUpdate={() => {
+              <EditName allowNameChange={user?.allowNameChange ?? true} onUpdate={() => {
                 closeSheet()
-              }} oldName={user?.message?.name ?? ""} />
+              }} oldName={user?.name ?? ""} />
             )
           }
         },
         {
-          name: 'Bio', value: user?.message?.bio ?? "", handleClick: () => {
+          name: 'Bio', value: user?.bio ?? "", handleClick: () => {
             handleOptClick("Update bio",
-              <EditBio oldBio={user?.message?.bio ?? ""} onUpdate={() => {
+              <EditBio oldBio={user?.bio ?? ""} onUpdate={() => {
                 closeSheet()
               }} />
             )
           }
         },
         {
-          name: emailOptText, value: user?.message?.email ?? "", handleClick: () => {
+          name: emailOptText, value: user?.email ?? "", handleClick: () => {
             handleOptClick("Update email",
-              <EditEmail oldEmail={user?.message?.email ?? ""} onUpdate={() => {
+              <EditEmail oldEmail={user?.email ?? ""} onUpdate={() => {
                 closeSheet()
               }} />
             )
@@ -195,7 +191,7 @@ export default function ProfileSettingsScreen() {
           }
         },
         {
-          name: "Birthdate", value: user?.message?.birthdate ?? "", handleClick: () => {
+          name: "Birthdate", value: user?.birthdate ?? "", handleClick: () => {
             handleOptClick("Update birthdate",
               <EditBirthdate onUpdate={() => {
                 closeSheet()
@@ -366,7 +362,7 @@ export default function ProfileSettingsScreen() {
 
   return (
     <>
-      {isPending &&
+      {userPending &&
         <View style={{
           flex: 1,
           width: "100%",
@@ -377,7 +373,7 @@ export default function ProfileSettingsScreen() {
           <ActivityIndicator />
         </View>
       }
-      {!isPending && !error && user && !user.error && <CustomView horizontalPadding={0} backgroundColor={darkBg}>
+      {!userPending && !userError && user && <CustomView horizontalPadding={0} backgroundColor={darkBg}>
         <CustomHeader title="Edit profile" handleBack={() => {
           router.dismiss()
         }} />
@@ -390,7 +386,7 @@ export default function ProfileSettingsScreen() {
             alignItems: "center",
             justifyContent: "center",
           }}>
-            <CustomProfilePictureCircle userId={user.message?.userId} nickname={user.message?.nickname}
+            <CustomProfilePictureCircle userId={user?.userId} nickname={user?.nickname}
               handleClick={handlePressChangePic}
             />
             <CustomButton handleClick={handlePressChangePic} bold={false} labelText="Tap to change" type="text" adaptToTheme />

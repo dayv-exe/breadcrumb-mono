@@ -75,6 +75,8 @@ export const useImagePicker = (): UseImagePickerReturn => {
           return
         }
         processed.push({
+          index: 0,
+          uploadState: {error: null, pending: false, uploadUrl: ""},
           id: uuidv4(),
           uri: asset.uri,
           width: asset.width,

@@ -135,9 +135,9 @@ export default function SearchScreen() {
     }, 300);
   }, []);
   const {
-    data: searchResult,
-    isPending: searchResPending,
-    error: searchResultErr
+    data: search,
+    isPending: searchPending,
+    error: searchErr
   } = useSearchUser(debouncedSearchStr.trim())
 
   function handleSearchInputChange(e: string) {
@@ -189,13 +189,13 @@ export default function SearchScreen() {
             paddingHorizontal: 5
           }}>
             <Spacer />
-            {(searchResPending && !searchResultErr && searchStr.length > 1) &&
+            {(searchPending && searchStr.length > 1) &&
               <LoadingView />
             }
-            {searchResult?.error && <SearchErrorView />}
-            {searchResult && searchResult?.message.length < 1 && !searchResultErr && <NoResult />}
-            {(!searchResPending && !searchResultErr && searchResult?.message) && <FlatList
-              data={searchResult?.message}
+            {searchErr && <SearchErrorView />}
+            {search && search?.length < 1 && !searchErr && <NoResult />}
+            {search && search.length > 0 && <FlatList
+              data={search}
               renderItem={renderUser}
               keyExtractor={item => item.userId ?? ""}
               initialNumToRender={10}

@@ -251,8 +251,8 @@ export default function MainScreen() {
 
   useEffect(() => {
     fetchLatestCrumbs()
-    if (currentUser && currentUser.message) {
-      setUserDetails(currentUser.message.nickname, currentUser.message.name, currentUser.message.dpUrl)
+    if (currentUser && currentUser) {
+      setUserDetails(currentUser.nickname, currentUser.name, currentUser.dpUrl)
     }
   }, [currentUser])
 

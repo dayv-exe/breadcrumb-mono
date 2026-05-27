@@ -18,7 +18,7 @@ type props = {
 
 export default function WriteCrumb({ text, handleCancel, handleSave }: props) {
   const [crumb, setCrumb] = useState(text ?? "")
-  const {nickname, fullname, dpUrl, userId} = useAuthStore(useShallow(s => ({
+  const { nickname, fullname, dpUrl, userId } = useAuthStore(useShallow(s => ({
     nickname: s.userNickname,
     fullname: s.userFullname,
     dpUrl: s.userDpUrl,
@@ -42,7 +42,7 @@ export default function WriteCrumb({ text, handleCancel, handleSave }: props) {
         <View style={{
           height: "100%"
         }}>
-          <CustomProfilePictureCircle size={55} imgUrl={dpUrl ?? ""} userId={userId} nickname={nickname} />
+          <CustomProfilePictureCircle size={55} userId={userId} nickname={nickname} />
         </View>
         <CustomInput
           value={crumb}

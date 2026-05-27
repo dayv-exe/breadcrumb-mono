@@ -162,6 +162,8 @@ export function useCamera(): useCameraReturnType {
               uri: path,
               thumbnail: thumbnail,
               resizeMode: "cover",
+              uploadState: { error: null, pending: false, uploadUrl: "" },
+              index: 0,
             });
 
             if (shouldAutoRestart.current) {
@@ -204,6 +206,8 @@ export function useCamera(): useCameraReturnType {
           uri: normalizeFileUri(snapshot.path),
           resizeMode: "cover",
           isPlaceholder: true,
+          index: 0,
+          uploadState: { error: null, pending: false, uploadUrl: "" }
         });
         setShowMediaPreview(true)
 
@@ -214,7 +218,9 @@ export function useCamera(): useCameraReturnType {
           type: "photo",
           uri: normalizeFileUri(photo.path),
           resizeMode: "cover",
-          isPlaceholder: false
+          isPlaceholder: false,
+          index: 0,
+          uploadState: { error: null, pending: false, uploadUrl: "" }
         });
       } catch (error) {
         console.error("Error taking photo:", error);
@@ -234,7 +240,9 @@ export function useCamera(): useCameraReturnType {
           id: uuidv4(),
           type: "photo",
           uri: normalizeFileUri(photo.path),
-          resizeMode: "cover"
+          resizeMode: "cover",
+          index: 0,
+          uploadState: { error: null, pending: false, uploadUrl: "" }
         });
         setShowMediaPreview(true)
       } catch (error) {
@@ -299,7 +307,9 @@ export function useCamera(): useCameraReturnType {
         id: uuidv4(),
         resizeMode: "contain",
         type: "audio",
-        uri: normalizeFileUri(audioRecorder.uri)
+        uri: normalizeFileUri(audioRecorder.uri),
+        index: 0,
+        uploadState: { error: null, pending: false, uploadUrl: "" }
       })
       setShowMediaPreview(true)
     } else {

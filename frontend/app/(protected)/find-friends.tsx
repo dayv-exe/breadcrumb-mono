@@ -9,7 +9,6 @@ import CustomView from "@/components/views/CustomView";
 import { useAcceptFriendRequests, useGetFriendRequests, useRejectFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
 import { useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -65,15 +64,9 @@ export default function FindFriendsScreen() {
   const focused = useIsFocused()
   const router = useRouter()
 
-  const { data: requests, isPending: isPending, refetch } = useGetFriendRequests()
-  const { mutate: acceptFriendReq, isPending: acceptPending } = useAcceptFriendRequests()
-  const { mutate: rejectFriendReq, isPending: rejectPending } = useRejectFriendRequest()
-
-  useEffect(() => {
-    if (focused) {
-      refetch()
-    }
-  }, [focused])
+  const { data: requests, isPending: requestsIsPending, error: requestError, refetch: requestRefetch } = useGetFriendRequests()
+  const { mutate: acceptFR, isPending: acceptFRPending, error: acceptFRError } = useAcceptFriendRequests()
+  const { mutate: rejectFR, isPending: rejectFRPending, error: rejectFRError } = useRejectFriendRequest()
 
   function handleRequestClick(userId: string, nickname: string) {
     router.navigate({
@@ -83,33 +76,25 @@ export default function FindFriendsScreen() {
   }
 
   function handleAcceptRequest(userid: string) {
-    acceptFriendReq(userid, {
-      onSuccess: res => {
-        if (res.error) {
-          Toast.show({
-            text1: "🤔 Something went wrong, try again.",
-            position: "bottom",
-            type: "info",
-          })
-        } else {
-          refetch()
-        }
+    acceptFR(userid, {
+      onError: () => {
+        Toast.show({
+          text1: "🤔 Something went wrong, try again.",
+          position: "bottom",
+          type: "info",
+        })
       }
     })
   }
 
   function handleRejectRequest(userid: string) {
-    rejectFriendReq(userid, {
-      onSuccess: res => {
-        if (res.error) {
-          Toast.show({
-            text1: "🤔 Something went wrong, try again.",
-            position: "bottom",
-            type: "info",
-          })
-        } else {
-          refetch()
-        }
+    rejectFR(userid, {
+      onError: () => {
+        Toast.show({
+          text1: "🤔 Something went wrong, try again.",
+          position: "bottom",
+          type: "info",
+        })
       }
     })
   }
@@ -117,35 +102,37 @@ export default function FindFriendsScreen() {
   return (
     <CustomView adaptToTheme horizontalPadding={15}>
       <CustomHeader title="Friend requests" handleBack={() => router.dismiss()} />
-      <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={() => {
-        refetch()
+      <CustomRefreshableScrollView isRefreshing={requestsIsPending} onRefresh={() => {
+        requestRefetch()
       }}>
         <Spacer />
         <View style={styles.suggested}>
           {
-            !isPending && requests && !requests.error && !requests.message && <NoResultComponent />
+            !requests && !requestsIsPending && !requestError && <NoResultComponent />
           }
           {
-            !isPending && requests && requests.error && <ErrorComponent />
+            !requestsIsPending && requestError && <ErrorComponent />
           }
           {
-            isPending && <LoadingComponent />
+            requestsIsPending && <LoadingComponent />
           }
           {
-            !isPending && requests && !requests.error && requests.message &&
-            requests.message.map(request => (
-              <View key={request.userId} style={{ width: "100%" }}>
-                <ProfileItem
-                  key={request.userId}
-                  handleClick={() => handleRequestClick(request.userId!, request.nickname!)}
-                  userDetails={request}
-                  showFriendReqOpts={true}
-                  handleAccept={() => handleAcceptRequest(request.userId ?? "")}
-                  handleReject={() => handleRejectRequest(request.userId ?? "")}
-                />
-                <Spacer />
-              </View>
-            ))
+            requests &&
+            requests.pages.flatMap(
+              pages => pages.friendReqs.map(request => (
+                <View key={request.userId} style={{ width: "100%" }}>
+                  <ProfileItem
+                    key={request.userId}
+                    handleClick={() => handleRequestClick(request.userId!, request.nickname!)}
+                    userDetails={request}
+                    showFriendReqOpts={true}
+                    handleAccept={() => handleAcceptRequest(request.userId ?? "")}
+                    handleReject={() => handleRejectRequest(request.userId ?? "")}
+                  />
+                  <Spacer />
+                </View>
+              ))
+            )
           }
         </View>
         <Spacer />

@@ -66,37 +66,32 @@ function LoadingComponent() {
 
 export default function ViewFriendsScreen() {
   const { accountId, nickname } = useLocalSearchParams<{ accountId: string, nickname: string }>()
-  const { data, refetch, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, error } = useGetFriends(accountId)
-  const { data: requests, refetch: refetchRequests, fetchNextPage: fetchNextReq, hasNextPage: reqHasNextPage, isFetchingNextPage: isFetchingNextReqPage, isFetching: isFetchingReq, error: reqErr } = useGetFriendRequests()
+
+  const { data: friendsData, refetch: friendsRefetch, fetchNextPage: friendsFetchNextPage, hasNextPage: friendsHasNextPage, isFetchingNextPage: friendsIsFetchingNextPage, isFetching: friendsIsFetching, error: friendsError } = useGetFriends(accountId)
+
+  const { data: requests, refetch: requestRefetch, fetchNextPage: requestFetchNextPage, hasNextPage: requestHasNextPage, isFetchingNextPage: requestIsFetchingNextPage, isFetching: requestIsFetching, error: requestError } = useGetFriendRequests()
+
   const isMyProfile = useIsMyProfile(accountId)
   const router = useRouter()
   const mode = useColorScheme()
   const insets = useSafeAreaInsets()
   const darkBgCol = useThemeColor({}, "darkBackground")
 
-  const friends: UserDetails[] = [
-    ...(data?.pages.flatMap((page) =>
-      page.message.map((f): UserDetails => f)
-    ) ?? []),
-  ]
+  const friendRequests = requests?.pages.flatMap(pages => pages.friendReqs.map(p => (p)))
 
-  const fReq: UserDetails[] = [
-    ...(requests?.pages.flatMap((page) =>
-      page.message.map((r): UserDetails => r)
-    ) ?? []),
-  ]
+  const friends = friendsData?.pages.flatMap(pages => pages.Friends.map(f => (f)))
 
   const sections: Section[] = [
     {
       key: "friend requests",
       type: "paginated",
       title: "Friend requests",
-      data: fReq ?? [],
-      hidden: !isMyProfile || (fReq.length === 0 && !hasNextPage) || error !== null,
+      data: friendRequests || [],
+      hidden: !isMyProfile || (friendRequests?.length === 0 && !requestHasNextPage) || requestError !== null,
       keyExtractor: (item: UserDetails) => item.userId ?? "",
-      hasMore: hasNextPage ?? false,
-      isFetchingMore: isFetchingNextPage || isFetching,
-      onEndReached: fetchNextPage,
+      hasMore: requestHasNextPage ?? false,
+      isFetchingMore: requestIsFetchingNextPage || requestIsFetching,
+      onEndReached: requestFetchNextPage,
       renderItem: (item: UserDetails) => {
         return (
           <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
@@ -113,11 +108,11 @@ export default function ViewFriendsScreen() {
       type: "paginated",
       title: "Friends",
       data: friends ?? [],
-      hidden: (friends.length === 0 && !hasNextPage) || error !== null,
+      hidden: (friends?.length === 0 && !friendsHasNextPage) || friendsError !== null,
       keyExtractor: (item: UserDetails) => item.userId ?? "",
-      hasMore: hasNextPage ?? false,
-      isFetchingMore: isFetchingNextPage || isFetching,
-      onEndReached: fetchNextPage,
+      hasMore: friendsHasNextPage ?? false,
+      isFetchingMore: friendsIsFetchingNextPage || friendsIsFetching,
+      onEndReached: friendsFetchNextPage,
       renderItem: (item: UserDetails) => {
         return (
           <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
@@ -144,7 +139,7 @@ export default function ViewFriendsScreen() {
       }} src={getIconImage("back", mode === "light")} flat handleClick={() => router.dismiss()} />
       <CustomLabel labelText={nickname} adaptToTheme textAlign="center" bold />
       {
-        friends.length < 1 && (fReq.length < 1 || !isMyProfile) &&
+        friends && friends.length < 1 && friendRequests && (friendRequests.length < 1 || !isMyProfile) &&
         <View style={{
           flex: 1,
           alignItems: "center",
@@ -158,8 +153,8 @@ export default function ViewFriendsScreen() {
       <ElevatedSectionedScrollView
         sections={sections}
         onRefresh={async () => {
-          refetch()
-          refetchRequests()
+          friendsRefetch()
+          requestRefetch()
         }}
         style={{
           flex: 1,

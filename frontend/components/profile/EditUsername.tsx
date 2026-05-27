@@ -25,10 +25,8 @@ export default function EditUsername({ oldUsername, onUpdate, allowNicknameChang
     handleFinalCheck(isAvailable => {
       if (isAvailable) {
         editUsername({ target: "nickname", payload: username }, {
-          onSuccess: res => {
-            if (!res.error) {
-              onUpdate()
-            }
+          onSuccess: () => {
+            onUpdate()
           },
           onError: err => {
             ShowToast("Failed to update username")

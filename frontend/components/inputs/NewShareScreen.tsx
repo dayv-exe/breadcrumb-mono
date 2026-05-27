@@ -9,7 +9,8 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
-import { useRef, useState } from "react";
+import { Globe2, MapPinIcon, MapPlusIcon } from "lucide-react-native";
+import React, { ComponentType, useRef, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../buttons/CustomButton";
@@ -137,8 +138,9 @@ interface locationItemProps {
   selText: string;
   onChanged?: (s: boolean) => void
   onPressed?: (s: boolean) => void
+  IconComponent: ComponentType
 }
-const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, onPressed }: locationItemProps) => {
+const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, onPressed, IconComponent }: locationItemProps) => {
   const fadedBg = useThemeColor({}, "fadedBackgroundElevated");
   const vibCol = useThemeColor({}, "darkenVibrant");
   return (
@@ -155,7 +157,7 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, 
         setSelected();
       }}
     >
-      <CustomProfilePictureCircle nickname={locationStr} size={45} customStyle={{ marginRight: 10 }} />
+      <IconComponent />
       <View
         style={{
           flexDirection: "column",
@@ -210,6 +212,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const insets = useSafeAreaInsets();
   const mode = useColorScheme();
   const bgCol = mode === "dark" ? "#181818" : "#F4F5F7";
+  const fadedBgCol = useThemeColor({}, "fadedBackground")
   const textCol = useThemeColor({}, "text")
   const [search, setSearch] = useState("");
   const searchRef = useRef(null);
@@ -236,7 +239,6 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
 
   const { upload } = useMediaUpload({
     onSuccess: files => {
-      console.log(selLoc === sendOpt[1] ? activePoi ? activePoi?.id?.toString() : undefined : undefined)
       shareCrumb({
         id: files[0].crumbId,
         lat: (selLoc === sendOpt[1] ? getSelectedAddress().lat : coordinates?.latitude) ?? 0,
@@ -257,11 +259,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         locationType: selLoc === sendOpt[0] ? "gps" : selLoc === sendOpt[1] ? activePoi ? "label" : "dropped-pin" : "none",
         receivers: selectedFriends.map(f => f.id),
       }, {
-        onSuccess: (s) => {
-          if (s.error) {
-            handleNotifyErr(s.error)
-            return
-          }
+        onSuccess: () => {
           setShareIsPending(false)
           hideModal()
           resetMediaStore()
@@ -346,9 +344,9 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   } & UserDetails;
 
   const items: FriendOption[] = [
-    { ...myProfile?.message!, isCurrentUser: true },
+    { ...myProfile!, isCurrentUser: true },
     ...(data?.pages.flatMap((page) =>
-      page.message.map((f): FriendOption => ({ ...f, isCurrentUser: false }))
+      page.Friends.map((f): FriendOption => ({ ...f, isCurrentUser: false }))
     ) ?? []),
   ];
 
@@ -365,6 +363,21 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
       keyExtractor: (item) => item,
       renderItem: (item) => (
         <LocationItem
+          IconComponent={() => {
+            if (item === sendOpt[0]) {
+              return (
+                <MapPinIcon style={{ marginRight: 10, opacity: .6 }} size={45} color={textCol} />
+              )
+            } else if (item === sendOpt[1]) {
+              return (
+                <MapPlusIcon style={{ marginRight: 10, opacity: .6 }} size={45} color={textCol} />
+              )
+            } else {
+              return (
+                <Globe2 style={{ marginRight: 10, opacity: .6 }} size={45} color={textCol} />
+              )
+            }
+          }}
           locationStr={item === sendOpt[1] && (activePoi || droppedPin) ? getSelectedAddress().address : item}
           selected={selLoc === item}
           setSelected={() => setSelLoc(item)}

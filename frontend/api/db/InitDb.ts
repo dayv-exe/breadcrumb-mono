@@ -21,6 +21,7 @@ async function openAndInit() {
       formattedAddress TEXT,
       placename TEXT
     );
+    CREATE INDEX IF NOT EXISTS idx_crumbs_lat_lon ON crumbs(lat, lon);
   `);
   return db;
 }

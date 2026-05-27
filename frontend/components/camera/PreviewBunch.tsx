@@ -1,4 +1,5 @@
 import { useMediaStore } from "@/utils/mediaStore";
+import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Reanimated, { useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { useShallow } from "zustand/shallow";
@@ -35,7 +36,9 @@ export default function PreviewBunch() {
         <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
           <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={styles.previewTouchable}>
             {mediaPreview.map((media, index) => {
-              return <PreviewCard index={index} src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri} key={index} active />;
+              return (
+                <PreviewCard key={index} media={media} index={index} src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri} active />
+              );
             })}
           </TouchableOpacity>
         </Reanimated.View>

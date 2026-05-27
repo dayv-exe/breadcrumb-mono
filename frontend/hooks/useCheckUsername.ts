@@ -31,7 +31,7 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
   const handleFinalCheck = (onSuccess: (valid: boolean) => void) => {
     checkUsernameAvailability(username, {
       onSuccess: (res) => {
-        onSuccess(res.message);
+        onSuccess(res);
       },
     });
   };
@@ -41,16 +41,16 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
       return emptyUsernameLabelText ?? "you can change this later";
     } else if (isPending) {
       return "🔎 checking...";
-    } else if (data?.message) {
+    } else if (data) {
       return `✅ ${username} is available`;
     } else {
       if (error) return `❌ ${error}`;
-      return `🚫 ${data?.error}`;
+      return `🚫 ${error}`;
     }
   };
 
   const getInputMode = (): inputMode => {
-    if (username.length < 1 || isPending || data?.message) {
+    if (username.length < 1 || isPending || data) {
       return "normal";
     }
     return "warn";
@@ -62,6 +62,6 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
     getInfoText,
     getInputMode,
     handleFinalCheck,
-    isValid: data?.message ?? false,
+    isValid: data ?? false,
   };
 }

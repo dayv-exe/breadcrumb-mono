@@ -14,7 +14,7 @@ type props = {
 }
 
 export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius }: props) {
-  const { data: profilePicture } = useGetProfilePicture(userId ?? "");
+  const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? "");
   const { data: userDetails } = useGetUser(userId ?? "")
   const mode = useColorScheme();
 
@@ -22,9 +22,9 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const fgColDark = "#fff";
   const bgCol = useThemeColor({}, "fadedBackgroundElevated");
 
-  const url = (profilePicture?.message && !profilePicture.error) ? profilePicture?.message?.thumbnail : null;
+  const url = (profilePicture && !profilePictureError) ? profilePicture?.thumbnail : null;
 
-  nickname = nickname ?? ((userDetails?.message && !userDetails.error) ? userDetails.message.nickname ?? "" : "")
+  nickname = nickname ?? ((userDetails && !profilePictureError) ? userDetails.nickname ?? "" : "")
   const parts = nickname.split(/[._]/);
   const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "");
 

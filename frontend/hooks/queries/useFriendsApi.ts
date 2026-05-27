@@ -17,7 +17,7 @@ export const useRemoveFriend = () => {
     mutationFn: removeFriend,
     onSuccess(data, variables, onMutateResult, context) {
       qc.invalidateQueries({ queryKey: ["user-friends", variables] })
-      qc.invalidateQueries({ queryKey: ["user-friends", data.message] })
+      qc.invalidateQueries({ queryKey: ["user-friends", data] })
     },
   })
 }

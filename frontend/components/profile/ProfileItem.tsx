@@ -94,13 +94,9 @@ export default function ProfileItem({ userDetails, showFriendReqOpts = false, ha
       // request to be friends
       sendFriendRequest(userDetails.userId ?? "", {
         onSuccess: res => {
-          if (!res.error) {
-            setFriendshipBtnTxt("Requested")
-            setFriendshipBtnType("theme-faded")
-            userDetails.friends = FRIENDSHIP_STATUS.REQUESTED
-          } else {
-            ShowToast("Something went wrong.")
-          }
+          setFriendshipBtnTxt("Requested")
+          setFriendshipBtnType("theme-faded")
+          userDetails.friends = FRIENDSHIP_STATUS.REQUESTED
         },
         onError: () => {
           ShowToast("Something went wrong.")
@@ -109,14 +105,13 @@ export default function ProfileItem({ userDetails, showFriendReqOpts = false, ha
     } else if (userDetails.friends === FRIENDSHIP_STATUS.REQUESTED) {
       // cancel request sent
       cancelFriendRequest(userDetails.userId ?? "", {
-        onSuccess: res => {
-          if (!res.error) {
-            setFriendshipBtnTxt("Add friend")
-            setFriendshipBtnType("less-prominent")
-            userDetails.friends = FRIENDSHIP_STATUS.NOT_FRIENDS
-          } else {
-            ShowToast("Something went wrong.")
-          }
+        onSuccess: () => {
+          setFriendshipBtnTxt("Add friend")
+          setFriendshipBtnType("less-prominent")
+          userDetails.friends = FRIENDSHIP_STATUS.NOT_FRIENDS
+        },
+        onError: () => {
+          ShowToast("Something went wrong")
         }
       })
     }

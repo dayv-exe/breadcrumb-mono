@@ -38,6 +38,7 @@ export const getPressedLocationInfo = async (
     undefined,
     SELECTABLE_MAPBOX_LAYER
   );
+  if (res?.features[0] && (res.features[0].properties as any).mode === "rail") return undefined
   return res;
 };
 
