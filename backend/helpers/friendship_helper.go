@@ -186,7 +186,7 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 	}
 
 	// get all friend ids
-	friendIds := make([]string, 0)
+	friendshipItem := make([]map[string]types.AttributeValue, 0)
 
 	helper := newHelper(f.Ctx, nil)
 
@@ -195,11 +195,7 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 		nil,
 		expr,
 		func(friendRows []map[string]types.AttributeValue) {
-			log.Printf("FRIEND DETAIL RETRIEVED: %#v", friendRows)
-			for _, friendRow := range friendRows {
-				friend := models.DbItemToFriendStruct(friendRow)
-				friendIds = append(friendIds, friend.OtherUserID)
-			}
+			friendshipItem = append(friendshipItem, friendRows...)
 		},
 	)
 	if err != nil {
@@ -217,7 +213,7 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 					return
 				}
 
-				pictureKey, _, err := NewCloudfrontHelper(f.Ctx).GetSignedUrl(user.ProfilePicture.ThumbnailKey, constants.PROFILE_PICTURE_URL_TTL)
+				pictureKey, _, err := NewCloudfrontHelper(f.Ctx).GetSignedUrl(user.ProfilePicture.MediaKey, constants.PROFILE_PICTURE_URL_TTL)
 				if err != nil {
 					return
 				}
@@ -230,6 +226,7 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 				})
 			}
 		},
+		friendshipItem...,
 	)
 
 	if err != nil {
