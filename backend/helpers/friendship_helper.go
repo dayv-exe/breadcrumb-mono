@@ -185,17 +185,19 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 		return keys, err
 	}
 
-	// get all friend ids
-	friendshipItem := make([]map[string]types.AttributeValue, 0)
-
 	helper := newHelper(f.Ctx, nil)
 
+	// get all friend ids
+	friends := make([]map[string]types.AttributeValue, 0)
 	err = QueryAllItemsAndProcess(
 		helper,
 		nil,
 		expr,
 		func(friendRows []map[string]types.AttributeValue) {
-			friendshipItem = append(friendshipItem, friendRows...)
+			for _, friendItem := range friendRows {
+				friend := models.DbItemToFriendStruct(friendItem)
+				friends = append(friends, *models.UserKey(friend.ThisUserId))
+			}
 		},
 	)
 	if err != nil {
@@ -226,7 +228,7 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 				})
 			}
 		},
-		friendshipItem...,
+		friends...,
 	)
 
 	if err != nil {
