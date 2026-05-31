@@ -246,7 +246,7 @@ export default function MainScreen() {
     const lastCrumb = await GetLastReceivedCrumbDetails()
     console.log("last crumb: ", lastCrumb)
     const latest = await getLatestCrumbs(false, lastCrumb?.id, lastCrumb?.time)
-    console.log("latest: ", latest.message)
+    console.log("latest: ", latest)
   }
 
   useEffect(() => {

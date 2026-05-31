@@ -84,7 +84,6 @@ export const useMap = (
     if (poi) {
       const camPos = handleSavePreLocationSelectCameraPosition()
       focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos), false)
-      console.log(poi)
       return;
     }
   }

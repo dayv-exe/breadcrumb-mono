@@ -326,7 +326,8 @@ export default function CustomMap({
                   textHaloWidth: 1,
                   textMaxWidth: 7,
                   textSize: 12,
-                  textOffset: [1.75, -2]
+                  textOffset: [1.75, -2],
+                  textJustify: "left"
                 }}
               />
             </Mapbox.ShapeSource>
@@ -427,6 +428,7 @@ export default function CustomMap({
                 textIgnorePlacement: true,
                 textAllowOverlap: true,
                 textOffset: [-.5, 3.2],
+                textOpacity: 0,
               }}
             />
 
@@ -461,7 +463,7 @@ export default function CustomMap({
                 iconSize: .29,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: [-27, -27],
+                iconOffset: [-26, -29],
                 iconIgnorePlacement: true
               }}
             />
