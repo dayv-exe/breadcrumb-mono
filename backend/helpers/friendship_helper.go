@@ -196,9 +196,7 @@ func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]mod
 		func(friendRows []map[string]types.AttributeValue) {
 			for _, friendItem := range friendRows {
 				friend := models.DbItemToFriendStruct(friendItem)
-				friends = append(friends, *models.UserKey(friend.ThisUserId))
-				log.Printf("FRIEND THIS USER ID: %#v", friend.ThisUserId)
-				log.Printf("FRIEND OTHER USER ID: %#v", friend.OtherUserID)
+				friends = append(friends, *models.UserKey(friend.OtherUserID))
 			}
 		},
 	)
