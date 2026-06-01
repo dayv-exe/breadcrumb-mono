@@ -323,10 +323,17 @@ export default function ProfileSettingsScreen() {
   }
 
   const handleChangePic = async (image: MediaData) => {
-    const context = ImageManipulator.ImageManipulator.manipulate(image.uri)
+    // crop to a centered square first
+    const size = Math.min(image.width!, image.height!)
+    const originX = (image.width! - size) / 2
+    const originY = (image.height! - size) / 2
+
+    const context = ImageManipulator.ImageManipulator
+      .manipulate(image.uri)
+      .crop({ originX, originY, width: size, height: size })
 
     const original = (await context.renderAsync()).saveAsync({ compress: .8 })
-    const thumbnail = (await context.resize({ width: 200 }).renderAsync()).saveAsync({ compress: .8 })
+    const thumbnail = (await context.resize({ width: 200, height: 200 }).renderAsync()).saveAsync({ compress: .8 })
     await upload([{
       index: 0,
       id: "",

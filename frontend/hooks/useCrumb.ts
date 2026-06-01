@@ -1,10 +1,9 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
 import { GetAllCrumbs, GetLastReceivedCrumbDetails } from "@/api/db/crumbsDb";
-import { extractBackendMsg } from "@/api/models/apiResponse";
 import Mapbox from "@rnmapbox/maps";
 import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useGetCrumbMarkers } from "./queries/useCrumbsApi";
 
 type UseCrumbType = {
@@ -14,9 +13,19 @@ type UseCrumbType = {
 }
 
 export const useCrumb = (): UseCrumbType => {
-  const [crumbImages, setCrumbImages] = useState<{ [key: string]: Mapbox.ImageEntry; }>({
-    // "user_1": { uri: "../assets/images/icons/test_avatar_4.jpg" },
-  })
+  const { data: crumbMarkers, isError: crumbMarkersIsError, isPending: crumbMarkersPending, error: crumbMarkersError } = useGetCrumbMarkers()
+
+  const crumbImages = useMemo<{ [key: string]: Mapbox.ImageEntry }>(
+    () =>
+      (crumbMarkers ?? []).reduce<{ [key: string]: Mapbox.ImageEntry }>(
+        (acc, marker) => {
+          acc[marker.userid] = { uri: marker.profilePictureThumbnail }
+          return acc
+        },
+        {}
+      ),
+    [crumbMarkers]
+  )
 
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
@@ -24,16 +33,12 @@ export const useCrumb = (): UseCrumbType => {
     ],
   })
 
-  const { data: crumbMarkers, isError: crumbMarkersIsError, isPending: crumbMarkersPending, error: crumbMarkersError } = useGetCrumbMarkers()
-
-
-
   const newCrumbFeature = (crumbId: string, crumbSender: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
     return {
       type: 'Feature',
       id: crumbId,
       properties: {
-        profilePicture: crumbSender + ".jpg",
+        profilePicture: crumbSender,
         nickname: senderNickname,
         prompt: prompt,
         placename: placename,
@@ -60,7 +65,7 @@ export const useCrumb = (): UseCrumbType => {
           crumb.sender,
           crumb.lat,
           crumb.lon,
-          "C",
+          "x",
           "",
           crumb.placename,
         )));
@@ -82,7 +87,7 @@ export const useCrumb = (): UseCrumbType => {
       crumb.sender,
       crumb.lat,
       crumb.lon,
-      "C",
+      "x",
       "",
       crumb.placename,
     )));
@@ -92,17 +97,6 @@ export const useCrumb = (): UseCrumbType => {
       features
     });
   }
-
-  useEffect(() => {
-    console.log("crumb markers shift")
-    if (crumbMarkers && !crumbMarkersError && !crumbMarkersPending) {
-      console.log("markers", crumbMarkers.length)
-    }
-
-    if (crumbMarkersError) {
-      console.log("marker error", extractBackendMsg(crumbMarkersError))
-    }
-  }, [crumbMarkers, crumbMarkersPending, crumbMarkersError])
 
   useFocusEffect(
     useCallback(() => {

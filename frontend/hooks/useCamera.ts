@@ -220,6 +220,8 @@ export function useCamera(): useCameraReturnType {
           resizeMode: "cover",
           isPlaceholder: false,
           index: 0,
+          height: photo.height,
+          width: photo.width,
           uploadState: { error: null, pending: false, uploadUrl: "" }
         });
       } catch (error) {
@@ -242,6 +244,8 @@ export function useCamera(): useCameraReturnType {
           uri: normalizeFileUri(photo.path),
           resizeMode: "cover",
           index: 0,
+          width: photo.width,
+          height: photo.height,
           uploadState: { error: null, pending: false, uploadUrl: "" }
         });
         setShowMediaPreview(true)
