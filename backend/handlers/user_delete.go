@@ -14,17 +14,17 @@ import (
 func handleDeleteUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := utils.GetAuthUserId(req)
 
-	if userId == "" || userId != req.PathParameters["id"] {
+	if userId == "" {
 		return models.UnauthorizedErrorResponse(""), nil
 	}
 
 	// get user details from db
 	dbHelper := helpers.NewUserHelper(ctx)
 
-	user, uErr := dbHelper.FindById(userId)
+	user, err := dbHelper.FindById(userId)
 
-	if uErr != nil {
-		return models.ServerSideErrorResponse("An error occurred while trying to delete your account, try again", uErr), nil
+	if err != nil {
+		return models.ServerSideErrorResponse("Failed to get user details", err), nil
 	}
 
 	if user == nil {
@@ -32,18 +32,18 @@ func handleDeleteUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	}
 
 	// delete user from dynamodb
-	delErr := dbHelper.DeleteFromDynamo(user)
+	err = dbHelper.DeleteFromDynamo(user)
 
-	if delErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again", delErr), nil
+	if err != nil {
+		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again", err), nil
 	}
 
 	// delete user from cognito
 
-	cogErr := helpers.NewCognitoHelper(ctx).DeleteFromCognito(userId, true)
+	err = helpers.NewCognitoHelper(ctx).DeleteFromCognito(userId, true)
 
-	if cogErr != nil {
-		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again.", cogErr), nil
+	if err != nil {
+		return models.ServerSideErrorResponse("Something went wrong while trying to delete your account, try again.", err), nil
 	}
 
 	return models.SuccessfulRequestResponse("", false), nil
