@@ -16,7 +16,6 @@ export const createUser = async (userDetails: UserInitialDetails): Promise<strin
 export const deleteUser = async (): Promise<string> => {
   const userId = await GetId()
   const { data } = await axiosInstance.delete<{ message: string }>(`/users/${userId}?action=delete`)
-
   return data.message
 }
 

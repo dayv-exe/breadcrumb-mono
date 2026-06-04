@@ -1,5 +1,5 @@
 import axiosInstance from "@/constants/axios";
-import { validateUsername } from "@/constants/regexes";
+import { AxiosError } from "axios";
 import { UserDetails } from "./models/userDetails";
 
 export const searchUser = async (searchString: string): Promise<UserDetails[]> => {
@@ -8,11 +8,17 @@ export const searchUser = async (searchString: string): Promise<UserDetails[]> =
   return data.message
 }
 
-export const nicknameAvailable = async (username: string): Promise<boolean> => {
-  const validation = validateUsername(username)
-  if (!validation.isValid) {
-    return false
+export type NicknameAvailableResponse = "true" | "false" | "invalid"
+
+export const nicknameAvailable = async (username: string): Promise<NicknameAvailableResponse> => {
+  try {
+    const { data } = await axiosInstance.post<{ message: string }>(`/search/${username}`)
+    return data.message.toLowerCase() === "true" ? "true" : "false"
+  } catch (error) {
+    console.log((error as AxiosError).status)
+    if ((error as AxiosError).status === 403) {
+      return "invalid"
+    }
+    throw error
   }
-  const { data } = await axiosInstance.post<{ message: string }>(`/search/${username}`)
-  return data.message.toLowerCase() === "true"
 };

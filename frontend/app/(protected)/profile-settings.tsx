@@ -1,4 +1,4 @@
-import { DeleteDb } from "@/api/db/InitDb";
+import { DeleteLocalDatabase } from "@/api/db/InitDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -101,15 +101,26 @@ export default function ProfileSettingsScreen() {
   }
 
   const handleDelAccount = () => {
-    delAccount(undefined, {
-      onError: err => {
+    DeleteLocalDatabase(
+      () => {
+        delAccount(undefined, {
+          onError: err => {
+            Toast.show({
+              type: "info",
+              text1: err.message,
+              position: "top",
+            })
+          },
+        })
+      },
+      e => {
         Toast.show({
           type: "info",
-          text1: err.message,
+          text1: e as any,
           position: "top",
         })
-      }
-    })
+      },
+    )
   }
 
   const handleLogout = async () => {
@@ -252,7 +263,7 @@ export default function ProfileSettingsScreen() {
               text1: "Deleting local db...",
               type: "info",
             })
-            DeleteDb()
+            DeleteLocalDatabase()
           }
         },
       ],

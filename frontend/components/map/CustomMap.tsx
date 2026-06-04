@@ -10,7 +10,8 @@ import Constants from "expo-constants";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
 import React, { useEffect, useRef, useState } from "react";
-import { Keyboard, StyleSheet, View } from "react-native";
+import { Keyboard, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 
@@ -102,7 +103,7 @@ export default function CustomMap({
   onMapMove,
   onMapIdle,
   lock2dButtonAsHidden,
-  setMapCenter
+  setMapCenter,
 }: CustomMapProps) {
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
@@ -112,6 +113,9 @@ export default function CustomMap({
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const movedMap = useRef(false);
+
+  const { height } = useWindowDimensions()
+  const { top: insetTop } = useSafeAreaInsets()
 
 
   const coordinates = useLocationStore((s) => s.coordinates);
@@ -179,7 +183,7 @@ export default function CustomMap({
           scaleBarEnabled={false}
           compassEnabled
           compassFadeWhenNorth
-          compassPosition={{ top: 65, right: 12 }}
+          compassPosition={{ top: (.1 * height) + (Platform.OS === "android" ? insetTop : 0), right: 15 }}
           attributionPosition={{ bottom: 100, left: 10 }}
           logoPosition={{ bottom: 75, left: 10 }}
           onWillStartLoadingMap={() => {
@@ -352,7 +356,7 @@ export default function CustomMap({
                 id="active-poi-label"
                 style={{
                   textField: ["coalesce", ["get", "name_en"], ["get", "name"], ["get", "house_num"]],
-                  textSize: 15,
+                  textSize: 13,
                   textMaxWidth: 7,
                   textOffset: [0, .75],
                   textAnchor: "top",

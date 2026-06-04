@@ -1,4 +1,3 @@
-import { getDb } from '@/api/db/InitDb';
 import { BottomSheetProvider } from '@/components/bottomsheet/BottomSheetContext';
 import { BigActivityIndicatorProvider } from '@/components/modals/BigActivityIndicatorContext';
 import { ModalProvider } from '@/components/modals/ModalContext';
@@ -133,15 +132,6 @@ export default function RootLayout() {
   const mode = useColorScheme()
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        await getDb();
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    init();
     checkAuthStatus()
   }, [])
 

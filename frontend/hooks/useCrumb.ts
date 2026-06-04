@@ -15,18 +15,6 @@ type UseCrumbType = {
 export const useCrumb = (): UseCrumbType => {
   const { data: crumbMarkers, isError: crumbMarkersIsError, isPending: crumbMarkersPending, error: crumbMarkersError } = useGetCrumbMarkers()
 
-  const crumbImages = useMemo<{ [key: string]: Mapbox.ImageEntry }>(
-    () =>
-      (crumbMarkers ?? []).reduce<{ [key: string]: Mapbox.ImageEntry }>(
-        (acc, marker) => {
-          acc[marker.userid] = { uri: marker.profilePictureThumbnail }
-          return acc
-        },
-        {}
-      ),
-    [crumbMarkers]
-  )
-
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
     features: [
@@ -97,6 +85,18 @@ export const useCrumb = (): UseCrumbType => {
       features
     });
   }
+
+  const crumbImages = useMemo<{ [key: string]: Mapbox.ImageEntry }>(
+    () =>
+      (crumbMarkers ?? []).reduce<{ [key: string]: Mapbox.ImageEntry }>(
+        (acc, marker) => {
+          acc[marker.userid] = { uri: marker.profilePictureThumbnail }
+          return acc
+        },
+        {}
+      ),
+    [crumbMarkers]
+  )
 
   useFocusEffect(
     useCallback(() => {

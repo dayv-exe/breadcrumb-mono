@@ -1,10 +1,11 @@
+import { LOCAL_DATABASE_NAME } from "@/constants/appConstants";
 import * as SQLite from "expo-sqlite";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 async function openAndInit() {
   console.log("init db...");
-  const db = await SQLite.openDatabaseAsync("app.db");
+  const db = await SQLite.openDatabaseAsync(LOCAL_DATABASE_NAME);
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS crumbs (
@@ -32,7 +33,19 @@ export function getDb() {
   return dbPromise;
 }
 
-export async function DeleteDb() {
-  const db = await getDb();
-  await db.execAsync(`DROP TABLE IF EXISTS crumbs`);
+export async function DeleteLocalDatabase(onSuccess?: () => void, onFailure?: (e: unknown) => void) {
+  if (dbPromise) {
+    try {
+      const db = await dbPromise;
+      await db.closeAsync();
+    } catch (e) {
+      console.warn("error closing db before delete:", e);
+      onFailure?.(e)
+    } finally {
+      dbPromise = null;
+    }
+  }
+
+  await SQLite.deleteDatabaseAsync(LOCAL_DATABASE_NAME);
+  onSuccess?.()
 }
