@@ -77,7 +77,7 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function MapScreen() {
-  const [sessionToken, setSessionToken] = useState("")
+  const [sessionToken, setSessionToken] = useState(() => GenerateUUID())
   const mapRef = useRef<Mapbox.MapView>(null);
   const mapCamRef = useRef<Mapbox.Camera>(null)
   const coordinates = useLocationStore(s => s.coordinates)
