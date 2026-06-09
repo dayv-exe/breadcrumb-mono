@@ -92,6 +92,7 @@ export default function MapScreen() {
     focusOnUserLocation,
     selectedPoi,
     setDroppedPin,
+    setDroppedPinRadius,
     is2dButtonVisible,
     set2dButtonVisible,
     lock2DButtonAsHidden,
@@ -325,6 +326,13 @@ export default function MapScreen() {
       }}>
         <MapSheetContent
           selectedItem={selectedPoi ? { type: "poi", displayProperties: selectedPoi } : droppedPin ? { type: "pin", displayProperties: droppedPin } : null}
+          droppedPinRadius={droppedPinRadius}
+          setDroppedPinRadius={setDroppedPinRadius}
+          clearSelectedItem={() => {
+            setDroppedPin(null)
+            setSelectedPoi(null)
+            setDroppedPinRadius(15)
+          }}
         />
       </BottomSheet>
     </View>

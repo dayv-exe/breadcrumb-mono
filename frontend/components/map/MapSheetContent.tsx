@@ -18,10 +18,12 @@ export type SelectedItemType = {
 }
 interface props {
   selectedItem: SelectedItemType | null
-  clearSelectedItem?: () => void
+  droppedPinRadius: number
+  setDroppedPinRadius: (n: number) => void
+  clearSelectedItem: () => void
 }
 
-export default function MapSheetContent({ selectedItem, clearSelectedItem }: props) {
+export default function MapSheetContent({ selectedItem, clearSelectedItem, droppedPinRadius, setDroppedPinRadius }: props) {
   const nav = useSheetNavigation<SheetRoute>("home");
   const textCol = useThemeColor({}, "text")
 
@@ -52,7 +54,7 @@ export default function MapSheetContent({ selectedItem, clearSelectedItem }: pro
         // entering={SlideInRight}
         // exiting={SlideOutLeft}
         style={{
-          padding: 15,
+          padding: 20,
         }}
       >
         {nav.current === "home" && (
@@ -66,10 +68,10 @@ export default function MapSheetContent({ selectedItem, clearSelectedItem }: pro
           </>
         )}
         {nav.current === "poi" && selectedItem && selectedItem.type === "poi" && (
-          <PoiBottomSheetView selectedItem={selectedItem.displayProperties as Feature<Geometry, GeoJsonProperties>} />
+          <PoiBottomSheetView selectedItem={selectedItem.displayProperties as Feature<Geometry, GeoJsonProperties>} clearSelection={clearSelectedItem} />
         )}
         {nav.current === "pin" && selectedItem && selectedItem.type === "pin" && (
-          <DroppedPinBottomSheetView pin={selectedItem.displayProperties as [number, number]} />
+          <DroppedPinBottomSheetView radius={droppedPinRadius} setRadius={setDroppedPinRadius} pin={selectedItem.displayProperties as [number, number]} clearPin={clearSelectedItem} />
         )}
       </Animated.View>
     </BottomSheetView>

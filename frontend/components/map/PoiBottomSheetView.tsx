@@ -13,8 +13,9 @@ import Spacer from "../Spacer";
 
 interface props {
   selectedItem: Feature<Geometry, GeoJsonProperties>
+  clearSelection: () => void
 }
-export default function PoiBottomSheetView({ selectedItem }: props) {
+export default function PoiBottomSheetView({ selectedItem, clearSelection }: props) {
   const { coordinates, reverseGeocode } = useLocationStore(useShallow(s => ({
     coordinates: s.coordinates,
     reverseGeocode: s.reverseGeocode,
@@ -45,7 +46,7 @@ export default function PoiBottomSheetView({ selectedItem }: props) {
           }
           fontSize={42}
           adaptToTheme customStyle={{ padding: 0 }} />
-        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, padding: 0 }}>
+        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, padding: 0 }} handleClick={clearSelection}>
           <X size={21} stroke={textCol} />
         </CustomFloatingSquare>
       </View>

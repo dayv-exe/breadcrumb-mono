@@ -9,12 +9,16 @@ import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 import CustomButton from "../buttons/CustomButton";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
+import RadiusSlider from "./RadiusSlider";
 
 interface props {
-  pin: [number, number]
+  pin: [number, number],
+  radius: number,
+  setRadius: (r: number) => void
+  clearPin: () => void
 }
 
-export default function DroppedPinBottomSheetView({ pin }: props) {
+export default function DroppedPinBottomSheetView({ pin, radius, setRadius, clearPin }: props) {
   const { coordinates, reverseGeocode } = useLocationStore(useShallow(s => ({
     coordinates: s.coordinates,
     reverseGeocode: s.reverseGeocode,
@@ -42,7 +46,7 @@ export default function DroppedPinBottomSheetView({ pin }: props) {
           labelText="📌"
           fontSize={42}
           adaptToTheme customStyle={{ padding: 0 }} />
-        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, padding: 0 }}>
+        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, padding: 0 }} handleClick={clearPin}>
           <X size={21} stroke={textCol} />
         </CustomFloatingSquare>
       </View>
@@ -50,7 +54,10 @@ export default function DroppedPinBottomSheetView({ pin }: props) {
       <CustomLabel adaptToTheme labelText="Dropped pin" bold fontSize={19} customStyle={{ padding: 0 }} />
       <Spacer size="tiny" />
       <CustomLabel adaptToTheme allowTruncate labelText={`${Math.round(distance / 1000)} mi ${address ? "• " + address : ""}`} fade customStyle={{ padding: 0 }} fontSize={15} />
-      <Spacer />
+      <Spacer size="small" />
+      <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Crumb radius: " value={radius} onValueChange={r => {
+        setRadius(r)
+      }} />
       <CustomButton type="less-prominent" labelText="New Crumb" />
     </View>
   )
