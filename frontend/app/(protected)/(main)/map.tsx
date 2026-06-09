@@ -4,6 +4,7 @@ import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
 import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
+import MapSheetContent from "@/components/map/MapSheetContent";
 import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
@@ -13,7 +14,7 @@ import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
-import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRef, useState } from "react";
@@ -115,6 +116,7 @@ export default function MapScreen() {
 
   const mode = useColorScheme() ?? "light";
   const bgCol = useThemeColor({}, "background")
+  const elevatedBgCol = useThemeColor({}, "fadedBackgroundElevated")
   const txtCol = useThemeColor({}, "text")
   const { openSheet, closeSheet } = useBottomSheet()
   const insets = useSafeAreaInsets()
@@ -321,23 +323,9 @@ export default function MapScreen() {
         width: "100%",
         backgroundColor: bgCol
       }}>
-        <BottomSheetScrollView>
-          <View style={{
-            flexDirection: "column",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            width: "100%",
-          }}>
-            <CustomButton labelText="Add friend" type="theme-faded" customStyle={{
-              height: 40,
-              width: 120,
-              marginTop: 15,
-              marginHorizontal: 15,
-              padding: 0,
-            }} />
-          </View>
-          <Spacer size="small" />
-        </BottomSheetScrollView>
+        <MapSheetContent
+          selectedItem={selectedPoi ? { type: "poi", displayProperties: selectedPoi } : droppedPin ? { type: "pin", displayProperties: droppedPin } : null}
+        />
       </BottomSheet>
     </View>
   );

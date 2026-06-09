@@ -1,5 +1,5 @@
 import Mapbox from "@rnmapbox/maps";
-import type { Position } from "geojson";
+import type { Feature, GeoJsonProperties, Geometry, Position } from "geojson";
 import React from "react";
 import { PixelRatio, Platform } from "react-native";
 
@@ -60,12 +60,12 @@ type FeatureProps = {
   [key: string]: unknown;
 };
 
-export const getEmojiForFeature = (props: any): string => {
+export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>): string => {
   const keyword =
-    props.type?.toLowerCase() ||
-    props.maki?.toLowerCase() ||
-    props.category_en?.toLowerCase() ||
-    props.class?.toLowerCase() ||
+    props.properties?.type?.toLowerCase() ||
+    props.properties?.maki?.toLowerCase() ||
+    props.properties?.category_en?.toLowerCase() ||
+    props.properties?.class?.toLowerCase() ||
     "";
 
   const emojiMap: Record<string, string> = {
@@ -102,8 +102,8 @@ export const getEmojiForFeature = (props: any): string => {
     restaurant: "🍽️",
     cafe: "☕",
     school: "🏫",
-    university: "🎓",
-    college: "🎓",
+    university: "📖",
+    college: "📒",
     forrest: "🌳",
     park: "🌳",
     airport: "✈️",
