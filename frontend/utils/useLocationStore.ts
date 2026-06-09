@@ -14,7 +14,6 @@ export interface Coordinates {
 
 interface LocationState {
   coordinates: Coordinates | null;
-  address: string | null;
   isLoading: boolean;
   error: string | null;
   isTracking: boolean;
@@ -111,7 +110,7 @@ export const useLocationStore = create<LocationState & LocationActions>()(
           if (!result) return null;
 
           const address = formatAddress(result);
-          set({ address, lastGeocodedCoords: coords });
+          set({lastGeocodedCoords: coords });
           return address;
         } catch (err) {
           console.warn('Reverse-geocode failed:', err);
@@ -130,11 +129,9 @@ export const useLocationStore = create<LocationState & LocationActions>()(
 
           // Single location fetch for both coords and address.
           const coords = await fetchCurrentPosition();
-          const address = await get().reverseGeocode(coords);
 
           set({
             coordinates: coords,
-            address,
             isLoading: false,
             isTracking: true,
             lastUpdated: Date.now(),
@@ -159,16 +156,6 @@ export const useLocationStore = create<LocationState & LocationActions>()(
 
               // Always update coordinates so the map / UI stays fresh.
               set({ coordinates: newCoords, lastUpdated: Date.now() });
-
-              // Only re-geocode if we've moved a meaningful distance.
-              const shouldGeocode =
-                !lastGeocodedCoords ||
-                distanceMetres(lastGeocodedCoords, newCoords) >=
-                  LOCATION_CONFIG.GEOCODE_DISTANCE_THRESHOLD;
-
-              if (shouldGeocode) {
-                await get().reverseGeocode(newCoords);
-              }
             },
           );
         } catch (error) {
@@ -193,7 +180,6 @@ export const useLocationStore = create<LocationState & LocationActions>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         coordinates: state.coordinates,
-        address: state.address,
         lastUpdated: state.lastUpdated,
       }),
     },

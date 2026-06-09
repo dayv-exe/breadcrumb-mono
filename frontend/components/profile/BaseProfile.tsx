@@ -7,7 +7,6 @@ import { useRemoveFriend } from "@/hooks/queries/useFriendsApi";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useIsMyProfile } from "@/hooks/useIsMyProfile";
-import { useLocationStore } from "@/utils/useLocationStore";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -131,7 +130,6 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const { openSheet } = useBottomSheet()
 
   const user = useRef<UserDetails>(null)
-  const { address } = useLocationStore()
 
   const handleShowOptions = () => {
     if (userData) {
@@ -383,7 +381,6 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               </View>
               <Spacer size="small" />
               {!isPending && <View style={styles.bio}>
-                {isMyProfile && address && <CustomLabel fontSize={12} fade adaptToTheme labelText={address} />}
                 {userData?.bio && <CustomLabel width={"90%"} fontSize={16} textAlign="left" labelText={userData.bio ?? ""} adaptToTheme />}
                 {!userData?.bio && <CustomLabel width={"80%"} fontSize={16} textAlign="left" labelText={"No bio yet"} fade italic adaptToTheme />}
               </View>}
