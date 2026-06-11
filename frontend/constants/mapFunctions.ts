@@ -60,6 +60,18 @@ type FeatureProps = {
   [key: string]: unknown;
 };
 
+export const getPlaceType = (props: GeoJsonProperties): string => {
+  const type = props?.type || props?.maki || props?.category_en || props?.class || "";
+
+  if (!type && props?.house_num) {
+    return "Residence"
+  }
+
+  if (!type) return "Location"
+
+  return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
 export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>): string => {
   const keyword =
     props.properties?.type?.toLowerCase() ||
@@ -67,6 +79,10 @@ export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>):
     props.properties?.category_en?.toLowerCase() ||
     props.properties?.class?.toLowerCase() ||
     "";
+
+  if (!keyword && props.properties?.house_num) {
+    return "🏠"
+  }
 
   const emojiMap: Record<string, string> = {
     common: "🌳",
@@ -99,17 +115,18 @@ export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>):
     parking: "🅿️",
     hospital: "🏥",
     medical: "💉",
-    restaurant: "🍽️",
-    cafe: "☕",
+    restaurant: "🍝",
+    cafe: "☕️",
     school: "🏫",
-    university: "📖",
-    college: "📒",
+    university: "🎓",
+    college: "🎓",
     forrest: "🌳",
+    forest: "🌳",
     park: "🌳",
-    airport: "✈️",
+    airport: "🛩️",
     train: "🚆",
     bridge: "🌉",
-    bus: "🚌",
+    bus: "🚏",
     castle: "🏰",
     pier: "⚓️",
     bank: "🏦",
@@ -137,6 +154,36 @@ export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>):
     pub: "🍻",
     construction: "🏗️",
     "fast food": "🍔",
+    "clothes": "👕",
+    "shoes": "👟",
+    "cosmetics": "💄",
+    "jewelry": "💍",
+    "commercial": "📉",
+    "mobile phone": "☎️",
+    "beauty": "💄",
+    "beach": "🏖️",
+    bakery: "🥐",
+    cinema: "🎬",
+    lawyer: "⚖️",
+    casino: "🎰",
+    convenience: "🏪",
+    anime: "😽",
+    hairdresser: "💇",
+    "fort": "🏰",
+    zoo: "🦁",
+    "airfield": "🛩️",
+    "furniture": "🛋️",
+    playground: "🛝",
+    residential: "🏡",
+    fitness: "🏋️‍♀️",
+    "fitness centre": "💪",
+    farm: "🚜",
+    music: "🎧",
+    electronics: "🔌",
+    gift: "🎁",
+    seafood: "🍤",
+    toys: "🧸",
+    allotments: "🌱"
   };
 
   for (const key in emojiMap) {

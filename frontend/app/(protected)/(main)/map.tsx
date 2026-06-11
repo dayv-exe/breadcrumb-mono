@@ -19,6 +19,7 @@ import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRef, useState } from "react";
 import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import Reanimated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as GenerateUUID } from "uuid";
 
@@ -144,6 +145,20 @@ export default function MapScreen() {
     }).start();
   };
 
+  // starts at screenHeight = sheet fully closed
+  const sheetPosition = useSharedValue(screenHeight);
+
+  const CONTROLS_BOTTOM = 200;  // matches styles.mapControls.bottom
+  const GAP_ABOVE_SHEET = 30;  // breathing room between controls and sheet
+
+  const controlsAnimatedStyle = useAnimatedStyle(() => {
+    const sheetVisibleHeight = screenHeight - sheetPosition.value;
+    const overlap = Math.max(0, sheetVisibleHeight + GAP_ABOVE_SHEET - CONTROLS_BOTTOM);
+    return {
+      transform: [{ translateY: -overlap }],
+    };
+  });
+
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
 
   return (
@@ -264,7 +279,7 @@ export default function MapScreen() {
         onMapReady={fetchCrumbs}
       />
 
-      <View style={styles.mapControls}>
+      <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>
         {is2dButtonVisible && <CustomFloatingSquare type="themed" handleClick={make2d}>
           <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold />
         </CustomFloatingSquare>}
@@ -302,9 +317,9 @@ export default function MapScreen() {
           focusOnUserLocation()
         }} src={getIconImage("focusUserLoc", mode === "light")} />
         <Spacer size="small" />
-      </View>
+      </Reanimated.View>
 
-      <BottomSheet handleIndicatorStyle={{
+      <BottomSheet animatedPosition={sheetPosition} handleIndicatorStyle={{
         backgroundColor: txtCol,
       }} handleStyle={{
         position: "absolute",

@@ -1,5 +1,6 @@
 import { distanceMeters } from "@/constants/mapFunctions";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { convertToPreferredDistance } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
 import { X } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -7,7 +8,6 @@ import { View } from "react-native";
 import { useShallow } from "zustand/shallow";
 import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
-import CustomButton from "../buttons/CustomButton";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import RadiusSlider from "./RadiusSlider";
 
@@ -53,12 +53,11 @@ export default function DroppedPinBottomSheetView({ pin, radius, setRadius, clea
       <Spacer size="small" />
       <CustomLabel adaptToTheme labelText="Dropped pin" bold fontSize={19} customStyle={{ padding: 0 }} />
       <Spacer size="tiny" />
-      <CustomLabel adaptToTheme allowTruncate labelText={`${Math.round(distance / 1000)} mi ${address ? "• " + address : ""}`} fade customStyle={{ padding: 0 }} fontSize={15} />
+      <CustomLabel adaptToTheme allowTruncate labelText={`${convertToPreferredDistance(distance)} ${address ? "• " + address : ""}`} fade customStyle={{ padding: 0 }} fontSize={15} />
       <Spacer size="small" />
-      <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Crumb radius: " value={radius} onValueChange={r => {
+      <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={radius} onValueChange={r => {
         setRadius(r)
       }} />
-      <CustomButton type="less-prominent" labelText="New Crumb" />
     </View>
   )
 }

@@ -12,8 +12,25 @@ import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "ge
 import React, { useEffect, useRef, useState } from "react";
 import { Keyboard, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import darkStyle from "../../assets/styles/dark-style.json";
+import lightStyle from "../../assets/styles/light-style.json";
+import satelliteStyle from "../../assets/styles/satellite-style.json";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
+
+function extract(style: any) {
+  const poi = style.layers.find((l: any) => l.id === "poi-label");
+  return {
+    poiTextColor: poi?.paint?.["text-color"],
+    poiHaloColor: poi?.paint?.["text-halo-color"],
+  };
+}
+
+export const styleColors = {
+  light: extract(lightStyle),
+  dark: extract(darkStyle),
+  satellite: extract(satelliteStyle),
+};
 
 type CustomMapProps = {
   onMapReady?: () => void
@@ -172,6 +189,7 @@ export default function CustomMap({
 
   const textCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
   const textHalo = mode === "dark" || useSatellite ? Colors.dark.background : Colors.light.background
+  const textColors = useSatellite ? styleColors.satellite : styleColors[mode === "light" ? "light" : "dark"]
 
   return (
     <View onTouchStart={Keyboard.dismiss} style={styles.container}>
@@ -360,9 +378,9 @@ export default function CustomMap({
                   textMaxWidth: 7,
                   textOffset: [0, .75],
                   textAnchor: "top",
-                  textHaloColor: textHalo,
+                  textHaloColor: textColors.poiHaloColor,
                   textHaloWidth: 1,
-                  textColor: textCol,
+                  textColor: textColors.poiTextColor,
                   textAllowOverlap: false,
                   textIgnorePlacement: false,
                 }}
