@@ -96,6 +96,8 @@ export const useMap = (
   }
 
   async function focusOnUserLocation() {
+    setSelectedPoi(null)
+    setDroppedPin(null)
     const curCoord = useLocationStore.getState().coordinates
     mapCameraRef?.current?.setCamera({
       centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],

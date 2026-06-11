@@ -50,7 +50,8 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme];
 }
 
-const sendOpt = ["My location", "Choose on map", "Global"];
+// const sendOpt = ["My location", "Choose on map", "Global"];
+const sendOpt = ["My location"];
 const ShareListItem = ({
   title,
   subtitle,
@@ -218,7 +219,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const searchRef = useRef(null);
   const [selectedFriends, setSelectedFriends] = useState<iSelectedFriend[]>([]);
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
-  const { address, coordinates } = useLocationStore();
+  const { coordinates, reverseGeocode } = useLocationStore();
   const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
   const [crumbRadius, setCrumbRadius] = useState(15)
   const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
@@ -299,7 +300,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
 
   const getLocText = () => {
     if (selLoc === sendOpt[1]) return `📍${getSelectedAddress().address ?? "custom location"}`;
-    else return `📍${address ?? "your current location"}`;
+    else return `📍${reverseGeocode(coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 }) ?? "your current location"}`;
   };
 
   const { mutate: shareCrumb } = useShareCrumb()

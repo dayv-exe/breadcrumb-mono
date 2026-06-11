@@ -4,14 +4,17 @@ import CameraView from "@/components/camera/CameraView";
 import PreviewBunch from "@/components/camera/PreviewBunch";
 import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
+import CustomLabel from "@/components/CustomLabel";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
+import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
+import { useLocationStore } from "@/utils/useLocationStore";
 import { useIsFocused } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -55,13 +58,31 @@ export default function AddScreen() {
   const [modeIndex, setModeIndex] = useState(0)
   const router = useRouter()
   const addToPreview = useMediaStore(s => s.addMediaPreview)
+  const { reverseGeocode, coords } = useLocationStore(
+    useShallow((s) => ({
+      reverseGeocode: s.reverseGeocode,
+      coords: s.coordinates,
+    }))
+  )
+  const [myAddress, setMyAddress] = useState("")
 
   const handleCloseTextCrumb = () => {
     closeSheet()
     setModeIndex(recMode === "image" ? 0 : 1)
   }
 
+  useFocusEffect(() => {
+
+  })
+
   useEffect(() => {
+    const getMyAddress = async () => {
+      if (!coords) return
+      const addy = await reverseGeocode(coords) ?? ""
+      setMyAddress(addy.replace(/,\s*/, ",\n"))
+    }
+
+    getMyAddress()
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
       if (showMediaPreviews) return;
       setShowMediaPreviews(true)
@@ -141,21 +162,28 @@ export default function AddScreen() {
           )}
           <PreviewBunch />
 
-          {!isRecording && <CustomProfilePictureCircle
-            size={40}
-            customStyle={{
-              position: "absolute",
-              top: insets.top + 10,
-              left: 15,
-              zIndex: 11000,
-            }}
-            customTextStyle={{
-              fontWeight: "700"
-            }}
-            handleClick={() => {
-              router.push("/(protected)/profile-settings")
-            }}
-          />}
+          {!isRecording && <View style={{
+            width: "80%",
+            position: "absolute",
+            top: insets.top + 10,
+            left: 15,
+            zIndex: 11000,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "center",
+          }}>
+            <CustomProfilePictureCircle
+              size={40}
+              customTextStyle={{
+                fontWeight: "700"
+              }}
+              handleClick={() => {
+                // router.push("/(protected)/profile-settings")
+              }}
+            />
+            <Spacer size="small" />
+            <CustomLabel labelText={myAddress} fade />
+          </View>}
         </View>
       )}
       {(showMediaPreviews) && (

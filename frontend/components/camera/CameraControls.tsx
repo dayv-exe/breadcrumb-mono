@@ -48,18 +48,6 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, show
         }}>
           <CustomImageButton
             handleClick={() => {
-              showTextEditor()
-            }}
-            customStyle={[styles.imageButtons, {
-              opacity: isRecording ? 0 : 1,
-              marginHorizontal: 7,
-            }]}
-            type="text"
-            src={icons.text}
-            size={size}
-          />
-          <CustomImageButton
-            handleClick={() => {
               pickFromGallery({
                 allowsEditing: false,
                 mediaTypes: ["images", "videos"],
