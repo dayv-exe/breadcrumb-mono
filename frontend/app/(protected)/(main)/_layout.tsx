@@ -403,7 +403,7 @@ export default function MainScreen() {
             title: "Message",
             tabBarIcon: ({ focused }) => (
               <>
-                <Heart size={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                <Heart size={23} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} strokeWidth={2.25} />
                 {focused && (
                   <View
                     style={{

@@ -4,19 +4,18 @@ import CameraView from "@/components/camera/CameraView";
 import PreviewBunch from "@/components/camera/PreviewBunch";
 import PreviewScreen from "@/components/camera/PreviewScreen";
 import ShutterButton from "@/components/camera/ShutterButton";
-import CustomLabel from "@/components/CustomLabel";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
-import Spacer from "@/components/Spacer";
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
 import { useIsFocused } from "@react-navigation/native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
@@ -66,23 +65,9 @@ export default function AddScreen() {
   )
   const [myAddress, setMyAddress] = useState("")
 
-  const handleCloseTextCrumb = () => {
-    closeSheet()
-    setModeIndex(recMode === "image" ? 0 : 1)
-  }
-
-  useFocusEffect(() => {
-
-  })
+  const shutterSignal = useSharedValue(0);
 
   useEffect(() => {
-    const getMyAddress = async () => {
-      if (!coords) return
-      const addy = await reverseGeocode(coords) ?? ""
-      setMyAddress(addy.replace(/,\s*/, ",\n"))
-    }
-
-    getMyAddress()
     if (mediaPreview.length >= MAX_PREVIEW_MEDIA) {
       if (showMediaPreviews) return;
       setShowMediaPreviews(true)
@@ -115,12 +100,16 @@ export default function AddScreen() {
                 isRecording={isRecording}
                 zoomLevel={zoomLevel}
                 stopRecording={stopRecording}
+                shutterSignal={shutterSignal}
               >
                 <ShutterButton
                   recordingProgress={recordingProgress}
                   startRecording={startRecording}
                   stopRecording={stopRecording}
-                  takePhoto={takePhoto}
+                  takePhoto={() => {
+                    shutterSignal.set(shutterSignal.get() + 1);
+                    takePhoto()
+                  }}
                 />
               </CameraView>}
               {activeCamera && (
@@ -168,9 +157,6 @@ export default function AddScreen() {
             top: insets.top + 10,
             left: 15,
             zIndex: 11000,
-            flexDirection: "row",
-            alignItems: "flex-start",
-            justifyContent: "center",
           }}>
             <CustomProfilePictureCircle
               size={40}
@@ -181,8 +167,6 @@ export default function AddScreen() {
                 // router.push("/(protected)/profile-settings")
               }}
             />
-            <Spacer size="small" />
-            <CustomLabel labelText={myAddress} fade />
           </View>}
         </View>
       )}

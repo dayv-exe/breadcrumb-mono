@@ -9,11 +9,12 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
-import { Globe2, MapPinIcon, MapPlusIcon } from "lucide-react-native";
+import { CheckIcon, ChevronDownIcon, Globe2, MapPinIcon, MapPlusIcon } from "lucide-react-native";
 import React, { ComponentType, useRef, useState } from "react";
-import { ActivityIndicator, Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../buttons/CustomButton";
+import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import CustomLabel from "../CustomLabel";
 import { useModal } from "../modals/ModalContext";
 import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
@@ -50,8 +51,7 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme];
 }
 
-// const sendOpt = ["My location", "Choose on map", "Global"];
-const sendOpt = ["My location"];
+const sendOpt = ["My location", "Choose on map", "Global"];
 const ShareListItem = ({
   title,
   subtitle,
@@ -81,7 +81,7 @@ const ShareListItem = ({
         setSelected(!selected);
       }}
     >
-      <CustomProfilePictureCircle nickname={title} size={45} customStyle={{ marginRight: 10 }} userId={userId} />
+      <CustomProfilePictureCircle nickname={title} size={40} customStyle={{ marginRight: 10 }} userId={userId} />
       <View
         style={{
           flexDirection: "column",
@@ -93,15 +93,15 @@ const ShareListItem = ({
       >
         <CustomLabel
           allowTruncate
-          customStyle={{ padding: 0, fontSize: 15 }}
+          customStyle={{ padding: 0, fontSize: 15, }}
           labelText={title}
           bold={selected}
           adaptToTheme
         />
-        {((selectedTxt && selected) || subtitle) && (
+        {((selectedTxt && selected)) && (
           <CustomLabel
-            customStyle={{ padding: 0, marginTop: 1.5, lineHeight: 18 }}
-            fontSize={13.5}
+            customStyle={{ padding: 0, marginTop: 0, lineHeight: 14 }}
+            fontSize={12}
             fade
             labelText={selected ? selectedTxt : subtitle}
             adaptToTheme
@@ -122,10 +122,7 @@ const ShareListItem = ({
         }}
       >
         {selected && (
-          <Image
-            source={require("../../assets/images/icons/check_unsel_light.png")}
-            style={{ height: 13, width: 13 }}
-          />
+          <CheckIcon size={14} stroke="#fff" strokeWidth={4} />
         )}
       </View>
     </TouchableOpacity>
@@ -158,7 +155,18 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, 
         setSelected();
       }}
     >
-      <IconComponent />
+      <View style={{
+        backgroundColor: fadedBg,
+        height: 40,
+        width: 40,
+        borderRadius: 1000,
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "row",
+        marginRight: 10,
+      }}>
+        <IconComponent />
+      </View>
       <View
         style={{
           flexDirection: "column",
@@ -170,15 +178,15 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, 
       >
         <CustomLabel
           allowTruncate
-          customStyle={{ padding: 0, fontSize: 15 }}
+          customStyle={{ padding: 0, fontSize: 14.5 }}
           labelText={locationStr}
           bold={selected}
           adaptToTheme
         />
         {selText && selected && (
           <CustomLabel
-            customStyle={{ padding: 0, marginTop: 1.5, lineHeight: 18 }}
-            fontSize={13.5}
+            customStyle={{ padding: 0, marginTop: 1.5, lineHeight: 15 }}
+            fontSize={13}
             fade
             labelText={selText}
             adaptToTheme
@@ -199,10 +207,7 @@ const LocationItem = ({ selected, setSelected, locationStr, selText, onChanged, 
         }}
       >
         {selected && (
-          <Image
-            source={require("../../assets/images/icons/check_unsel_light.png")}
-            style={{ alignSelf: "center", height: 13, width: 13 }}
-          />
+          <CheckIcon size={14} stroke="#fff" strokeWidth={4} />
         )}
       </View>
     </TouchableOpacity>
@@ -219,7 +224,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const searchRef = useRef(null);
   const [selectedFriends, setSelectedFriends] = useState<iSelectedFriend[]>([]);
   const [selLoc, setSelLoc] = useState(sendOpt[0]);
-  const { coordinates, reverseGeocode } = useLocationStore();
+  const { coordinates } = useLocationStore();
   const [activePoi, setActivePoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(null)
   const [crumbRadius, setCrumbRadius] = useState(15)
   const [droppedPin, setDroppedPin] = useState<[number, number] | null>(null)
@@ -300,7 +305,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
 
   const getLocText = () => {
     if (selLoc === sendOpt[1]) return `📍${getSelectedAddress().address ?? "custom location"}`;
-    else return `📍${reverseGeocode(coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 }) ?? "your current location"}`;
+    else return `📍${"your current location"}`;
   };
 
   const { mutate: shareCrumb } = useShareCrumb()
@@ -367,15 +372,15 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
           IconComponent={() => {
             if (item === sendOpt[0]) {
               return (
-                <MapPinIcon style={{ marginRight: 10, opacity: .6 }} size={45} color={textCol} />
+                <MapPinIcon style={{ opacity: .7 }} size={25} color={textCol} />
               )
             } else if (item === sendOpt[1]) {
               return (
-                <MapPlusIcon style={{ marginRight: 10, opacity: .6 }} size={45} color={textCol} />
+                <MapPlusIcon style={{ opacity: .7 }} size={25} color={textCol} />
               )
             } else {
               return (
-                <Globe2 style={{ marginRight: 10, opacity: .6 }} size={45} color={textCol} />
+                <Globe2 style={{ opacity: .7 }} size={25} color={textCol} />
               )
             }
           }}
@@ -476,16 +481,9 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
             paddingHorizontal: 15,
           }}
         >
-          <CustomButton
-            adaptToTheme
-            type="text"
-            labelText=""
-            imgSrc={getIconImage("back", mode === "light")}
-            handleClick={handleClose}
-            imgSize={23}
-            paddingHorizontal={0}
-            customStyle={{ padding: 0 }}
-          />
+          <CustomFloatingSquare isFlat handleClick={handleClose} customStyle={{ padding: 0 }}>
+            <ChevronDownIcon size={23} stroke={textCol} strokeWidth={3} />
+          </CustomFloatingSquare>
           <CustomLabel labelText={title ?? `Share crumb${usePlural ? "s" : ""}`} adaptToTheme bold textAlign="center" />
           <CustomButton
             adaptToTheme

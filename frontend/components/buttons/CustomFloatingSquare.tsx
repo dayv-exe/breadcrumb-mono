@@ -10,9 +10,11 @@ type props = {
   isFlat?: boolean
   type?: buttonTypes
   customStyle?: StyleProp<ViewStyle>
+  onTouch?: () => void
+  hardShadow?: boolean
 }
 
-export default function CustomFloatingSquare({ handleClick, children, allowWidthExpansion = false, isFlat = false, type, fitToContent = false, customStyle, }: PropsWithChildren<props>) {
+export default function CustomFloatingSquare({ handleClick, children, allowWidthExpansion = false, isFlat = false, type, fitToContent = false, customStyle, onTouch, hardShadow, }: PropsWithChildren<props>) {
   const theme = useThemeColor
 
   return (
@@ -24,8 +26,10 @@ export default function CustomFloatingSquare({ handleClick, children, allowWidth
         height: allowWidthExpansion || fitToContent ? "auto" : 43,
         paddingVertical: fitToContent ? 0 : allowWidthExpansion ? 10 : 0,
         paddingHorizontal: fitToContent ? 0 : allowWidthExpansion ? 15 : 0,
+        shadowOpacity: !isFlat && hardShadow ? 1 : isFlat ? 0 : .3,
+        elevation: !isFlat && hardShadow ? 10 : isFlat ? 0 : 5,
       }
-      , customStyle]} onPress={handleClick}>
+      , customStyle]} onPress={handleClick} onPressIn={onTouch}>
       {children}
     </TouchableOpacity>
   )

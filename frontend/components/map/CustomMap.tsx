@@ -218,7 +218,7 @@ export default function CustomMap({
             })
           }}
           onPress={handleMapPress}
-          // onLongPress={handleMapLongPress}
+          onLongPress={handleMapLongPress}
           onTouchStart={() => {
             movedMap.current = true;
           }}

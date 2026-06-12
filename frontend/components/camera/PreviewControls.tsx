@@ -1,10 +1,12 @@
 import { MediaData } from "@/constants/media";
 import { useMediaStore } from "@/utils/mediaStore";
+import { CropIcon, DownloadIcon, Trash2Icon, TypeIcon } from "lucide-react-native";
 import { useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
+import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import CustomImageButton from "../buttons/CustomImageButton";
 import CustomLabel from "../CustomLabel";
 import EmojiPicker from "../inputs/EmojiPicker";
@@ -18,7 +20,9 @@ type props = {
 function DownloadButton({ media }: { media: MediaData }) {
   if (media.type === "photo" || media.type === "video") {
     return (
-      <CustomImageButton customStyle={style.buttons} size={25} src={require("../../assets/images/icons/download_sel_light.png")} type="text" />
+      <CustomFloatingSquare hardShadow type="text">
+        <DownloadIcon size={27} stroke={"#fff"} strokeWidth={3} />
+      </CustomFloatingSquare>
     )
   } else {
     return (
@@ -75,17 +79,23 @@ export default function PreviewControls({ media, spawnTextOverlay }: props) {
     }]} pointerEvents="box-none">
       <DownloadButton media={media} />
       <View>
-        <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/deletepreview_unsel_light.png")} type="text" handleClick={handleDelCurMedia} />
+        <CustomFloatingSquare hardShadow type="text" handleClick={deleteCurrentMedia}>
+          <Trash2Icon size={27} stroke={"#fff"} strokeWidth={3} />
+        </CustomFloatingSquare>
         <Spacer />
         {(media.type === "photo" || media.type === "video") &&
           <>
-            <CustomImageButton customStyle={style.buttons} size={25} src={require("../../assets/images/icons/textoverlay_sel_light.png")} type="text" handleClick={handleSpawnText} />
+            <CustomFloatingSquare hardShadow type="text" handleClick={handleSpawnText}>
+              <TypeIcon size={25} stroke={"#fff"} strokeWidth={3} />
+            </CustomFloatingSquare>
             <Spacer size="small" />
-            <CustomImageButton customStyle={style.buttons} size={25} src={require("../../assets/images/icons/stickeroverlay_unsel_light.png")} type="text" handleClick={handleShowSticker} />
+            <CustomImageButton customStyle={style.buttons} size={23} src={require("../../assets/images/icons/stickeroverlay_unsel_light.png")} type="text" handleClick={handleShowSticker} />
             <Spacer size="small" />
             {media.type === "photo" &&
               <>
-                <CustomImageButton customStyle={style.buttons} size={27} src={require("../../assets/images/icons/croppreview_unsel_light.png")} type="text" handleClick={handleCrop} />
+                <CustomFloatingSquare hardShadow type="text" handleClick={handleCrop}>
+                  <CropIcon size={25} stroke={"#fff"} strokeWidth={3} />
+                </CustomFloatingSquare>
               </>
             }
           </>}

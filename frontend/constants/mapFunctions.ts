@@ -183,7 +183,8 @@ export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>):
     gift: "🎁",
     seafood: "🍤",
     toys: "🧸",
-    allotments: "🌱"
+    allotments: "🌱",
+    board: "🪧"
   };
 
   for (const key in emojiMap) {

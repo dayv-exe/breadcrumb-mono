@@ -1,10 +1,11 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaStore } from "@/utils/mediaStore";
+import { ImagePlusIcon, SwitchCameraIcon, UserPlusIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
-import CustomImageButton from "../buttons/CustomImageButton";
+import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 
 type ctrlProps = {
   useFlash: "on" | "off"
@@ -33,41 +34,41 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, show
     previews: s.mediaPreview
   })))
   const { pickFromGallery, isLoading } = useImagePicker()
-  const size = 24
+  const size = 25
 
   return (
     <View style={[styles.cameraControls, {
-      // paddingTop: insets.top 
-      alignItems: 'flex-end'
+      alignItems: 'flex-start'
     }]}>
-      {
-        <View style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "flex-end"
-        }}>
-          <CustomImageButton
-            handleClick={() => {
-              pickFromGallery({
-                allowsEditing: false,
-                mediaTypes: ["images", "videos"],
-                allowMultipleSel: true,
-                selectionLimit: MAX_PREVIEW_MEDIA - previews.length
-              });
-            }}
-            customStyle={[styles.imageButtons, {
-              opacity: isRecording ? 0 : 1
-            }]}
-            type="text"
-            src={icons.gallery}
-            size={size}
-          />
-        </View>
-      }
-      {<CustomImageButton src={useFlash === "off" ? icons.noFlash : icons.flash} size={size} type="text" customStyle={[styles.imageButtons, {
+      <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
-      }]} handleClick={toggleFlash} />}
-      <CustomImageButton src={require("../../assets/images/icons/flipcamera_sel_light.png")} size={size} type="text" customStyle={styles.imageButtons} handleClick={flipCamera} />
+      }]}>
+        <UserPlusIcon size={size} stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      </CustomFloatingSquare>
+      <View>
+        <CustomFloatingSquare hardShadow customStyle={styles.imageButtons} onTouch={flipCamera}>
+          <SwitchCameraIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+        </CustomFloatingSquare>
+        <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
+          opacity: isRecording ? 0 : 1
+        }]} handleClick={toggleFlash}>
+          {useFlash === "on" && <ZapIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
+          {useFlash === "off" && <ZapOffIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
+        </CustomFloatingSquare>
+        <CustomFloatingSquare hardShadow handleClick={() => {
+          pickFromGallery({
+            allowsEditing: false,
+            mediaTypes: ["images", "videos"],
+            allowMultipleSel: true,
+            selectionLimit: MAX_PREVIEW_MEDIA - previews.length
+          });
+        }}
+          customStyle={[styles.imageButtons, {
+            opacity: isRecording ? 0 : 1
+          }]}>
+          <ImagePlusIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+        </CustomFloatingSquare>
+      </View>
     </View>
   )
 }
@@ -75,21 +76,19 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, show
 const styles = StyleSheet.create({
   cameraControls: {
     position: "absolute",
-    height: "100%",
+    top: 0,
     right: 0,
     zIndex: 100,
-    flexDirection: "column",
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    paddingHorizontal: 5,
-    marginTop: 5,
+    justifyContent: "center",
   },
   imageButtons: {
-    marginVertical: 5,
-    elevation: 7,
+    elevation: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 15,
+    margin: 5
   }
 })

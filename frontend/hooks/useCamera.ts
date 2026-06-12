@@ -170,7 +170,7 @@ export function useCamera(): useCameraReturnType {
               shouldAutoRestart.current = false
               startRecording()
             } else {
-              setShowMediaPreview(true)
+              // setShowMediaPreview(true)
             }
           },
           onRecordingError: (error) => {
@@ -248,7 +248,7 @@ export function useCamera(): useCameraReturnType {
           height: photo.height,
           uploadState: { error: null, pending: false, uploadUrl: "" }
         });
-        setShowMediaPreview(true)
+        // setShowMediaPreview(true)
       } catch (error) {
         console.error("Error taking photo:", error);
       }

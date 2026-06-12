@@ -32,12 +32,21 @@ export default function PreviewBunch() {
 
   return (
     <>
-      {!isRecording && (
+      {(
         <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
-          <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={styles.previewTouchable}>
+          <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={[styles.previewTouchable, {
+            opacity: isRecording ? 0 : 1
+          }]}>
             {mediaPreview.map((media, index) => {
               return (
-                <PreviewCard key={index} media={media} index={index} src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri} active />
+                <PreviewCard
+                  key={index}
+                  media={media}
+                  index={index}
+                  src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri}
+                  active
+                  animateIn={index === mediaPreview.length - 1}
+                />
               );
             })}
           </TouchableOpacity>

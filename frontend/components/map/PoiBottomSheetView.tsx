@@ -3,7 +3,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { convertToPreferredDistance } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
-import { X } from "lucide-react-native";
+import { Camera, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useShallow } from "zustand/shallow";
@@ -75,10 +75,10 @@ export default function PoiBottomSheetView({ selectedItem, clearSelection }: pro
             <CustomLabel adaptToTheme labelText={`${convertToPreferredDistance(distance)} ${address ? "• " + address : ""}`} allowTruncate fade customStyle={{ padding: 0 }} fontSize={13} />
           </View>
         </View>
-        {/* <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, height: 35, width: 35 }}>
+        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, height: 35, width: 35 }}>
           <Camera size={17} stroke={textCol} strokeWidth={3} />
         </CustomFloatingSquare>
-        <Spacer size="small" /> */}
+        <Spacer size="small" />
         <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, height: 35, width: 35 }} handleClick={clearSelection}>
           <X size={17} stroke={textCol} strokeWidth={3} />
         </CustomFloatingSquare>

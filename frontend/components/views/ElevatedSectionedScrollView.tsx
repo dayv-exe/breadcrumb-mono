@@ -115,7 +115,7 @@ export function ElevatedSectionedScrollView({
           key={`${section.key}-header`}
           style={[styles.stickyHeader, { backgroundColor: darkBg, paddingHorizontal: 15 }]}
         >
-          <CustomLabel adaptToTheme bold labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, { backgroundColor: darkBg, padding: 0 }]} />
+          <CustomLabel adaptToTheme bold fade labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, { backgroundColor: darkBg, padding: 0 }]} />
         </View>
       );
     }

@@ -1,8 +1,9 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { CircleXIcon, SearchIcon, XIcon } from "lucide-react-native";
 import React from "react";
-import { Image, StyleSheet, TextInput, View } from "react-native";
-import CustomButton from "../buttons/CustomButton";
+import { StyleSheet, TextInput, View } from "react-native";
+import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import { searchInputProps } from "./searchInputProps";
 
 const icons = {
@@ -36,13 +37,7 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
         borderColor: useRedBorders ? "red" : "transparent"
       }
       , customStyle]}>
-      <Image
-        source={getIconImage("search", mode === "light")}
-        style={[{
-          width: imageSize,
-          height: imageSize,
-        }]}
-      />
+      <SearchIcon size={imageSize} stroke={textCol} strokeWidth={2.5} />
       <TextInput ref={ref} style={[
         styles.input,
         {
@@ -69,10 +64,20 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
       />
 
       <View style={styles.imageContainer}>
-        {value && value.length > 0 && <CustomButton type="text" imgSrc={getIconImage("clear", mode === "light")} imgSize={19} labelText="" handleClick={() => {
-          handleChange("")
-          ref.current?.focus()
-        }} />}
+        {value && value.length > 0 &&
+          <>
+            <CustomFloatingSquare isFlat handleClick={() => {
+              handleChange("")
+              ref.current?.focus()
+            }}>
+              <CircleXIcon size={20} stroke={textCol} fill={textCol} />
+              <XIcon size={11} stroke={bgCol} strokeWidth={4} style={{
+                position: "absolute",
+                alignSelf: "center"
+              }} />
+            </CustomFloatingSquare>
+          </>
+        }
       </View>
     </View>
   )

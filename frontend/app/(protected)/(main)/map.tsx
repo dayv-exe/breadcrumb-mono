@@ -1,7 +1,6 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
-import CustomImageButton from "@/components/buttons/CustomImageButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
 import MapSheetContent from "@/components/map/MapSheetContent";
@@ -17,6 +16,7 @@ import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
+import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import Reanimated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
@@ -284,38 +284,38 @@ export default function MapScreen() {
           <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold />
         </CustomFloatingSquare>}
         <Spacer size="small" />
-        <CustomImageButton
-          size={21}
-          src={getIconImage("search", mode === "light")}
-          handleClick={() => {
-            setSessionToken(GenerateUUID())
-            fadeHeader(false)
-            openSheet({
-              content: (
-                <PlaceSearch
-                  availableHeight={availableHeight}
-                  HandleClosePress={closeSheet}
-                  mapRef={mapRef}
-                  userLocation={coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 }}
-                  OnPlaceSelect={handlePlaceSelected}
-                  sessionToken={sessionToken}
-                  mapCenter={mapCenter}
-                />
-              ),
-              snapPoints: [availableHeight],
-              reduceAnimations: false,
-              onSheetDismissed: () => fadeHeader(true),
-              showOverlay: false,
-              backgroundStyle: { backgroundColor: searchBgCol }
-            })
-          }}
-        />
+        <CustomFloatingSquare type="themed" handleClick={() => {
+          setSessionToken(GenerateUUID())
+          fadeHeader(false)
+          openSheet({
+            content: (
+              <PlaceSearch
+                availableHeight={availableHeight}
+                HandleClosePress={closeSheet}
+                mapRef={mapRef}
+                userLocation={coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 }}
+                OnPlaceSelect={handlePlaceSelected}
+                sessionToken={sessionToken}
+                mapCenter={mapCenter}
+              />
+            ),
+            snapPoints: [availableHeight],
+            reduceAnimations: false,
+            onSheetDismissed: () => fadeHeader(true),
+            showOverlay: false,
+            backgroundStyle: { backgroundColor: searchBgCol }
+          })
+        }}>
+          <SearchIcon size={24} stroke={txtCol} strokeWidth={2.5} />
+        </CustomFloatingSquare>
         <Spacer size="small" />
-        <CustomImageButton size={23} src={getIconImage("satellite", mode === "light")} handleClick={() => setUseSat(s => !s)} />
+        <CustomFloatingSquare type="themed" handleClick={() => setUseSat(s => !s)}>
+          <SatelliteIcon size={25} stroke={txtCol} strokeWidth={2.5} />
+        </CustomFloatingSquare>
         <Spacer size="small" />
-        <CustomImageButton size={21} handleClick={() => {
-          focusOnUserLocation()
-        }} src={getIconImage("focusUserLoc", mode === "light")} />
+        <CustomFloatingSquare type="themed" handleClick={focusOnUserLocation}>
+          <LocateIcon size={25} stroke={txtCol} strokeWidth={2.5} />
+        </CustomFloatingSquare>
         <Spacer size="small" />
       </Reanimated.View>
 
