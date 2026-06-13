@@ -12,14 +12,16 @@ import { useThemeColor } from "./useThemeColor";
 
 const SearchResult = ({ place, onSelect }: { place: Suggestion, onSelect: (pId: string) => void }) => {
   const textCol = useThemeColor({}, "text")
-  console.log(place.maki)
+  const strokeWidth = 2.5
+  const makiOpacity = .6
+  const fillCol = "transparent"
   return (
     <TouchableOpacity style={{
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-start",
       width: "100%",
-      paddingVertical: 7,
+      paddingVertical: 10,
       paddingHorizontal: 5,
     }
     }
@@ -36,58 +38,58 @@ const SearchResult = ({ place, onSelect }: { place: Suggestion, onSelect: (pId: 
       }>
         {
           place.maki === "school" || place.maki === "college" ? (
-            <SchoolIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <SchoolIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "restaurant" ? (
-            <UtensilsCrossedIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <UtensilsCrossedIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "shop" ? (
-            <ShoppingCartIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <ShoppingCartIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "bus" ? (
-            <BusFrontIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <BusFrontIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "airport" ? (
-            <PlaneTakeoffIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <PlaneTakeoffIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "hospital" ? (
-            <HeartPulseIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <HeartPulseIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "attraction" ? (
-            <CameraIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <CameraIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "fast-food" ? (
-            <UtensilsCrossedIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <UtensilsCrossedIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "taxi" ? (
-            <CarTaxiFrontIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <CarTaxiFrontIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "bar" ? (
-            <BeerIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <BeerIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "information" ? (
-            <InfoIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <InfoIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "jewelry-store" ? (
-            <GemIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <GemIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "parking" ? (
-            <ParkingCircleIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <ParkingCircleIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "museum" ? (
-            <LandmarkIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <LandmarkIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "lodging" ? (
-            <BedIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <BedIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "fitness-centre" ? (
-            <SportShoeIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <SportShoeIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "cinema" ? (
-            <ClapperboardIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <ClapperboardIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "town-hall" ? (
-            <LandmarkIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <LandmarkIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "cafe" ? (
-            <CoffeeIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <CoffeeIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "natural" ? (
-            <TreesIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <TreesIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "bakery" ? (
-            <CroissantIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <CroissantIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "building" ? (
-            <BuildingIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <BuildingIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : place.maki === "campsite" ? (
-            <TentIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <TentIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           ) : (
-            <MapPinIcon strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={textCol} opacity={.4} />
+            <MapPinIcon strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" color={textCol} fill={fillCol} opacity={makiOpacity} />
           )
         }
       </View>
       < View style={{ flexGrow: 1, flexShrink: 1, }}>
-        <CustomLabel labelText={place.name} adaptToTheme bold fontSize={15} customStyle={{
+        <CustomLabel labelText={place.name} adaptToTheme fontSize={15} bold customStyle={{
           paddingVertical: 0,
         }} />
         <CustomLabel allowTruncate fade labelText={convertToPreferredDistance(place.distance ?? 0) + " • " + (place.full_address ?? place.place_formatted)} adaptToTheme fontSize={13} customStyle={{
@@ -133,7 +135,7 @@ export const usePlaceSearchSuggest = (sessionToken: string, mapCenter: Coordinat
       renderItem: (place: Suggestion) => (
         <SearchResult place={place} onSelect={p => OnPlaceSelect(p)} />
       ),
-      onEndReached: () => {  }
+      onEndReached: () => { }
     },
   ]
 

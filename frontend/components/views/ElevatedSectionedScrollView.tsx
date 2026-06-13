@@ -108,14 +108,14 @@ export function ElevatedSectionedScrollView({
     const isLast = sectionIdx === visibleSections.length - 1;
 
     // Sticky header (direct child of ScrollView)
-    if (section.title && !hideSectionTitles) {
+    if (1 !== 1 && section.title && !hideSectionTitles) {
       stickyIndices.push(children.length);
       children.push(
         <View
           key={`${section.key}-header`}
           style={[styles.stickyHeader, { backgroundColor: darkBg, paddingHorizontal: 15 }]}
         >
-          <CustomLabel adaptToTheme bold fade labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, { backgroundColor: darkBg, padding: 0 }]} />
+          <CustomLabel adaptToTheme bold labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, { backgroundColor: darkBg, padding: 0 }]} />
         </View>
       );
     }
@@ -124,9 +124,9 @@ export function ElevatedSectionedScrollView({
     children.push(
       <View
         key={`${section.key}-body`}
-        style={{ marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
+        style={{ marginTop: 0, marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
       >
-        <ElevatedSection title="">
+        <ElevatedSection title={section.title ?? ""}>
           {section.data.map((item, i) => (
             <React.Fragment key={section.keyExtractor(item)}>
               {section.renderItem(item, i)}
@@ -169,7 +169,7 @@ export function ElevatedSectionedScrollView({
 
 const styles = StyleSheet.create({
   stickyHeader: {
-    paddingBottom: 2.5,
+    paddingBottom: 0,
   },
   loader: {
     paddingVertical: 12,
