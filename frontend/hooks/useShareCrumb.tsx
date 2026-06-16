@@ -5,6 +5,7 @@ import { LocationOptionsProps } from "@/components/share/LocationOption"
 import Spacer from "@/components/Spacer"
 import { DEFAULT_CRUMB_RADIUS, ShowToast } from "@/constants/appConstants"
 import { useMediaStore } from "@/utils/mediaStore"
+import { useLocationStore } from "@/utils/useLocationStore"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, View } from "react-native"
 import { useShareCrumbApi } from "./queries/useCrumbsApi"
@@ -45,48 +46,40 @@ export function useShareCrumb(
   const [showMap, setShowMap] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null)
   const [recipients, setRecipients] = useState<iRecipient[]>([])
-  const [locationSelManner, setLocationSelManner] = useState(LOCATION_OPTIONS.gps)
   const [isPending, setIsPending] = useState(false)
   const resetMediaStore = useMediaStore(s => s.reset)
   const crumbMedia = useMediaStore(s => s.mediaPreview)
+  const coordinates = useLocationStore(s => s.coordinates)
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
 
   useEffect(() => {
-    setReverseGeocodeCoordinates(selectedLocation?.coordinates ?? null)
+    if (selectedLocation) {
+      setReverseGeocodeCoordinates(selectedLocation.coordinates)
+    } else {
+      setReverseGeocodeCoordinates(coordinates)
+    }
   }, [selectedLocation])
 
   const locationOptions: LocationOptionsProps[] = [
     {
       iconEmoji: "📍",
       name: "Current location",
-      selected: locationSelManner === LOCATION_OPTIONS.gps,
+      selected: !selectedLocation,
       selectedText: `Crumb${usePlural ? "s" : ""} can only be opened here`,
       onPressed: () => {
-        setLocationSelManner(LOCATION_OPTIONS.gps)
         setSelectedLocation(null)
       }
     },
     {
       iconEmoji: "🗺️",
       name: "Choose on map",
-      selectedName: selectedLocation?.type === "pin" ? `Pin (${address})` : selectedLocation?.poi.properties?.name,
-      selected: locationSelManner === LOCATION_OPTIONS.custom,
+      selectedName: selectedLocation?.type === "pin" ? address ? `Pin (${address})` : "Dropped pin" : selectedLocation?.poi.properties?.name,
+      selected: selectedLocation !== null,
       selectedText: `Crumb${usePlural ? "s" : ""} can only be opened there`,
       onPressed: () => {
-        setLocationSelManner(LOCATION_OPTIONS.custom)
         setShowMap(true)
       }
     },
-    // {
-    //   iconEmoji: "🌍",
-    //   name: "Global",
-    //   selected: locationSelManner === LOCATION_OPTIONS.global,
-    //   selectedText: `Crumb${usePlural ? "s" : ""} can be opened anywhere`,
-    //   onPressed: () => {
-    //     setLocationSelManner(LOCATION_OPTIONS.global)
-    //     setSelectedLocation(null)
-    //   }
-    // },
   ]
 
   const { upload } = useMediaUpload({
@@ -110,7 +103,7 @@ export function useShareCrumb(
           thumbnail: f.thumbnail?.mediaKey,
         })),
         locationAccuracy: selectedLocation.coordinates.accuracy ?? DEFAULT_CRUMB_RADIUS,
-        locationType: locationSelManner === LOCATION_OPTIONS.gps ? "gps" : locationSelManner === LOCATION_OPTIONS.custom ? poiId ? "label" : "dropped-pin" : "none",
+        locationType: selectedLocation && selectedLocation.type === "pin" ? "dropped-pin" : selectedLocation && selectedLocation.type === "poi" ? "label" : "gps",
         receivers: recipients.map(r => r.id),
       }, {
         onSuccess: () => {

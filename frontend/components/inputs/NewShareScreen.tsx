@@ -4,7 +4,6 @@ import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useLocationStore } from "@/utils/useLocationStore";
 import { ChevronDownIcon } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -35,7 +34,6 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const textCol = useThemeColor({}, "text")
   const [search, setSearch] = useState("");
   const searchRef = useRef(null);
-  const coordinates = useLocationStore(s => s.coordinates);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, error } = useGetFriends("")
   const { data: myProfile, isFetching: isFetchingMyProfile, error: myProfileErr } = useGetUser("")
@@ -88,7 +86,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
       onEndReached: fetchNextPage,
       renderItem: (item: FriendOption) => (
         <FriendOption
-          isSelected={recipients.includes({ id: item.userId ?? "", name: deriveName(item) })}
+          isSelected={recipients.some(r => r.id === item.userId)}
           nickname={deriveName(item)}
           userid={item.userId ?? ""}
           name={item.nickname ?? ""}
@@ -105,7 +103,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
               setRecipients(recipients.filter((f) => f.id !== item.userId));
             }
           }}
-          address={address ?? "Current location"}
+          address={address ?? undefined}
         />
       ),
     },

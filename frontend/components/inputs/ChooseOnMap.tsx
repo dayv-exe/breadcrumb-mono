@@ -157,7 +157,7 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
         onMapPress={clearSearchResult}
         onMapLongPress={clearSearchResult}
         selectedLocation={mapSelLocation}
-        centerCoordinate={mapSelLocation && mapSelLocation.type === "poi" ? (mapSelLocation.poi.geometry as any).coordinates : mapSelLocation && mapSelLocation.type === "pin" ? mapSelLocation.coordinates : undefined}
+        centerCoordinate={mapSelLocation && mapSelLocation.type === "poi" ? convertCoordinatesToNumberTuple(mapSelLocation.coordinates) : mapSelLocation && mapSelLocation.type === "pin" ? convertCoordinatesToNumberTuple(mapSelLocation.coordinates) : undefined}
         is2dButtonVisible={is2dButtonVisible}
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}

@@ -11,7 +11,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useMediaStore } from "@/utils/mediaStore";
 import { Tabs, useSegments } from "expo-router";
-import { Heart, Plus, Search, User } from "lucide-react-native";
+import { Camera, Heart, Search, User } from "lucide-react-native";
 import { useEffect } from "react";
 import { ColorValue, Image, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useShallow } from "zustand/shallow";
@@ -366,7 +366,7 @@ export default function MainScreen() {
             title: "Post",
             tabBarIcon: ({ focused }) => (
               <>
-                <Plus size={35} strokeWidth={focused ? 2 : 1.5} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                <Camera size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
                 {focused && (
                   <View
                     style={{

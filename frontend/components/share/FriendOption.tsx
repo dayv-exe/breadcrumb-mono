@@ -1,6 +1,5 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { CheckIcon } from "lucide-react-native";
-import { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import CustomLabel from "../CustomLabel";
 import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
@@ -9,14 +8,13 @@ interface props {
   userid: string
   name: string
   nickname: string
-  address: string
+  address?: string
   isSelected: boolean
   onChange: (s: boolean) => void
 }
 export default function FriendOption({ address, name, nickname, onChange, userid, isSelected }: props) {
   const fadedBg = useThemeColor({}, "fadedBackgroundElevated");
   const vibCol = useThemeColor({}, "darkenVibrant");
-  const [selected, setSelected] = useState(isSelected);
 
   return (
     <TouchableOpacity
@@ -27,8 +25,7 @@ export default function FriendOption({ address, name, nickname, onChange, userid
         padding: 7,
       }}
       onPress={() => {
-        onChange(!selected);
-        setSelected(!selected);
+        onChange(!isSelected);
       }}
     >
       <CustomProfilePictureCircle nickname={nickname} size={40} customStyle={{ marginRight: 10 }} userId={userid} />
@@ -45,15 +42,15 @@ export default function FriendOption({ address, name, nickname, onChange, userid
           allowTruncate
           customStyle={{ padding: 0, fontSize: 15, }}
           labelText={nickname}
-          bold={selected}
+          bold={isSelected}
           adaptToTheme
         />
-        {((address && selected)) && (
+        {((address && isSelected)) && (
           <CustomLabel
             customStyle={{ padding: 0, marginTop: 0, lineHeight: 14 }}
             fontSize={12}
             fade
-            labelText={selected ? address : name}
+            labelText={isSelected ? address : name}
             adaptToTheme
             allowTruncate
           />
@@ -63,16 +60,16 @@ export default function FriendOption({ address, name, nickname, onChange, userid
         style={{
           width: 21,
           height: 21,
-          borderColor: selected ? vibCol : fadedBg,
+          borderColor: isSelected ? vibCol : fadedBg,
           borderWidth: 2,
           borderRadius: 1000,
           marginRight: 5,
-          backgroundColor: selected ? vibCol : "transparent",
+          backgroundColor: isSelected ? vibCol : "transparent",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        {selected && (
+        {isSelected && (
           <CheckIcon size={14} stroke="#fff" strokeWidth={4} />
         )}
       </View>
