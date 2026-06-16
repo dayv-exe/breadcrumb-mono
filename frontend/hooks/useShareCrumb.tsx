@@ -5,11 +5,11 @@ import { LocationOptionsProps } from "@/components/share/LocationOption"
 import Spacer from "@/components/Spacer"
 import { DEFAULT_CRUMB_RADIUS, ShowToast } from "@/constants/appConstants"
 import { useMediaStore } from "@/utils/mediaStore"
-import { useLocationStore } from "@/utils/useLocationStore"
 import { useEffect, useState } from "react"
 import { ActivityIndicator, View } from "react-native"
 import { useShareCrumbApi } from "./queries/useCrumbsApi"
 import { useMediaUpload } from "./useMediaUpload"
+import { useReverseGeocode } from "./useReverseGeocode"
 import { useThemeColor } from "./useThemeColor"
 
 enum LOCATION_OPTIONS {
@@ -49,26 +49,11 @@ export function useShareCrumb(
   const [isPending, setIsPending] = useState(false)
   const resetMediaStore = useMediaStore(s => s.reset)
   const crumbMedia = useMediaStore(s => s.mediaPreview)
-
-  const reverseGeocode = useLocationStore(s => s.reverseGeocode)
-  const [address, setAddress] = useState<string | null>(null)
-
-  const locationKey = `${selectedLocation?.coordinates.latitude},${selectedLocation?.coordinates.longitude}`
+  const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
 
   useEffect(() => {
-    let cancelled = false
-
-    if (!selectedLocation) {
-      setAddress(null)
-      return
-    }
-
-    reverseGeocode(selectedLocation.coordinates).then((result) => {
-      if (!cancelled) setAddress(selectedLocation.type === "pin" ? `Near ${result}` : result)
-    })
-
-    return () => { cancelled = true }
-  }, [locationKey])
+    setReverseGeocodeCoordinates(selectedLocation?.coordinates ?? null)
+  }, [selectedLocation])
 
   const locationOptions: LocationOptionsProps[] = [
     {

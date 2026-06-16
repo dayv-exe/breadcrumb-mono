@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { formatAddress } from './locationFormatter';
 
 export interface Coordinates {
   latitude: number;
@@ -24,7 +23,6 @@ interface LocationState {
 interface LocationActions {
   startTracking: () => Promise<void>;
   stopTracking: () => void;
-  reverseGeocode: (coords: Coordinates) => Promise<string | null>;
   setError: (error: string | null) => void;
 }
 
@@ -99,24 +97,6 @@ export const useLocationStore = create<LocationState & LocationActions>()(
       // -- actions --
 
       setError: (error) => set({ error }),
-
-      reverseGeocode: async (coords) => {
-        try {
-          const [result] = await Location.reverseGeocodeAsync({
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-          });
-
-          if (!result) return null;
-
-          const address = formatAddress(result);
-          set({lastGeocodedCoords: coords });
-          return address;
-        } catch (err) {
-          console.warn('Reverse-geocode failed:', err);
-          return null;
-        }
-      },
 
       startTracking: async () => {
         if (get().isTracking) return;

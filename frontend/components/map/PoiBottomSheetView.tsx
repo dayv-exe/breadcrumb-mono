@@ -1,4 +1,5 @@
-import { distanceMeters, getEmojiForFeature, getPlaceType } from "@/constants/mapFunctions";
+import { convertNumberTupleToCoordinates, distanceMeters, getEmojiForFeature, getPlaceType } from "@/constants/mapFunctions";
+import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { convertToPreferredDistance } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
@@ -17,18 +18,16 @@ interface props {
 }
 
 export default function PoiBottomSheetView({ selectedItem, clearSelection }: props) {
-  const { coordinates, reverseGeocode } = useLocationStore(useShallow(s => ({
+  const { coordinates } = useLocationStore(useShallow(s => ({
     coordinates: s.coordinates,
-    reverseGeocode: s.reverseGeocode,
   })))
   const textCol = useThemeColor({}, "text")
-  const [address, setAddress] = useState<string | null>("")
   const [distance, setDistance] = useState(0)
+  const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
   useEffect(() => {
     const resolveAddress = async () => {
       const poiCoords = (selectedItem.geometry as any).coordinates as [number, number]
-      const addressProm = await reverseGeocode({ latitude: poiCoords[1] ?? 0, longitude: poiCoords[0] ?? 0, accuracy: 0 })
-      setAddress(addressProm)
+      setReverseGeocodeCoordinates(convertNumberTupleToCoordinates(poiCoords))
       setDistance(distanceMeters(coordinates?.latitude ?? 0, coordinates?.longitude ?? 0, poiCoords[1], poiCoords[0]))
     }
     resolveAddress()

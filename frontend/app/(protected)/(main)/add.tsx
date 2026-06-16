@@ -10,9 +10,7 @@ import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictur
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaStore } from "@/utils/mediaStore";
-import { useLocationStore } from "@/utils/useLocationStore";
 import { useIsFocused } from "@react-navigation/native";
-import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
@@ -54,17 +52,8 @@ export default function AddScreen() {
   const { openSheet, closeSheet } = useBottomSheet()
   const maxHeight = height - insets.top
   const [recMode, setRecMode] = useState<recMode>("image")
-  const [modeIndex, setModeIndex] = useState(0)
-  const router = useRouter()
   const addToPreview = useMediaStore(s => s.addMediaPreview)
-  const { reverseGeocode, coords } = useLocationStore(
-    useShallow((s) => ({
-      reverseGeocode: s.reverseGeocode,
-      coords: s.coordinates,
-    }))
-  )
-  const [myAddress, setMyAddress] = useState("")
-
+  
   const shutterSignal = useSharedValue(0);
 
   useEffect(() => {

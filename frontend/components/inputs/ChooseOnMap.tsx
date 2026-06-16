@@ -223,7 +223,7 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
               <Spacer size="small" />
               <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lat: ${mapSelLocation.coordinates.latitude}`} customStyle={{ padding: 0 }} />
               <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lon: ${mapSelLocation.coordinates.longitude}`} customStyle={{ padding: 0 }} />
-              <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={mapSelLocation.coordinates.accuracy ?? 15} onValueChange={r => {
+              <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={mapSelLocation.radius ?? 15} onValueChange={r => {
                 setDroppedPinRadius(r)
               }} />
             </View>

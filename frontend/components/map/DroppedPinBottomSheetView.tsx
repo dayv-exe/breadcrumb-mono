@@ -1,4 +1,5 @@
-import { distanceMeters } from "@/constants/mapFunctions";
+import { convertNumberTupleToCoordinates, distanceMeters } from "@/constants/mapFunctions";
+import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { convertToPreferredDistance } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
@@ -19,17 +20,15 @@ interface props {
 }
 
 export default function DroppedPinBottomSheetView({ pin, radius, setRadius, clearPin }: props) {
-  const { coordinates, reverseGeocode } = useLocationStore(useShallow(s => ({
+  const { coordinates } = useLocationStore(useShallow(s => ({
     coordinates: s.coordinates,
-    reverseGeocode: s.reverseGeocode,
   })))
   const textCol = useThemeColor({}, "text")
-  const [address, setAddress] = useState<string | null>("")
   const [distance, setDistance] = useState(0)
+  const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
   useEffect(() => {
     const resolveAddress = async () => {
-      const addressProm = await reverseGeocode({ latitude: pin[1] ?? 0, longitude: pin[0] ?? 0, accuracy: 0 })
-      setAddress(addressProm)
+      setReverseGeocodeCoordinates(convertNumberTupleToCoordinates(pin))
       setDistance(distanceMeters(coordinates?.latitude ?? 0, coordinates?.longitude ?? 0, pin[1], pin[0]))
     }
     resolveAddress()
