@@ -2,7 +2,7 @@ import { getCrumbMarkers, getCrumbs, getLatestCrumbs, shareCrumb } from "@/api/c
 import { TIME } from "@/constants/appConstants";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
-export const useShareCrumb = () => useMutation({
+export const useShareCrumbApi = () => useMutation({
   mutationFn: shareCrumb
 })
 

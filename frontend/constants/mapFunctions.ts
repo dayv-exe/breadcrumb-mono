@@ -1,3 +1,4 @@
+import { Coordinates } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import type { Feature, GeoJsonProperties, Geometry, Position } from "geojson";
 import React from "react";
@@ -205,6 +206,18 @@ export async function getMapCamPosition(mapRef: React.RefObject<Mapbox.MapView |
 
   return { coords: [center[0], center[1]], zoom: zoom }
 }
+
+export const convertCoordinatesToNumberTuple = (coords: Coordinates): [number, number] => [coords.longitude, coords.latitude]
+
+export function convertNumberTupleToCoordinates(coords: [number, number], radius?: number): Coordinates {
+  return {
+    accuracy: radius ?? 0,
+    longitude: coords[0],
+    latitude: coords[1],
+  }
+}
+
+export const extractPoiCoordinates = (poi: Feature<Geometry, GeoJsonProperties>): Coordinates => convertNumberTupleToCoordinates((poi.geometry as any).coordinates as [number, number])
 
 const EARTH_RADIUS_METERS = 6_371_000;
 

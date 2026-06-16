@@ -85,28 +85,24 @@ export default function MapScreen() {
   const coordinates = useLocationStore(s => s.coordinates)
   const [mapCenter, setMapCenter] = useState<Coordinates | null>(null)
   const {
-    droppedPin,
-    droppedPinRadius,
-    focusOnCoords,
+    selectedLocation,
+    setSelectedLocation,
     focusOnDroppedPin,
     focusOnPoi,
     focusOnUserLocation,
-    selectedPoi,
-    setDroppedPin,
     setDroppedPinRadius,
     is2dButtonVisible,
     set2dButtonVisible,
     lock2DButtonAsHidden,
     focusOnSearchResult,
     make2d,
-    setSelectedPoi,
   } = useMap(
     mapRef,
-    mapCamRef
+    mapCamRef,
+    null
   )
   const { clearSearchResult, searchResult, setPlaceId } = usePlaceSearchRetrieve(sessionToken, coordinates, coords => {
-    setDroppedPin(null)
-    setSelectedPoi(null)
+    setSelectedLocation(null)
     focusOnSearchResult(coords)
   })
 
@@ -250,6 +246,7 @@ export default function MapScreen() {
 
 
       <CustomMap
+        selectedLocation={selectedLocation}
         mapRef={mapRef}
         cameraRef={mapCamRef}
         zoomLevel={12.25}
@@ -260,18 +257,14 @@ export default function MapScreen() {
         featureCollectionImages={crumbImages}
         searchResult={searchResult}
         onMapPress={() => {
-          setDroppedPin(null)
           clearSearchResult()
         }}
         onMapLongPress={() => {
           clearSearchResult()
         }}
         allowAutoPitch
-        activePoi={selectedPoi}
-        dropPinCoord={droppedPin}
         onDroppedPin={focusOnDroppedPin}
         onPoiSelect={focusOnPoi}
-        droppedPinRadius={droppedPinRadius}
         is2dButtonVisible={is2dButtonVisible}
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
@@ -340,13 +333,10 @@ export default function MapScreen() {
         backgroundColor: bgCol
       }}>
         <MapSheetContent
-          selectedItem={selectedPoi ? { type: "poi", displayProperties: selectedPoi } : droppedPin ? { type: "pin", displayProperties: droppedPin } : null}
-          droppedPinRadius={droppedPinRadius}
-          setDroppedPinRadius={setDroppedPinRadius}
+          selectedLocation={selectedLocation}
+          setRadius={setDroppedPinRadius}
           clearSelectedItem={() => {
-            setDroppedPin(null)
-            setSelectedPoi(null)
-            setDroppedPinRadius(15)
+            setSelectedLocation(null)
           }}
         />
       </BottomSheet>

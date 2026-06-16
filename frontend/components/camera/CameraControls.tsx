@@ -1,7 +1,7 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaStore } from "@/utils/mediaStore";
-import { ImagePlusIcon, SwitchCameraIcon, UserPlusIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
+import { ImagePlusIcon, LockIcon, SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
@@ -43,7 +43,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, show
       <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
       }]}>
-        <UserPlusIcon size={size} stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+        <LockIcon size={size} stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
       </CustomFloatingSquare>
       <View>
         <CustomFloatingSquare hardShadow customStyle={styles.imageButtons} onTouch={flipCamera}>

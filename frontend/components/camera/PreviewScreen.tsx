@@ -400,17 +400,21 @@ export default function PreviewScreen({
     if (isSharing) {
       openSheet({
         content: (
-          <NewShareScreen height={height}
-            usePlural={mediaItems.length > 1}
-            handleClose={closeSheet}
-            processMedia={processMedia}
-          />
+          <View style={{height: height}}>
+            <NewShareScreen height={height}
+              usePlural={mediaItems.length > 1}
+              handleClose={closeSheet}
+              processMedia={processMedia}
+            />
+          </View>
         ),
         onSheetDismissed: () => setSharing(false),
         reduceAnimations: true,
         fullExpansionOnOpen: true,
         snapPoints: [height],
-        showHandle: false
+        showHandle: false,
+        useRawComponent: true,
+        allowDrag: false,
       })
     }
 

@@ -1,6 +1,7 @@
+import { SelectedLocation } from "@/api/models/locationTypes";
 import { RetrieveResponse } from "@/api/models/placeSearch";
 import { Colors } from "@/constants/Colors";
-import { getPressedLocationInfo } from "@/constants/mapFunctions";
+import { convertCoordinatesToNumberTuple, getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { showSettingsAlert } from "@/utils/helpers";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
@@ -33,6 +34,7 @@ export const styleColors = {
 };
 
 type CustomMapProps = {
+  selectedLocation: SelectedLocation | null
   onMapReady?: () => void
   mapRef?: React.RefObject<Mapbox.MapView | null>;
   cameraRef?: React.RefObject<Mapbox.Camera | null>;
@@ -42,12 +44,9 @@ type CustomMapProps = {
   onMapPress?: (e: Feature<Geometry, GeoJsonProperties>) => void;
   onMapLongPress?: (e: Feature<Geometry, GeoJsonProperties>) => void;
   onLocationPuckPress?: () => void;
-  activePoi?: Feature<Geometry, GeoJsonProperties> | null
-  dropPinCoord?: [number, number] | null
   searchResult?: RetrieveResponse | null
   onPoiSelect: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   onDroppedPin: (coords: [number, number]) => void
-  droppedPinRadius?: number
   maxZoomLvlToDark?: number
   setForceDark?: (s: boolean) => void
   useSatellite?: boolean;
@@ -97,18 +96,16 @@ function PermissionScreen({ handleGrantPermission }: PermissionProps) {
 export default function CustomMap({
   mapRef,
   cameraRef,
+  selectedLocation,
   centerCoordinate,
   zoomLevel = 14,
   pitch = 0,
-  activePoi,
-  dropPinCoord,
   onMapPress = () => { },
   onMapLongPress = () => { },
   onLocationPuckPress,
   useSatellite,
   is2dButtonVisible,
   set2dButtonVisible,
-  droppedPinRadius,
   featureCollection,
   featureCollectionImages,
   maxZoomLvlToDark,
@@ -268,11 +265,11 @@ export default function CustomMap({
             }}
           />
 
-          {dropPinCoord && droppedPinRadius && (
+          {selectedLocation && selectedLocation.type === "pin" && (
             <>
               <Mapbox.ShapeSource
                 id="pin-radius-source"
-                shape={circle(dropPinCoord, droppedPinRadius, {
+                shape={circle(convertCoordinatesToNumberTuple(selectedLocation.coordinates), selectedLocation.radius, {
                   steps: 64,
                   units: "meters",
                 })}
@@ -298,7 +295,7 @@ export default function CustomMap({
                 id="dropped-pin-source"
                 shape={{
                   type: "Feature",
-                  geometry: { type: "Point", coordinates: dropPinCoord },
+                  geometry: { type: "Point", coordinates: convertCoordinatesToNumberTuple(selectedLocation.coordinates) },
                   properties: {},
                 }}
               >
@@ -355,8 +352,8 @@ export default function CustomMap({
             </Mapbox.ShapeSource>
           }
 
-          {activePoi && activePoi.geometry.type === "Point" && (
-            <Mapbox.ShapeSource id="active-poi-source" shape={activePoi}>
+          {selectedLocation && selectedLocation.type === "poi" && selectedLocation.poi.geometry.type === "Point" && (
+            <Mapbox.ShapeSource id="active-poi-source" shape={selectedLocation.poi}>
               <Mapbox.SymbolLayer
                 id="active-poi-icon"
                 style={{

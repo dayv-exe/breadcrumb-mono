@@ -1,4 +1,5 @@
-import { getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
+import { SelectedLocation } from "@/api/models/locationTypes";
+import { convertNumberTupleToCoordinates, extractPoiCoordinates, getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
 import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import * as Haptics from "expo-haptics";
@@ -6,12 +7,9 @@ import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import React, { useRef, useState } from "react";
 
 export type CustomMapHook = {
-  selectedPoi: Feature<Geometry, GeoJsonProperties> | null
-  setSelectedPoi: (p: Feature<Geometry, GeoJsonProperties> | null) => void
-  droppedPin: [number, number] | null
-  setDroppedPin: (p: [number, number] | null) => void
-  droppedPinRadius: number
+  selectedLocation: SelectedLocation | null,
   setDroppedPinRadius: (r: number) => void
+  setSelectedLocation: (l: SelectedLocation | null) => void
   focusOnCoords: (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, allowPitching: boolean) => void
   focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   focusOnDroppedPin: (c: [number, number]) => void
@@ -29,13 +27,9 @@ export type CustomMapHook = {
 export const useMap = (
   mapRef: React.RefObject<Mapbox.MapView | null>,
   mapCameraRef: React.RefObject<Mapbox.Camera | null>,
-  initialDroppedPin?: [number, number],
-  initialDroppedPinRadius?: number,
-  initialSelectedPoi?: Feature<Geometry, GeoJsonProperties>
+  initialSelectedLocation: SelectedLocation | null
 ): CustomMapHook => {
-  const [selectedPoi, setSelectedPoi] = useState<Feature<Geometry, GeoJsonProperties> | null>(initialSelectedPoi ?? null)
-  const [droppedPin, setDroppedPin] = useState<[number, number] | null>(initialDroppedPin ?? null)
-  const [droppedPinRadius, setDroppedPinRadius] = useState<number>(initialDroppedPinRadius ?? 15)
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(initialSelectedLocation)
   const [is2dButtonVisible, set2dButtonVisible] = useState(false)
   const [lock2DButtonAsHidden, setLock2DButtonAsHidden] = useState(false)
   const resetZoomOnUnselect = useRef(false)
@@ -43,7 +37,7 @@ export const useMap = (
   const [allowAutoPitch, setAllowAutoPitch] = useState(true)
   const handleSavePreLocationSelectCameraPosition = (): Promise<MapCamPosition | null> => {
     const camPos = getMapCamPosition(mapRef)
-    if (!selectedPoi && !droppedPin) {
+    if (!selectedLocation) {
       // zoom before location selection
       resetZoomOnUnselect.current = true
       preLocationSelectCamPos.current = camPos
@@ -79,8 +73,15 @@ export const useMap = (
   }
 
   const focusOnPoi = async (poi: Feature<Geometry, GeoJsonProperties> | null) => {
-    setDroppedPin(null)
-    setSelectedPoi(poi)
+    if (!poi) {
+      setSelectedLocation(null)
+    } else {
+      setSelectedLocation({
+        type: "poi",
+        coordinates: extractPoiCoordinates(poi),
+        poi: poi,
+      })
+    }
     if (poi) {
       const camPos = handleSavePreLocationSelectCameraPosition()
       focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos), false)
@@ -91,13 +92,15 @@ export const useMap = (
   const focusOnDroppedPin = async (coords: [number, number]) => {
     const camPos = handleSavePreLocationSelectCameraPosition()
     focusOnCoords(coords, await camPos, true)
-    setDroppedPin(coords)
-    setSelectedPoi(null)
+    setSelectedLocation({
+      type: "pin",
+      coordinates: convertNumberTupleToCoordinates(coords),
+      radius: 15,
+    })
   }
 
   async function focusOnUserLocation() {
-    setSelectedPoi(null)
-    setDroppedPin(null)
+    setSelectedLocation(null)
     const curCoord = useLocationStore.getState().coordinates
     mapCameraRef?.current?.setCamera({
       centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
@@ -109,7 +112,7 @@ export const useMap = (
   }
 
   const make2d = () => {
-    if (selectedPoi || droppedPin) {
+    if (selectedLocation) {
       setAllowAutoPitch(false)
       set2dButtonVisible(false)
       // setLock2DButtonAsHidden(true)
@@ -131,12 +134,13 @@ export const useMap = (
   }
 
   return {
-    selectedPoi,
-    setSelectedPoi,
-    droppedPin,
-    setDroppedPin,
-    droppedPinRadius,
-    setDroppedPinRadius,
+    selectedLocation,
+    setSelectedLocation,
+    setDroppedPinRadius: r => {
+      if (selectedLocation && selectedLocation.type === "pin") {
+        setSelectedLocation({ ...selectedLocation, radius: r })
+      }
+    },
     focusOnCoords,
     focusOnSearchResult,
     focusOnPoi,

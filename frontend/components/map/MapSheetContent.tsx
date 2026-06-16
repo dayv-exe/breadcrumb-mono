@@ -1,7 +1,8 @@
+import { SelectedLocation } from "@/api/models/locationTypes";
+import { convertCoordinatesToNumberTuple } from "@/constants/mapFunctions";
 import { useSheetNavigation } from "@/hooks/useSheetNavigation";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { BottomSheetView } from "@gorhom/bottom-sheet";
-import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import { X } from "lucide-react-native";
 import { useEffect } from "react";
 import Animated from "react-native-reanimated";
@@ -12,32 +13,25 @@ import PoiBottomSheetView from "./PoiBottomSheetView";
 
 type SheetRoute = "home" | "poi" | "pin" | "crumb";
 
-export type SelectedItemType = {
-  type: "poi" | "pin" | "crumb"
-  displayProperties: Feature<Geometry, GeoJsonProperties> | [number, number]
-}
 interface props {
-  selectedItem: SelectedItemType | null
-  droppedPinRadius: number
-  setDroppedPinRadius: (n: number) => void
+  selectedLocation: SelectedLocation | null
+  setRadius: (r: number) => void
   clearSelectedItem: () => void
 }
 
-export default function MapSheetContent({ selectedItem, clearSelectedItem, droppedPinRadius, setDroppedPinRadius }: props) {
+export default function MapSheetContent({ selectedLocation, clearSelectedItem, setRadius }: props) {
   const nav = useSheetNavigation<SheetRoute>("home");
   const textCol = useThemeColor({}, "text")
 
   useEffect(() => {
-    if (!selectedItem) {
+    if (!selectedLocation) {
       nav.reset("home")
-    } else if (selectedItem.type === "crumb") {
-      nav.reset("crumb")
-    } else if (selectedItem.type === "pin") {
+    } else if (selectedLocation.type === "pin") {
       nav.reset("pin")
-    } else if (selectedItem.type === "poi") {
+    } else if (selectedLocation.type === "poi") {
       nav.reset("poi")
     }
-  }, [selectedItem, selectedItem?.type])
+  }, [selectedLocation, selectedLocation?.type])
 
   return (
     <BottomSheetView style={{ width: "100%" }}>
@@ -69,11 +63,11 @@ export default function MapSheetContent({ selectedItem, clearSelectedItem, dropp
             <CustomLabel labelText="this is a crumb" adaptToTheme />
           </>
         )}
-        {nav.current === "poi" && selectedItem && selectedItem.type === "poi" && (
-          <PoiBottomSheetView selectedItem={selectedItem.displayProperties as Feature<Geometry, GeoJsonProperties>} clearSelection={clearSelectedItem} />
+        {nav.current === "poi" && selectedLocation && selectedLocation.type === "poi" && (
+          <PoiBottomSheetView selectedItem={selectedLocation.poi} clearSelection={clearSelectedItem} />
         )}
-        {nav.current === "pin" && selectedItem && selectedItem.type === "pin" && (
-          <DroppedPinBottomSheetView radius={droppedPinRadius} setRadius={setDroppedPinRadius} pin={selectedItem.displayProperties as [number, number]} clearPin={clearSelectedItem} />
+        {nav.current === "pin" && selectedLocation && selectedLocation.type === "pin" && (
+          <DroppedPinBottomSheetView radius={selectedLocation.radius} setRadius={setRadius} pin={convertCoordinatesToNumberTuple(selectedLocation.coordinates)} clearPin={clearSelectedItem} />
         )}
       </Animated.View>
     </BottomSheetView>

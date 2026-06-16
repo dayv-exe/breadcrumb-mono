@@ -1,10 +1,11 @@
+import { SelectedLocation } from "@/api/models/locationTypes";
+import { convertCoordinatesToNumberTuple } from "@/constants/mapFunctions";
 import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { usePlaceSearchSuggest } from "@/hooks/usePlaceSearchSuggest";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
-import type { Feature, GeoJsonProperties, Geometry } from "geojson";
 import React, { useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,13 +21,10 @@ import { ElevatedSectionedScrollView } from "../views/ElevatedSectionedScrollVie
 import CustomSearchInput from "./CustomSearchInput";
 
 interface props {
-  inheritedDroppedPin: [number, number] | null
-  inheritedDroppedPinRadius: number
-  setIDroppedPinRadius: (r: number) => void
-  inheritedSelectedPoi: Feature<Geometry, GeoJsonProperties> | null
-  handleCancel: () => void
-  handleChooseLocation: (p: Feature<Geometry, GeoJsonProperties> | null) => void
-  handleDroppedPin: (coords: [number, number]) => void
+  selectedLocation: SelectedLocation | null
+  setSelectedLocation: (l: SelectedLocation) => void
+  onCancel: () => void
+  onLocationSelected: (l: SelectedLocation) => void
 }
 
 const icons = {
@@ -49,7 +47,7 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
   return icons[name][theme]
 }
 
-export default function ChooseOnMap({ handleCancel, handleChooseLocation, handleDroppedPin, inheritedDroppedPin, inheritedDroppedPinRadius, inheritedSelectedPoi, setIDroppedPinRadius }: props) {
+export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLocation, setSelectedLocation, }: props) {
   const [sessionToken] = useState(() => GenerateUUID())
   const insets = useSafeAreaInsets()
   const searchRef = useRef(null)
@@ -65,23 +63,24 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
   const [mapCenter, setMapCenter] = useState<Coordinates | null>(null)
 
   const {
-    droppedPin,
-    selectedPoi,
+    selectedLocation: mapSelLocation,
+    setSelectedLocation: setMapSelLocation,
     focusOnPoi,
     focusOnDroppedPin,
     is2dButtonVisible,
     lock2DButtonAsHidden,
     set2dButtonVisible,
     allowAutoPitch,
-    droppedPinRadius,
     focusOnUserLocation,
     setDroppedPinRadius,
-    setDroppedPin,
-    setSelectedPoi,
     focusOnCoords,
     focusOnSearchResult,
     make2d,
-  } = useMap(mapRef, camRef, inheritedDroppedPin ?? undefined, inheritedDroppedPinRadius, inheritedSelectedPoi ?? undefined)
+  } = useMap(
+    mapRef,
+    camRef,
+    selectedLocation
+  )
 
   const {
     clearSearchResult,
@@ -91,8 +90,7 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
     sessionToken,
     userlocation ?? { accuracy: 0, latitude: 0, longitude: 0 },
     p => {
-      setDroppedPin(null)
-      setSelectedPoi(null)
+      setMapSelLocation(null)
       focusOnSearchResult(p)
     },
   )
@@ -133,7 +131,7 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
             styles.cancelBtn, {
               backgroundColor: "red"
             }
-          ]} slim labelText="Cancel" type="less-prominent" handleClick={handleCancel} />
+          ]} slim labelText="Cancel" type="less-prominent" handleClick={onCancel} />
         </View>
         {search.length > 0 && places && places?.length > 0 && <View style={{
           flexGrow: 1,
@@ -154,20 +152,19 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
         useSatellite={useSatellite}
         mapRef={mapRef}
         cameraRef={camRef}
-        activePoi={selectedPoi}
         onPoiSelect={focusOnPoi}
-        dropPinCoord={droppedPin}
         onDroppedPin={focusOnDroppedPin}
         onMapPress={clearSearchResult}
         onMapLongPress={clearSearchResult}
-        centerCoordinate={selectedPoi ? (selectedPoi.geometry as any).coordinates : droppedPin ? droppedPin : undefined}
+        selectedLocation={mapSelLocation}
+        centerCoordinate={mapSelLocation && mapSelLocation.type === "poi" ? (mapSelLocation.poi.geometry as any).coordinates : mapSelLocation && mapSelLocation.type === "pin" ? mapSelLocation.coordinates : undefined}
         is2dButtonVisible={is2dButtonVisible}
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
-        allowAutoPitch={allowAutoPitch} droppedPinRadius={droppedPinRadius}
+        allowAutoPitch={allowAutoPitch}
         onMapReady={() => {
-          if (selectedPoi) focusOnPoi(selectedPoi)
-          else if (droppedPin) focusOnDroppedPin(droppedPin)
+          if (mapSelLocation && mapSelLocation.type === "poi") focusOnPoi(mapSelLocation.poi)
+          else if (mapSelLocation && mapSelLocation.type === "pin") focusOnDroppedPin(convertCoordinatesToNumberTuple(mapSelLocation.coordinates))
         }}
         searchResult={searchResult}
         setMapCenter={setMapCenter}
@@ -190,8 +187,8 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
       </View>
 
       <View style={[styles.bottomSheet, { bottom: 0, backgroundColor: bgCol, minHeight: 100 }]}>
-        {!selectedPoi && !droppedPin && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
-        {selectedPoi &&
+        {!mapSelLocation && <CustomLabel adaptToTheme labelText={`Tap on a label or long press any where to select a location`} fade />}
+        {mapSelLocation && mapSelLocation.type === "poi" &&
           <>
             <View style={{
               flexGrow: 1,
@@ -201,22 +198,19 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
               flexDirection: 'column',
             }}>
               <TouchableOpacity onPress={() => {
-                if (droppedPin) {
-                  focusOnDroppedPin(droppedPin)
-                } else if (selectedPoi) {
-                  focusOnPoi(selectedPoi)
-                }
+                focusOnPoi(mapSelLocation.poi)
               }}>
-                <CustomLabel adaptToTheme labelText={(selectedPoi.properties as any).name ?? (selectedPoi.properties as any).house_num} customStyle={{ padding: 0 }} allowTruncate textAlign="left" />
-                <CustomLabel adaptToTheme fade fontSize={13} labelText={(selectedPoi.properties as any).type ?? (selectedPoi.properties as any).maki} customStyle={{ padding: 0 }} />
+                <CustomLabel adaptToTheme labelText={(mapSelLocation.poi.properties as any).name ?? (mapSelLocation.poi.properties as any).house_num} customStyle={{ padding: 0 }} allowTruncate textAlign="left" />
+                <CustomLabel adaptToTheme fade fontSize={13} labelText={(mapSelLocation.poi.properties as any).type ?? (mapSelLocation.poi.properties as any).maki} customStyle={{ padding: 0 }} />
               </TouchableOpacity>
             </View>
             <CustomButton handleClick={() => {
-              handleChooseLocation(selectedPoi)
+              setSelectedLocation(mapSelLocation)
+              onLocationSelected(mapSelLocation)
             }} type="less-prominent" labelText="Select" slim useMinWidth />
           </>
         }
-        {droppedPin &&
+        {mapSelLocation && mapSelLocation.type === "pin" &&
           <>
             <View style={{
               flexGrow: 1,
@@ -227,16 +221,15 @@ export default function ChooseOnMap({ handleCancel, handleChooseLocation, handle
             }}>
               <CustomLabel adaptToTheme labelText="Dropped pin" customStyle={{ padding: 0 }} allowTruncate />
               <Spacer size="small" />
-              <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lat: ${droppedPin[1]}`} customStyle={{ padding: 0 }} />
-              <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lon: ${droppedPin[0]}`} customStyle={{ padding: 0 }} />
-              <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={droppedPinRadius} onValueChange={r => {
+              <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lat: ${mapSelLocation.coordinates.latitude}`} customStyle={{ padding: 0 }} />
+              <CustomLabel adaptToTheme fade fontSize={15} labelText={`Lon: ${mapSelLocation.coordinates.longitude}`} customStyle={{ padding: 0 }} />
+              <RadiusSlider hapticsEnabled maximumValue={100} minimumValue={15} unit="m" step={5} label="Visibility radius: " value={mapSelLocation.coordinates.accuracy ?? 15} onValueChange={r => {
                 setDroppedPinRadius(r)
               }} />
             </View>
             <CustomButton handleClick={() => {
-              setDroppedPinRadius(droppedPinRadius)
-              setIDroppedPinRadius(droppedPinRadius)
-              handleDroppedPin(droppedPin)
+              setSelectedLocation(mapSelLocation)
+              onLocationSelected(mapSelLocation)
             }} type="less-prominent" labelText="Select" slim useMinWidth />
           </>
         }
