@@ -18,7 +18,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	}
 
 	if !userIdExists || userId == "" {
-		userId = utils.GetAuthUserId(req)
+		userId = utils.GetAuthenticatedUserid()
 	}
 
 	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, &lastEvalKey, nil)
@@ -33,7 +33,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	for _, friend := range result.Items {
 		var friendshipStatus string
 
-		currentUser := utils.GetAuthUserId(req)
+		currentUser := utils.GetAuthenticatedUserid()
 		if currentUser == userId {
 			// if current user requests list of all their friends
 			friendshipStatus = constants.FRIENDSHIP_STATUS_FRIENDS

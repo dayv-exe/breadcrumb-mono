@@ -11,7 +11,7 @@ import (
 )
 
 func handleGetCrumbMarkers(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	userid := utils.GetAuthUserId(req)
+	userid := utils.GetAuthenticatedUserid()
 	helper := helpers.NewFriendshipHelper(ctx)
 
 	markers, err := helper.GetAllFriendsCrumbMarkerDetails(userid)

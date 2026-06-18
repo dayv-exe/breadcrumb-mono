@@ -12,7 +12,7 @@ import (
 )
 
 func handleGetFriendRequests(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	currentUserId := utils.GetAuthUserId(req)
+	currentUserId := utils.GetAuthenticatedUserid()
 
 	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	if err != nil {

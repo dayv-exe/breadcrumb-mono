@@ -67,6 +67,7 @@ type Crumb struct {
 	Text             []CrumbText  `json:"text" dynamodbav:"text"`
 	Media            []CrumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
+	Sent             bool         `json:"sent"`
 	Opened           bool         `json:"opened" dynamodbav:"opened"`
 	FormattedAddress string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName        string       `json:"placename" dynamodbav:"placename"`

@@ -21,7 +21,7 @@ func handleAcceptFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPR
 		return models.ServerSideErrorResponse("Failed to unmarshal accect friend request body.", err), nil
 	}
 
-	currentUserId := utils.GetAuthUserId(req)
+	currentUserId := utils.GetAuthenticatedUserid()
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 
 	if reqBody.SenderId == currentUserId {

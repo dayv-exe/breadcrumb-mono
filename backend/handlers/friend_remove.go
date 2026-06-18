@@ -12,7 +12,7 @@ import (
 
 func handleRemoveFriend(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	otherUserId := req.PathParameters["id"]
-	currentUserId := utils.GetAuthUserId(req)
+	currentUserId := utils.GetAuthenticatedUserid()
 
 	if otherUserId == "" {
 		return models.InvalidRequestErrorResponse("Other user id cannot be empty!"), nil

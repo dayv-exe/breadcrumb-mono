@@ -3,7 +3,9 @@ package main
 import (
 	"backend/handlers"
 	"backend/utils"
+	"context"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
@@ -12,5 +14,8 @@ func init() {
 }
 
 func main() {
-	lambda.Start(handlers.HandleHandlers)
+	lambda.Start(func(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+		utils.ResolveAuthenticatedUser(req)
+		return handlers.HandleHandlers(ctx, req)
+	})
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	userId := utils.GetAuthUserId(req)
+	userId := utils.GetAuthenticatedUserid()
 	if userId == "" {
 		return models.UnauthorizedErrorResponse("You need to be logged in to do this!"), nil
 	}

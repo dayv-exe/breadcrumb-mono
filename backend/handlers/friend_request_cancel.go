@@ -12,7 +12,7 @@ import (
 
 func handleUnsendFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	recipientId := req.PathParameters["id"]
-	currentUserId := utils.GetAuthUserId(req)
+	currentUserId := utils.GetAuthenticatedUserid()
 
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 

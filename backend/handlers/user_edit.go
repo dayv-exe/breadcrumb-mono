@@ -23,7 +23,7 @@ func handleEditUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (ev
 		return models.InvalidRequestErrorResponse("failed to unmarshal"), nil
 	}
 
-	userId := utils.GetAuthUserId(req)
+	userId := utils.GetAuthenticatedUserid()
 
 	user, err := helpers.NewUserHelper(ctx).FindById(userId)
 	if err != nil {
@@ -71,7 +71,7 @@ func handleProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPReques
 }
 
 func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	userId := utils.GetAuthUserId(req)
+	userId := utils.GetAuthenticatedUserid()
 	imageKey := strings.ToLower(strings.TrimSpace(req.QueryStringParameters["imageKey"]))
 	thumbnailKey := strings.ToLower(strings.TrimSpace(req.QueryStringParameters["thumbnailKey"]))
 

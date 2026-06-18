@@ -61,7 +61,7 @@ type PresignResponse struct {
 
 func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	isProfilePicture := strings.ToLower(req.QueryStringParameters["profilePicture"]) == "true"
-	userID := utils.GetAuthUserId(req)
+	userID := utils.GetAuthenticatedUserid()
 	if userID == "" {
 		return models.UnauthorizedErrorResponse("User id not found"), nil
 	}

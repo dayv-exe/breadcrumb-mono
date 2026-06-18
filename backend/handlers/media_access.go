@@ -48,7 +48,7 @@ func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId := req.PathParameters["id"]
 	if strings.TrimSpace(userId) == "" {
-		userId = utils.GetAuthUserId(req)
+		userId = utils.GetAuthenticatedUserid()
 	}
 
 	key, err := helpers.NewUserHelper(ctx).GetProfilePicKeys(userId)

@@ -47,7 +47,7 @@ func findUser(ctx context.Context, userid string) (*models.User, error) {
 func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userid := req.PathParameters["id"]
 	if userid == "" {
-		userid = utils.GetAuthUserId(req)
+		userid = utils.GetAuthenticatedUserid()
 	}
 
 	user, userErr := findUser(ctx, userid)
@@ -59,7 +59,7 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 		return models.NotFoundResponse("User not found!"), nil
 	}
 
-	if user.Userid == utils.GetAuthUserId(req) {
+	if user.Userid == utils.GetAuthenticatedUserid() {
 		// if current user is requesting their own details, return full details including cognito
 		userCognitoInfo, cogitoInfoErr := helpers.NewCognitoHelper(ctx).GetManagedInfo(user.Userid)
 		if cogitoInfoErr != nil {
@@ -82,7 +82,7 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	}
 
 	// if user is requesting details of another user, return only display info and friendship status
-	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthUserId(req), user.Userid)
+	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthenticatedUserid(), user.Userid)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine users friendship status.", friendshipStatusErr), nil
 	}

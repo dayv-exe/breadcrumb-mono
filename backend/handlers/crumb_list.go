@@ -13,7 +13,7 @@ import (
 )
 
 func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	userId := utils.GetAuthUserId(req)
+	userId := utils.GetAuthenticatedUserid()
 
 	sentCrumb := strings.ToLower(req.QueryStringParameters["sent"]) == "true"
 

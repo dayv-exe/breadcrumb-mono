@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func GetAuthUserId(req events.APIGatewayV2HTTPRequest) string {
+func getAuthUserId(req events.APIGatewayV2HTTPRequest) string {
 
 	if req.RequestContext.Authorizer == nil {
 		log.Println("missing authorizer")
@@ -29,7 +29,7 @@ func GetAuthUserId(req events.APIGatewayV2HTTPRequest) string {
 }
 
 func IsAuthenticatedUser(req events.APIGatewayV2HTTPRequest, userId string) bool {
-	sub := GetAuthUserId(req)
+	sub := getAuthUserId(req)
 	if sub == "" {
 		return false
 	}

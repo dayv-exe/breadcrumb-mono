@@ -21,7 +21,7 @@ func handleSendFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPReq
 		return models.ServerSideErrorResponse("Failed to unmarshal send friend request body", unmarshalErr), nil
 	}
 
-	currentUserId := utils.GetAuthUserId(req)
+	currentUserId := utils.GetAuthenticatedUserid()
 
 	friendshipHelper := helpers.NewFriendshipHelper(ctx)
 

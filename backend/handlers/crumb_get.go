@@ -12,7 +12,7 @@ import (
 
 func HandleGetCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	crumbId := req.PathParameters["id"]
-	userId := utils.GetAuthUserId(req)
+	userId := utils.GetAuthenticatedUserid()
 	sentCrumb := strings.ToLower(req.QueryStringParameters["sent"]) == "true"
 	if crumbId == "" || userId == "" {
 		return models.InvalidRequestErrorResponse("Invalid request"), nil

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -128,4 +129,14 @@ func InitHandlerDependencies(opts ...option) {
 	for _, opt := range opts {
 		opt(&handlerDependencies, cfg)
 	}
+}
+
+var authenticatedUserid *string
+
+func ResolveAuthenticatedUser(req events.APIGatewayV2HTTPRequest) {
+	authenticatedUserid = aws.String(getAuthUserId(req))
+}
+
+func GetAuthenticatedUserid() string {
+	return *authenticatedUserid
 }
