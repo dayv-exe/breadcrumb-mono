@@ -5,7 +5,7 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ChevronDownIcon } from "lucide-react-native";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomButton from "../buttons/CustomButton";
@@ -28,6 +28,7 @@ interface props {
 }
 
 export default function NewShareScreen({ title, height, handleClose, usePlural, processMedia }: props) {
+  const shareButtonClickAfterMountDelay = 500
   const insets = useSafeAreaInsets();
   const mode = useColorScheme();
   const bgCol = mode === "dark" ? "#181818" : "#F4F5F7";
@@ -38,6 +39,24 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, error } = useGetFriends("")
   const { data: myProfile, isFetching: isFetchingMyProfile, error: myProfileErr } = useGetUser("")
   const { locationOptions, recipients, setRecipients, isPending, handleShare, showMap, setShowMap, selectedLocation, setSelectedLocation, address } = useShareCrumb(processMedia)
+
+  const [enableShare, setEnableShare] = useState(false)
+
+  useEffect(() => {
+    setEnableShare(false)
+    let timerId: number | null = null
+    if (!showMap) {
+      timerId = setTimeout(() => {
+        setEnableShare(true)
+      }, shareButtonClickAfterMountDelay)
+    }
+
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId)
+      }
+    }
+  }, [showMap])
 
   type FriendOption = {
     isCurrentUser: boolean
@@ -170,7 +189,7 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
               paddingTop: insets.bottom / 1.25,
             }}
             customTextStyle={{ maxWidth: "85%" }}
-            disabled={recipients.length < 1}
+            disabled={recipients.length < 1 || !enableShare}
             handleClick={handleShare}
           />
         </View>
