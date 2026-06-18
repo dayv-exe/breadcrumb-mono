@@ -96,6 +96,8 @@ export default function MapScreen() {
     lock2DButtonAsHidden,
     focusOnSearchResult,
     make2d,
+    useSatellite,
+    setUseSatellite,
   } = useMap(
     mapRef,
     mapCamRef,
@@ -121,7 +123,6 @@ export default function MapScreen() {
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top
   const [pageName, setPageName] = useState("Unopened")
-  const [useSat, setUseSat] = useState(false)
   const [forceDark, setForceDark] = useState(false)
   const searchBgCol = useThemeColor({}, "darkBackground")
 
@@ -250,7 +251,7 @@ export default function MapScreen() {
         mapRef={mapRef}
         cameraRef={mapCamRef}
         zoomLevel={12.25}
-        useSatellite={useSat}
+        useSatellite={useSatellite}
         maxZoomLvlToDark={2.075}
         setForceDark={setForceDark}
         featureCollection={crumbFeatures}
@@ -302,7 +303,7 @@ export default function MapScreen() {
           <SearchIcon size={24} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
         <Spacer size="small" />
-        <CustomFloatingSquare type="themed" handleClick={() => setUseSat(s => !s)}>
+        <CustomFloatingSquare type="themed" handleClick={() => setUseSatellite(!useSatellite)}>
           <SatelliteIcon size={25} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
         <Spacer size="small" />

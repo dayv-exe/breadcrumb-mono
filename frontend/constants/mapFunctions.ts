@@ -118,7 +118,7 @@ export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>):
     medical: "💉",
     restaurant: "🍝",
     cafe: "☕️",
-    school: "🏫",
+    school: "📚",
     university: "🎓",
     college: "🎓",
     forrest: "🌳",
@@ -189,7 +189,7 @@ export const getEmojiForFeature = (props: Feature<Geometry, GeoJsonProperties>):
   };
 
   for (const key in emojiMap) {
-    if (keyword.includes(key)) return emojiMap[key];
+    if (keyword === key) return emojiMap[key];
   }
 
   return "📍"; // default emoji

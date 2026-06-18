@@ -4,7 +4,7 @@ import { useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import * as Haptics from "expo-haptics";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export type CustomMapHook = {
   selectedLocation: SelectedLocation | null,
@@ -22,6 +22,8 @@ export type CustomMapHook = {
   setAllowAutoPitch: (s: boolean) => void
   make2d: () => void
   make3d: () => void
+  useSatellite: boolean
+  setUseSatellite: (s: boolean) => void
 }
 
 export const useMap = (
@@ -35,6 +37,7 @@ export const useMap = (
   const resetZoomOnUnselect = useRef(false)
   const preLocationSelectCamPos = useRef<Promise<MapCamPosition | null>>(null)
   const [allowAutoPitch, setAllowAutoPitch] = useState(true)
+  const [useSatellite, setUseSatellite] = useState(false)
   const handleSavePreLocationSelectCameraPosition = (): Promise<MapCamPosition | null> => {
     const camPos = getMapCamPosition(mapRef)
     if (!selectedLocation) {
@@ -45,9 +48,19 @@ export const useMap = (
     return camPos
   }
 
+  useEffect(() => {
+    if (useSatellite) {
+      mapCameraRef.current?.setCamera({
+        pitch: 0,
+        animationDuration: 0,
+      })
+    }
+  }, [useSatellite])
+
   const setCameraFn = (config: Mapbox.CameraStop) => {
     if (!mapCameraRef?.current) return
     // if (!allowAutoPitch) config.pitch = undefined
+    if (useSatellite) config.pitch = 0
     mapCameraRef.current.setCamera(config)
   }
 
@@ -76,6 +89,7 @@ export const useMap = (
     if (!poi) {
       setSelectedLocation(null)
     } else {
+      console.log(poi)
       setSelectedLocation({
         type: "poi",
         coordinates: extractPoiCoordinates(poi),
@@ -102,7 +116,7 @@ export const useMap = (
   async function focusOnUserLocation() {
     setSelectedLocation(null)
     const curCoord = useLocationStore.getState().coordinates
-    mapCameraRef?.current?.setCamera({
+    setCameraFn({
       centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
       zoomLevel: 12.6,
       animationDuration: 1000,
@@ -117,7 +131,7 @@ export const useMap = (
       set2dButtonVisible(false)
       // setLock2DButtonAsHidden(true)
     }
-    mapCameraRef.current?.setCamera({
+    setCameraFn({
       pitch: 0,
       animationDuration: 300
     })
@@ -127,7 +141,7 @@ export const useMap = (
     set2dButtonVisible(true)
     setLock2DButtonAsHidden(false)
     setAllowAutoPitch(true)
-    mapCameraRef.current?.setCamera({
+    setCameraFn({
       pitch: 45,
       animationDuration: 300
     })
@@ -153,5 +167,7 @@ export const useMap = (
     setAllowAutoPitch,
     make2d,
     make3d,
+    useSatellite,
+    setUseSatellite
   }
 }

@@ -366,7 +366,7 @@ export default function MainScreen() {
             title: "Post",
             tabBarIcon: ({ focused }) => (
               <>
-                <Camera size={25} stroke={getTextCol()} fill={focused ? getTextCol() : "none"} />
+                <Camera size={25} stroke={getTextCol()} fill={false ? getTextCol() : "none"} strokeWidth={focused ? 4 : undefined} />
                 {focused && (
                   <View
                     style={{
