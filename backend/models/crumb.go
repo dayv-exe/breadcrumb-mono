@@ -150,8 +150,11 @@ func (c *Crumb) RemovePrefixes() {
 }
 
 // converts a slice of database items to a slice of crumbs (maybe)
-func ConvertToCrumbs(items []map[string]types.AttributeValue) *[]Crumb {
+func ConvertToCrumbs(items []map[string]types.AttributeValue, resolveSent bool) *[]Crumb {
 	return utils.DatabaseItemsToStructs(items, func(c *Crumb) {
+		if resolveSent {
+			c.Sent = utils.GetAuthenticatedUserid() == c.SenderId
+		}
 		c.RemovePrefixes()
 	})
 }

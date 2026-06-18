@@ -110,7 +110,7 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 			expr,
 			aws.Int32(1),
 			func(c []map[string]types.AttributeValue) []models.Crumb {
-				return *models.ConvertToCrumbs(c)
+				return *models.ConvertToCrumbs(c, true)
 			},
 		)
 
@@ -236,7 +236,7 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([
 			expr,
 			aws.Int32(1),
 			func(c []map[string]types.AttributeValue) []models.Crumb {
-				return *models.ConvertToCrumbs(c)
+				return *models.ConvertToCrumbs(c, true)
 			},
 		)
 
@@ -266,7 +266,7 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([
 			*key,
 			&expr,
 			func(m map[string]types.AttributeValue) models.Crumb {
-				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{m}))[0]
+				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{m}, true))[0]
 			},
 		)
 
