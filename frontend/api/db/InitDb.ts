@@ -14,6 +14,7 @@ async function openAndInit() {
       lon REAL,
       sender TEXT NOT NULL,
       receiver TEXT NOT NULL,
+      sent INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
       opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
       time INTEGER NOT NULL,
       locationType TEXT NOT NULL CHECK(locationType IN ('gps', 'label', 'dropped-pin', 'none')),

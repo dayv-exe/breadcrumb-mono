@@ -86,9 +86,11 @@ export const useAuthStore = create(
           }
         })
 
+        if (!user.userId) throw new Error("Failed to get userid from signup!")
+
         if (!user.isSignUpComplete) {
           // verify email
-          set({ showEmailVerificationPage: true, userEmail: userDetails.email.toLowerCase(), userPassword: userDetails.password, userId: user.userId ?? "", userFullname: userDetails.fullname, userNickname: userDetails.username })
+          set({ showEmailVerificationPage: true, userEmail: userDetails.email.toLowerCase(), userPassword: userDetails.password, userId: user.userId, userFullname: userDetails.fullname, userNickname: userDetails.username })
           return { isSuccess: true }
         } else {
           const { login } = useAuthStore.getState()
@@ -162,7 +164,7 @@ export const useAuthStore = create(
 
         { return { isSuccess: true } }
       } catch (error) {
-        set({ userEmail: "", userPassword: "" , showEmailVerificationPage: false, userFullname: "", userNickname: "" })
+        set({ userEmail: "", userPassword: "", showEmailVerificationPage: false, userFullname: "", userNickname: "" })
         console.log("Failed to resend confirmation code: ", error)
         return { isSuccess: false, info: error }
       }

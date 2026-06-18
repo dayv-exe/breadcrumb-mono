@@ -6,7 +6,7 @@ const CHUNK_SIZE = 120
 
 
 function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
-  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
 
   // split place ids into individual db items
   // so we can query by place id
@@ -18,6 +18,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     crumb.lon,
     crumb.sender,
     crumb.receiver,
+    crumb.sent ? 1 : 0,
     crumb.opened ? 1 : 0,
     crumb.time,
     crumb.locationAccuracy,
@@ -33,6 +34,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         lon,
         sender,
         receiver,
+        sent,
         opened,
         time,
         locationAccuracy,
@@ -46,6 +48,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         lon = excluded.lon,
         sender = excluded.sender,
         receiver = excluded.receiver,
+        sent = excluded.sent,
         opened = excluded.opened,
         time = excluded.time,
         locationAccuracy = excluded.locationAccuracy,

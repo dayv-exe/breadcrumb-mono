@@ -23,6 +23,7 @@ export type Crumb = {
   geohash: string
   time: string
   opened: boolean
+  sent: boolean
   formattedAddress: string
   placename: string
 }
