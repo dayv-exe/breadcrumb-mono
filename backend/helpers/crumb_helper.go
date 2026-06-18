@@ -77,10 +77,13 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 			helper,
 			*models.CrumbKey(userId, crumbId),
 			nil,
-			func(c map[string]types.AttributeValue) models.Crumb {
-				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{
-					c,
-				}))[0]
+			func(item map[string]types.AttributeValue) models.Crumb {
+				crumb := utils.DatabaseItemToStruct(item, func(c *models.Crumb) {
+					c.Sent = c.SenderId == userId
+					c.RemovePrefixes()
+				})
+
+				return *crumb
 			},
 		)
 	default:
@@ -180,7 +183,11 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		expr,
 		nil,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(c)
+			crumbs := utils.DatabaseItemsToStructs(c, func(c *models.Crumb) {
+				c.Sent = userId == c.SenderId
+				c.RemovePrefixes()
+			})
+			return *crumbs
 		},
 	)
 }

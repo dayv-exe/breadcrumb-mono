@@ -70,6 +70,7 @@ type Crumb struct {
 	Opened           bool         `json:"opened" dynamodbav:"opened"`
 	FormattedAddress string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName        string       `json:"placename" dynamodbav:"placename"`
+	Sent             bool         `json:"sent"` // true if current user is sender of this crumb and not receiver
 
 	Time string `json:"time" dynamodbav:"time"`
 
