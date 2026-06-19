@@ -45,7 +45,7 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 			lastKey = map[string]types.AttributeValue{
 				"pk":     &types.AttributeValueMemberS{Value: pk},
 				"sk":     &types.AttributeValueMemberS{Value: models.CrumbIdPrefix + crumbId},
-				"gsi3":   &types.AttributeValueMemberS{Value: models.PrivateCrumbReceiverPrefix + userId},
+				"gsi3":   &types.AttributeValueMemberS{Value: gsi},
 				"gsi3Sk": &types.AttributeValueMemberS{Value: gsiSk},
 			}
 		}
@@ -54,7 +54,7 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 			lastKey = map[string]types.AttributeValue{
 				"pk":     &types.AttributeValueMemberS{Value: models.PrivateCrumbReceiverPrefix + userId},
 				"sk":     &types.AttributeValueMemberS{Value: models.CrumbIdPrefix + crumbId},
-				"gsi2":   &types.AttributeValueMemberS{Value: gsi},
+				"gsi2":   &types.AttributeValueMemberS{Value: models.PrivateCrumbReceiverPrefix + userId},
 				"gsi2Sk": &types.AttributeValueMemberS{Value: gsiSk},
 			}
 		}
