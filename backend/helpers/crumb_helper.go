@@ -18,6 +18,11 @@ type crumbHelper struct {
 	Ctx context.Context
 }
 
+func resolveCrumbMailbox(c *models.Crumb, userid string) {
+	c.Sent = c.SenderId == userid
+	c.Private = c.SenderId == c.Receiver
+}
+
 func NewCrumbHelper(ctx context.Context) *crumbHelper {
 	return &crumbHelper{
 		Ctx: ctx,
@@ -110,7 +115,9 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 			expr,
 			aws.Int32(1),
 			func(c []map[string]types.AttributeValue) []models.Crumb {
-				return *models.ConvertToCrumbs(c, true)
+				return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
+					resolveCrumbMailbox(c, userId)
+				})
 			},
 		)
 
@@ -126,6 +133,21 @@ func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) ([]resIt
 	// based on location manner, do a check to see if user can open crumb
 	return h.getCrumbContent(userId, crumbId, sentCrumb)
 }
+
+var defaultCrumbProjection = expression.NamesList(
+	expression.Name("id"),
+	expression.Name("lat"),
+	expression.Name("lon"),
+	expression.Name("receiver"),
+	expression.Name("sender"),
+	expression.Name("time"),
+	expression.Name("opened"),
+	expression.Name("placeId"),
+	expression.Name("locationType"),
+	expression.Name("locationAccuracy"),
+	expression.Name("formattedAddress"),
+	expression.Name("placename"),
+)
 
 func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
 	pk := "gsi2"
@@ -151,20 +173,7 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		),
 	)
 
-	proj := expression.NamesList(
-		expression.Name("id"),
-		expression.Name("lat"),
-		expression.Name("lon"),
-		expression.Name("receiver"),
-		expression.Name("sender"),
-		expression.Name("time"),
-		expression.Name("opened"),
-		expression.Name("placeId"),
-		expression.Name("locationType"),
-		expression.Name("locationAccuracy"),
-		expression.Name("formattedAddress"),
-		expression.Name("placename"),
-	)
+	proj := defaultCrumbProjection
 
 	indexName := "GSIndex2"
 	if sentCrumb {
@@ -188,6 +197,39 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 				c.RemovePrefixes()
 			})
 			return *crumbs
+		},
+	)
+}
+
+func (h *crumbHelper) GetPrivateCrumbs(lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
+	userid := utils.GetAuthenticatedUserid()
+	keyCond := expression.KeyEqual(
+		expression.Key("gsi2"),
+		expression.Value(models.PrivateCrumbReceiverPrefix+userid),
+	).And(
+		expression.KeyBeginsWith(
+			expression.Key("gsi2Sk"),
+			models.CrumbTimePrefix,
+		),
+	)
+
+	proj := defaultCrumbProjection
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	return QueryItems(
+		newHelper(h.Ctx, nil),
+		&lastEvalKey,
+		aws.String("GSIndex2"),
+		expr,
+		nil,
+		func(c []map[string]types.AttributeValue) []models.Crumb {
+			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
+				resolveCrumbMailbox(c, userid)
+			})
 		},
 	)
 }
@@ -236,7 +278,9 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([
 			expr,
 			aws.Int32(1),
 			func(c []map[string]types.AttributeValue) []models.Crumb {
-				return *models.ConvertToCrumbs(c, true)
+				return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
+					resolveCrumbMailbox(c, userId)
+				})
 			},
 		)
 
@@ -266,7 +310,9 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([
 			*key,
 			&expr,
 			func(m map[string]types.AttributeValue) models.Crumb {
-				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{m}, true))[0]
+				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{m}, func(c *models.Crumb) {
+					resolveCrumbMailbox(c, userId)
+				}))[0]
 			},
 		)
 

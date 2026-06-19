@@ -85,7 +85,9 @@ func TestConvertToCrumbs(t *testing.T) {
 	expected.Gsi2Sk = "TS#100CRUMB_ID#c1"
 	expected.Gsi3Sk = "TS#100CRUMB_ID#c1"
 
-	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}, false))[0]
+	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}, func(c *Crumb) {
+
+	}))[0]
 
 	if !reflect.DeepEqual(expected, results) {
 		// t.Errorf("Result: %v does not match expected: %v", results, expected)

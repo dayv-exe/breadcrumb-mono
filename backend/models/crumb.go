@@ -14,14 +14,13 @@ import (
 // get crumb by id
 
 const (
-	CrumbPkPrefix = "CRUMB_RECEIVER#"
-
-	CrumbReceiverPrefix = "CRUMB_RECEIVER#"
-	CrumbSenderPrefix   = "CRUMB_SENDER#"
-
-	CrumbIdPrefix      = "CRUMB_ID#"
-	CrumbTimePrefix    = "TS#"
-	CrumbGeohashPrefix = "GEOHASH#"
+	PrivateCrumbReceiverPrefix = "PRIVATE_CRUMB_RECEIVER#"
+	CrumbPkPrefix              = "CRUMB_RECEIVER#"
+	CrumbReceiverPrefix        = "CRUMB_RECEIVER#"
+	CrumbSenderPrefix          = "CRUMB_SENDER#"
+	CrumbIdPrefix              = "CRUMB_ID#"
+	CrumbTimePrefix            = "TS#"
+	CrumbGeohashPrefix         = "GEOHASH#"
 )
 
 type CrumbText struct {
@@ -68,6 +67,7 @@ type Crumb struct {
 	Media            []CrumbMedia `json:"media" dynamodbav:"media"`
 	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
 	Sent             bool         `json:"sent"`
+	Private          bool         `json:"private"`
 	Opened           bool         `json:"opened" dynamodbav:"opened"`
 	FormattedAddress string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName        string       `json:"placename" dynamodbav:"placename"`
@@ -126,7 +126,7 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 
 func (c *Crumb) ApplyPrefixes() {
 	// access received crumbs by id
-	// PK: UNOPENED_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
+	// PK: CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
 	c.PK = CrumbPkPrefix + c.Receiver
 	c.SK = CrumbIdPrefix + c.Id
 
@@ -144,17 +144,31 @@ func (c *Crumb) ApplyPrefixes() {
 	// GSI3: CRUMB_SENDER#{userid} GSI3SK: TS#{timestamp}CRUMB_ID#{crumbId}
 	c.Gsi3 = CrumbSenderPrefix + c.SenderId
 	c.Gsi3Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
+
+	if c.Receiver == c.SenderId {
+		// access private crumbs by id
+		// PK: PRIVATE_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
+		c.PK = PrivateCrumbReceiverPrefix + c.Receiver
+
+		// access private crumbs by timestamp
+		// GSI2: CRUMB_RECEIVER#{userid} GSI2SK: TS#{timestamp}CRUMB_ID{crumbId}
+		c.Gsi2 = PrivateCrumbReceiverPrefix + c.Receiver
+
+		// remove sent crumb keys not needed
+		c.Gsi = ""
+		c.GsiSk = ""
+		c.Gsi3 = ""
+		c.Gsi3Sk = ""
+	}
 }
 
 func (c *Crumb) RemovePrefixes() {
 }
 
 // converts a slice of database items to a slice of crumbs (maybe)
-func ConvertToCrumbs(items []map[string]types.AttributeValue, resolveSent bool) *[]Crumb {
+func ConvertToCrumbs(items []map[string]types.AttributeValue, onCrumbConverted func(*Crumb)) *[]Crumb {
 	return utils.DatabaseItemsToStructs(items, func(c *Crumb) {
-		if resolveSent {
-			c.Sent = utils.GetAuthenticatedUserid() == c.SenderId
-		}
+		onCrumbConverted(c)
 		c.RemovePrefixes()
 	})
 }
