@@ -126,6 +126,14 @@ export default function NewShareScreen({ title, height, handleClose, usePlural, 
         />
       ),
     },
+    {
+      type: "raw",
+      component: (
+        <CustomLabel width="auto" fade fontSize={13} adaptToTheme labelText="add more friends to share breadcrumbs with them" customStyle={{ opacity: .5 }} />
+      ),
+      key: "raw",
+      hidden: items.length > 1,
+    },
   ];
 
   return (

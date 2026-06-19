@@ -222,7 +222,7 @@ export default function ProfileSettingsScreen() {
       keyExtractor: (opt: SettingOption) => opt.name,
       data: [
         {
-          name: 'Blocked Users', value: "", handleClick: () => {
+          name: 'Blocked users', value: "", handleClick: () => {
             handleOptClick("Blocked users",
               <View>
                 <CustomLabel adaptToTheme labelText="List of blocked users" />
@@ -244,14 +244,15 @@ export default function ProfileSettingsScreen() {
       title: '📖 Other',
       keyExtractor: (opt: SettingOption) => opt.name,
       data: [
-        { name: 'Term of service', value: "" },
-        { name: 'Contact us', value: "" },
+        { name: 'Privacy policy', value: "" },
+        //{ name: 'Contact us', value: "" },
       ],
       renderItem: (opt: SettingOption) => (
         <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
       )
     },
     {
+      hidden: true,
       type: "static",
       key: "devtools",
       title: '👾 Developer tools',
@@ -270,6 +271,22 @@ export default function ProfileSettingsScreen() {
       renderItem: (opt: SettingOption) => (
         <OptionItem name={opt.name} value={opt.value} handleClick={opt.handleClick} />
       )
+    },
+    {
+      type: "raw",
+      component: (
+        <View style={{
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "row",
+          paddingTop: 15,
+        }}>
+          <CustomLabel width="auto" labelText="❤️" fontSize={13} padding={0} customStyle={{marginRight: 3}} />
+          <CustomLabel padding={0} width="auto" fontSize={13} adaptToTheme labelText="undergrad diss proj by david arubuike" customStyle={{opacity: .6}} />
+        </View>
+      ),
+      key: "raw",
     },
   ]
 

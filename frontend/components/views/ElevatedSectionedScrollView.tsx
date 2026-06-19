@@ -16,6 +16,15 @@ import ElevatedSection from "./ElevatedSection";
 
 // --- Types ---
 
+interface RawComponentSection {
+  key: string;
+  title?: string;
+  type: "raw";
+  component: React.JSX.Element;
+  hidden?: boolean;
+  useElevation?: boolean
+}
+
 interface StaticSection<T> {
   key: string;
   title?: string;
@@ -39,7 +48,7 @@ interface PaginatedSection<T> {
   hasMore: boolean;
 }
 
-export type Section<T = any> = StaticSection<T> | PaginatedSection<T>;
+export type Section<T = any> = StaticSection<T> | PaginatedSection<T> | RawComponentSection;
 
 interface ElevatedSectionedScrollViewProps extends Omit<ScrollViewProps, "onScroll"> {
   sections: Section[];
@@ -121,29 +130,47 @@ export function ElevatedSectionedScrollView({
     }
 
     // Section body
-    children.push(
-      <View
-        key={`${section.key}-body`}
-        style={{ marginTop: 0, marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
-      >
-        <ElevatedSection title={section.title ?? ""}>
-          {section.data.map((item, i) => (
-            <React.Fragment key={section.keyExtractor(item)}>
-              {section.renderItem(item, i)}
-              {i + 1 < section.data.length && (
-                <View
-                  style={{ borderBottomWidth: 1, borderBottomColor: fadedBg }}
-                />
-              )}
-            </React.Fragment>
-          ))}
+    if (section.type !== "raw") {
+      children.push(
+        <View
+          key={`${section.key}-body`}
+          style={{ marginTop: 0, marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
+        >
+          <ElevatedSection title={section.title ?? ""}>
+            {section.data.map((item, i) => (
+              <React.Fragment key={section.keyExtractor(item)}>
+                {section.renderItem(item, i)}
+                {i + 1 < section.data.length && (
+                  <View
+                    style={{ borderBottomWidth: 1, borderBottomColor: fadedBg }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
 
-          {section.type === "paginated" && section.isFetchingMore && (
-            <ActivityIndicator style={styles.loader} />
-          )}
-        </ElevatedSection>
-      </View>
-    );
+            {section.type === "paginated" && section.isFetchingMore && (
+              <ActivityIndicator style={styles.loader} />
+            )}
+          </ElevatedSection>
+        </View>
+      );
+    }
+
+    if (section.type === "raw") {
+      children.push(
+        <View
+          key={`${section.key}-body`}
+          style={{ marginTop: 0, marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
+        >
+          {section.useElevation && <ElevatedSection title={section.title ?? ""}>
+            {section.component}
+          </ElevatedSection>}
+          {!section.useElevation && <>
+            {section.component}
+          </>}
+        </View>
+      );
+    }
   });
 
   return (
