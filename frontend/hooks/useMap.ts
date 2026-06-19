@@ -71,7 +71,7 @@ export const useMap = (
       animationDuration: 400,
       animationMode: "easeTo",
       pitch: allowPitch ? 45 : undefined,
-      zoomLevel: allowPitch ? Math.max(17, preLocationSelCamPos?.zoom ?? 0) : undefined
+      zoomLevel: allowPitch ? Math.max(16.5, preLocationSelCamPos?.zoom ?? 0) : undefined
     })
   }
 

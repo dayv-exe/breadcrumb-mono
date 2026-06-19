@@ -2,6 +2,7 @@ import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { AnimatableNumericValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 
 type props = {
   size?: number
@@ -28,6 +29,10 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const parts = nickname.split(/[._]/);
   const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "");
 
+  const gradientColors: [string, string] = mode === "light"
+    ? ["#fbfbfe", "#b9b9d4"]
+    : ["#54545c", "#1c1c36"];
+
   return (
     <TouchableOpacity
       disabled={!handleClick}
@@ -51,13 +56,23 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
           resizeMode="cover"
         />
       ) : (
-        <Text style={[{
-          fontSize: size * 0.35,
-          fontWeight: "300",
-          color: mode === "light" ? fgColLight : fgColDark,
-        }, customTextStyle]}>
-          {initials.toUpperCase()}
-        </Text>
+        <>
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, {
+              borderRadius: 1000
+            }]}
+          />
+          <Text style={[{
+            fontSize: size * 0.35,
+            fontWeight: "600",
+            color: mode === "light" ? fgColLight : fgColDark,
+          }, customTextStyle]}>
+            {initials.toUpperCase()}
+          </Text>
+        </>
       )}
     </TouchableOpacity>
   );

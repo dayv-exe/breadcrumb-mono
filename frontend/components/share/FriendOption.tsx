@@ -28,7 +28,7 @@ export default function FriendOption({ address, name, nickname, onChange, userid
         onChange(!isSelected);
       }}
     >
-      <CustomProfilePictureCircle nickname={nickname} size={40} customStyle={{ marginRight: 10 }} userId={userid} />
+      <CustomProfilePictureCircle size={40} customStyle={{ marginRight: 10 }} userId={userid} />
       <View
         style={{
           flexDirection: "column",

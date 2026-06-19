@@ -135,6 +135,7 @@ export function useShareCrumb(
   }
 
   const handleShare = async () => {
+    if (!selectedLocation || recipients.length === 0) return
     setIsPending(true)
 
     showModal({

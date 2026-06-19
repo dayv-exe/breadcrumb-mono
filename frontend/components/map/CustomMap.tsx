@@ -10,7 +10,7 @@ import circle from "@turf/circle";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Keyboard, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import darkStyle from "../../assets/styles/dark-style.json";
@@ -125,8 +125,6 @@ export default function CustomMap({
   const mode = useColorScheme();
 
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
-  const movedMap = useRef(false);
 
   const { height } = useWindowDimensions()
   const { top: insetTop } = useSafeAreaInsets()
@@ -198,14 +196,11 @@ export default function CustomMap({
           scaleBarEnabled={false}
           compassEnabled
           compassFadeWhenNorth
+          maxPitch={45}
           compassPosition={{ top: (.1 * height) + (Platform.OS === "android" ? insetTop : 0), right: 15 }}
           attributionPosition={{ bottom: 100, left: 10 }}
           logoPosition={{ bottom: 75, left: 10 }}
-          onWillStartLoadingMap={() => {
-            setMapReady(false)
-          }}
           onDidFinishLoadingMap={async () => {
-            setMapReady(true)
             onMapReady?.()
             const c = await mapRef?.current?.getCenter()
             setMapCenter?.({
@@ -216,9 +211,6 @@ export default function CustomMap({
           }}
           onPress={handleMapPress}
           onLongPress={handleMapLongPress}
-          onTouchStart={() => {
-            movedMap.current = true;
-          }}
           onMapIdle={e => {
             onMapIdle?.(e)
             setMapCenter?.({
@@ -249,7 +241,7 @@ export default function CustomMap({
         >
           <Mapbox.Camera
             ref={cameraRef}
-            centerCoordinate={!movedMap.current ? initialCenter : undefined}
+            centerCoordinate={initialCenter}
             zoomLevel={zoomLevel}
             pitch={pitch}
             animationDuration={0}
