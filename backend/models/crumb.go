@@ -150,15 +150,17 @@ func (c *Crumb) ApplyPrefixes() {
 		// PK: PRIVATE_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
 		c.PK = PrivateCrumbReceiverPrefix + c.Receiver
 
+		// access private crumbs by id
+		// GSI: PRIVATE_CRUMB_RECEIVER#{senderId} GSISK: CRUMB_ID#{crumbId}
+		c.Gsi = PrivateCrumbReceiverPrefix + c.Receiver
+
+		// access private crumbs by timestamp
+		// GSI3: PRIVATE_CRUMB_RECEIVER#{userid} GSI3SK: TS#{timestamp}CRUMB_ID#{crumbId}
+		c.Gsi3 = PrivateCrumbReceiverPrefix + c.Receiver
+
 		// access private crumbs by timestamp
 		// GSI2: CRUMB_RECEIVER#{userid} GSI2SK: TS#{timestamp}CRUMB_ID{crumbId}
 		c.Gsi2 = PrivateCrumbReceiverPrefix + c.Receiver
-
-		// remove sent crumb keys not needed
-		c.Gsi = ""
-		c.GsiSk = ""
-		c.Gsi3 = ""
-		c.Gsi3Sk = ""
 	}
 }
 
