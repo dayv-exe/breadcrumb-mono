@@ -1,3 +1,4 @@
+import { CATEGORIES } from "@/utils/emojiHelper";
 import React, { useCallback } from "react";
 import {
   Dimensions,
@@ -7,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { CATEGORIES } from "../camera/PreviewScreen";
 import Spacer from "../Spacer";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");

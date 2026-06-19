@@ -61,34 +61,41 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
 }
 
 export async function UpsertCrumbs(crumbs: Crumb[]) {
-  if (!crumbs) return;
-  const db = await getDb();
+  if (crumbs.length === 0) return;
+  try {
+    const db = await getDb();
 
-  await db.withTransactionAsync(async () => {
-    for (let i = 0; i < crumbs.length; i += CHUNK_SIZE) {
-      const chunk = crumbs.slice(i, i + CHUNK_SIZE);
-      const { sql, values } = buildUpsertCrumbsQuery(chunk);
+    await db.withTransactionAsync(async () => {
+      for (let i = 0; i < crumbs.length; i += CHUNK_SIZE) {
+        const chunk = crumbs.slice(i, i + CHUNK_SIZE);
+        const { sql, values } = buildUpsertCrumbsQuery(chunk);
 
-      await db.runAsync(sql, values);
-    }
-  });
+        await db.runAsync(sql, values);
+      }
+    });
+  } catch (e) {
+    console.log("the err is indeed:", e)
+  }
 }
 
-export async function GetLastReceivedCrumbDetails(): Promise<Crumb | null> {
-  const db = await getDb()
-  const c: Crumb | null = await db.getFirstAsync(
-    `SELECT id,receiver,time FROM crumbs ORDER BY time DESC LIMIT 1`
-  )
-  if (!c) {
+export async function GetLastCrumbDetails(sent?: boolean): Promise<Crumb | null> {
+  try {
+    const db = await getDb();
+    const c = await db.getFirstAsync<Crumb>(
+      `SELECT id, receiver, time FROM crumbs WHERE sent = ? ORDER BY time DESC LIMIT 1`,
+      [sent ? 1 : 0]
+    );
+    return c ?? null
+  } catch (e) {
+    console.log("THE ERROR IS INDEED: ", e);
     return null
   }
-
-  return c
 }
 
 export async function GetCrumbsInViewport(
   ne: Position,
-  sw: Position
+  sw: Position,
+  sent?: boolean,
 ): Promise<Crumb[]> {
   const [neLon, neLat] = ne;
   const [swLon, swLat] = sw;
@@ -103,7 +110,7 @@ export async function GetCrumbsInViewport(
 
   const rows = await db.getAllAsync<Crumb>(
     `SELECT * FROM crumbs 
-     WHERE lat <= ? AND lat >= ? AND ${lonClause}
+     WHERE lat <= ? AND lat >= ? AND ${lonClause} AND sent = ${sent ? 1 : 0}
      ORDER BY time DESC`,
     [neLat, swLat, swLon, neLon]
   );
@@ -113,7 +120,8 @@ export async function GetCrumbsInViewport(
 
 export async function GetCrumbsByDistance(
   userLat: number,
-  userLon: number
+  userLon: number,
+  sent?: boolean
 ): Promise<(Crumb)[]> {
   const db = await getDb();
 
@@ -126,7 +134,7 @@ export async function GetCrumbsByDistance(
         ((lon - ?) * 111320.0 * ?) * ((lon - ?) * 111320.0 * ?)
       ) AS distanceSq
      FROM crumbs
-     WHERE lat IS NOT NULL AND lon IS NOT NULL
+     WHERE lat IS NOT NULL AND lon IS NOT NULL AND sent = ${sent ? 1 : 0}
      ORDER BY distanceSq ASC`,
     [userLat, userLat, userLon, lonScale, userLon, lonScale]
   );
@@ -134,10 +142,11 @@ export async function GetCrumbsByDistance(
   return rows
 }
 
-export async function GetAllCrumbs(): Promise<Crumb[]> {
+export async function GetAllCrumbs(sent?: boolean): Promise<Crumb[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<Crumb>(
-    `SELECT * FROM crumbs  
+    `SELECT * FROM crumbs
+     WHERE sent = ${sent ? 1 : 0} 
      ORDER BY time DESC`,
   );
 

@@ -54,7 +54,6 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
 
   const mapRef = useRef<Mapbox.MapView>(null)
   const camRef = useRef<Mapbox.Camera>(null)
-  const [useSatellite, setUseSatellite] = useState(false)
   const bgCol = useThemeColor({}, "background")
 
   const userlocation = useLocationStore(s => s.coordinates)
@@ -73,7 +72,8 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
     allowAutoPitch,
     focusOnUserLocation,
     setDroppedPinRadius,
-    focusOnCoords,
+    useSatellite,
+    setUseSatellite,
     focusOnSearchResult,
     make2d,
   } = useMap(
@@ -181,7 +181,7 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
           </CustomFloatingSquare>
           <Spacer size="small" />
         </>}
-        <CustomImageButton size={21} src={getIconImage("satellite", true)} handleClick={() => setUseSatellite(s => !s)} />
+        <CustomImageButton size={21} src={getIconImage("satellite", true)} handleClick={() => setUseSatellite(!useSatellite)} />
         <Spacer size="small" />
         <CustomImageButton size={21} src={getIconImage("focusUserLoc", true)} handleClick={focusOnUserLocation} />
       </View>

@@ -4,7 +4,6 @@ import * as SQLite from "expo-sqlite";
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 async function openAndInit() {
-  console.log("init db...");
   const db = await SQLite.openDatabaseAsync(LOCAL_DATABASE_NAME);
   await db.execAsync(`
     PRAGMA journal_mode = WAL;

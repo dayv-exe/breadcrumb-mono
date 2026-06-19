@@ -1,5 +1,5 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
-import { GetAllCrumbs, GetLastReceivedCrumbDetails } from "@/api/db/crumbsDb";
+import { GetAllCrumbs, GetLastCrumbDetails } from "@/api/db/crumbsDb";
 import Mapbox from "@rnmapbox/maps";
 import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
@@ -39,7 +39,7 @@ export const useCrumb = (): UseCrumbType => {
   }
 
   const updateCrumbs = async () => {
-    const lastCrumb = await GetLastReceivedCrumbDetails();
+    const lastCrumb = await GetLastCrumbDetails();
     const latestCrumb = await getLatestCrumbs(
       false,
       lastCrumb?.id,

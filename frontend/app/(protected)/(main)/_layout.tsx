@@ -1,5 +1,5 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
-import { GetLastReceivedCrumbDetails } from "@/api/db/crumbsDb";
+import { GetLastCrumbDetails } from "@/api/db/crumbsDb";
 import CustomButton from "@/components/buttons/CustomButton";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
@@ -243,10 +243,10 @@ export default function MainScreen() {
   const setUserDetails = useAuthStore(s => s.setUserDetails)
 
   const fetchLatestCrumbs = async () => {
-    const lastCrumb = await GetLastReceivedCrumbDetails()
-    console.log("last crumb: ", lastCrumb)
-    const latest = await getLatestCrumbs(false, lastCrumb?.id, lastCrumb?.time)
-    console.log("latest: ", latest)
+    const lastReceivedCrumb = await GetLastCrumbDetails()
+    await getLatestCrumbs(false, lastReceivedCrumb?.id, lastReceivedCrumb?.time)
+    const lastSentCrumb = await GetLastCrumbDetails(true)
+    await getLatestCrumbs(true, lastSentCrumb?.id, lastSentCrumb?.time)
   }
 
   useEffect(() => {
