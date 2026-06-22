@@ -54,6 +54,7 @@ func (this *searchHelper) SearchUser(searchStr string) (*[]models.UserDisplayInf
 				func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 					return *models.SearchItemsToUserInfoStruct(m)
 				},
+				aws.Bool(true),
 			)
 			if err != nil {
 				log.Println("An error occurred inside loop for querying tokens gotten from search string")

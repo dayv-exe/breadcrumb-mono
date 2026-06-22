@@ -271,11 +271,12 @@ type queryResult[T any] struct {
 	LastEvaluatedKey map[string]types.AttributeValue
 }
 
-func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.AttributeValue, indexName *string, expression expression.Expression, limit *int32, convertToStructs sliceConversionFunc[T]) (*queryResult[T], error) {
+func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.AttributeValue, indexName *string, expression expression.Expression, limit *int32, convertToStructs sliceConversionFunc[T], scanIndexForwards *bool) (*queryResult[T], error) {
 
 	input := &dynamodb.QueryInput{
-		TableName: &deps.TableName,
-		Limit:     limit,
+		TableName:        &deps.TableName,
+		Limit:            limit,
+		ScanIndexForward: scanIndexForwards,
 	}
 
 	if expression.KeyCondition() != nil {
