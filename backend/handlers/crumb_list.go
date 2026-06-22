@@ -17,10 +17,9 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 
 	mailbox := strings.ToLower(req.QueryStringParameters["mailbox"])
 
-	lastKeyParam, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
 	crumbId := strings.TrimSpace(req.QueryStringParameters["crumbId"])
 	timestamp := strings.TrimSpace(req.QueryStringParameters["time"])
-	receiverUserid := strings.TrimSpace(req.QueryStringParameters["receiverUserid"])
+	receiverUserid := strings.TrimSpace(req.QueryStringParameters["receiver"])
 
 	var lastKey map[string]types.AttributeValue
 
@@ -49,22 +48,21 @@ func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (e
 		gsi = models.CrumbSenderPrefix + userId
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
 	}
-
-	if crumbId != "" && timestamp != "" {
-		lastKey = map[string]types.AttributeValue{
-			pkName:    &types.AttributeValueMemberS{Value: pk},
-			skName:    &types.AttributeValueMemberS{Value: sk},
-			gsiName:   &types.AttributeValueMemberS{Value: gsi},
-			gsiSkName: &types.AttributeValueMemberS{Value: gsiSk},
-		}
-	} else {
-		lastKey = lastKeyParam
+	lastKey = map[string]types.AttributeValue{
+		pkName:    &types.AttributeValueMemberS{Value: pk},
+		skName:    &types.AttributeValueMemberS{Value: sk},
+		gsiName:   &types.AttributeValueMemberS{Value: gsi},
+		gsiSkName: &types.AttributeValueMemberS{Value: gsiSk},
 	}
-
 	log.Printf("the last key: %v", lastKey)
 
-	if err != nil {
-		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
+	if mailbox == "private" {
+		result, err := helpers.NewCrumbHelper(ctx).GetPrivateCrumbs(lastKey)
+		if err != nil {
+			return models.ServerSideErrorResponse("Failed to get crumbs!", err), nil
+		}
+
+		return models.SuccessfulGetRequestResponse(result.Items, &result.LastEvaluatedKey), nil
 	}
 
 	result, err := helpers.NewCrumbHelper(ctx).GetCrumbs(userId, mailbox == "sent", lastKey)
