@@ -201,6 +201,78 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 	)
 }
 
+func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp string) (*queryResult[models.Crumb], error) {
+	userid := utils.GetAuthenticatedUserid()
+	pkName := "pk"
+	skName := "sk"
+	indexName := "GSIndex2"
+	gsiName := "gsi2"
+	gsiSkName := "gsi2Sk"
+	pk := models.CrumbPkPrefix + userid
+	sk := models.CrumbIdPrefix + crumbId
+	gsi := models.CrumbReceiverPrefix + userid
+	gsiSk := models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
+
+	if mailbox == "sent" {
+		indexName = "GSIndex3"
+		gsiName = "gsi3"
+		gsiSkName = "gsi3Sk"
+		pk = models.CrumbPkPrefix + receiverId
+		sk = models.CrumbIdPrefix + crumbId
+		gsi = models.CrumbSenderPrefix + userid
+		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
+	} else if mailbox == "private" {
+		indexName = "GSIndex3"
+		gsiName = "gsi3"
+		gsiSkName = "gsi3Sk"
+		pk = models.PrivateCrumbReceiverPrefix + userid
+		sk = models.CrumbIdPrefix + crumbId
+		gsi = models.CrumbSenderPrefix + userid
+		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
+	}
+
+	var lastKey *map[string]types.AttributeValue = &map[string]types.AttributeValue{
+		pkName:    &types.AttributeValueMemberS{Value: pk},
+		skName:    &types.AttributeValueMemberS{Value: sk},
+		gsiName:   &types.AttributeValueMemberS{Value: gsi},
+		gsiSkName: &types.AttributeValueMemberS{Value: gsiSk},
+	}
+
+	if crumbId == "" || timestamp == "" {
+		lastKey = nil
+	}
+
+	keyCond := expression.KeyEqual(
+		expression.Key(pkName),
+		expression.Value(pk),
+	).And(
+		expression.KeyBeginsWith(
+			expression.Key(skName),
+			sk,
+		),
+	)
+
+	projection := defaultCrumbProjection
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(projection).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	return QueryItems(
+		newHelper(h.Ctx, nil),
+		lastKey,
+		&indexName,
+		expr,
+		nil,
+		func(c []map[string]types.AttributeValue) []models.Crumb {
+			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
+				resolveCrumbMailbox(c, userid)
+			})
+		},
+	)
+}
+
 func (h *crumbHelper) GetPrivateCrumbs(lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
 	userid := utils.GetAuthenticatedUserid()
 	keyCond := expression.KeyEqual(
