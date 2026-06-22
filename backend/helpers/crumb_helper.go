@@ -227,7 +227,7 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 		gsiSkName = "gsi3Sk"
 		pk = models.PrivateCrumbReceiverPrefix + userid
 		sk = models.CrumbIdPrefix + crumbId
-		gsi = models.CrumbSenderPrefix + userid
+		gsi = models.PrivateCrumbReceiverPrefix + userid
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
 	}
 
