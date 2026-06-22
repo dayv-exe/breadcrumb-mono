@@ -243,13 +243,8 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 	}
 
 	keyCond := expression.KeyEqual(
-		expression.Key(pkName),
-		expression.Value(pk),
-	).And(
-		expression.KeyBeginsWith(
-			expression.Key(skName),
-			sk,
-		),
+		expression.Key(gsiName),
+		expression.Value(gsi),
 	)
 
 	projection := defaultCrumbProjection
