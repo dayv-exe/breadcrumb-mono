@@ -119,7 +119,6 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 					resolveCrumbMailbox(c, userId)
 				})
 			},
-			aws.Bool(true),
 		)
 
 		if err != nil {
@@ -199,7 +198,6 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 			})
 			return *crumbs
 		},
-		aws.Bool(true),
 	)
 }
 
@@ -267,7 +265,6 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 				resolveCrumbMailbox(c, userid)
 			})
 		},
-		aws.Bool(false),
 	)
 }
 
@@ -301,7 +298,6 @@ func (h *crumbHelper) GetPrivateCrumbs(lastEvalKey map[string]types.AttributeVal
 				resolveCrumbMailbox(c, userid)
 			})
 		},
-		aws.Bool(true),
 	)
 }
 
@@ -353,7 +349,6 @@ func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([
 					resolveCrumbMailbox(c, userId)
 				})
 			},
-			aws.Bool(true),
 		)
 
 		if err != nil {

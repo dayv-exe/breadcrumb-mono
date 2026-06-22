@@ -7,7 +7,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -128,7 +127,6 @@ func (this *friendshipHelper) GetAllFriends(userId string, lastEvalKey *map[stri
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 			return *models.FriendItemsToUserDisplayStructs(m)
 		},
-		aws.Bool(true),
 	)
 
 	return &listResponse[models.UserDisplayInfo]{
@@ -163,7 +161,6 @@ func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedK
 		func(m []map[string]types.AttributeValue) []models.UserDisplayInfo {
 			return *models.FriendRequestItemsToUserDisplayStructs(m)
 		},
-		aws.Bool(true),
 	)
 
 	return &listResponse[models.UserDisplayInfo]{

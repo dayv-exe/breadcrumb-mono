@@ -88,7 +88,6 @@ func (this *userHelper) findAllWithNickname(nickname string) (*[]models.User, er
 		expr,
 		nil,
 		this.sliceTypeConverter,
-		aws.Bool(true),
 	)
 
 	if err != nil {
@@ -326,7 +325,7 @@ func (u *userHelper) GetProfilePicKeys(userId string) (models.CrumbMedia, error)
 		}
 
 		return keys
-	}, aws.Bool(true))
+	})
 
 	return result.Items[0], nil
 }
