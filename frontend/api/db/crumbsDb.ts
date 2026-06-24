@@ -1,5 +1,5 @@
 import type { Position } from "geojson";
-import { Crumb } from "../models/crumb";
+import { Crumb, CrumbMailbox } from "../models/crumb";
 import { getDb } from "./InitDb";
 
 const CHUNK_SIZE = 120
@@ -14,15 +14,15 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
 
   const values = crumbs.flatMap((crumb) => [
     crumb.id,
-    crumb.lat,
-    crumb.lon,
+    crumb.latitude,
+    crumb.longitude,
     crumb.sender,
     crumb.receiver,
-    crumb.sent ? 1 : 0,
-    crumb.opened ? 1 : 0,
+    (crumb.private ? "private" : crumb.sent ? "sent" : "received") as CrumbMailbox,
+    crumb.unlocked,
     crumb.time,
-    crumb.locationAccuracy,
-    crumb.locationType,
+    crumb.radius,
+    crumb.locationSelectionManner,
     crumb.formattedAddress,
     crumb.placename
   ]);
@@ -34,7 +34,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         lon,
         sender,
         receiver,
-        sent,
+        mailbox,
         opened,
         time,
         locationAccuracy,
@@ -48,7 +48,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
         lon = excluded.lon,
         sender = excluded.sender,
         receiver = excluded.receiver,
-        sent = excluded.sent,
+        mailbox = excluded.mailbox,
         opened = excluded.opened,
         time = excluded.time,
         locationAccuracy = excluded.locationAccuracy,
@@ -78,12 +78,12 @@ export async function UpsertCrumbs(crumbs: Crumb[]) {
   }
 }
 
-export async function GetLastCrumbDetails(sent?: boolean): Promise<Crumb | null> {
+export async function GetLastCrumbDetails(mailbox: CrumbMailbox): Promise<Crumb | null> {
   try {
     const db = await getDb();
     const c = await db.getFirstAsync<Crumb>(
-      `SELECT id, receiver, time FROM crumbs WHERE sent = ? ORDER BY time DESC LIMIT 1`,
-      [sent ? 1 : 0]
+      `SELECT id, receiver, sender, time FROM crumbs WHERE mailbox = ? ORDER BY time DESC LIMIT 1`,
+      [mailbox]
     );
     return c ?? null
   } catch (e) {
@@ -142,12 +142,13 @@ export async function GetCrumbsByDistance(
   return rows
 }
 
-export async function GetAllCrumbs(sent?: boolean): Promise<Crumb[]> {
+export async function GetAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<Crumb>(
     `SELECT * FROM crumbs
-     WHERE sent = ${sent ? 1 : 0} 
+     WHERE mailbox = ?
      ORDER BY time DESC`,
+    [mailbox]
   );
 
   return rows

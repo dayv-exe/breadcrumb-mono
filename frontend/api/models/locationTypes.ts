@@ -1,7 +1,7 @@
 import { Coordinates } from "@/utils/useLocationStore"
 import type { Feature, GeoJsonProperties, Geometry } from "geojson"
 
-export type LocationTypes = "gps" | "label" | "dropped-pin" | "none"
+export type LocationSelectionManner = "gps" | "label" | "dropped-pin"
 type PoiLocation = {
   type: "poi"
   poi: Feature<Geometry, GeoJsonProperties>

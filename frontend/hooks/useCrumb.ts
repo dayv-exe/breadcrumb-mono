@@ -1,19 +1,26 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
 import { GetAllCrumbs, GetLastCrumbDetails } from "@/api/db/crumbsDb";
+import { CrumbMailbox } from "@/api/models/crumb";
 import Mapbox from "@rnmapbox/maps";
 import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useGetCrumbMarkers } from "./queries/useCrumbsApi";
 
 type UseCrumbType = {
   crumbImages: { [key: string]: Mapbox.ImageEntry }
   crumbFeatures: FeatureCollection
-  fetchCrumbs: () => Promise<void>
+  mailbox: CrumbMailbox
+  setMailbox: (m: CrumbMailbox) => void
 }
 
 export const useCrumb = (): UseCrumbType => {
+  const [mailbox, setMailbox] = useState<CrumbMailbox>("received")
   const { data: crumbMarkers, isError: crumbMarkersIsError, isPending: crumbMarkersPending, error: crumbMarkersError } = useGetCrumbMarkers()
+
+  useEffect(() => {
+    fetchCrumbs()
+  }, [mailbox])
 
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
@@ -39,20 +46,20 @@ export const useCrumb = (): UseCrumbType => {
   }
 
   const updateCrumbs = async () => {
-    const lastCrumb = await GetLastCrumbDetails();
+    const lastCrumb = await GetLastCrumbDetails(mailbox);
     const latestCrumb = await getLatestCrumbs(
-      false,
-      lastCrumb?.id,
-      lastCrumb?.time
+      mailbox,
+      lastCrumb,
     );
+    console.log("update crumbs latest crumb: ", latestCrumb)
 
     try {
       if (latestCrumb.crumbs) {
         const newFeatures: Feature<Point>[] = latestCrumb.crumbs.map(crumb => (newCrumbFeature(
           crumb.id,
           crumb.sender,
-          crumb.lat,
-          crumb.lon,
+          crumb.latitude,
+          crumb.longitude,
           "x",
           "",
           crumb.placename,
@@ -69,12 +76,12 @@ export const useCrumb = (): UseCrumbType => {
   };
 
   const fetchCrumbs = async () => {
-    const crumbs = await GetAllCrumbs()
+    const crumbs = await GetAllCrumbs(mailbox)
     const features: Feature<Point>[] = crumbs.map(crumb => (newCrumbFeature(
       crumb.id,
       crumb.sender,
-      crumb.lat,
-      crumb.lon,
+      crumb.latitude,
+      crumb.longitude,
       "x",
       "",
       crumb.placename,
@@ -100,6 +107,8 @@ export const useCrumb = (): UseCrumbType => {
 
   useFocusEffect(
     useCallback(() => {
+      updateCrumbs(); // runs immediately on focus
+
       const interval = setInterval(() => {
         updateCrumbs();
       }, 5000);
@@ -107,12 +116,13 @@ export const useCrumb = (): UseCrumbType => {
       return () => {
         clearInterval(interval);
       };
-    }, [])
+    }, [mailbox])
   );
 
   return {
     crumbImages,
     crumbFeatures,
-    fetchCrumbs,
+    mailbox,
+    setMailbox
   }
 }

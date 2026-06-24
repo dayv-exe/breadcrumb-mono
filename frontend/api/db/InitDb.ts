@@ -13,7 +13,7 @@ async function openAndInit() {
       lon REAL,
       sender TEXT NOT NULL,
       receiver TEXT NOT NULL,
-      sent INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
+      mailbox TEXT NOT NULL CHECK(mailbox IN ('private', 'sent', 'received')),
       opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
       time INTEGER NOT NULL,
       locationType TEXT NOT NULL CHECK(locationType IN ('gps', 'label', 'dropped-pin', 'none')),
@@ -23,6 +23,8 @@ async function openAndInit() {
     );
     CREATE INDEX IF NOT EXISTS idx_crumbs_lat_lon ON crumbs(lat, lon);
   `);
+
+  logAllCrumbs()
   return db;
 }
 
@@ -31,6 +33,13 @@ export function getDb() {
     dbPromise = openAndInit();
   }
   return dbPromise;
+}
+
+export async function logAllCrumbs() {
+  const db = await getDb();
+  const rows = await db.getAllAsync("SELECT * FROM crumbs");
+  console.log(`crumbs (${rows.length} rows):`);
+  console.log(JSON.stringify(rows, null, 2));
 }
 
 export async function DeleteLocalDatabase(onSuccess?: () => void, onFailure?: (e: unknown) => void) {

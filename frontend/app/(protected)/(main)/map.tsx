@@ -1,3 +1,4 @@
+import { CrumbMailbox } from "@/api/models/crumb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
@@ -17,7 +18,7 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
 import Reanimated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -111,7 +112,8 @@ export default function MapScreen() {
   const {
     crumbFeatures,
     crumbImages,
-    fetchCrumbs,
+    setMailbox,
+    mailbox
   } = useCrumb()
 
   const mode = useColorScheme() ?? "light";
@@ -133,6 +135,36 @@ export default function MapScreen() {
   }
 
   const headerOpacity = useRef(new Animated.Value(1)).current;
+
+  const getMailboxButtonColors = useCallback((mailboxButton: CrumbMailbox): { textCol: string, backgroundCol: string } => {
+    if (mailbox === mailboxButton) {
+      return {
+        backgroundCol: Colors.light.vibrantBackground,
+        textCol: Colors.dark.text
+      }
+    } else {
+      return {
+        backgroundCol: Colors.light.background,
+        textCol: Colors.light.text
+      }
+    }
+  }, [mailbox])
+
+  const getPageName = (): string => {
+    switch (mailbox) {
+      case "private":
+        return "🔒 Private"
+
+      case "saved":
+        return "❤️ Saved"
+
+      case "sent":
+        return "Sent"
+
+      default:
+        return "Unopened"
+    }
+  }
 
   const fadeHeader = (visible: boolean) => {
     Animated.timing(headerOpacity, {
@@ -173,7 +205,7 @@ export default function MapScreen() {
           alignItems: "center",
           justifyContent: 'flex-start',
         }]}>
-          <CustomLabel bold adaptToTheme labelText={pageName} fontSize={21} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
+          <CustomLabel bold adaptToTheme labelText={getPageName()} fontSize={21} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
           <Spacer size="small" />
           <View style={[{
             width: "100%",
@@ -189,27 +221,8 @@ export default function MapScreen() {
                 paddingHorizontal: 10
               }}
             >
-              <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              }} customStyle={{
-                shadowColor: "#000",
-                shadowOffset: { height: 2, width: 2, },
-                shadowOpacity: .25,
-                shadowRadius: 2,
-                marginBottom: 5,
-                elevation: 5
-              }} />
-              <Spacer size="small" />
-              <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
-              }} customStyle={{
-                shadowColor: "#000",
-                shadowOffset: { height: 2, width: 2, },
-                shadowOpacity: .25,
-                shadowRadius: 2,
-                marginBottom: 5,
-                elevation: 5
-              }} />
-              <Spacer size="small" />
-              <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400", color: getMailboxButtonColors("received").textCol }} squashed type="themed" adaptToTheme handleClick={() => {
+                setMailbox("received")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
@@ -217,27 +230,43 @@ export default function MapScreen() {
                 shadowRadius: 2,
                 marginBottom: 5,
                 elevation: 5,
+                backgroundColor: getMailboxButtonColors("received").backgroundCol
               }} />
               <Spacer size="small" />
-              <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400", color: getMailboxButtonColors("sent").textCol }} squashed type="themed" adaptToTheme handleClick={() => {
+                setMailbox("sent")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
                 shadowOpacity: .25,
                 shadowRadius: 2,
                 marginBottom: 5,
-                elevation: 5
+                elevation: 5,
+                backgroundColor: getMailboxButtonColors("sent").backgroundCol
               }} />
               <Spacer size="small" />
-
-              <CustomButton labelText="👀 Opened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400", color: getMailboxButtonColors("saved").textCol }} squashed type="themed" adaptToTheme handleClick={() => {
+                setMailbox("saved")
               }} customStyle={{
                 shadowColor: "#000",
                 shadowOffset: { height: 2, width: 2, },
                 shadowOpacity: .25,
                 shadowRadius: 2,
                 marginBottom: 5,
-                elevation: 5
+                elevation: 5,
+                backgroundColor: getMailboxButtonColors("saved").backgroundCol
+              }} />
+              <Spacer size="small" />
+              <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400", color: getMailboxButtonColors("private").textCol }} squashed type="themed" adaptToTheme handleClick={() => {
+                setMailbox("private")
+              }} customStyle={{
+                shadowColor: "#000",
+                shadowOffset: { height: 2, width: 2, },
+                shadowOpacity: .25,
+                shadowRadius: 2,
+                marginBottom: 5,
+                elevation: 5,
+                backgroundColor: getMailboxButtonColors("private").backgroundCol
               }} />
               <Spacer size="small" />
             </ScrollView>
@@ -270,7 +299,6 @@ export default function MapScreen() {
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
-        onMapReady={fetchCrumbs}
       />
 
       <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>

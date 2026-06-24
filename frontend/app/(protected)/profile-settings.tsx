@@ -252,7 +252,6 @@ export default function ProfileSettingsScreen() {
       )
     },
     {
-      hidden: true,
       type: "static",
       key: "devtools",
       title: '👾 Developer tools',
@@ -264,7 +263,9 @@ export default function ProfileSettingsScreen() {
               text1: "Deleting local db...",
               type: "info",
             })
-            DeleteLocalDatabase()
+            DeleteLocalDatabase(() => {
+              console.log("deleted db")
+            })
           }
         },
       ],

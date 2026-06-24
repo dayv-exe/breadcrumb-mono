@@ -1,4 +1,4 @@
-import { SelectedLocation } from "@/api/models/locationTypes"
+import { LocationSelectionManner, SelectedLocation } from "@/api/models/locationTypes"
 import CustomLabel from "@/components/CustomLabel"
 import { useModal } from "@/components/modals/ModalContext"
 import { LocationOptionsProps } from "@/components/share/LocationOption"
@@ -84,12 +84,31 @@ export function useShareCrumb(
 
   const { upload } = useMediaUpload({
     onSuccess: files => {
-      if (!selectedLocation) return
-      const poiId = selectedLocation.type === "poi" && selectedLocation.poi.id ? selectedLocation.poi.id.toString() : undefined
+      const poiId = selectedLocation?.type === "poi" && selectedLocation.poi.id ? selectedLocation.poi.id.toString() : undefined
+      const crumbCoordinates = selectedLocation ? selectedLocation.coordinates : coordinates
+      let crumbRadius: number
+      let crumbLocationSelManner: LocationSelectionManner
+
+      if (selectedLocation && selectedLocation.type === "pin") {
+        crumbLocationSelManner = "dropped-pin"
+        crumbRadius = selectedLocation.radius
+      } else if (selectedLocation && selectedLocation.type === "poi") {
+        crumbLocationSelManner = "label"
+        crumbRadius = 0
+      } else {
+        crumbLocationSelManner = "gps"
+        crumbRadius = coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS
+      }
+
+      if (!crumbCoordinates) {
+        throw new Error("Crumb does not have a valid coordinate!")
+      }
+
+
       shareCrumb({
         id: files[0].crumbId,
-        lat: selectedLocation.coordinates.latitude,
-        lon: selectedLocation.coordinates.longitude,
+        latitude: crumbCoordinates.latitude,
+        longitude: crumbCoordinates.longitude,
         clickedFeatureId: poiId,
         text: files.filter(f => f.type === "text").map(f => ({
           index: f.index,
@@ -102,8 +121,8 @@ export function useShareCrumb(
           overlay: f.overlay?.mediaKey,
           thumbnail: f.thumbnail?.mediaKey,
         })),
-        locationAccuracy: selectedLocation.coordinates.accuracy ?? DEFAULT_CRUMB_RADIUS,
-        locationType: selectedLocation && selectedLocation.type === "pin" ? "dropped-pin" : selectedLocation && selectedLocation.type === "poi" ? "label" : "gps",
+        radius: crumbRadius,
+        locationSelectionManner: crumbLocationSelManner,
         receivers: recipients.map(r => r.id),
       }, {
         onSuccess: () => {
@@ -113,11 +132,13 @@ export function useShareCrumb(
           ShowToast("✅ Done")
         },
         onError: err => {
+          setIsPending(false)
           handleNotifyErr(err)
         }
       })
     },
     onError: (err) => {
+      setIsPending(false)
       handleNotifyErr(err)
     },
   });
@@ -135,8 +156,9 @@ export function useShareCrumb(
   }
 
   const handleShare = async () => {
-    if (!selectedLocation || recipients.length === 0) return
+    if (recipients.length === 0) return
     setIsPending(true)
+    console.log("begin share...")
 
     showModal({
       content: (
