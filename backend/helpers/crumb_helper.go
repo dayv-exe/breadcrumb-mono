@@ -221,6 +221,7 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 		sk = models.CrumbIdPrefix + crumbId
 		gsi = models.CrumbSenderPrefix + userid
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
+		log.Printf("MAILBOX SHOULD BE: sent mailbox is: %v", mailbox)
 	} else if mailbox == "private" {
 		indexName = "GSIndex3"
 		gsiName = "gsi3"
@@ -229,6 +230,7 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 		sk = models.CrumbIdPrefix + crumbId
 		gsi = models.PrivateCrumbReceiverPrefix + userid
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
+		log.Printf("MAILBOX SHOULD BE: private mailbox is: %v", mailbox)
 	}
 
 	var lastKey *map[string]types.AttributeValue = &map[string]types.AttributeValue{
