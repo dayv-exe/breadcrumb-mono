@@ -29,7 +29,7 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		return models.InvalidRequestErrorResponse("Crumb body must contain recipients!"), nil
 	}
 
-	if body.LocationType == "" {
+	if body.LocationSelectionManner == "" {
 		return models.InvalidRequestErrorResponse("Crumb body must contain either 'mine', 'gps', or 'friend' as location type!"), nil
 	}
 

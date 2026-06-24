@@ -1,9 +1,7 @@
 package models
 
 import (
-	"backend/constants"
 	"backend/utils"
-	"math"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/mmcloughlin/geohash"
@@ -36,15 +34,15 @@ type CrumbMedia struct {
 }
 
 type CrumbBody struct {
-	Id               string       `json:"id"`
-	Receivers        []string     `json:"receivers"`
-	Lat              float64      `json:"lat"`
-	Lon              float64      `json:"lon"`
-	LocationAccuracy float32      `json:"locationAccuracy"`
-	LocationType     string       `json:"locationType"`
-	Text             []CrumbText  `json:"text"`
-	MediaKeys        []CrumbMedia `json:"media"`
-	ClickedFeatureId string       `json:"clickedFeatureId"`
+	Id                      string       `json:"id"`
+	Receivers               []string     `json:"receivers"`
+	Latitude                float64      `json:"latitude"`
+	Longitude               float64      `json:"longitude"`
+	Radius                  float32      `json:"radius"`
+	LocationSelectionManner string       `json:"locationSelectionManner"`
+	Text                    []CrumbText  `json:"text"`
+	MediaKeys               []CrumbMedia `json:"media"`
+	ClickedFeatureId        string       `json:"clickedFeatureId"`
 }
 
 type CrumbMarkerDetails struct {
@@ -55,22 +53,23 @@ type CrumbMarkerDetails struct {
 }
 
 type Crumb struct {
-	Id               string       `json:"id" dynamodbav:"id"`
-	SenderId         string       `json:"sender" dynamodbav:"sender"`
-	Receiver         string       `json:"receiver" dynamodbav:"receiver"`
-	Lat              float64      `json:"lat" dynamodbav:"lat"`
-	Lon              float64      `json:"lon" dynamodbav:"lon"`
-	LocationAccuracy float32      `json:"locationAccuracy" dynamodbav:"locationAccuracy"`
-	LocationType     string       `json:"locationType" dynamodbav:"locationType"`
-	PlaceId          string       `json:"placeId" dynamodbav:"placeId"`
-	Text             []CrumbText  `json:"text" dynamodbav:"text"`
-	Media            []CrumbMedia `json:"media" dynamodbav:"media"`
-	Geohash          string       `json:"geohash" dynamodbav:"geohash"`
-	Sent             bool         `json:"sent"`
-	Private          bool         `json:"private"`
-	Opened           bool         `json:"opened" dynamodbav:"opened"`
-	FormattedAddress string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
-	PlaceName        string       `json:"placename" dynamodbav:"placename"`
+	Id                      string       `json:"id" dynamodbav:"id"`
+	Sender                  string       `json:"sender" dynamodbav:"sender"`
+	Receiver                string       `json:"receiver" dynamodbav:"receiver"`
+	Latitude                float64      `json:"latitude" dynamodbav:"latitude"`
+	Longitude               float64      `json:"longitude" dynamodbav:"longitude"`
+	Radius                  float32      `json:"radius" dynamodbav:"radius"`
+	LocationSelectionManner string       `json:"locationSelectionManner" dynamodbav:"locationSelectionManner"`
+	PlaceId                 string       `json:"placeId" dynamodbav:"placeId"`
+	Text                    []CrumbText  `json:"text" dynamodbav:"text"`
+	Media                   []CrumbMedia `json:"media" dynamodbav:"media"`
+	Geohash                 string       `json:"geohash" dynamodbav:"geohash"`
+	Sent                    bool         `json:"sent"`
+	Private                 bool         `json:"private"`
+	Saved                   bool         `json:"saved"`
+	Opened                  bool         `json:"opened" dynamodbav:"opened"`
+	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
+	PlaceName               string       `json:"placename" dynamodbav:"placename"`
 
 	Time string `json:"time" dynamodbav:"time"`
 
@@ -100,24 +99,21 @@ type CrumbCoordinates struct {
 
 // Returns a slice of crumb models one for each receiver
 func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
-	if b.LocationType == constants.LOCATION_TYPE_NONE {
-		b.LocationAccuracy = math.MaxInt32
-	}
 	crumbs := make([]Crumb, 0)
 	for _, receiver := range b.Receivers {
 		crumbs = append(crumbs, Crumb{
-			Id:               b.Id,
-			SenderId:         userId,
-			Receiver:         receiver,
-			Lat:              b.Lat,
-			Lon:              b.Lon,
-			LocationAccuracy: b.LocationAccuracy,
-			LocationType:     b.LocationType,
-			Text:             b.Text,
-			Media:            b.MediaKeys,
-			Geohash:          geohash.Encode(b.Lat, b.Lon),
-			Time:             utils.GetNormalDateAndTime(),
-			Opened:           false,
+			Id:                      b.Id,
+			Sender:                  userId,
+			Receiver:                receiver,
+			Latitude:                b.Latitude,
+			Longitude:               b.Longitude,
+			Radius:                  b.Radius,
+			LocationSelectionManner: b.LocationSelectionManner,
+			Text:                    b.Text,
+			Media:                   b.MediaKeys,
+			Geohash:                 geohash.Encode(b.Latitude, b.Longitude),
+			Time:                    utils.GetNormalDateAndTime(),
+			Opened:                  false,
 		})
 	}
 
@@ -132,7 +128,7 @@ func (c *Crumb) ApplyPrefixes() {
 
 	// access sent crumbs by id
 	// GSI: CRUMB_SENDER#{senderId} GSISK: CRUMB_ID#{crumbId}
-	c.Gsi = CrumbSenderPrefix + c.SenderId
+	c.Gsi = CrumbSenderPrefix + c.Sender
 	c.GsiSk = CrumbIdPrefix + c.Id
 
 	// access received crumbs by timestamp
@@ -142,10 +138,10 @@ func (c *Crumb) ApplyPrefixes() {
 
 	// access sent crumbs by timestamp
 	// GSI3: CRUMB_SENDER#{userid} GSI3SK: TS#{timestamp}CRUMB_ID#{crumbId}
-	c.Gsi3 = CrumbSenderPrefix + c.SenderId
+	c.Gsi3 = CrumbSenderPrefix + c.Sender
 	c.Gsi3Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
 
-	if c.Receiver == c.SenderId {
+	if c.Receiver == c.Sender {
 		// access private crumbs by id
 		// PK: PRIVATE_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
 		c.PK = PrivateCrumbReceiverPrefix + c.Receiver

@@ -8,17 +8,17 @@ import (
 )
 
 var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
-	"pk":               &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
-	"sk":               &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
-	"id":               &dbTypes.AttributeValueMemberS{Value: "c1"},
-	"sender":           &dbTypes.AttributeValueMemberS{Value: "s1"},
-	"receiver":         &dbTypes.AttributeValueMemberS{Value: "r1"},
-	"lat":              &dbTypes.AttributeValueMemberN{Value: "50"},
-	"lon":              &dbTypes.AttributeValueMemberN{Value: "-1"},
-	"locationAccuracy": &dbTypes.AttributeValueMemberN{Value: "10"},
-	"locationType":     &dbTypes.AttributeValueMemberS{Value: "gps"},
-	"placeId":          &dbTypes.AttributeValueMemberS{Value: "p1"},
-	"time":             &dbTypes.AttributeValueMemberS{Value: "100"},
+	"pk":                      &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
+	"sk":                      &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
+	"id":                      &dbTypes.AttributeValueMemberS{Value: "c1"},
+	"sender":                  &dbTypes.AttributeValueMemberS{Value: "s1"},
+	"receiver":                &dbTypes.AttributeValueMemberS{Value: "r1"},
+	"latitude":                &dbTypes.AttributeValueMemberN{Value: "50"},
+	"longitude":               &dbTypes.AttributeValueMemberN{Value: "-1"},
+	"radius":                  &dbTypes.AttributeValueMemberN{Value: "10"},
+	"locationSelectionManner": &dbTypes.AttributeValueMemberS{Value: "gps"},
+	"placeId":                 &dbTypes.AttributeValueMemberS{Value: "p1"},
+	"time":                    &dbTypes.AttributeValueMemberS{Value: "100"},
 	"text": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
@@ -45,12 +45,12 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 
 func NewTestCrumbBody() CrumbBody {
 	return CrumbBody{
-		Id:               "c1",
-		Receivers:        []string{"r1"},
-		Lat:              50,
-		Lon:              -1,
-		LocationAccuracy: 10,
-		LocationType:     "gps",
+		Id:                      "c1",
+		Receivers:               []string{"r1"},
+		Latitude:                50,
+		Longitude:               -1,
+		Radius:                  10,
+		LocationSelectionManner: "gps",
 		Text: []CrumbText{
 			{
 				Index:   0,

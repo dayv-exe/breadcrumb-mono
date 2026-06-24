@@ -19,8 +19,8 @@ type crumbHelper struct {
 }
 
 func resolveCrumbMailbox(c *models.Crumb, userid string) {
-	c.Sent = c.SenderId == userid
-	c.Private = c.SenderId == c.Receiver
+	c.Sent = c.Sender == userid
+	c.Private = c.Sender == c.Receiver
 }
 
 func NewCrumbHelper(ctx context.Context) *crumbHelper {
@@ -34,7 +34,7 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 		return fmt.Errorf("Crumb id cannot be empty")
 	}
 
-	if crumb.LocationType != constants.LOCATION_TYPE_MINE && crumb.LocationType != constants.LOCATION_TYPE_NONE && crumb.LocationType != constants.LOCATION_TYPE_LABEL && crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
+	if crumb.LocationSelectionManner != constants.LOCATION_TYPE_MINE && crumb.LocationSelectionManner != constants.LOCATION_TYPE_NONE && crumb.LocationSelectionManner != constants.LOCATION_TYPE_LABEL && crumb.LocationSelectionManner != constants.LOCATION_TYPE_DROPPED_PIN {
 		return fmt.Errorf("Invalid crumb location type")
 	}
 
@@ -46,14 +46,14 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 	placeIds := make([]string, 0)
 	placeName := ""
-	formattedAddress, err := mapboxHelper.GetFormattedAddress(crumb.Lat, crumb.Lon)
+	formattedAddress, err := mapboxHelper.GetFormattedAddress(crumb.Latitude, crumb.Longitude)
 	if err != nil {
 		log.Printf("FAILED TO GET FORMATTED ADDRESS. ERROR: %v", err)
 		return err
 	}
 
-	if crumb.LocationType != constants.LOCATION_TYPE_DROPPED_PIN {
-		placesInfo, err := mapboxHelper.GetNearbyPlaceIds(crumb.Lat, crumb.Lon, float64(crumb.LocationAccuracy), crumb.LocationType, crumb.ClickedFeatureId)
+	if crumb.LocationSelectionManner != constants.LOCATION_TYPE_DROPPED_PIN {
+		placesInfo, err := mapboxHelper.GetNearbyPlaceIds(crumb.Latitude, crumb.Longitude, float64(crumb.Radius), crumb.LocationSelectionManner, crumb.ClickedFeatureId)
 		if err != nil {
 			return fmt.Errorf("Failed to send crumb. ERROR: %v", err)
 		}
@@ -84,7 +84,7 @@ func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.
 			nil,
 			func(item map[string]types.AttributeValue) models.Crumb {
 				crumb := utils.DatabaseItemToStruct(item, func(c *models.Crumb) {
-					c.Sent = c.SenderId == userId
+					c.Sent = c.Sender == userId
 					c.RemovePrefixes()
 				})
 
@@ -136,15 +136,15 @@ func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) ([]resIt
 
 var defaultCrumbProjection = expression.NamesList(
 	expression.Name("id"),
-	expression.Name("lat"),
-	expression.Name("lon"),
+	expression.Name("latitude"),
+	expression.Name("longitude"),
 	expression.Name("receiver"),
 	expression.Name("sender"),
 	expression.Name("time"),
 	expression.Name("opened"),
 	expression.Name("placeId"),
-	expression.Name("locationType"),
-	expression.Name("locationAccuracy"),
+	expression.Name("locationSelectionManner"),
+	expression.Name("radius"),
 	expression.Name("formattedAddress"),
 	expression.Name("placename"),
 )
@@ -193,7 +193,7 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 		nil,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
 			crumbs := utils.DatabaseItemsToStructs(c, func(c *models.Crumb) {
-				c.Sent = userId == c.SenderId
+				c.Sent = userId == c.Sender
 				c.RemovePrefixes()
 			})
 			return *crumbs
