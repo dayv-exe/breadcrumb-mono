@@ -10,7 +10,7 @@ import (
 )
 
 func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	mailbox := strings.ToLower(req.QueryStringParameters["mailbox"])
+	mailbox := strings.TrimSpace(strings.ToLower(req.QueryStringParameters["mailbox"]))
 
 	if mailbox == "" {
 		return models.InvalidRequestErrorResponse(""), nil

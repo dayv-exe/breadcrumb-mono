@@ -216,7 +216,8 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 	gsi := models.CrumbReceiverPrefix + userid
 	gsiSk := models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
 
-	if mailbox == "sent" {
+	switch mailbox {
+	case "sent":
 		indexName = "GSIndex3"
 		gsiName = "gsi3"
 		gsiSkName = "gsi3Sk"
@@ -225,7 +226,7 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 		gsi = models.CrumbSenderPrefix + userid
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
 		log.Printf("MAILBOX SHOULD BE: sent mailbox is: %v", mailbox)
-	} else if mailbox == "private" {
+	case "private":
 		indexName = "GSIndex3"
 		gsiName = "gsi3"
 		gsiSkName = "gsi3Sk"
