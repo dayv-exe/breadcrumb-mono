@@ -202,6 +202,8 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 }
 
 func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp string) (*queryResult[models.Crumb], error) {
+	log.Printf("crumb id: %v", crumbId)
+	log.Printf("receiver id: %v", receiverId)
 	userid := utils.GetAuthenticatedUserid()
 	pkName := "pk"
 	skName := "sk"
