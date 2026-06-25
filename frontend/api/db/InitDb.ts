@@ -9,19 +9,19 @@ async function openAndInit() {
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS crumbs (
       id TEXT PRIMARY KEY NOT NULL,
-      lat REAL,
-      lon REAL,
+      latitude REAL,
+      longitude REAL,
       sender TEXT NOT NULL,
       receiver TEXT NOT NULL,
       mailbox TEXT NOT NULL CHECK(mailbox IN ('private', 'sent', 'received')),
-      opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
+      unlocked INTEGER NOT NULL DEFAULT 0 CHECK(unlocked IN (0, 1)),
       time INTEGER NOT NULL,
-      locationType TEXT NOT NULL CHECK(locationType IN ('gps', 'label', 'dropped-pin', 'none')),
-      locationAccuracy REAL,
+      locationSelectionManner TEXT NOT NULL CHECK(locationSelectionManner IN ('gps', 'label', 'dropped-pin', 'none')),
+      radius REAL,
       formattedAddress TEXT,
       placename TEXT
     );
-    CREATE INDEX IF NOT EXISTS idx_crumbs_lat_lon ON crumbs(lat, lon);
+    CREATE INDEX IF NOT EXISTS idx_crumbs_lat_lon ON crumbs(latitude, longitude);
   `);
 
   logAllCrumbs()

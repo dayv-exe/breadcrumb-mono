@@ -35,7 +35,6 @@ export const getLatestCrumbs = async (mailbox: CrumbMailbox, lastCrumb: Crumb | 
   ${lastCrumb?.id ? `&crumbId=${lastCrumb.id}` : ""}
   ${lastCrumb?.receiver ? `&receiver=${lastCrumb.receiver}` : ""}
   ${lastCrumb?.time ? `&time=${lastCrumb.time}` : ""}`
-  console.log("get latest crumb url: ", url)
   const { data } = await axiosInstance.get<CrumbsResponse>(url)
   UpsertCrumbs(data.message)
   return { crumbs: data.message, next: data.next }

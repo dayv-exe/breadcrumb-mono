@@ -19,7 +19,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     crumb.sender,
     crumb.receiver,
     (crumb.private ? "private" : crumb.sent ? "sent" : "received") as CrumbMailbox,
-    crumb.unlocked,
+    crumb.unlocked ? 1 : 0,
     crumb.time,
     crumb.radius,
     crumb.locationSelectionManner,
@@ -30,29 +30,29 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     sql: `
       INSERT INTO crumbs (
         id,
-        lat,
-        lon,
+        latitude,
+        longitude,
         sender,
         receiver,
         mailbox,
-        opened,
+        unlocked,
         time,
-        locationAccuracy,
-        locationType,
+        radius,
+        locationSelectionManner,
         formattedAddress,
         placename
       )
       VALUES ${placeholders}
       ON CONFLICT(id) DO UPDATE SET
-        lat = excluded.lat,
-        lon = excluded.lon,
+        latitude = excluded.latitude,
+        longitude = excluded.longitude,
         sender = excluded.sender,
         receiver = excluded.receiver,
         mailbox = excluded.mailbox,
-        opened = excluded.opened,
+        unlocked = excluded.unlocked,
         time = excluded.time,
-        locationAccuracy = excluded.locationAccuracy,
-        locationType = excluded.locationType,
+        radius = excluded.radius,
+        locationSelectionManner = excluded.locationSelectionManner,
         formattedAddress = excluded.formattedAddress,
         placename = excluded.placename
     `,
@@ -105,12 +105,12 @@ export async function GetCrumbsInViewport(
   const crossesAntimeridian = neLon < swLon;
 
   const lonClause = crossesAntimeridian
-    ? "(lon >= ? OR lon <= ?)"  // wraps the antimeridian
-    : "(lon >= ? AND lon <= ?)";
+    ? "(longitude >= ? OR longitude <= ?)"  // wraps the antimeridian
+    : "(longitude >= ? AND longitude <= ?)";
 
   const rows = await db.getAllAsync<Crumb>(
     `SELECT * FROM crumbs 
-     WHERE lat <= ? AND lat >= ? AND ${lonClause} AND sent = ${sent ? 1 : 0}
+     WHERE latitude <= ? AND latitude >= ? AND ${lonClause} AND sent = ${sent ? 1 : 0}
      ORDER BY time DESC`,
     [neLat, swLat, swLon, neLon]
   );
@@ -130,11 +130,11 @@ export async function GetCrumbsByDistance(
   const rows = await db.getAllAsync<Crumb>(
     `SELECT *,
       (
-        ((lat - ?) * 111320.0) * ((lat - ?) * 111320.0) +
-        ((lon - ?) * 111320.0 * ?) * ((lon - ?) * 111320.0 * ?)
+        ((latitude - ?) * 111320.0) * ((latitude - ?) * 111320.0) +
+        ((longitude - ?) * 111320.0 * ?) * ((longitude - ?) * 111320.0 * ?)
       ) AS distanceSq
      FROM crumbs
-     WHERE lat IS NOT NULL AND lon IS NOT NULL AND sent = ${sent ? 1 : 0}
+     WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND sent = ${sent ? 1 : 0}
      ORDER BY distanceSq ASC`,
     [userLat, userLat, userLon, lonScale, userLon, lonScale]
   );

@@ -51,7 +51,6 @@ export const useCrumb = (): UseCrumbType => {
       mailbox,
       lastCrumb,
     );
-    console.log("update crumbs latest crumb: ", latestCrumb)
 
     try {
       if (latestCrumb.crumbs) {
@@ -86,6 +85,7 @@ export const useCrumb = (): UseCrumbType => {
       "",
       crumb.placename,
     )));
+
 
     setCrumbFeatures({
       type: 'FeatureCollection',

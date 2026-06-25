@@ -158,8 +158,6 @@ export function useShareCrumb(
   const handleShare = async () => {
     if (recipients.length === 0) return
     setIsPending(true)
-    console.log("begin share...")
-
     showModal({
       content: (
         <View style={{
