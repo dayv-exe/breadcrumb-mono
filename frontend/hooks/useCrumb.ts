@@ -28,15 +28,17 @@ export const useCrumb = (): UseCrumbType => {
     ],
   })
 
-  const newCrumbFeature = (crumbId: string, crumbSender: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
+  const newCrumbFeature = (crumbId: string, sender: string, receiver: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
     return {
       type: 'Feature',
       id: crumbId,
       properties: {
-        profilePicture: crumbSender,
+        profilePicture: sender,
         nickname: senderNickname,
         prompt: prompt,
         placename: placename,
+        sender: sender,
+        receiver: receiver,
       },
       geometry: {
         type: 'Point',
@@ -57,6 +59,7 @@ export const useCrumb = (): UseCrumbType => {
         const newFeatures: Feature<Point>[] = latestCrumb.crumbs.map(crumb => (newCrumbFeature(
           crumb.id,
           crumb.sender,
+          crumb.receiver,
           crumb.latitude,
           crumb.longitude,
           "x",
@@ -79,6 +82,7 @@ export const useCrumb = (): UseCrumbType => {
     const features: Feature<Point>[] = crumbs.map(crumb => (newCrumbFeature(
       crumb.id,
       crumb.sender,
+      crumb.receiver,
       crumb.latitude,
       crumb.longitude,
       "x",

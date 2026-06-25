@@ -63,7 +63,7 @@ export function useShareCrumb(
   const locationOptions: LocationOptionsProps[] = [
     {
       iconEmoji: "📍",
-      name: "Current location",
+      name: "My current location",
       selected: !selectedLocation,
       selectedText: `Crumb${usePlural ? "s" : ""} can only be opened here`,
       onPressed: () => {
@@ -73,7 +73,7 @@ export function useShareCrumb(
     {
       iconEmoji: "🗺️",
       name: "Choose on map",
-      selectedName: selectedLocation?.type === "pin" ? address ? `Pin (${address})` : "Dropped pin" : selectedLocation?.poi.properties?.name,
+      selectedName: selectedLocation?.type !== "crumb" ? selectedLocation?.type === "pin" ? address ? `Pin (${address})` : "Dropped pin" : selectedLocation?.poi.properties?.name : "Crumb",
       selected: selectedLocation !== null,
       selectedText: `Crumb${usePlural ? "s" : ""} can only be opened there`,
       onPressed: () => {

@@ -10,7 +10,7 @@ import circle from "@turf/circle";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Keyboard, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import darkStyle from "../../assets/styles/dark-style.json";
@@ -47,6 +47,7 @@ type CustomMapProps = {
   searchResult?: RetrieveResponse | null
   onPoiSelect: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   onDroppedPin: (coords: [number, number]) => void
+  onCrumbsSelect?: (crumbIds: string[]) => void
   maxZoomLvlToDark?: number
   setForceDark?: (s: boolean) => void
   useSatellite?: boolean;
@@ -112,6 +113,7 @@ export default function CustomMap({
   onMapReady,
   onDroppedPin,
   onPoiSelect,
+  onCrumbsSelect,
   setForceDark,
   searchResult,
   onMapMove,
@@ -119,6 +121,7 @@ export default function CustomMap({
   lock2dButtonAsHidden,
   setMapCenter,
 }: CustomMapProps) {
+  const markersRef = useRef<Mapbox.ShapeSource>(null)
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
   const darkUrl = Constants.expoConfig?.extra?.darkMapUrl;
   const satelliteUrl = Constants.expoConfig?.extra?.satelliteUrl;
@@ -143,6 +146,10 @@ export default function CustomMap({
     if (status.granted) {
       setPermissionGranted(true);
     }
+  }
+
+  async function handleCrumbMarkerPress(e: FeatureCollection) {
+
   }
 
   useEffect(() => {
@@ -387,7 +394,33 @@ export default function CustomMap({
             />
           )}
 
-          {<ShapeSource id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22}>
+          {<ShapeSource ref={markersRef} id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22} onPress={async e => {
+            const feature = e.features[0];
+            if (!feature) return;
+
+            // cluster
+            if (feature.properties?.cluster) {
+              const leaves: FeatureCollection = await markersRef.current?.getClusterLeaves(
+                feature,
+                feature.properties.point_count,
+                0,
+              );
+
+
+              const crumbs = leaves?.features ?? [];
+              crumbs.forEach((c) => console.log(c.id, c.properties));
+
+              const ids = crumbs
+                .map((c) => c.id?.toString())
+                .filter((id): id is string => !!id);
+              onCrumbsSelect?.(ids)
+            } else {
+              // single unclustered point
+              const id = feature.id?.toString();
+              if (!id) return;
+              onCrumbsSelect?.([id]);
+            }
+          }}>
             <SymbolLayer
               id="frameLayer"
               style={{

@@ -30,6 +30,8 @@ export default function MapSheetContent({ selectedLocation, clearSelectedItem, s
       nav.reset("pin")
     } else if (selectedLocation.type === "poi") {
       nav.reset("poi")
+    } else if (selectedLocation.type === "crumb") {
+      nav.reset("crumb")
     }
   }, [selectedLocation, selectedLocation?.type])
 
@@ -53,14 +55,14 @@ export default function MapSheetContent({ selectedLocation, clearSelectedItem, s
           paddingBottom: 10,
         }}
       >
-        {nav.current === "home" && (
+        {nav.current === "home" && !selectedLocation && (
           <>
             <CustomLabel labelText="this is home" adaptToTheme />
           </>
         )}
-        {nav.current === "crumb" && (
+        {nav.current === "crumb" && selectedLocation?.type === "crumb" && (
           <>
-            <CustomLabel labelText="this is a crumb" adaptToTheme />
+            <CustomLabel labelText={`crumb sender: ${selectedLocation.crumb.sender}`} adaptToTheme />
           </>
         )}
         {nav.current === "poi" && selectedLocation && selectedLocation.type === "poi" && (
