@@ -1,6 +1,6 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
-import { GetAllCrumbs, GetLastCrumbDetails } from "@/api/db/crumbsDb";
-import { CrumbMailbox } from "@/api/models/crumb";
+import { GetAllCrumbs, GetCrumbsByIds, GetLastCrumbDetails } from "@/api/db/crumbsDb";
+import { Crumb, CrumbMailbox } from "@/api/models/crumb";
 import Mapbox from "@rnmapbox/maps";
 import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
@@ -11,6 +11,7 @@ type UseCrumbType = {
   crumbImages: { [key: string]: Mapbox.ImageEntry }
   crumbFeatures: FeatureCollection
   mailbox: CrumbMailbox
+  getCrumbs: (ids: string[]) => Promise<Crumb[]>
   setMailbox: (m: CrumbMailbox) => void
 }
 
@@ -27,6 +28,11 @@ export const useCrumb = (): UseCrumbType => {
     features: [
     ],
   })
+
+  const getCrumbs = async (ids: string[]): Promise<Crumb[]> => {
+    const crumbs = await GetCrumbsByIds(ids)
+    return crumbs
+  }
 
   const newCrumbFeature = (crumbId: string, sender: string, receiver: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
     return {
@@ -127,6 +133,7 @@ export const useCrumb = (): UseCrumbType => {
     crumbImages,
     crumbFeatures,
     mailbox,
-    setMailbox
+    setMailbox,
+    getCrumbs
   }
 }

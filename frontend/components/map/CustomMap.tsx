@@ -1,7 +1,7 @@
 import { SelectedLocation } from "@/api/models/locationTypes";
 import { RetrieveResponse } from "@/api/models/placeSearch";
 import { Colors } from "@/constants/Colors";
-import { convertCoordinatesToNumberTuple, getPressedLocationInfo } from "@/constants/mapFunctions";
+import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates, getPressedLocationInfo } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { showSettingsAlert } from "@/utils/helpers";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
@@ -47,7 +47,7 @@ type CustomMapProps = {
   searchResult?: RetrieveResponse | null
   onPoiSelect: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
   onDroppedPin: (coords: [number, number]) => void
-  onCrumbsSelect?: (crumbIds: string[]) => void
+  onCrumbsSelect?: (crumbIds: string[], coordinates: Coordinates) => void
   maxZoomLvlToDark?: number
   setForceDark?: (s: boolean) => void
   useSatellite?: boolean;
@@ -397,6 +397,7 @@ export default function CustomMap({
           {<ShapeSource ref={markersRef} id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22} onPress={async e => {
             const feature = e.features[0];
             if (!feature) return;
+            const coords = convertNumberTupleToCoordinates((feature.geometry as any).coordinates as [number, number])
 
             // cluster
             if (feature.properties?.cluster) {
@@ -413,12 +414,12 @@ export default function CustomMap({
               const ids = crumbs
                 .map((c) => c.id?.toString())
                 .filter((id): id is string => !!id);
-              onCrumbsSelect?.(ids)
+              onCrumbsSelect?.(ids, coords)
             } else {
               // single unclustered point
               const id = feature.id?.toString();
               if (!id) return;
-              onCrumbsSelect?.([id]);
+              onCrumbsSelect?.([id], coords);
             }
           }}>
             <SymbolLayer

@@ -23,8 +23,6 @@ async function openAndInit() {
     );
     CREATE INDEX IF NOT EXISTS idx_crumbs_lat_lon ON crumbs(latitude, longitude);
   `);
-
-  logAllCrumbs()
   return db;
 }
 

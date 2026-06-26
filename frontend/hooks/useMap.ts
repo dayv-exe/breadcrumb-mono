@@ -89,7 +89,6 @@ export const useMap = (
     if (!poi) {
       setSelectedLocation(null)
     } else {
-      console.log(poi)
       setSelectedLocation({
         type: "poi",
         coordinates: extractPoiCoordinates(poi),

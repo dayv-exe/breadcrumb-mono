@@ -154,6 +154,20 @@ export async function GetAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
   return rows
 }
 
+export async function GetCrumbsByIds(ids: string[]): Promise<Crumb[]> {
+  if (ids.length < 1) return []
+  const db = await getDb()
+  const placeholders = ids.map(() => "?").join(",")
+
+  const rows = await db.getAllAsync<Crumb>(
+    `SELECT * FROM crumbs
+      WHERE id IN (${placeholders})`,
+    ids
+  )
+
+  return rows
+}
+
 export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<Crumb>(

@@ -112,18 +112,17 @@ export default function MapScreen() {
     crumbFeatures,
     crumbImages,
     setMailbox,
-    mailbox
+    mailbox,
+    getCrumbs,
   } = useCrumb()
 
   const mode = useColorScheme() ?? "light";
   const bgCol = useThemeColor({}, "background")
-  const elevatedBgCol = useThemeColor({}, "fadedBackgroundElevated")
   const txtCol = useThemeColor({}, "text")
   const { openSheet, closeSheet } = useBottomSheet()
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top
-  const [pageName, setPageName] = useState("Unopened")
   const [forceDark, setForceDark] = useState(false)
   const searchBgCol = useThemeColor({}, "darkBackground")
 
@@ -131,6 +130,15 @@ export default function MapScreen() {
     closeSheet()
     setPlaceId(id)
     // focus map on place or drop pin or something
+  }
+
+  const handleCrumbsSelected = async (ids: string[], coordinates: Coordinates) => {
+    const crumbs = await getCrumbs(ids)
+    setSelectedLocation({
+      type: "crumb",
+      coordinates: coordinates,
+      crumbs: crumbs,
+    })
   }
 
   const headerOpacity = useRef(new Animated.Value(1)).current;
@@ -280,6 +288,7 @@ export default function MapScreen() {
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
+        onCrumbsSelect={handleCrumbsSelected}
       />
 
       <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>

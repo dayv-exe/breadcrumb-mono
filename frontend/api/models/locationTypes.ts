@@ -17,7 +17,7 @@ type DroppedPinLocation = {
 
 type CrumbLocation = {
   type: "crumb"
-  crumb: Crumb
+  crumbs: Crumb[]
   coordinates: Coordinates
 }
 

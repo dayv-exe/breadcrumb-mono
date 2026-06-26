@@ -62,7 +62,7 @@ export default function MapSheetContent({ selectedLocation, clearSelectedItem, s
         )}
         {nav.current === "crumb" && selectedLocation?.type === "crumb" && (
           <>
-            <CustomLabel labelText={`crumb sender: ${selectedLocation.crumb.sender}`} adaptToTheme />
+            <CustomLabel labelText={`crumb count: ${selectedLocation.crumbs.length}`} adaptToTheme />
           </>
         )}
         {nav.current === "poi" && selectedLocation && selectedLocation.type === "poi" && (
