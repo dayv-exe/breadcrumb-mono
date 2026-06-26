@@ -1,6 +1,5 @@
 import { Coordinates } from "@/utils/useLocationStore"
 import type { Feature, GeoJsonProperties, Geometry } from "geojson"
-import { Crumb } from "./crumb"
 
 export type LocationSelectionManner = "gps" | "label" | "dropped-pin"
 type PoiLocation = {
@@ -17,7 +16,7 @@ type DroppedPinLocation = {
 
 type CrumbLocation = {
   type: "crumb"
-  crumbs: Crumb[]
+  crumbIds: string[]
   coordinates: Coordinates
 }
 

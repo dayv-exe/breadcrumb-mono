@@ -1,6 +1,6 @@
 import { SelectedLocation } from "@/api/models/locationTypes";
-import { convertNumberTupleToCoordinates, extractPoiCoordinates, getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
-import { useLocationStore } from "@/utils/useLocationStore";
+import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates, getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import * as Haptics from "expo-haptics";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
@@ -9,12 +9,13 @@ import React, { useEffect, useRef, useState } from "react";
 export type CustomMapHook = {
   selectedLocation: SelectedLocation | null,
   setDroppedPinRadius: (r: number) => void
-  setSelectedLocation: (l: SelectedLocation | null) => void
-  focusOnCoords: (coords: [number, number], preLocationSelCamPos: MapCamPosition | null, allowPitching: boolean) => void
-  focusOnPoi: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
-  focusOnDroppedPin: (c: [number, number]) => void
+  focusOnSelectedLocation: (l: SelectedLocation | null) => void,
+  focusOnPoiLabel: (poi: Feature<Geometry, GeoJsonProperties> | null) => void
+  focusOnDroppedPin: (coords: [number, number]) => void
+  focusOnCrumbs: (crumbIds: string[], coordinates: Coordinates) => void
   focusOnSearchResult: (c: [number, number]) => void
   focusOnUserLocation: () => void
+  clearSelectedLocation: () => void
   is2dButtonVisible: boolean
   set2dButtonVisible: (s: boolean) => void
   lock2DButtonAsHidden: boolean
@@ -85,31 +86,18 @@ export const useMap = (
     })
   }
 
-  const focusOnPoi = async (poi: Feature<Geometry, GeoJsonProperties> | null) => {
-    if (!poi) {
+  const focusOnSelectedLocation = async (selectedLocation: SelectedLocation | null) => {
+    if (!selectedLocation) {
       setSelectedLocation(null)
-    } else {
-      setSelectedLocation({
-        type: "poi",
-        coordinates: extractPoiCoordinates(poi),
-        poi: poi,
-      })
+      return
     }
-    if (poi) {
-      const camPos = handleSavePreLocationSelectCameraPosition()
-      focusOnCoords((poi.geometry as any).coordinates as [number, number], (await camPos), false)
-      return;
-    }
-  }
-
-  const focusOnDroppedPin = async (coords: [number, number]) => {
     const camPos = handleSavePreLocationSelectCameraPosition()
-    focusOnCoords(coords, await camPos, true)
-    setSelectedLocation({
-      type: "pin",
-      coordinates: convertNumberTupleToCoordinates(coords),
-      radius: 15,
-    })
+    focusOnCoords(
+      convertCoordinatesToNumberTuple(selectedLocation.coordinates),
+      await camPos,
+      selectedLocation.type === "pin",
+    )
+    setSelectedLocation(selectedLocation)
   }
 
   async function focusOnUserLocation() {
@@ -148,17 +136,40 @@ export const useMap = (
 
   return {
     selectedLocation,
-    setSelectedLocation,
+    focusOnSelectedLocation,
+    clearSelectedLocation: () => setSelectedLocation(null),
     setDroppedPinRadius: r => {
       if (selectedLocation && selectedLocation.type === "pin") {
         setSelectedLocation({ ...selectedLocation, radius: r })
       }
     },
-    focusOnCoords,
     focusOnSearchResult,
-    focusOnPoi,
-    focusOnDroppedPin,
     focusOnUserLocation,
+    focusOnCrumbs: (ids, coords) => {
+      focusOnSelectedLocation({
+        type: "crumb",
+        coordinates: coords,
+        crumbIds: ids
+      })
+    },
+    focusOnDroppedPin: (coords) => {
+      focusOnSelectedLocation({
+        type: "pin",
+        coordinates: convertNumberTupleToCoordinates(coords),
+        radius: 15,
+      })
+    },
+    focusOnPoiLabel: poi => {
+      if (!poi) {
+        focusOnSelectedLocation(null)
+        return
+      }
+      focusOnSelectedLocation({
+        type: "poi",
+        coordinates: convertNumberTupleToCoordinates((poi?.geometry as any).coordinates as [number, number]),
+        poi: poi
+      })
+    },
     is2dButtonVisible,
     set2dButtonVisible,
     lock2DButtonAsHidden,

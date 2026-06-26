@@ -86,9 +86,10 @@ export default function MapScreen() {
   const [mapCenter, setMapCenter] = useState<Coordinates | null>(null)
   const {
     selectedLocation,
-    setSelectedLocation,
+    focusOnCrumbs,
     focusOnDroppedPin,
-    focusOnPoi,
+    focusOnPoiLabel,
+    clearSelectedLocation,
     focusOnUserLocation,
     setDroppedPinRadius,
     is2dButtonVisible,
@@ -104,7 +105,7 @@ export default function MapScreen() {
     null
   )
   const { clearSearchResult, searchResult, setPlaceId } = usePlaceSearchRetrieve(sessionToken, coordinates, coords => {
-    setSelectedLocation(null)
+    clearSelectedLocation()
     focusOnSearchResult(coords)
   })
 
@@ -130,15 +131,6 @@ export default function MapScreen() {
     closeSheet()
     setPlaceId(id)
     // focus map on place or drop pin or something
-  }
-
-  const handleCrumbsSelected = async (ids: string[], coordinates: Coordinates) => {
-    const crumbs = await getCrumbs(ids)
-    setSelectedLocation({
-      type: "crumb",
-      coordinates: coordinates,
-      crumbs: crumbs,
-    })
   }
 
   const headerOpacity = useRef(new Animated.Value(1)).current;
@@ -283,12 +275,12 @@ export default function MapScreen() {
         }}
         allowAutoPitch
         onDroppedPin={focusOnDroppedPin}
-        onPoiSelect={focusOnPoi}
+        onPoiSelect={focusOnPoiLabel}
         is2dButtonVisible={is2dButtonVisible}
         set2dButtonVisible={set2dButtonVisible}
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
-        onCrumbsSelect={handleCrumbsSelected}
+        onCrumbsSelect={focusOnCrumbs}
       />
 
       <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>
@@ -338,6 +330,7 @@ export default function MapScreen() {
         top: 0,
         left: 0,
         right: 0,
+        opacity: .5,
       }} containerStyle={{
         zIndex: 200,
         width: "100%",
@@ -355,7 +348,7 @@ export default function MapScreen() {
           selectedLocation={selectedLocation}
           setRadius={setDroppedPinRadius}
           clearSelectedItem={() => {
-            setSelectedLocation(null)
+            clearSelectedLocation()
           }}
         />
       </BottomSheet>

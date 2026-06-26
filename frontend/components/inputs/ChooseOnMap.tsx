@@ -63,9 +63,9 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
 
   const {
     selectedLocation: mapSelLocation,
-    setSelectedLocation: setMapSelLocation,
-    focusOnPoi,
+    focusOnSelectedLocation: setMapSelLocation,
     focusOnDroppedPin,
+    focusOnPoiLabel,
     is2dButtonVisible,
     lock2DButtonAsHidden,
     set2dButtonVisible,
@@ -152,7 +152,7 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
         useSatellite={useSatellite}
         mapRef={mapRef}
         cameraRef={camRef}
-        onPoiSelect={focusOnPoi}
+        onPoiSelect={focusOnPoiLabel}
         onDroppedPin={focusOnDroppedPin}
         onMapPress={clearSearchResult}
         onMapLongPress={clearSearchResult}
@@ -163,7 +163,7 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         allowAutoPitch={allowAutoPitch}
         onMapReady={() => {
-          if (mapSelLocation && mapSelLocation.type === "poi") focusOnPoi(mapSelLocation.poi)
+          if (mapSelLocation && mapSelLocation.type === "poi") focusOnPoiLabel(mapSelLocation.poi)
           else if (mapSelLocation && mapSelLocation.type === "pin") focusOnDroppedPin(convertCoordinatesToNumberTuple(mapSelLocation.coordinates))
         }}
         searchResult={searchResult}
@@ -198,7 +198,7 @@ export default function ChooseOnMap({ onCancel, onLocationSelected, selectedLoca
               flexDirection: 'column',
             }}>
               <TouchableOpacity onPress={() => {
-                focusOnPoi(mapSelLocation.poi)
+                focusOnPoiLabel(mapSelLocation.poi)
               }}>
                 <CustomLabel adaptToTheme labelText={(mapSelLocation.poi.properties as any).name ?? (mapSelLocation.poi.properties as any).house_num} customStyle={{ padding: 0 }} allowTruncate textAlign="left" />
                 <CustomLabel adaptToTheme fade fontSize={13} labelText={(mapSelLocation.poi.properties as any).type ?? (mapSelLocation.poi.properties as any).maki} customStyle={{ padding: 0 }} />

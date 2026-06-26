@@ -245,3 +245,22 @@ export function distanceMeters(
 
   return EARTH_RADIUS_METERS * c;
 }
+
+export function calculateDistanceMeters(
+  coordinate1: Coordinates,
+  coordinate2: Coordinates,
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+  const lat1Rad = toRad(coordinate1.latitude);
+  const lat2Rad = toRad(coordinate2.latitude);
+  const dLat = toRad(coordinate2.latitude - coordinate1.latitude);
+  const dLon = toRad(coordinate2.longitude - coordinate1.longitude);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return EARTH_RADIUS_METERS * c;
+}
