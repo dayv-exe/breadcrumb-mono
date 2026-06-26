@@ -202,9 +202,6 @@ func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[s
 }
 
 func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp string) (*queryResult[models.Crumb], error) {
-	log.Printf("crumb id: %v", crumbId)
-	log.Printf("receiver id: %v", receiverId)
-	log.Printf("Mailbox as is: %v", mailbox)
 	userid := utils.GetAuthenticatedUserid()
 	pkName := "pk"
 	skName := "sk"
@@ -225,7 +222,6 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 		sk = models.CrumbIdPrefix + crumbId
 		gsi = models.CrumbSenderPrefix + userid
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
-		log.Printf("MAILBOX SHOULD BE: sent mailbox is: %v", mailbox)
 	case "private":
 		indexName = "GSIndex3"
 		gsiName = "gsi3"
@@ -234,7 +230,14 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 		sk = models.CrumbIdPrefix + crumbId
 		gsi = models.PrivateCrumbReceiverPrefix + userid
 		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
-		log.Printf("MAILBOX SHOULD BE: private mailbox is: %v", mailbox)
+	case "saved":
+		indexName = "GSIndex2"
+		gsiName = "gsi2"
+		gsiSkName = "gsi2Sk"
+		pk = models.SavedCrumbPkPrefix + userid
+		sk = models.CrumbIdPrefix + crumbId
+		gsi = models.SavedCrumbPkPrefix + userid
+		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
 	}
 
 	var lastKey *map[string]types.AttributeValue = &map[string]types.AttributeValue{

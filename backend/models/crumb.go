@@ -12,6 +12,7 @@ import (
 // get crumb by id
 
 const (
+	SavedCrumbPkPrefix         = "SAVED_CRUMB_RECEIVER#"
 	PrivateCrumbReceiverPrefix = "PRIVATE_CRUMB_RECEIVER#"
 	CrumbPkPrefix              = "CRUMB_RECEIVER#"
 	CrumbReceiverPrefix        = "CRUMB_RECEIVER#"
@@ -67,7 +68,7 @@ type Crumb struct {
 	Sent                    bool         `json:"sent"`
 	Private                 bool         `json:"private"`
 	Saved                   bool         `json:"saved"`
-	Opened                  bool         `json:"opened" dynamodbav:"opened"`
+	Unlocked                bool         `json:"unlocked" dynamodbav:"unlocked"`
 	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName               string       `json:"placename" dynamodbav:"placename"`
 
@@ -113,7 +114,7 @@ func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
 			Media:                   b.MediaKeys,
 			Geohash:                 geohash.Encode(b.Latitude, b.Longitude),
 			Time:                    utils.GetNormalDateAndTime(),
-			Opened:                  false,
+			Unlocked:                false,
 		})
 	}
 
@@ -142,6 +143,8 @@ func (c *Crumb) ApplyPrefixes() {
 	c.Gsi3Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
 
 	if c.Receiver == c.Sender {
+		// make private crumb
+
 		// access private crumbs by id
 		// PK: PRIVATE_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
 		c.PK = PrivateCrumbReceiverPrefix + c.Receiver
@@ -157,6 +160,10 @@ func (c *Crumb) ApplyPrefixes() {
 		// access private crumbs by timestamp
 		// GSI2: CRUMB_RECEIVER#{userid} GSI2SK: TS#{timestamp}CRUMB_ID{crumbId}
 		c.Gsi2 = PrivateCrumbReceiverPrefix + c.Receiver
+	} else if c.Saved {
+		// cannot save private crumb
+		c.PK = SavedCrumbPkPrefix + c.Receiver
+		c.Gsi2 = SavedCrumbPkPrefix + c.Receiver
 	}
 }
 
