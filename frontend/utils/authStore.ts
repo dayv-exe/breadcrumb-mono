@@ -1,3 +1,4 @@
+import { DeleteLocalDatabase } from "@/api/db/InitDb"
 import { signupDetails } from "@/api/models/userDetails"
 import { AuthError, confirmResetPassword, confirmSignUp, getCurrentUser, resendSignUpCode, resetPassword, signIn, SignInOutput, signOut, signUp } from "aws-amplify/auth"
 import { deleteItemAsync, getItem, setItem } from "expo-secure-store"
@@ -66,9 +67,12 @@ export const useAuthStore = create(
     },
     logout: async () => {
       try {
-        const user = await signOut()
-        set({ isLoggedIn: false })
-        return { isSuccess: true }
+        await DeleteLocalDatabase(async () => {
+          const user = await signOut()
+          set({ isLoggedIn: false })
+          return { isSuccess: true }
+        })
+        return { isSuccess: false }
       } catch (error) {
         console.log("error signing out: ", error)
         return { isSuccess: false, info: error }

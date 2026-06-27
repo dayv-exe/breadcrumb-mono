@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 export type SheetRoute = "home" | "poi" | "pin" | "crumbs" | "crumb";
 
@@ -8,13 +8,11 @@ export type MapBottomSheetNavType<T> = {
   pop: () => void
   reset: (route: T) => void
   canGoBack: boolean
-  payload: any
 }
 
 export function useSheetNavigation<T extends string>(initial: T): MapBottomSheetNavType<T> {
   const [stack, setStack] = useState<T[]>([initial]);
   const current = stack[stack.length - 1];
-  const payload = useRef<any>(null)
 
   const push = useCallback((route: T) => setStack(s => [...s, route]), []);
   const pop = useCallback(
@@ -23,5 +21,5 @@ export function useSheetNavigation<T extends string>(initial: T): MapBottomSheet
   );
   const reset = useCallback((route: T) => setStack([route]), []);
 
-  return { current, push, pop, reset, canGoBack: stack.length > 1, payload };
+  return { current, push, pop, reset, canGoBack: stack.length > 1 };
 }

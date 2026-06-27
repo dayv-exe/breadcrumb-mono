@@ -175,12 +175,6 @@ export default function CustomMap({
     }
   }
 
-  const initialCenter =
-    centerCoordinate ??
-    (coordinates
-      ? [coordinates.longitude, coordinates.latitude]
-      : [0, 0]);
-
   const offsets = {
     "cluster": [-35, -35],
     "single": [-22, -22]
@@ -248,7 +242,7 @@ export default function CustomMap({
         >
           <Mapbox.Camera
             ref={cameraRef}
-            centerCoordinate={initialCenter}
+            centerCoordinate={centerCoordinate}
             zoomLevel={zoomLevel}
             pitch={pitch}
             animationDuration={0}
