@@ -18,6 +18,7 @@ export type crumbBody = {
   mediaItems: crumbMedia[]
   text?: crumbText[]
   clickedFeatureId?: string
+  address?: string
 }
 
 type CrumbsResponse = {

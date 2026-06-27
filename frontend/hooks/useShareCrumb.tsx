@@ -124,6 +124,7 @@ export function useShareCrumb(
         radius: crumbRadius,
         locationSelectionManner: crumbLocationSelManner,
         receivers: recipients.map(r => r.id),
+        address: address ?? undefined
       }, {
         onSuccess: () => {
           setIsPending(false)
