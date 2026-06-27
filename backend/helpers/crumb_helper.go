@@ -46,7 +46,11 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 	placeIds := make([]string, 0)
 	placeName := ""
-	formattedAddress, err := mapboxHelper.GetFormattedAddress(crumb.Latitude, crumb.Longitude)
+	formattedAddress := crumb.Address
+	var err error = nil
+	if strings.TrimSpace(formattedAddress) == "" {
+		formattedAddress, err = mapboxHelper.GetFormattedAddress(crumb.Latitude, crumb.Longitude)
+	}
 	if err != nil {
 		log.Printf("FAILED TO GET FORMATTED ADDRESS. ERROR: %v", err)
 		return err
