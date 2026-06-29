@@ -168,6 +168,25 @@ export async function GetCrumbsByIds(ids: string[]): Promise<Crumb[]> {
   return rows
 }
 
+export async function GetGroupedCrumbsByIds(ids: string[], groupBySender: boolean): Promise<Record<string, Crumb[]>> {
+  if (ids.length < 1) return {}
+  const db = await getDb()
+  const placeholders = ids.map(() => "?").join(",")
+
+  const rows = await db.getAllAsync<Crumb>(
+    `SELECT * FROM crumbs
+      WHERE id IN (${placeholders})`,
+    ids
+  )
+
+  return rows.reduce<Record<string, Crumb[]>>((groups, crumb) => {
+    const key = crumb[groupBySender ? "sender" : "receiver"]
+    if (!groups[key]) groups[key] = []
+    groups[key].push(crumb)
+    return groups
+  }, {})
+}
+
 export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<Crumb>(

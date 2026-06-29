@@ -403,7 +403,6 @@ export default function CustomMap({
 
 
               const crumbs = leaves?.features ?? [];
-              crumbs.forEach((c) => console.log(c.id, c.properties));
 
               const ids = crumbs
                 .map((c) => c.id?.toString())

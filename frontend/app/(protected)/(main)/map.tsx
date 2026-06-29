@@ -8,6 +8,7 @@ import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
+import { convertCoordinatesToNumberTuple } from "@/constants/mapFunctions";
 import { useCrumb } from "@/hooks/useCrumb";
 import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
@@ -281,6 +282,7 @@ export default function MapScreen() {
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
         onCrumbsSelect={focusOnCrumbs}
+        centerCoordinate={coordinates ? convertCoordinatesToNumberTuple(coordinates) : undefined}
       />
 
       <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>

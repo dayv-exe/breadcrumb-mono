@@ -4,9 +4,9 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { convertToPreferredDistance } from "@/utils/helpers";
 import { useLocationStore } from "@/utils/useLocationStore";
 import type { Feature, GeoJsonProperties, Geometry } from "geojson";
-import { Camera, X } from "lucide-react-native";
+import { Camera, ChevronDownIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { useShallow } from "zustand/shallow";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import CustomLabel from "../CustomLabel";
@@ -22,6 +22,7 @@ export default function PoiBottomSheetView({ selectedItem, clearSelection }: pro
     coordinates: s.coordinates,
   })))
   const textCol = useThemeColor({}, "text")
+  const darkBgCol = useThemeColor({}, "darkBackground")
   const [distance, setDistance] = useState(0)
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
   useEffect(() => {
@@ -74,15 +75,19 @@ export default function PoiBottomSheetView({ selectedItem, clearSelection }: pro
             <CustomLabel adaptToTheme labelText={`${convertToPreferredDistance(distance)} ${address ? "• " + address : ""}`} allowTruncate fade customStyle={{ padding: 0 }} fontSize={13} />
           </View>
         </View>
-        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, height: 35, width: 35 }}>
-          <Camera size={17} stroke={textCol} strokeWidth={3} />
-        </CustomFloatingSquare>
-        <Spacer size="small" />
-        <CustomFloatingSquare type="theme-faded" isFlat customStyle={{ borderRadius: 1000, height: 35, width: 35 }} handleClick={clearSelection}>
-          <X size={17} stroke={textCol} strokeWidth={3} />
+        <CustomFloatingSquare type="text" isFlat customStyle={{ borderRadius: 1000, height: 35, width: 35 }} handleClick={clearSelection}>
+          <ChevronDownIcon size={23} stroke={textCol} strokeWidth={3} />
         </CustomFloatingSquare>
       </View>
       <Spacer size="small" />
+      <TouchableOpacity style={{
+        backgroundColor: darkBgCol,
+        alignSelf: "center",
+        padding: 15,
+        borderRadius: 1000,
+      }}>
+        <Camera size={35} stroke={textCol} strokeWidth={2} opacity={.9} />
+      </TouchableOpacity>
     </View>
   )
 }
