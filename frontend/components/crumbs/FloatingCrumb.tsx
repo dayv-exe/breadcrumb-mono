@@ -23,22 +23,25 @@ export default function FloatingCrumb({ crumb, userColor }: props) {
       justifyContent: "flex-start",
     }]}>
       {!unlocked && <SquareIcon
-        fill={crumbIconCol}
+        fill={crumb.locationSelectionManner === "gps" ? crumbIconCol : "transparent"}
         size={17}
         stroke={crumbIconCol}
         strokeWidth={3}
       />}
 
       {unlocked && <PlayIcon
-        fill={crumbIconCol}
+        fill={crumb.locationSelectionManner === "gps" ? crumbIconCol : "transparent"}
         size={19}
         stroke={crumbIconCol}
         strokeWidth={3}
       />}
+
       <View style={{
         flexDirection: "row",
         flexGrow: 1,
         flexShrink: 1,
+        alignItems: "center",
+        justifyContent: "center",
       }}>
         {!unlocked && <>
           <Text
@@ -64,6 +67,7 @@ export default function FloatingCrumb({ crumb, userColor }: props) {
               opacity: .65,
               flexGrow: 1,
               flexShrink: 1,
+              fontSize: 12,
             }}
           >{crumb.formattedAddress}</Text>
         </>}

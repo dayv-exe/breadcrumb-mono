@@ -60,6 +60,7 @@ type CustomMapProps = {
   onMapMove?: (e: Mapbox.MapState) => void
   onMapIdle?: (e: Mapbox.MapState) => void
   setMapCenter?: (c: Coordinates) => void
+  cameraBottomPadding?: number
 };
 
 type PermissionProps = {
@@ -120,6 +121,7 @@ export default function CustomMap({
   onMapIdle,
   lock2dButtonAsHidden,
   setMapCenter,
+  cameraBottomPadding,
 }: CustomMapProps) {
   const markersRef = useRef<Mapbox.ShapeSource>(null)
   const lightUrl = Constants.expoConfig?.extra?.lightMapUrl;
@@ -199,8 +201,8 @@ export default function CustomMap({
           compassFadeWhenNorth
           maxPitch={45}
           compassPosition={{ top: (.1 * height) + (Platform.OS === "android" ? insetTop : 0), right: 15 }}
-          attributionPosition={{ bottom: 100, left: 10 }}
-          logoPosition={{ bottom: 75, left: 10 }}
+          attributionPosition={{ bottom: 80, left: 100 }}
+          logoPosition={{ bottom: 80, left: 15 }}
           onDidFinishLoadingMap={async () => {
             onMapReady?.()
             const c = await mapRef?.current?.getCenter()
@@ -246,6 +248,12 @@ export default function CustomMap({
             zoomLevel={zoomLevel}
             pitch={pitch}
             animationDuration={0}
+            padding={{
+              paddingLeft: 0,
+              paddingRight: 0,
+              paddingTop: 0,
+              paddingBottom: cameraBottomPadding ?? 0,
+            }}
           />
 
           <Images

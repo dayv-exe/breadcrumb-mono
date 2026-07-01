@@ -2,8 +2,8 @@ import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
 import CustomLabel from "@/components/CustomLabel";
+import MapFriendTab from "@/components/Lists/MapFriendsTab";
 import CustomMap from "@/components/map/CustomMap";
-import MapSheetContent from "@/components/map/MapSheetContent";
 import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
@@ -14,7 +14,6 @@ import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
-import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
@@ -115,7 +114,6 @@ export default function MapScreen() {
     crumbImages,
     setMailbox,
     mailbox,
-    getCrumbs,
   } = useCrumb()
 
   const mode = useColorScheme() ?? "light";
@@ -127,6 +125,10 @@ export default function MapScreen() {
   const availableHeight = screenHeight - insets.top
   const [forceDark, setForceDark] = useState(false)
   const searchBgCol = useThemeColor({}, "darkBackground")
+  const [cameraBottomPadding, setCameraBottomPadding] = useState(0)
+
+  // starts at screenHeight = sheet fully closed
+  const sheetPosition = useSharedValue(screenHeight);
 
   const handlePlaceSelected = (id: string) => {
     closeSheet()
@@ -160,8 +162,6 @@ export default function MapScreen() {
     }).start();
   };
 
-  // starts at screenHeight = sheet fully closed
-  const sheetPosition = useSharedValue(screenHeight);
 
   const CONTROLS_BOTTOM = 200;  // matches styles.mapControls.bottom
   const GAP_ABOVE_SHEET = 30;  // breathing room between controls and sheet
@@ -283,6 +283,7 @@ export default function MapScreen() {
         setMapCenter={setMapCenter}
         onCrumbsSelect={focusOnCrumbs}
         centerCoordinate={coordinates ? convertCoordinatesToNumberTuple(coordinates) : undefined}
+        cameraBottomPadding={cameraBottomPadding}
       />
 
       <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>
@@ -325,35 +326,7 @@ export default function MapScreen() {
         <Spacer size="small" />
       </Reanimated.View>
 
-      <BottomSheet animatedPosition={sheetPosition} handleIndicatorStyle={{
-        backgroundColor: txtCol,
-      }} handleStyle={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        opacity: .5,
-      }} containerStyle={{
-        zIndex: 200,
-        width: "100%",
-      }} backgroundStyle={{
-        borderRadius: 30,
-        elevation: 20,
-        shadowColor: "#000",
-        shadowOffset: { height: 0, width: 0 },
-        shadowOpacity: .175,
-        shadowRadius: 10,
-        width: "100%",
-        backgroundColor: bgCol
-      }}>
-        <MapSheetContent
-          selectedLocation={selectedLocation}
-          setRadius={setDroppedPinRadius}
-          clearSelectedItem={() => {
-            clearSelectedLocation()
-          }}
-        />
-      </BottomSheet>
+      <MapFriendTab />
     </View>
   );
 }

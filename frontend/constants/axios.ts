@@ -1,6 +1,7 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
 import axios from 'axios';
 import Constants from 'expo-constants';
+import { TIME } from './appConstants';
 
 const axiosInstance = axios.create({
   baseURL: Constants.expoConfig?.extra?.baseUrl,
@@ -26,7 +27,7 @@ axiosInstance.interceptors.request.use(
         const currentTime = Date.now()
         const timeUntilExpiry = expirationTime - currentTime
 
-        if (timeUntilExpiry < 5 * 60 * 1000) {
+        if (timeUntilExpiry < 5 * TIME.MINUTE) {
           console.log("token expiring soon, refreshing")
           const refreshedSession = await fetchAuthSession({ forceRefresh: true })
           const refreshedToken = refreshedSession.tokens?.idToken?.toString()

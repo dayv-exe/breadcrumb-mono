@@ -51,9 +51,7 @@ export default function MapSheetContent({ selectedLocation, clearSelectedItem, s
         // entering={SlideInRight}
         // exiting={SlideOutLeft}
         style={{
-          padding: 20,
           paddingTop: 25,
-          paddingBottom: 10,
         }}
       >
         {nav.current === "home" && !selectedLocation && (

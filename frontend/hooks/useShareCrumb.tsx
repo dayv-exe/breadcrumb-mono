@@ -39,7 +39,6 @@ type ShareCrumbType = {
 
 export function useShareCrumb(
   processMedia: () => void,
-  usePlural?: boolean
 ): ShareCrumbType {
   const textCol = useThemeColor({}, "text")
   const { showModal, hideModal } = useModal()
@@ -51,6 +50,7 @@ export function useShareCrumb(
   const crumbMedia = useMediaStore(s => s.mediaPreview)
   const coordinates = useLocationStore(s => s.coordinates)
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
+  const usePlural = crumbMedia.length > 1
 
   useEffect(() => {
     if (selectedLocation) {

@@ -105,5 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexDirection: "column",
     marginBottom: 15,
+    flexGrow: 1,
+    flexShrink: 1,
   }
 })

@@ -5,7 +5,7 @@ import { MapBottomSheetNavType, SheetRoute } from "@/hooks/useSheetNavigation";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ChevronDownIcon } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
@@ -34,6 +34,7 @@ export default function MultiCrumbsBottomSheetView({ crumbIds, nav }: props) {
     <View style={{
       // backgroundColor: darkBgCol,
       // padding: 20,
+      maxHeight: 350,
     }}>
       <CustomLabel adaptToTheme bold labelText="Clustered crumbs" fontSize={18} textAlign="center" customStyle={{
         padding: 0,
@@ -43,16 +44,21 @@ export default function MultiCrumbsBottomSheetView({ crumbIds, nav }: props) {
       <CustomFloatingSquare isFlat type="text" customStyle={{
         position: "absolute",
         top: -5,
-        right: 0,
+        right: 20,
       }}>
         <ChevronDownIcon stroke={textCol} strokeWidth={3} />
       </CustomFloatingSquare>
       <Spacer />
-      {Object.entries(crumbs)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([id, crumbs]) => (
-          <CrumbCluster key={id} userid={id} crumbs={crumbs} />
-        ))}
+      <ScrollView showsVerticalScrollIndicator={false} style={{
+        width: "100%",
+        paddingHorizontal: 20,
+      }}>
+        {Object.entries(crumbs)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([id, crumbs]) => (
+            <CrumbCluster key={id} userid={id} crumbs={crumbs} />
+          ))}
+      </ScrollView>
     </View>
   )
 }
