@@ -201,8 +201,9 @@ export default function CustomMap({
           compassFadeWhenNorth
           maxPitch={45}
           compassPosition={{ top: (.1 * height) + (Platform.OS === "android" ? insetTop : 0), right: 15 }}
-          attributionPosition={{ bottom: 80, left: 100 }}
-          logoPosition={{ bottom: 80, left: 15 }}
+          attributionPosition={{ bottom: 5, right: 0 }}
+          attributionEnabled={false}
+          logoPosition={{ bottom: 70, left: 15 }}
           onDidFinishLoadingMap={async () => {
             onMapReady?.()
             const c = await mapRef?.current?.getCenter()

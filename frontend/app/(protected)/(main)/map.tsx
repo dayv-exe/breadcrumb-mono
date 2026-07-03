@@ -179,7 +179,7 @@ export default function MapScreen() {
   return (
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
-      <Animated.View style={[styles.headerWrapper, {
+      <Animated.View pointerEvents="box-none" style={[styles.headerWrapper, {
         top: 0,
         opacity: headerOpacity,
       }]}>
@@ -313,15 +313,15 @@ export default function MapScreen() {
             backgroundStyle: { backgroundColor: searchBgCol }
           })
         }}>
-          <SearchIcon size={24} stroke={txtCol} strokeWidth={2.5} />
+          <SearchIcon size={24} stroke={txtCol} strokeWidth={2} />
         </CustomFloatingSquare>
         <Spacer size="small" />
         <CustomFloatingSquare type="themed" handleClick={() => setUseSatellite(!useSatellite)}>
-          <SatelliteIcon size={25} stroke={txtCol} strokeWidth={2.5} />
+          <SatelliteIcon size={25} stroke={txtCol} strokeWidth={2} />
         </CustomFloatingSquare>
         <Spacer size="small" />
         <CustomFloatingSquare type="themed" handleClick={focusOnUserLocation}>
-          <LocateIcon size={25} stroke={txtCol} strokeWidth={2.5} />
+          <LocateIcon size={25} stroke={txtCol} strokeWidth={2} />
         </CustomFloatingSquare>
         <Spacer size="small" />
       </Reanimated.View>

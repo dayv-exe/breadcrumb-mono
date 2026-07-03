@@ -187,6 +187,22 @@ export async function GetGroupedCrumbsByIds(ids: string[], groupBySender: boolea
   }, {})
 }
 
+export async function GetRecentCrumbedFriendIds(currentUserid: string): Promise<Set<string>> {
+  const db = await getDb()
+
+  const rows = await db.getAllAsync<{ otherUser: string }>(
+    `SELECT DISTINCT
+       CASE WHEN sender = ? THEN receiver ELSE sender END AS otherUser
+     FROM crumbs
+     WHERE sender = ? OR receiver = ?
+     GROUP BY otherUser
+     `,
+    [currentUserid, currentUserid, currentUserid]
+  )
+
+  return new Set(rows.map(r => r.otherUser))
+}
+
 export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<Crumb>(

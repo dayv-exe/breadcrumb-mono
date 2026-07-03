@@ -1,6 +1,7 @@
 import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { colorForUserId } from "@/utils/userColor";
 import { AnimatableNumericValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 
@@ -12,9 +13,11 @@ type props = {
   customTextStyle?: StyleProp<TextStyle>
   borderRadius?: string | AnimatableNumericValue | undefined
   handleClick?: (src: string,) => void
+  backgroundColor?: string
+  useUserColor?: boolean
 }
 
-export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius }: props) {
+export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, backgroundColor, useUserColor }: props) {
   const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? "");
   const { data: userDetails } = useGetUser(userId ?? "")
   const mode = useColorScheme();
@@ -22,6 +25,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const fgColLight = "#555";
   const fgColDark = "#fff";
   const bgCol = useThemeColor({}, "fadedBackgroundElevated");
+  const userCol = userId ? colorForUserId(userId) : null
 
   const url = (profilePicture && !profilePictureError) ? profilePicture?.thumbnail : null;
 
@@ -29,7 +33,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const parts = nickname.split(/[._]/);
   const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "");
 
-  const gradientColors: [string, string] = mode === "light"
+  const gradientColors: [string, string] = backgroundColor ? [backgroundColor, backgroundColor] : mode === "light"
     ? ["#fbfbfe", "#b9b9d4"]
     : ["#54545c", "#1c1c36"];
 
@@ -68,7 +72,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
           <Text style={[{
             fontSize: size * 0.35,
             fontWeight: "600",
-            color: mode === "light" ? fgColLight : fgColDark,
+            color: useUserColor && userCol ? userCol : mode === "light" ? fgColLight : fgColDark,
           }, customTextStyle]}>
             {initials.toUpperCase()}
           </Text>
