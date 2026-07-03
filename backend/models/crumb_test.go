@@ -1,6 +1,8 @@
 package models
 
 import (
+	"backend/utils"
+	"os"
 	"reflect"
 	"testing"
 
@@ -8,8 +10,10 @@ import (
 )
 
 var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
-	"pk":                      &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
-	"sk":                      &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
+	// received crumb: owner = receiver (r1), other user = sender (s1)
+	"pk": &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1"},
+	"sk": &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1OTHER_USER#s1"},
+
 	"id":                      &dbTypes.AttributeValueMemberS{Value: "c1"},
 	"sender":                  &dbTypes.AttributeValueMemberS{Value: "s1"},
 	"receiver":                &dbTypes.AttributeValueMemberS{Value: "r1"},
@@ -23,8 +27,7 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
 			"content": &dbTypes.AttributeValueMemberS{Value: "hello world"},
-		},
-		},
+		}},
 	}},
 	"media": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
@@ -35,12 +38,20 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 		}},
 	}},
 	"geohash": &dbTypes.AttributeValueMemberS{Value: "hash"},
-	"gsi":     &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1"},
-	"gsiSk":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
-	"gsi2":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_RECEIVER#r1"},
-	"gsi2Sk":  &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
-	"gsi3":    &dbTypes.AttributeValueMemberS{Value: "CRUMB_SENDER#s1"},
-	"gsi3Sk":  &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
+
+	// new fields on Crumb
+	"unlocked":         &dbTypes.AttributeValueMemberBOOL{Value: false},
+	"formattedAddress": &dbTypes.AttributeValueMemberS{Value: "1 Test Street"},
+	"placename":        &dbTypes.AttributeValueMemberS{Value: ""},
+
+	// gsi owner is the receiver for a received crumb
+	"gsi":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1"},
+	"gsiSk": &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1OTHER_USER#s1"},
+}
+
+func TestMain(m *testing.M) {
+	utils.ResolveAuthenticatedUserForTesting("r1")
+	os.Exit(m.Run())
 }
 
 func NewTestCrumbBody() CrumbBody {
@@ -58,39 +69,33 @@ func NewTestCrumbBody() CrumbBody {
 			},
 		},
 		MediaKeys: []CrumbMedia{{Index: 0, MediaKey: "img-key-1"}},
+		Address:   "1 Test Street",
 	}
 }
 
 func TestCrumb_DatabaseFormat(t *testing.T) {
 	body := NewTestCrumbBody()
-	result := (*body.GetCrumbs("s1"))[0]
+	result := CreateReceivedCrumb(&body, "s1")
 	result.Geohash = "hash"
 	result.PlaceId = "p1"
 	result.Time = "100"
 
-	expected := TestCrumbDbItem
-	AssertDatabaseFormat(t, &result, expected, map[string]dbTypes.AttributeValue{
-		"gsi2Sk": &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
-		"gsi3Sk": &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1"},
-	})
+	AssertDatabaseFormat(t, &result, TestCrumbDbItem, nil)
 }
 
 func TestConvertToCrumbs(t *testing.T) {
 	body := NewTestCrumbBody()
-	expected := (*body.GetCrumbs("s1"))[0]
+	expected := CreateReceivedCrumb(&body, "s1")
 	expected.Geohash = "hash"
 	expected.PlaceId = "p1"
-	expected.ApplyPrefixes()
 	expected.Time = "100"
-	expected.Gsi2Sk = "TS#100CRUMB_ID#c1"
-	expected.Gsi3Sk = "TS#100CRUMB_ID#c1"
+	expected.ApplyPrefixes()
 
 	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}, func(c *Crumb) {
 
 	}))[0]
 
 	if !reflect.DeepEqual(expected, results) {
-		// t.Errorf("Result: %v does not match expected: %v", results, expected)
 		t.Errorf("Result and expected MISMATCH:\n%v\n%v", results, expected)
 	}
 }

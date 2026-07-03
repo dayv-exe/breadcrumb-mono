@@ -36,6 +36,10 @@ const (
 	MAPBOX_RETRIEVE_API       = "https://api.mapbox.com/search/searchbox/v1/retrieve"
 	MAPBOX_TILEQUERY_LIMIT    = 15
 	MAPBOX_PLACE_SEARCH_LIMIT = 10
+	MAILBOX_SENT              = "sent"
+	MAILBOX_RECEIVED          = "received"
+	MAILBOX_PRIVATE           = "private"
+	MAILBOX_SAVED             = "saved"
 )
 
 var ALLOWED_LABELS = []string{

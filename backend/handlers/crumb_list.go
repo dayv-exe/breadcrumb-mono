@@ -10,21 +10,15 @@ import (
 )
 
 func handleGetCrumbs(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	mailbox := strings.TrimSpace(strings.ToLower(req.QueryStringParameters["mailbox"]))
 
-	if mailbox == "" {
-		return models.InvalidRequestErrorResponse(""), nil
-	}
-
-	crumbId := strings.TrimSpace(req.QueryStringParameters["crumbId"])
 	timestamp := strings.TrimSpace(req.QueryStringParameters["time"])
-	receiverUserid := strings.TrimSpace(req.QueryStringParameters["receiver"])
+	crumbId := strings.TrimSpace(req.QueryStringParameters["id"])
+	otherUser := strings.TrimSpace(req.QueryStringParameters["otherUser"])
 
 	result, err := helpers.NewCrumbHelper(ctx).GetLatestCrumbs(
-		mailbox,
-		crumbId,
-		receiverUserid,
 		timestamp,
+		crumbId,
+		otherUser,
 	)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get crumbs!", err), nil

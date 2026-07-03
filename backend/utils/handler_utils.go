@@ -137,6 +137,10 @@ func ResolveAuthenticatedUser(req events.APIGatewayV2HTTPRequest) {
 	authenticatedUserid = aws.String(getAuthUserId(req))
 }
 
+func ResolveAuthenticatedUserForTesting(userid string) {
+	authenticatedUserid = aws.String(userid)
+}
+
 func GetAuthenticatedUserid() string {
 	return *authenticatedUserid
 }

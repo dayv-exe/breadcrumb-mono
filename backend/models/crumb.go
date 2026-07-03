@@ -1,7 +1,10 @@
 package models
 
 import (
+	"backend/constants"
 	"backend/utils"
+	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/mmcloughlin/geohash"
@@ -12,14 +15,11 @@ import (
 // get crumb by id
 
 const (
-	SavedCrumbPkPrefix         = "SAVED_CRUMB_RECEIVER#"
-	PrivateCrumbReceiverPrefix = "PRIVATE_CRUMB_RECEIVER#"
-	CrumbPkPrefix              = "CRUMB_RECEIVER#"
-	CrumbReceiverPrefix        = "CRUMB_RECEIVER#"
-	CrumbSenderPrefix          = "CRUMB_SENDER#"
-	CrumbIdPrefix              = "CRUMB_ID#"
-	CrumbTimePrefix            = "TS#"
-	CrumbGeohashPrefix         = "GEOHASH#"
+	// pk: CRUMB_OWNER#{userid} sk: TS#{timestamp}CRUMB_ID#{crumbId}OTHER_USER#{userid}
+	CrumbPkPrefix        = "CRUMB_OWNER#"
+	CrumbSkPrefix        = "TS#"
+	CrumbIdPrefix        = "CRUMB_ID#"
+	CrumbOtherUserPrefix = "OTHER_USER#"
 )
 
 type CrumbText struct {
@@ -66,9 +66,9 @@ type Crumb struct {
 	Text                    []CrumbText  `json:"text" dynamodbav:"text"`
 	Media                   []CrumbMedia `json:"media" dynamodbav:"media"`
 	Geohash                 string       `json:"geohash" dynamodbav:"geohash"`
-	Sent                    bool         `json:"sent"`
-	Private                 bool         `json:"private"`
-	Saved                   bool         `json:"saved"`
+	Sent                    bool         `json:"sent" dynamodbav:"-"`
+	Private                 bool         `json:"private" dynamodbav:"-"`
+	Saved                   bool         `json:"saved" dynamodbav:"-"`
 	Unlocked                bool         `json:"unlocked" dynamodbav:"unlocked"`
 	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName               string       `json:"placename" dynamodbav:"placename"`
@@ -80,12 +80,6 @@ type Crumb struct {
 
 	Gsi   string `json:"-" dynamodbav:"gsi"`
 	GsiSk string `json:"-" dynamodbav:"gsiSk"`
-
-	Gsi2   string `json:"-" dynamodbav:"gsi2"`
-	Gsi2Sk string `json:"-" dynamodbav:"gsi2Sk"`
-
-	Gsi3   string `json:"-" dynamodbav:"gsi3"`
-	Gsi3Sk string `json:"-" dynamodbav:"gsi3Sk"`
 }
 
 type crumbKey struct {
@@ -99,76 +93,87 @@ type CrumbCoordinates struct {
 	Longitude float64
 }
 
-// Returns a slice of crumb models one for each receiver
-func (b *CrumbBody) GetCrumbs(userId string) *[]Crumb {
-	crumbs := make([]Crumb, 0)
-	for _, receiver := range b.Receivers {
-		crumbs = append(crumbs, Crumb{
-			Id:                      b.Id,
-			Sender:                  userId,
-			Receiver:                receiver,
-			Latitude:                b.Latitude,
-			Longitude:               b.Longitude,
-			Radius:                  b.Radius,
-			LocationSelectionManner: b.LocationSelectionManner,
-			Text:                    b.Text,
-			Media:                   b.MediaKeys,
-			Geohash:                 geohash.Encode(b.Latitude, b.Longitude),
-			Time:                    utils.GetNormalDateAndTime(),
-			Unlocked:                false,
-		})
+func (c *Crumb) ApplyPrefixes() {
+	// if you received/saved this crumb
+	// you cannot save your private crumbs
+	owner := c.Receiver
+	otherUser := c.Sender
+
+	if c.Sent {
+		// if you sent this crumb
+		owner = c.Sender
+		otherUser = c.Receiver
+	} else if c.Private {
+		owner = c.Sender
+		otherUser = c.Sender
 	}
 
-	return &crumbs
+	// pk: CRUMB_OWNER#{userid} sk: TS#{timestamp}CRUMB_ID#{crumbId}OTHER_USER#{userid}
+	c.PK = CrumbPkPrefix + owner
+	c.SK = CrumbSkPrefix + c.Time + CrumbIdPrefix + c.Id + CrumbOtherUserPrefix + otherUser
+
+	// to get crumb by id and other user
+	c.Gsi = CrumbPkPrefix + owner
+	c.GsiSk = CrumbIdPrefix + c.Id + CrumbOtherUserPrefix + otherUser
 }
 
-func (c *Crumb) ApplyPrefixes() {
-	// access received crumbs by id
-	// PK: CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
-	c.PK = CrumbPkPrefix + c.Receiver
-	c.SK = CrumbIdPrefix + c.Id
+func IsValidMailbox(mailbox string) bool {
+	mailbox = strings.ToLower(mailbox)
+	return mailbox == constants.MAILBOX_SENT || mailbox == constants.MAILBOX_RECEIVED || mailbox == constants.MAILBOX_PRIVATE || mailbox == constants.MAILBOX_SAVED
+}
 
-	// access sent crumbs by id
-	// GSI: CRUMB_SENDER#{senderId} GSISK: CRUMB_ID#{crumbId}
-	c.Gsi = CrumbSenderPrefix + c.Sender
-	c.GsiSk = CrumbIdPrefix + c.Id
+func createCrumb(crumbBody *CrumbBody, otherUser, mailbox string) Crumb {
+	if !IsValidMailbox(mailbox) {
+		log.Fatalf("ERROR: invalid mailbox parsed!")
+	}
 
-	// access received crumbs by timestamp
-	// GSI2: CRUMB_RECEIVER#{userid} GSI2SK: TS#{timestamp}CRUMB_ID{crumbId}
-	c.Gsi2 = CrumbReceiverPrefix + c.Receiver
-	c.Gsi2Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
+	curUserid := utils.GetAuthenticatedUserid()
+	time := utils.GetNormalDateAndTime()
 
-	// access sent crumbs by timestamp
-	// GSI3: CRUMB_SENDER#{userid} GSI3SK: TS#{timestamp}CRUMB_ID#{crumbId}
-	c.Gsi3 = CrumbSenderPrefix + c.Sender
-	c.Gsi3Sk = CrumbTimePrefix + c.Time + CrumbIdPrefix + c.Id
+	sender := curUserid
+	receiver := otherUser
 
-	if c.Receiver == c.Sender {
-		// make private crumb
-
-		// access private crumbs by id
-		// PK: PRIVATE_CRUMB_RECEIVER#{userid} SK: CRUMB#{crumbId}
-		c.PK = PrivateCrumbReceiverPrefix + c.Receiver
-
-		// access private crumbs by id
-		// GSI: PRIVATE_CRUMB_RECEIVER#{senderId} GSISK: CRUMB_ID#{crumbId}
-		c.Gsi = PrivateCrumbReceiverPrefix + c.Receiver
-
-		// access private crumbs by timestamp
-		// GSI3: PRIVATE_CRUMB_RECEIVER#{userid} GSI3SK: TS#{timestamp}CRUMB_ID#{crumbId}
-		c.Gsi3 = PrivateCrumbReceiverPrefix + c.Receiver
-
-		// access private crumbs by timestamp
-		// GSI2: CRUMB_RECEIVER#{userid} GSI2SK: TS#{timestamp}CRUMB_ID{crumbId}
-		c.Gsi2 = PrivateCrumbReceiverPrefix + c.Receiver
-	} else if c.Saved {
-		// cannot save private crumb
-		c.PK = SavedCrumbPkPrefix + c.Receiver
-		c.Gsi2 = SavedCrumbPkPrefix + c.Receiver
+	if mailbox == "received" {
+		sender = otherUser
+		receiver = curUserid
+	}
+	return Crumb{
+		Id:                      crumbBody.Id,
+		Sender:                  sender,
+		Receiver:                receiver,
+		Latitude:                crumbBody.Latitude,
+		Longitude:               crumbBody.Longitude,
+		Radius:                  crumbBody.Radius,
+		LocationSelectionManner: crumbBody.LocationSelectionManner,
+		Text:                    crumbBody.Text,
+		Media:                   crumbBody.MediaKeys,
+		Sent:                    mailbox == constants.MAILBOX_SENT,
+		Private:                 mailbox == constants.MAILBOX_PRIVATE,
+		Saved:                   mailbox == constants.MAILBOX_SAVED,
+		Unlocked:                mailbox == constants.MAILBOX_SAVED,
+		FormattedAddress:        crumbBody.Address,
+		Geohash:                 geohash.Encode(crumbBody.Latitude, crumbBody.Longitude),
+		Time:                    time,
 	}
 }
 
 func (c *Crumb) RemovePrefixes() {
+}
+
+func CreateSentCrumb(body *CrumbBody, receiverId string) Crumb {
+	return createCrumb(body, receiverId, constants.MAILBOX_SENT)
+}
+
+func CreateReceivedCrumb(body *CrumbBody, senderId string) Crumb {
+	return createCrumb(body, senderId, constants.MAILBOX_RECEIVED)
+}
+
+func CreatePrivateCrumb(body *CrumbBody, userid string) Crumb {
+	return createCrumb(body, userid, constants.MAILBOX_PRIVATE)
+}
+
+func CreateSavedCrumb(body *CrumbBody, senderId string) Crumb {
+	return createCrumb(body, senderId, constants.MAILBOX_SAVED)
 }
 
 // converts a slice of database items to a slice of crumbs (maybe)

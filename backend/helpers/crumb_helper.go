@@ -38,7 +38,18 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 		return fmt.Errorf("Invalid crumb location type")
 	}
 
-	crumbs := crumb.GetCrumbs(userId)
+	crumbs := make([]*models.Crumb, 0)
+
+	for _, receiver := range crumb.Receivers {
+		// bi-directional crumbs one for sender one for receiver
+		receiversCopy := models.CreateReceivedCrumb(&crumb, userId)
+		crumbs = append(crumbs, &receiversCopy)
+		if userId != receiver {
+			// if not private crumb
+			sendersCopy := models.CreateSentCrumb(&crumb, receiver)
+			crumbs = append(crumbs, &sendersCopy)
+		}
+	}
 
 	transactions := make([]types.TransactWriteItem, 0)
 
@@ -66,76 +77,59 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 		placeIds = append(placeIds, placesInfo.placeIds...)
 	}
 
-	for _, crumb := range *crumbs {
+	for _, crumb := range crumbs {
 		// unread crumbs to be sent to recipient
 		crumb.PlaceId = strings.Join(placeIds, ",")
 		crumb.FormattedAddress = formattedAddress
 		crumb.PlaceName = placeName
-		transactions = append(transactions, UsePut(&crumb, utils.GetDependencies().MainTableName, nil))
+		transactions = append(transactions, UsePut(crumb, utils.GetDependencies().MainTableName, nil))
 	}
 
 	helper := newHelper(h.Ctx, nil)
 	return TransactWrite(helper, transactions...)
 }
 
-func (h *crumbHelper) GetCrumb(userId, crumbId string, sentCrumb bool) (*models.Crumb, error) {
+func (h *crumbHelper) GetCrumb(otherUser, crumbId string) (*models.Crumb, error) {
+	userid := utils.GetAuthenticatedUserid()
 	helper := newHelper(h.Ctx, nil)
-	switch sentCrumb {
-	case false:
-		return GetAndConvertItem(
-			helper,
-			*models.CrumbKey(userId, crumbId),
-			nil,
-			func(item map[string]types.AttributeValue) models.Crumb {
-				crumb := utils.DatabaseItemToStruct(item, func(c *models.Crumb) {
-					c.Sent = c.Sender == userId
-					c.RemovePrefixes()
-				})
+	keyCond := expression.KeyEqual(
+		expression.Key("gsi"),
+		expression.Value(models.CrumbPkPrefix+userid),
+	).And(
+		expression.KeyEqual(
+			expression.Key("gsiSk"),
+			expression.Value(models.CrumbIdPrefix+crumbId+models.CrumbOtherUserPrefix+otherUser),
+		),
+	)
 
-				return *crumb
-			},
-		)
-	default:
-		// get sent crumb by id
-		keyCond := expression.KeyEqual(
-			expression.Key("pk"),
-			expression.Value(models.CrumbSenderPrefix+userId),
-		).And(
-			expression.KeyBeginsWith(
-				expression.Key("sk"),
-				models.CrumbIdPrefix+crumbId,
-			),
-		)
-
-		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-		if err != nil {
-			return nil, err
-		}
-
-		result, err := QueryItems(
-			helper,
-			nil,
-			aws.String("GSIndex"),
-			expr,
-			aws.Int32(1),
-			func(c []map[string]types.AttributeValue) []models.Crumb {
-				return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-					resolveCrumbMailbox(c, userId)
-				})
-			},
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return &result.Items[0], nil
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return nil, err
 	}
+
+	result, err := QueryItems(
+		helper,
+		nil,
+		aws.String("GSIndex"),
+		expr,
+		aws.Int32(1),
+		func(c []map[string]types.AttributeValue) []models.Crumb {
+			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
+				resolveCrumbMailbox(c, userid)
+			})
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result.Items[0], nil
 }
 
-func (h *crumbHelper) OpenCrumb(userId, crumbId string, sentCrumb bool) ([]resItem, error) {
+func (h *crumbHelper) OpenCrumb(otherUser, crumbId string) ([]resItem, error) {
 	// based on location manner, do a check to see if user can open crumb
-	return h.getCrumbContent(userId, crumbId, sentCrumb)
+	return h.getCrumbContent(otherUser, crumbId)
 }
 
 var defaultCrumbProjection = expression.NamesList(
@@ -153,111 +147,25 @@ var defaultCrumbProjection = expression.NamesList(
 	expression.Name("placename"),
 )
 
-func (h *crumbHelper) GetCrumbs(userId string, sentCrumb bool, lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
-	pk := "gsi2"
-	sk := "gsi2Sk"
-	if sentCrumb {
-		pk = "gsi3"
-		sk = "gsi3Sk"
-	}
-
-	pkVal := models.CrumbReceiverPrefix + userId
-	skVal := models.CrumbTimePrefix
-	if sentCrumb {
-		pkVal = models.CrumbSenderPrefix + userId
-	}
-
-	keyCond := expression.KeyEqual(
-		expression.Key(pk),
-		expression.Value(pkVal),
-	).And(
-		expression.KeyBeginsWith(
-			expression.Key(sk),
-			skVal,
-		),
-	)
-
-	proj := defaultCrumbProjection
-
-	indexName := "GSIndex2"
-	if sentCrumb {
-		indexName = "GSIndex3"
-	}
-
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return QueryItems(
-		newHelper(h.Ctx, nil),
-		&lastEvalKey,
-		&indexName,
-		expr,
-		nil,
-		func(c []map[string]types.AttributeValue) []models.Crumb {
-			crumbs := utils.DatabaseItemsToStructs(c, func(c *models.Crumb) {
-				c.Sent = userId == c.Sender
-				c.RemovePrefixes()
-			})
-			return *crumbs
-		},
-	)
-}
-
-func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp string) (*queryResult[models.Crumb], error) {
+func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*queryResult[models.Crumb], error) {
 	userid := utils.GetAuthenticatedUserid()
 	pkName := "pk"
 	skName := "sk"
-	indexName := "GSIndex2"
-	gsiName := "gsi2"
-	gsiSkName := "gsi2Sk"
 	pk := models.CrumbPkPrefix + userid
-	sk := models.CrumbIdPrefix + crumbId
-	gsi := models.CrumbReceiverPrefix + userid
-	gsiSk := models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
-
-	switch mailbox {
-	case "sent":
-		indexName = "GSIndex3"
-		gsiName = "gsi3"
-		gsiSkName = "gsi3Sk"
-		pk = models.CrumbPkPrefix + receiverId
-		sk = models.CrumbIdPrefix + crumbId
-		gsi = models.CrumbSenderPrefix + userid
-		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
-	case "private":
-		indexName = "GSIndex3"
-		gsiName = "gsi3"
-		gsiSkName = "gsi3Sk"
-		pk = models.PrivateCrumbReceiverPrefix + userid
-		sk = models.CrumbIdPrefix + crumbId
-		gsi = models.PrivateCrumbReceiverPrefix + userid
-		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
-	case "saved":
-		indexName = "GSIndex2"
-		gsiName = "gsi2"
-		gsiSkName = "gsi2Sk"
-		pk = models.SavedCrumbPkPrefix + userid
-		sk = models.CrumbIdPrefix + crumbId
-		gsi = models.SavedCrumbPkPrefix + userid
-		gsiSk = models.CrumbTimePrefix + timestamp + models.CrumbIdPrefix + crumbId
-	}
+	sk := models.CrumbSkPrefix + timestamp + models.CrumbIdPrefix + crumbId + models.CrumbOtherUserPrefix + otherUser
 
 	var lastKey *map[string]types.AttributeValue = &map[string]types.AttributeValue{
-		pkName:    &types.AttributeValueMemberS{Value: pk},
-		skName:    &types.AttributeValueMemberS{Value: sk},
-		gsiName:   &types.AttributeValueMemberS{Value: gsi},
-		gsiSkName: &types.AttributeValueMemberS{Value: gsiSk},
+		pkName: &types.AttributeValueMemberS{Value: pk},
+		skName: &types.AttributeValueMemberS{Value: sk},
 	}
 
-	if crumbId == "" || timestamp == "" {
+	if timestamp == "" {
 		lastKey = nil
 	}
 
 	keyCond := expression.KeyEqual(
-		expression.Key(gsiName),
-		expression.Value(gsi),
+		expression.Key(pkName),
+		expression.Value(pk),
 	)
 
 	projection := defaultCrumbProjection
@@ -270,40 +178,7 @@ func (h *crumbHelper) GetLatestCrumbs(mailbox, crumbId, receiverId, timestamp st
 	return QueryItems(
 		newHelper(h.Ctx, nil),
 		lastKey,
-		&indexName,
-		expr,
 		nil,
-		func(c []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-				resolveCrumbMailbox(c, userid)
-			})
-		},
-	)
-}
-
-func (h *crumbHelper) GetPrivateCrumbs(lastEvalKey map[string]types.AttributeValue) (*queryResult[models.Crumb], error) {
-	userid := utils.GetAuthenticatedUserid()
-	keyCond := expression.KeyEqual(
-		expression.Key("gsi2"),
-		expression.Value(models.PrivateCrumbReceiverPrefix+userid),
-	).And(
-		expression.KeyBeginsWith(
-			expression.Key("gsi2Sk"),
-			models.CrumbTimePrefix,
-		),
-	)
-
-	proj := defaultCrumbProjection
-
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	return QueryItems(
-		newHelper(h.Ctx, nil),
-		&lastEvalKey,
-		aws.String("GSIndex2"),
 		expr,
 		nil,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
@@ -322,86 +197,55 @@ type resItem struct {
 	Text      models.CrumbText `json:"text,omitempty"`
 }
 
-func (h *crumbHelper) getCrumbContent(userId, crumbId string, sentCrumb bool) ([]resItem, error) {
-	key := models.CrumbKey(userId, crumbId)
+func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, error) {
 	helper := newHelper(h.Ctx, nil)
 	var crumb models.Crumb
+	userid := utils.GetAuthenticatedUserid()
 
-	switch sentCrumb {
-	case true:
-		// sender wants to view crumb
-		keyCond := expression.KeyEqual(
-			expression.Key("gsi"),
-			expression.Value(models.CrumbSenderPrefix+userId),
-		).And(
-			expression.KeyEqual(
-				expression.Key("gsiSk"),
-				expression.Value(models.CrumbIdPrefix+crumbId),
-			),
-		)
+	// sender wants to view crumb
+	keyCond := expression.KeyEqual(
+		expression.Key("gsi"),
+		expression.Value(models.CrumbPkPrefix+userid),
+	).And(
+		expression.KeyEqual(
+			expression.Key("gsiSk"),
+			expression.Value(models.CrumbIdPrefix+crumbId+models.CrumbOtherUserPrefix+otherUser),
+		),
+	)
 
-		proj := expression.NamesList(
-			expression.Name("text"),
-			expression.Name("media"),
-		)
+	proj := expression.NamesList(
+		expression.Name("text"),
+		expression.Name("media"),
+	)
 
-		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
 
-		if err != nil {
-			return nil, err
-		}
-
-		result, err := QueryItems(
-			helper,
-			nil,
-			aws.String("GSIndex"),
-			expr,
-			aws.Int32(1),
-			func(c []map[string]types.AttributeValue) []models.Crumb {
-				return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-					resolveCrumbMailbox(c, userId)
-				})
-			},
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if len(result.Items) < 1 {
-			return nil, fmt.Errorf("No such crumb exists!")
-		}
-
-		crumb = result.Items[0]
-	default:
-		// receiver wants to view crumb
-		expr, err := expression.NewBuilder().WithProjection(
-			expression.NamesList(
-				expression.Name("media"),
-				expression.Name("text"),
-			),
-		).Build()
-		if err != nil {
-			return nil, err
-		}
-
-		result, err := GetAndConvertItem(
-			helper,
-			*key,
-			&expr,
-			func(m map[string]types.AttributeValue) models.Crumb {
-				return (*models.ConvertToCrumbs([]map[string]types.AttributeValue{m}, func(c *models.Crumb) {
-					resolveCrumbMailbox(c, userId)
-				}))[0]
-			},
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		crumb = *result
+	if err != nil {
+		return nil, err
 	}
+
+	result, err := QueryItems(
+		helper,
+		nil,
+		aws.String("GSIndex"),
+		expr,
+		aws.Int32(1),
+		func(c []map[string]types.AttributeValue) []models.Crumb {
+			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
+				resolveCrumbMailbox(c, userid)
+			})
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result.Items) < 1 {
+		return nil, fmt.Errorf("No such crumb exists!")
+	}
+
+	crumb = result.Items[0]
 
 	res := make([]resItem, len(crumb.Media)+len(crumb.Text))
 	cloudfrontHelper := NewCloudfrontHelper(h.Ctx)
