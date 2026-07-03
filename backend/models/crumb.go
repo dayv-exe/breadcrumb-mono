@@ -66,8 +66,6 @@ type Crumb struct {
 	Text                    []CrumbText  `json:"text" dynamodbav:"text"`
 	Media                   []CrumbMedia `json:"media" dynamodbav:"media"`
 	Geohash                 string       `json:"geohash" dynamodbav:"geohash"`
-	Sent                    bool         `json:"sent" dynamodbav:"-"`
-	Private                 bool         `json:"private" dynamodbav:"-"`
 	Saved                   bool         `json:"saved" dynamodbav:"-"`
 	Unlocked                bool         `json:"unlocked" dynamodbav:"unlocked"`
 	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
@@ -96,14 +94,14 @@ type CrumbCoordinates struct {
 func (c *Crumb) ApplyPrefixes() {
 	// if you received/saved this crumb
 	// you cannot save your private crumbs
+	userid := utils.GetAuthenticatedUserid()
 	owner := c.Receiver
 	otherUser := c.Sender
 
-	if c.Sent {
-		// if you sent this crumb
+	if userid == c.Sender {
 		owner = c.Sender
 		otherUser = c.Receiver
-	} else if c.Private {
+	} else if c.Sender == c.Receiver {
 		owner = c.Sender
 		otherUser = c.Sender
 	}
@@ -122,21 +120,11 @@ func IsValidMailbox(mailbox string) bool {
 	return mailbox == constants.MAILBOX_SENT || mailbox == constants.MAILBOX_RECEIVED || mailbox == constants.MAILBOX_PRIVATE || mailbox == constants.MAILBOX_SAVED
 }
 
-func createCrumb(crumbBody *CrumbBody, otherUser, mailbox string) Crumb {
+func createCrumb(crumbBody *CrumbBody, sender, receiver, mailbox string) Crumb {
 	if !IsValidMailbox(mailbox) {
 		log.Fatalf("ERROR: invalid mailbox parsed!")
 	}
-
-	curUserid := utils.GetAuthenticatedUserid()
 	time := utils.GetNormalDateAndTime()
-
-	sender := curUserid
-	receiver := otherUser
-
-	if mailbox == "received" {
-		sender = otherUser
-		receiver = curUserid
-	}
 	return Crumb{
 		Id:                      crumbBody.Id,
 		Sender:                  sender,
@@ -147,8 +135,6 @@ func createCrumb(crumbBody *CrumbBody, otherUser, mailbox string) Crumb {
 		LocationSelectionManner: crumbBody.LocationSelectionManner,
 		Text:                    crumbBody.Text,
 		Media:                   crumbBody.MediaKeys,
-		Sent:                    mailbox == constants.MAILBOX_SENT,
-		Private:                 mailbox == constants.MAILBOX_PRIVATE,
 		Saved:                   mailbox == constants.MAILBOX_SAVED,
 		Unlocked:                mailbox == constants.MAILBOX_SAVED,
 		FormattedAddress:        crumbBody.Address,
@@ -160,20 +146,20 @@ func createCrumb(crumbBody *CrumbBody, otherUser, mailbox string) Crumb {
 func (c *Crumb) RemovePrefixes() {
 }
 
-func CreateSentCrumb(body *CrumbBody, receiverId string) Crumb {
-	return createCrumb(body, receiverId, constants.MAILBOX_SENT)
+func CreateSentCrumb(body *CrumbBody, sender, receiver string) Crumb {
+	return createCrumb(body, sender, receiver, constants.MAILBOX_SENT)
 }
 
-func CreateReceivedCrumb(body *CrumbBody, senderId string) Crumb {
-	return createCrumb(body, senderId, constants.MAILBOX_RECEIVED)
+func CreateReceivedCrumb(body *CrumbBody, sender, receiver string) Crumb {
+	return createCrumb(body, sender, receiver, constants.MAILBOX_RECEIVED)
 }
 
-func CreatePrivateCrumb(body *CrumbBody, userid string) Crumb {
-	return createCrumb(body, userid, constants.MAILBOX_PRIVATE)
+func CreatePrivateCrumb(body *CrumbBody, sender, receiver string) Crumb {
+	return createCrumb(body, sender, receiver, constants.MAILBOX_PRIVATE)
 }
 
-func CreateSavedCrumb(body *CrumbBody, senderId string) Crumb {
-	return createCrumb(body, senderId, constants.MAILBOX_SAVED)
+func CreateSavedCrumb(body *CrumbBody, sender, receiver string) Crumb {
+	return createCrumb(body, sender, receiver, constants.MAILBOX_SAVED)
 }
 
 // converts a slice of database items to a slice of crumbs (maybe)

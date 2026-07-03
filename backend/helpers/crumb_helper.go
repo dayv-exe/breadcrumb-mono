@@ -18,11 +18,6 @@ type crumbHelper struct {
 	Ctx context.Context
 }
 
-func resolveCrumbMailbox(c *models.Crumb, userid string) {
-	c.Sent = c.Sender == userid
-	c.Private = c.Sender == c.Receiver
-}
-
 func NewCrumbHelper(ctx context.Context) *crumbHelper {
 	return &crumbHelper{
 		Ctx: ctx,
@@ -42,11 +37,11 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 
 	for _, receiver := range crumb.Receivers {
 		// bi-directional crumbs one for sender one for receiver
-		receiversCopy := models.CreateReceivedCrumb(&crumb, userId)
+		receiversCopy := models.CreateReceivedCrumb(&crumb, userId, receiver)
 		crumbs = append(crumbs, &receiversCopy)
 		if userId != receiver {
 			// if not private crumb
-			sendersCopy := models.CreateSentCrumb(&crumb, receiver)
+			sendersCopy := models.CreateSentCrumb(&crumb, userId, receiver)
 			crumbs = append(crumbs, &sendersCopy)
 		}
 	}
@@ -115,7 +110,6 @@ func (h *crumbHelper) GetCrumb(otherUser, crumbId string) (*models.Crumb, error)
 		aws.Int32(1),
 		func(c []map[string]types.AttributeValue) []models.Crumb {
 			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-				resolveCrumbMailbox(c, userid)
 			})
 		},
 	)
@@ -159,7 +153,7 @@ func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*qu
 		skName: &types.AttributeValueMemberS{Value: sk},
 	}
 
-	if timestamp == "" {
+	if strings.TrimSpace(timestamp) == "" || strings.TrimSpace(crumbId) == "" || strings.TrimSpace(otherUser) == "" {
 		lastKey = nil
 	}
 
@@ -183,7 +177,6 @@ func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*qu
 		nil,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
 			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-				resolveCrumbMailbox(c, userid)
 			})
 		},
 	)
@@ -231,9 +224,7 @@ func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, err
 		expr,
 		aws.Int32(1),
 		func(c []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-				resolveCrumbMailbox(c, userid)
-			})
+			return *models.ConvertToCrumbs(c, nil)
 		},
 	)
 

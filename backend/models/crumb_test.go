@@ -75,7 +75,7 @@ func NewTestCrumbBody() CrumbBody {
 
 func TestCrumb_DatabaseFormat(t *testing.T) {
 	body := NewTestCrumbBody()
-	result := CreateReceivedCrumb(&body, "s1")
+	result := CreateReceivedCrumb(&body, "s1", "r1")
 	result.Geohash = "hash"
 	result.PlaceId = "p1"
 	result.Time = "100"
@@ -85,7 +85,7 @@ func TestCrumb_DatabaseFormat(t *testing.T) {
 
 func TestConvertToCrumbs(t *testing.T) {
 	body := NewTestCrumbBody()
-	expected := CreateReceivedCrumb(&body, "s1")
+	expected := CreateReceivedCrumb(&body, "s1", "r1")
 	expected.Geohash = "hash"
 	expected.PlaceId = "p1"
 	expected.Time = "100"
