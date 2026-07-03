@@ -90,6 +90,8 @@ func TestConvertToCrumbs(t *testing.T) {
 	expected.PlaceId = "p1"
 	expected.Time = "100"
 	expected.ApplyPrefixes()
+	expected.Owner = ""
+	expected.OtherUser = ""
 
 	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}, func(c *Crumb) {
 
