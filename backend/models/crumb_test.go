@@ -11,10 +11,10 @@ import (
 
 var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	// received crumb: owner = receiver (r1), other user = sender (s1)
-	"pk": &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1"},
-	"sk": &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1OTHER_USER#s1"},
-
-	"id":                      &dbTypes.AttributeValueMemberS{Value: "c1"},
+	"pk":                      &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1"},
+	"sk":                      &dbTypes.AttributeValueMemberS{Value: "TS#100CRUMB_ID#c1r1s1OTHER_USER#s1"},
+	"nonCompositeId":          &dbTypes.AttributeValueMemberS{Value: "c1"},
+	"id":                      &dbTypes.AttributeValueMemberS{Value: "c1r1s1"},
 	"sender":                  &dbTypes.AttributeValueMemberS{Value: "s1"},
 	"receiver":                &dbTypes.AttributeValueMemberS{Value: "r1"},
 	"latitude":                &dbTypes.AttributeValueMemberN{Value: "50"},
@@ -46,7 +46,10 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 
 	// gsi owner is the receiver for a received crumb
 	"gsi":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1"},
-	"gsiSk": &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1OTHER_USER#s1"},
+	"gsiSk": &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1r1s1OTHER_USER#s1"},
+
+	"gsi2":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_ID#c1"},
+	"gsi2Sk": &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1OTHER_USER#s1"},
 }
 
 func TestMain(m *testing.M) {

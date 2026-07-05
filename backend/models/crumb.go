@@ -56,6 +56,7 @@ type CrumbMarkerDetails struct {
 
 type Crumb struct {
 	Id                      string       `json:"id" dynamodbav:"id"`
+	NonCompositeId          string       `json:"nonCompositeId" dynamodbav:"nonCompositeId"`
 	Sender                  string       `json:"sender" dynamodbav:"sender"`
 	Receiver                string       `json:"receiver" dynamodbav:"receiver"`
 	Latitude                float64      `json:"latitude" dynamodbav:"latitude"`
@@ -78,6 +79,9 @@ type Crumb struct {
 
 	Gsi   string `json:"-" dynamodbav:"gsi"`
 	GsiSk string `json:"-" dynamodbav:"gsiSk"`
+
+	Gsi2   string `json:"-" dynamodbav:"gsi2"`
+	Gsi2Sk string `json:"-" dynamodbav:"gsi2Sk"`
 
 	Owner     string `json:"-" dynamodbav:"-"`
 	OtherUser string `json:"-" dynamodbav:"-"`
@@ -102,9 +106,13 @@ func (c *Crumb) ApplyPrefixes() {
 	c.PK = CrumbPkPrefix + c.Owner
 	c.SK = CrumbSkPrefix + c.Time + CrumbIdPrefix + c.Id + CrumbOtherUserPrefix + c.OtherUser
 
-	// to get crumb by id and other user
+	// to get crumb by id from owners partition
 	c.Gsi = CrumbPkPrefix + c.Owner
 	c.GsiSk = CrumbIdPrefix + c.Id + CrumbOtherUserPrefix + c.OtherUser
+
+	// to access crumb by non composite id only not to be expose to client apis
+	c.Gsi2 = CrumbIdPrefix + c.NonCompositeId
+	c.Gsi2Sk = CrumbPkPrefix + c.Owner + CrumbOtherUserPrefix + c.OtherUser
 }
 
 func IsValidMailbox(mailbox string) bool {
@@ -118,7 +126,8 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailb
 	}
 	time := utils.GetNormalDateAndTime()
 	return Crumb{
-		Id:                      crumbBody.Id,
+		Id:                      crumbBody.Id + owner + otherUser,
+		NonCompositeId:          crumbBody.Id,
 		Sender:                  sender,
 		Receiver:                receiver,
 		Latitude:                crumbBody.Latitude,
