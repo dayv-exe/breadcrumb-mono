@@ -19,7 +19,7 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
     crumb.longitude,
     crumb.sender,
     crumb.receiver,
-    (crumb.saved ? "saved" : crumb.sender === userid ? "sent" : "received") as CrumbMailbox,
+    (crumb.saved ? "saved" : crumb.receiver === userid ? "received" : "sent") as CrumbMailbox,
     crumb.unlocked ? 1 : 0,
     crumb.time,
     crumb.radius,

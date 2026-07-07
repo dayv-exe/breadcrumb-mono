@@ -1,3 +1,4 @@
+import { TIME } from '@/constants/appConstants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useEffect, useRef } from 'react';
@@ -28,8 +29,8 @@ interface LocationActions {
 
 const LOCATION_CONFIG = {
   ACCURACY: Location.Accuracy.BestForNavigation,
-  DISTANCE_INTERVAL: 10,
-  TIME_INTERVAL: 15_000,
+  DISTANCE_INTERVAL: 25,
+  TIME_INTERVAL: 15 * TIME.SECOND,
   GEOCODE_DISTANCE_THRESHOLD: 25,
 } as const;
 

@@ -14,7 +14,7 @@ async function openAndInit() {
       longitude REAL,
       sender TEXT NOT NULL,
       receiver TEXT NOT NULL,
-      mailbox TEXT NOT NULL CHECK(mailbox IN ('sent', 'received')),
+      mailbox TEXT NOT NULL CHECK(mailbox IN ('saved', 'sent', 'received')),
       unlocked INTEGER NOT NULL DEFAULT 0 CHECK(unlocked IN (0, 1)),
       time INTEGER NOT NULL,
       locationSelectionManner TEXT NOT NULL CHECK(locationSelectionManner IN ('gps', 'label', 'dropped-pin', 'none')),
