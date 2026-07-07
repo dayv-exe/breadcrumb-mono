@@ -119,5 +119,5 @@ func handleGetPlacesNearbyUser(ctx context.Context, req events.APIGatewayV2HTTPR
 		return models.ServerSideErrorResponse("Failed to get places nearby user!", err), nil
 	}
 
-	return models.SuccessfulGetRequestResponse(places, nil), nil
+	return models.SuccessfulGetRequestResponse(places.PlaceIds, nil), nil
 }

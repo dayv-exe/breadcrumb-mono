@@ -114,8 +114,8 @@ func NewMapboxHelper(ctx context.Context) *mapboxHelper {
 }
 
 type placeIdResponse struct {
-	placeIds  []string
-	placeName string
+	PlaceIds  []string `json:"placeIds"`
+	PlaceName string
 }
 
 // for gps location use these layers: poi_label, building, structure, transit_stop_label
@@ -129,8 +129,8 @@ func (h *mapboxHelper) GetNearbyPlaceIds(lat, lon, radius float64, locationSelec
 	if locationSelectionManner == constants.LOCATION_TYPE_DROPPED_PIN {
 		log.Printf("location manner not valid for getting nearby place id")
 		return placeIdResponse{
-			placeIds:  make([]string, 0),
-			placeName: "",
+			PlaceIds:  make([]string, 0),
+			PlaceName: "",
 		}, nil
 	}
 
@@ -219,8 +219,8 @@ func getGpsSelectedPlacesId(fc FeatureCollection) placeIdResponse {
 		}
 	}
 	return placeIdResponse{
-		placeIds:  ids,
-		placeName: placename,
+		PlaceIds:  ids,
+		PlaceName: placename,
 	}
 }
 
@@ -276,8 +276,8 @@ func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) pl
 
 	if len(ids) > 1 {
 		return placeIdResponse{
-			placeIds:  ids,
-			placeName: clickedLabel.Properties.Name,
+			PlaceIds:  ids,
+			PlaceName: clickedLabel.Properties.Name,
 		}
 	}
 
@@ -291,8 +291,8 @@ func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) pl
 
 	if len(ids) > 1 {
 		return placeIdResponse{
-			placeIds:  ids,
-			placeName: clickedLabel.Properties.Name,
+			PlaceIds:  ids,
+			PlaceName: clickedLabel.Properties.Name,
 		}
 	}
 
@@ -306,8 +306,8 @@ func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) pl
 
 	if len(ids) > 1 {
 		return placeIdResponse{
-			placeIds:  ids,
-			placeName: clickedLabel.Properties.Name,
+			PlaceIds:  ids,
+			PlaceName: clickedLabel.Properties.Name,
 		}
 	}
 
@@ -317,8 +317,8 @@ func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) pl
 
 	log.Printf("ids:  %#v", ids)
 	return placeIdResponse{
-		placeIds:  ids,
-		placeName: clickedLabel.Properties.Name,
+		PlaceIds:  ids,
+		PlaceName: clickedLabel.Properties.Name,
 	}
 }
 

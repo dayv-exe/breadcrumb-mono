@@ -68,8 +68,8 @@ func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
 			return fmt.Errorf("Failed to send crumb. ERROR: %v", err)
 		}
 
-		placeName = placesInfo.placeName
-		placeIds = append(placeIds, placesInfo.placeIds...)
+		placeName = placesInfo.PlaceName
+		placeIds = append(placeIds, placesInfo.PlaceIds...)
 	}
 
 	for _, crumb := range crumbs {
