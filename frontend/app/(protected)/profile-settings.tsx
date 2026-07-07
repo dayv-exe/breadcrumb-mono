@@ -1,4 +1,4 @@
-import { DeleteLocalDatabase } from "@/api/db/InitDb";
+import { DeleteLocalDatabase, logAllCrumbs } from "@/api/db/InitDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -258,6 +258,15 @@ export default function ProfileSettingsScreen() {
       keyExtractor: (opt: SettingOption) => opt.name,
       data: [
         {
+          name: 'Log local db', value: "", handleClick: () => {
+            Toast.show({
+              text1: "Logging local db...",
+              type: "info",
+            })
+            logAllCrumbs()
+          }
+        },
+        {
           name: 'Delete local db', value: "", handleClick: () => {
             Toast.show({
               text1: "Deleting local db...",
@@ -283,8 +292,8 @@ export default function ProfileSettingsScreen() {
           flexDirection: "row",
           paddingTop: 15,
         }}>
-          <CustomLabel width="auto" labelText="❤️" fontSize={13} padding={0} customStyle={{marginRight: 3}} />
-          <CustomLabel padding={0} width="auto" fontSize={13} adaptToTheme labelText="undergrad diss proj by david arubuike" customStyle={{opacity: .6}} />
+          <CustomLabel width="auto" labelText="❤️" fontSize={13} padding={0} customStyle={{ marginRight: 3 }} />
+          <CustomLabel padding={0} width="auto" fontSize={13} adaptToTheme labelText="undergrad diss proj by david arubuike" customStyle={{ opacity: .6 }} />
         </View>
       ),
       key: "raw",

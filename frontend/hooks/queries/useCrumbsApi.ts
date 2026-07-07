@@ -1,5 +1,5 @@
 import { getCrumbMarkers, getLatestCrumbs, shareCrumb } from "@/api/crumbsApi";
-import { Crumb, CrumbMailbox } from "@/api/models/crumb";
+import { Crumb } from "@/api/models/crumb";
 import { TIME } from "@/constants/appConstants";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
@@ -7,10 +7,10 @@ export const useShareCrumbApi = () => useMutation({
   mutationFn: shareCrumb
 })
 
-export const useGetLatestCrumbs = (mailbox: CrumbMailbox, lastCrumb: Crumb | null) => {
+export const useGetLatestCrumbs = (userid: string, lastCrumb: Crumb | null) => {
   return useInfiniteQuery({
-    queryKey: [`latest-crumbs-${mailbox}`],
-    queryFn: () => getLatestCrumbs(mailbox, lastCrumb),
+    queryKey: [`latest-crumbs-${userid}`],
+    queryFn: () => getLatestCrumbs(userid, lastCrumb),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next && lastPage.next !== "" ? lastPage.next : undefined,
   })

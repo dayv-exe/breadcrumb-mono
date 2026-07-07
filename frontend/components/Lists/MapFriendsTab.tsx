@@ -2,9 +2,9 @@ import { GetRecentCrumbedFriendIds } from "@/api/db/crumbsDb";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import { useFocusEffect } from "expo-router";
-import { ListIcon, UserPlus } from "lucide-react-native";
+import { ListIcon } from "lucide-react-native";
 import { PropsWithChildren, useState } from "react";
-import { ScrollView, Text, TouchableOpacity } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Spacer from "../Spacer";
 import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
 
@@ -12,9 +12,10 @@ function TabButton({ children }: PropsWithChildren) {
   const bgCol = useThemeColor({}, "background")
   return (
     <TouchableOpacity style={{
-      borderRadius: 1000,
+      width: "auto",
+      borderRadius: 15,
       backgroundColor: bgCol,
-      padding: 12,
+      padding: 10,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -46,46 +47,30 @@ export default function MapFriendTab() {
   })
 
   return (
-    <ScrollView horizontal pointerEvents="box-none" showsHorizontalScrollIndicator={false} style={{
-      width: "100%",
+    <View pointerEvents="box-none" style={{
       position: "absolute",
-      bottom: 5,
-      paddingHorizontal: 15,
-      paddingVertical: 10
+      bottom: 15,
+      width: "100%",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      paddingRight: 10,
     }}>
-      <TabButton>
-        <ListIcon size={18} stroke={textCol} strokeWidth={2} />
+      <ScrollView pointerEvents="box-none" horizontal showsHorizontalScrollIndicator={false} style={{
+        width: "100%",
+        paddingLeft: 10,
+      }}>
+        <CustomProfilePictureCircle size={55} />
         <Spacer size="small" />
-        <Text
-          style={{
-            color: textCol
-          }}
-        >List view</Text>
+        <CustomProfilePictureCircle size={55} />
+      </ScrollView>
+      <TabButton>
+        <ListIcon stroke={textCol} strokeWidth={2} />
+        <Spacer size="small" />
+        <Text style={{
+          color: textCol
+        }}>List View</Text>
       </TabButton>
-      <Spacer size="small" />
-      {
-        recents && [...recents].map((id) => (
-          <CustomProfilePictureCircle useUserColor backgroundColor={bgCol} key={id} userId={id} size={47} customStyle={{
-            padding: 0,
-            margin: 0,
-            borderColor: darkBgCol,
-            borderWidth: 3,
-            marginRight: 12,
-
-            elevation: 5,
-            shadowColor: "black",
-            shadowOffset: { height: 2, width: 2 },
-            shadowOpacity: 1,
-            shadowRadius: 5,
-          }} handleClick={() => {
-            console.log("")
-          }} />
-        ))
-      }
-      {recents?.size === 0 && <TabButton>
-        <UserPlus size={18} stroke={textCol} strokeWidth={2} style={{
-        }} />
-      </TabButton>}
-    </ScrollView>
+    </View>
   )
 }

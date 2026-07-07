@@ -4,6 +4,7 @@ import { LocationSelectionManner } from "./locationTypes"
 
 export type Crumb = {
   id: string
+  nonCompositeId: string
   sender: string
   receiver: string
   latitude: number
@@ -16,8 +17,6 @@ export type Crumb = {
   geohash: string
   time: string
   unlocked: boolean
-  private: boolean
-  sent: boolean
   saved: boolean
   formattedAddress: string
   placename: string

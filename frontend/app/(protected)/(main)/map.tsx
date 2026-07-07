@@ -1,8 +1,6 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
-import CustomButton from "@/components/buttons/CustomButton";
 import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
 import CustomLabel from "@/components/CustomLabel";
-import MapFriendTab from "@/components/Lists/MapFriendsTab";
 import CustomMap from "@/components/map/CustomMap";
 import PlaceSearch from "@/components/map/PlaceSearch";
 import Spacer from "@/components/Spacer";
@@ -18,7 +16,7 @@ import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
 import { useRef, useState } from "react";
-import { Animated, Dimensions, ScrollView, StyleSheet, useColorScheme, View } from "react-native";
+import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
 import Reanimated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { v4 as GenerateUUID } from "uuid";
@@ -122,7 +120,7 @@ export default function MapScreen() {
   const { openSheet, closeSheet } = useBottomSheet()
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
-  const availableHeight = screenHeight - insets.top
+  const availableHeight = screenHeight - insets.top - 15
   const [forceDark, setForceDark] = useState(false)
   const searchBgCol = useThemeColor({}, "darkBackground")
   const [cameraBottomPadding, setCameraBottomPadding] = useState(0)
@@ -183,7 +181,7 @@ export default function MapScreen() {
         top: 0,
         opacity: headerOpacity,
       }]}>
-        <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "88", gradCol + "66", gradCol + "00"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
+        <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "99", gradCol + "88", gradCol + "77", gradCol + "66", gradCol + "55", gradCol + "44", gradCol + "33", gradCol + "22", gradCol + "11", gradCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
           paddingTop: insets.top,
           paddingBottom: 0,
           top: 0,
@@ -191,15 +189,16 @@ export default function MapScreen() {
           alignItems: "center",
           justifyContent: 'flex-start',
         }]}>
-          <CustomLabel bold adaptToTheme labelText={getPageName()} fontSize={21} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
-          <Spacer size="small" />
+          <CustomLabel bold adaptToTheme labelText={getPageName()} fontSize={23} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
           <View style={[{
             width: "100%",
             alignItems: "center",
             justifyContent: "flex-start",
             flexDirection: "row",
+            marginTop: 5,
+            marginBottom: 10,
           }]}>
-            <ScrollView
+            {/* <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -207,51 +206,31 @@ export default function MapScreen() {
                 paddingHorizontal: 10
               }}
             >
-              <CustomButton labelText="📬 Unopened" customTextStyle={{ fontWeight: "400" }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="Unopened" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
                 setMailbox("received")
               }} customStyle={{
-                shadowColor: "#000",
-                shadowOffset: { height: 2, width: 2, },
-                shadowOpacity: .25,
-                shadowRadius: 2,
                 marginBottom: 5,
-                elevation: 5,
               }} />
               <Spacer size="small" />
-              <CustomButton labelText="🛫 Sent" customTextStyle={{ fontWeight: "400", }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="Sent" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
                 setMailbox("sent")
               }} customStyle={{
-                shadowColor: "#000",
-                shadowOffset: { height: 2, width: 2, },
-                shadowOpacity: .25,
-                shadowRadius: 2,
                 marginBottom: 5,
-                elevation: 5,
               }} />
               <Spacer size="small" />
-              <CustomButton labelText="❤️ Saved" customTextStyle={{ fontWeight: "400", }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="Saved" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
                 setMailbox("saved")
               }} customStyle={{
-                shadowColor: "#000",
-                shadowOffset: { height: 2, width: 2, },
-                shadowOpacity: .25,
-                shadowRadius: 2,
                 marginBottom: 5,
-                elevation: 5,
               }} />
               <Spacer size="small" />
-              <CustomButton labelText="🔒 Private" customTextStyle={{ fontWeight: "400", }} squashed type="themed" adaptToTheme handleClick={() => {
+              <CustomButton labelText="Private" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
                 setMailbox("private")
               }} customStyle={{
-                shadowColor: "#000",
-                shadowOffset: { height: 2, width: 2, },
-                shadowOpacity: .25,
-                shadowRadius: 2,
                 marginBottom: 5,
-                elevation: 5,
               }} />
               <Spacer size="small" />
-            </ScrollView>
+            </ScrollView> */}
           </View>
         </GradientView>
       </Animated.View>
@@ -288,7 +267,7 @@ export default function MapScreen() {
 
       <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>
         {is2dButtonVisible && <CustomFloatingSquare type="themed" handleClick={make2d}>
-          <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold />
+          <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold customStyle={{ opacity: .9 }} />
         </CustomFloatingSquare>}
         <Spacer size="small" />
         <CustomFloatingSquare type="themed" handleClick={() => {
@@ -313,20 +292,18 @@ export default function MapScreen() {
             backgroundStyle: { backgroundColor: searchBgCol }
           })
         }}>
-          <SearchIcon size={24} stroke={txtCol} strokeWidth={2} />
+          <SearchIcon opacity={.9} size={24} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
         <Spacer size="small" />
         <CustomFloatingSquare type="themed" handleClick={() => setUseSatellite(!useSatellite)}>
-          <SatelliteIcon size={25} stroke={txtCol} strokeWidth={2} />
+          <SatelliteIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
         <Spacer size="small" />
         <CustomFloatingSquare type="themed" handleClick={focusOnUserLocation}>
-          <LocateIcon size={25} stroke={txtCol} strokeWidth={2} />
+          <LocateIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
         <Spacer size="small" />
       </Reanimated.View>
-
-      <MapFriendTab />
     </View>
   );
 }

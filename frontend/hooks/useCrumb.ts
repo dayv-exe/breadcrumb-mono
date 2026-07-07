@@ -1,6 +1,7 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
 import { GetAllCrumbs, GetCrumbsByIds, GetLastCrumbDetails } from "@/api/db/crumbsDb";
 import { Crumb, CrumbMailbox } from "@/api/models/crumb";
+import { useAuthStore } from "@/utils/authStore";
 import Mapbox from "@rnmapbox/maps";
 import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
@@ -18,10 +19,18 @@ type UseCrumbType = {
 export const useCrumb = (): UseCrumbType => {
   const [mailbox, setMailbox] = useState<CrumbMailbox>("received")
   const { data: crumbMarkers, isError: crumbMarkersIsError, isPending: crumbMarkersPending, error: crumbMarkersError } = useGetCrumbMarkers()
+  const userid = useAuthStore(s => s.userId)
+
+  function resolveCrumbMailbox(crumb: Crumb): CrumbMailbox | undefined {
+    if (crumb.sender === crumb.receiver) return "private"
+    else if (crumb.sender === userid) return "sent"
+    else if (crumb.receiver === userid) return "received"
+    else if (crumb.saved) return "saved"
+  }
 
   useEffect(() => {
     fetchCrumbs()
-  }, [mailbox])
+  }, [userid, mailbox])
 
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
@@ -54,25 +63,31 @@ export const useCrumb = (): UseCrumbType => {
   }
 
   const updateCrumbs = async () => {
-    const lastCrumb = await GetLastCrumbDetails(mailbox);
+    const lastCrumb = await GetLastCrumbDetails();
     const latestCrumb = await getLatestCrumbs(
-      mailbox,
+      userid,
       lastCrumb,
     );
 
     try {
       if (latestCrumb.crumbs) {
-        const newFeatures: Feature<Point>[] = latestCrumb.crumbs.map(crumb => (newCrumbFeature(
-          crumb.id,
-          crumb.sender,
-          crumb.receiver,
-          crumb.latitude,
-          crumb.longitude,
-          "x",
-          "",
-          crumb.placename,
-        )));
-
+        const newFeatures: Feature<Point>[] = []
+        
+        latestCrumb.crumbs.map(crumb => {
+          if (resolveCrumbMailbox(crumb) !== mailbox) return
+          newFeatures.push(
+            newCrumbFeature(
+              crumb.id,
+              crumb.sender,
+              crumb.receiver,
+              crumb.latitude,
+              crumb.longitude,
+              "x",
+              "",
+              crumb.placename,
+            )
+          )
+        });
         setCrumbFeatures(prev => ({
           ...prev,
           features: [...prev.features, ...newFeatures]
@@ -126,7 +141,7 @@ export const useCrumb = (): UseCrumbType => {
       return () => {
         clearInterval(interval);
       };
-    }, [mailbox])
+    }, [userid])
   );
 
   return {

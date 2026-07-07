@@ -5,8 +5,8 @@ import { getDb } from "./InitDb";
 const CHUNK_SIZE = 120
 
 
-function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
-  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
+  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
 
   // split place ids into individual db items
   // so we can query by place id
@@ -14,11 +14,12 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
 
   const values = crumbs.flatMap((crumb) => [
     crumb.id,
+    crumb.nonCompositeId,
     crumb.latitude,
     crumb.longitude,
     crumb.sender,
     crumb.receiver,
-    (crumb.private ? "private" : crumb.sent ? "sent" : "received") as CrumbMailbox,
+    (crumb.sender === crumb.receiver ? "private" : crumb.sender === userid ? "sent" : "received") as CrumbMailbox,
     crumb.unlocked ? 1 : 0,
     crumb.time,
     crumb.radius,
@@ -30,6 +31,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
     sql: `
       INSERT INTO crumbs (
         id,
+        nonCompositeId,
         latitude,
         longitude,
         sender,
@@ -44,6 +46,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
       )
       VALUES ${placeholders}
       ON CONFLICT(id) DO UPDATE SET
+        nonCompositeId = excluded.nonCompositeId,
         latitude = excluded.latitude,
         longitude = excluded.longitude,
         sender = excluded.sender,
@@ -60,7 +63,7 @@ function buildUpsertCrumbsQuery(crumbs: Crumb[]) {
   };
 }
 
-export async function UpsertCrumbs(crumbs: Crumb[]) {
+export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
   if (crumbs.length === 0) return;
   try {
     const db = await getDb();
@@ -68,7 +71,7 @@ export async function UpsertCrumbs(crumbs: Crumb[]) {
     await db.withTransactionAsync(async () => {
       for (let i = 0; i < crumbs.length; i += CHUNK_SIZE) {
         const chunk = crumbs.slice(i, i + CHUNK_SIZE);
-        const { sql, values } = buildUpsertCrumbsQuery(chunk);
+        const { sql, values } = buildUpsertCrumbsQuery(userid, chunk);
 
         await db.runAsync(sql, values);
       }
@@ -78,12 +81,11 @@ export async function UpsertCrumbs(crumbs: Crumb[]) {
   }
 }
 
-export async function GetLastCrumbDetails(mailbox: CrumbMailbox): Promise<Crumb | null> {
+export async function GetLastCrumbDetails(): Promise<Crumb | null> {
   try {
     const db = await getDb();
     const c = await db.getFirstAsync<Crumb>(
-      `SELECT id, receiver, sender, time FROM crumbs WHERE mailbox = ? ORDER BY time DESC LIMIT 1`,
-      [mailbox]
+      `SELECT id, receiver, sender, time FROM crumbs ORDER BY time DESC LIMIT 1`,
     );
     return c ?? null
   } catch (e) {
@@ -191,13 +193,10 @@ export async function GetRecentCrumbedFriendIds(currentUserid: string): Promise<
   const db = await getDb()
 
   const rows = await db.getAllAsync<{ otherUser: string }>(
-    `SELECT DISTINCT
-       CASE WHEN sender = ? THEN receiver ELSE sender END AS otherUser
-     FROM crumbs
-     WHERE sender = ? OR receiver = ?
-     GROUP BY otherUser
-     `,
-    [currentUserid, currentUserid, currentUserid]
+    `SELECT DISTINCT sender AS otherUser
+   FROM crumbs
+   WHERE receiver = ? AND sender != ?`,
+    [currentUserid, currentUserid]
   )
 
   return new Set(rows.map(r => r.otherUser))

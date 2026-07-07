@@ -9,6 +9,7 @@ async function openAndInit() {
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS crumbs (
       id TEXT PRIMARY KEY NOT NULL,
+      nonCompositeId TEXT NOT NULL,
       latitude REAL,
       longitude REAL,
       sender TEXT NOT NULL,
