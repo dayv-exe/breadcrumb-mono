@@ -24,7 +24,6 @@ export const useCrumb = (): UseCrumbType => {
   function resolveCrumbMailbox(crumb: Crumb): CrumbMailbox | undefined {
     if (crumb.sender === userid) return "sent"
     else if (crumb.receiver === userid) return "received"
-    else if (crumb.saved) return "saved"
   }
 
   useEffect(() => {

@@ -22,4 +22,4 @@ export type Crumb = {
   placename: string
 }
 
-export type CrumbMailbox = "sent" | "received" | "saved"
+export type CrumbMailbox = "sent" | "received"

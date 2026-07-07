@@ -138,9 +138,6 @@ export default function MapScreen() {
 
   const getPageName = (): string => {
     switch (mailbox) {
-      case "saved":
-        return "❤️ Saved"
-
       case "sent":
         return "Sent"
 
