@@ -117,10 +117,10 @@ func (c *Crumb) ApplyPrefixes() {
 
 func IsValidMailbox(mailbox string) bool {
 	mailbox = strings.ToLower(mailbox)
-	return mailbox == constants.MAILBOX_SENT || mailbox == constants.MAILBOX_RECEIVED || mailbox == constants.MAILBOX_PRIVATE || mailbox == constants.MAILBOX_SAVED
+	return mailbox == constants.MAILBOX_SENT || mailbox == constants.MAILBOX_RECEIVED
 }
 
-func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailbox string) Crumb {
+func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailbox string, saved bool) Crumb {
 	if !IsValidMailbox(mailbox) {
 		log.Fatalf("ERROR: invalid mailbox parsed!")
 	}
@@ -136,8 +136,8 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailb
 		LocationSelectionManner: crumbBody.LocationSelectionManner,
 		Text:                    crumbBody.Text,
 		Media:                   crumbBody.MediaKeys,
-		Saved:                   mailbox == constants.MAILBOX_SAVED,
-		Unlocked:                mailbox == constants.MAILBOX_SAVED,
+		Saved:                   saved,
+		Unlocked:                saved,
 		FormattedAddress:        crumbBody.Address,
 		Geohash:                 geohash.Encode(crumbBody.Latitude, crumbBody.Longitude),
 		Time:                    time,
@@ -159,6 +159,7 @@ func CreateSentCrumb(body *CrumbBody, sender, receiver string) Crumb {
 		sender,
 		receiver,
 		constants.MAILBOX_SENT,
+		false,
 	)
 }
 
@@ -172,21 +173,7 @@ func CreateReceivedCrumb(body *CrumbBody, sender, receiver string) Crumb {
 		sender,
 		receiver,
 		constants.MAILBOX_RECEIVED,
-	)
-}
-
-func CreatePrivateCrumb(body *CrumbBody, userid string) Crumb {
-	owner := userid
-	otherUser := userid
-	sender := userid
-	receiver := userid
-	return createCrumb(
-		body,
-		owner,
-		otherUser,
-		sender,
-		receiver,
-		constants.MAILBOX_PRIVATE,
+		false,
 	)
 }
 
@@ -197,7 +184,8 @@ func CreateSavedCrumb(body *CrumbBody, owner, otherUser, sender, receiver string
 		otherUser,
 		sender,
 		receiver,
-		constants.MAILBOX_SAVED,
+		constants.MAILBOX_RECEIVED,
+		true,
 	)
 }
 
