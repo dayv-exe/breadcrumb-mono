@@ -138,9 +138,6 @@ export default function MapScreen() {
 
   const getPageName = (): string => {
     switch (mailbox) {
-      case "private":
-        return "🔒 Private"
-
       case "saved":
         return "❤️ Saved"
 
@@ -183,55 +180,13 @@ export default function MapScreen() {
       }]}>
         <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "99", gradCol + "88", gradCol + "77", gradCol + "66", gradCol + "55", gradCol + "44", gradCol + "33", gradCol + "22", gradCol + "11", gradCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
           paddingTop: insets.top,
-          paddingBottom: 0,
+          paddingBottom: 15,
           top: 0,
           flexDirection: "column",
           alignItems: "center",
           justifyContent: 'flex-start',
         }]}>
           <CustomLabel bold adaptToTheme labelText={getPageName()} fontSize={23} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
-          <View style={[{
-            width: "100%",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            flexDirection: "row",
-            marginTop: 5,
-            marginBottom: 10,
-          }]}>
-            {/* <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{
-                paddingHorizontal: 10
-              }}
-            >
-              <CustomButton labelText="Unopened" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
-                setMailbox("received")
-              }} customStyle={{
-                marginBottom: 5,
-              }} />
-              <Spacer size="small" />
-              <CustomButton labelText="Sent" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
-                setMailbox("sent")
-              }} customStyle={{
-                marginBottom: 5,
-              }} />
-              <Spacer size="small" />
-              <CustomButton labelText="Saved" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
-                setMailbox("saved")
-              }} customStyle={{
-                marginBottom: 5,
-              }} />
-              <Spacer size="small" />
-              <CustomButton labelText="Private" customTextStyle={{ fontWeight: "500", opacity: .9, fontSize: 12, }} squashed type="themed" adaptToTheme handleClick={() => {
-                setMailbox("private")
-              }} customStyle={{
-                marginBottom: 5,
-              }} />
-              <Spacer size="small" />
-            </ScrollView> */}
-          </View>
         </GradientView>
       </Animated.View>
 

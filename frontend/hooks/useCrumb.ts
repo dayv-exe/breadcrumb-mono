@@ -22,8 +22,7 @@ export const useCrumb = (): UseCrumbType => {
   const userid = useAuthStore(s => s.userId)
 
   function resolveCrumbMailbox(crumb: Crumb): CrumbMailbox | undefined {
-    if (crumb.sender === crumb.receiver) return "private"
-    else if (crumb.sender === userid) return "sent"
+    if (crumb.sender === userid) return "sent"
     else if (crumb.receiver === userid) return "received"
     else if (crumb.saved) return "saved"
   }
@@ -72,7 +71,7 @@ export const useCrumb = (): UseCrumbType => {
     try {
       if (latestCrumb.crumbs) {
         const newFeatures: Feature<Point>[] = []
-        
+
         latestCrumb.crumbs.map(crumb => {
           if (resolveCrumbMailbox(crumb) !== mailbox) return
           newFeatures.push(
