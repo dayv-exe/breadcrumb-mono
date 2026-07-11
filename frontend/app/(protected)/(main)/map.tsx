@@ -11,11 +11,11 @@ import { useCrumb } from "@/hooks/useCrumb";
 import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Coordinates } from "@/utils/useLocationStore";
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
 import Reanimated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -123,6 +123,11 @@ export default function MapScreen() {
   const [forceDark, setForceDark] = useState(false)
   const searchBgCol = useThemeColor({}, "darkBackground")
   const [cameraBottomPadding, setCameraBottomPadding] = useState(0)
+  const coordinates = useLocationStore(s => s.coordinates)
+
+  useEffect(() => {
+    
+  }, [coordinates])
 
   // starts at screenHeight = sheet fully closed
   const sheetPosition = useSharedValue(screenHeight);

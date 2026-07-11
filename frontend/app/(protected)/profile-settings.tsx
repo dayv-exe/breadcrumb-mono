@@ -1,4 +1,4 @@
-import { DeleteLocalDatabase, logAllCrumbs } from "@/api/db/InitDb";
+import { DeleteLocalDatabase, logAllTable } from "@/api/db/InitDb";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -258,12 +258,21 @@ export default function ProfileSettingsScreen() {
       keyExtractor: (opt: SettingOption) => opt.name,
       data: [
         {
-          name: 'Log local db', value: "", handleClick: () => {
+          name: 'Log local crumbs', value: "", handleClick: () => {
             Toast.show({
               text1: "Logging local db...",
               type: "info",
             })
-            logAllCrumbs()
+            logAllTable("crumbs")
+          }
+        },
+        {
+          name: 'Log local places', value: "", handleClick: () => {
+            Toast.show({
+              text1: "Logging local db...",
+              type: "info",
+            })
+            logAllTable("places")
           }
         },
         {

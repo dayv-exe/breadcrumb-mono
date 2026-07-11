@@ -6,20 +6,33 @@ const CHUNK_SIZE = 120
 
 
 function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
-  const placeholders = crumbs.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+  const crumbPlaceholders = crumbs
+    .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .join(", ");
 
-  // split place ids into individual db items
-  // so we can query by place id
-  // then query by radius
+  const places = crumbs.flatMap((crumb) =>
+    crumb.placeId
+      .split(",")
+      .filter(Boolean)
+      .map((place) => [place, crumb.id])
+  );
 
-  const values = crumbs.flatMap((crumb) => [
+  const placesPlaceholders = places
+    .map(() => "(?, ?)")
+    .join(", ");
+
+  const crumbValues = crumbs.flatMap((crumb) => [
     crumb.id,
     crumb.nonCompositeId,
     crumb.latitude,
     crumb.longitude,
     crumb.sender,
     crumb.receiver,
-    (crumb.saved ? "saved" : crumb.receiver === userid ? "received" : "sent") as CrumbMailbox,
+    (crumb.saved
+      ? "saved"
+      : crumb.receiver === userid
+        ? "received"
+        : "sent") as CrumbMailbox,
     crumb.unlocked ? 1 : 0,
     crumb.time,
     crumb.radius,
@@ -27,8 +40,9 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
     crumb.formattedAddress,
     crumb.placename
   ]);
+
   return {
-    sql: `
+    crumbSql: `
       INSERT INTO crumbs (
         id,
         nonCompositeId,
@@ -44,7 +58,7 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
         formattedAddress,
         placename
       )
-      VALUES ${placeholders}
+      VALUES ${crumbPlaceholders}
       ON CONFLICT(id) DO UPDATE SET
         nonCompositeId = excluded.nonCompositeId,
         latitude = excluded.latitude,
@@ -57,9 +71,20 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
         radius = excluded.radius,
         locationSelectionManner = excluded.locationSelectionManner,
         formattedAddress = excluded.formattedAddress,
-        placename = excluded.placename
+        placename = excluded.placename;
     `,
-    values,
+
+    placesSql: `
+      INSERT INTO places (
+        place_id,
+        crumb_id
+      )
+      VALUES ${placesPlaceholders}
+      ON CONFLICT(place_id, crumb_id) DO NOTHING;
+    `,
+
+    crumbValues,
+    placesValues: places.flat()
   };
 }
 
@@ -71,9 +96,12 @@ export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
     await db.withTransactionAsync(async () => {
       for (let i = 0; i < crumbs.length; i += CHUNK_SIZE) {
         const chunk = crumbs.slice(i, i + CHUNK_SIZE);
-        const { sql, values } = buildUpsertCrumbsQuery(userid, chunk);
+        const { crumbSql, placesSql, crumbValues, placesValues } = buildUpsertCrumbsQuery(userid, chunk);
 
-        await db.runAsync(sql, values);
+        await db.runAsync(crumbSql, crumbValues);
+        if (placesValues.length > 0) {
+          await db.runAsync(placesSql, placesValues);
+        }
       }
     });
   } catch (e) {
