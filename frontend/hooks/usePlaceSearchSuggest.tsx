@@ -109,7 +109,7 @@ type UsePlaceSuggestionReturns = {
   setSearch: (s: string) => void
 }
 
-export const usePlaceSearchSuggest = (sessionToken: string, mapCenter: Coordinates | null, userlocation: Coordinates, OnPlaceSelect: (placeId: string) => void): UsePlaceSuggestionReturns => {
+export const usePlaceSearchSuggest = (sessionToken: string, userlocation: Coordinates, mapCenter: Coordinates, OnPlaceSelect: (placeId: string) => void): UsePlaceSuggestionReturns => {
   const [searchStr, setSearchStr] = useState("")
   const [debouncedSearchStr, setDebouncedSearchStr] = useState("")
 
@@ -119,7 +119,7 @@ export const usePlaceSearchSuggest = (sessionToken: string, mapCenter: Coordinat
     }, 500);
   }, []);
 
-  const { data: searchResponse, isError: searchFailed, isFetching: searchPending } = useSearchPlace(sessionToken, debouncedSearchStr, (mapCenter), userlocation)
+  const { data: searchResponse, isError: searchFailed, isFetching: searchPending } = useSearchPlace(sessionToken, debouncedSearchStr, mapCenter, userlocation)
 
   const places = searchResponse?.suggestions
 

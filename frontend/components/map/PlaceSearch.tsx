@@ -1,9 +1,10 @@
+import { convertNumberTupleToCoordinates } from "@/constants/mapFunctions";
 import { usePlaceSearchSuggest } from "@/hooks/usePlaceSearchSuggest";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Coordinates } from "@/utils/useLocationStore";
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import { ChevronDown } from "lucide-react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import CustomLabel from "../CustomLabel";
@@ -15,18 +16,17 @@ interface props {
   OnPlaceSelect?: (placeId: string) => void
   OnClose?: () => void
   HandleClosePress?: () => void
-  mapCenter: Coordinates | null
   mapRef: React.RefObject<Mapbox.MapView | null>
-  userLocation: Coordinates
   availableHeight?: number
   sessionToken: string
 }
 
-export default function PlaceSearch({ HandleClosePress, availableHeight, userLocation, OnClose, OnPlaceSelect, sessionToken, mapRef, mapCenter }: props) {
+export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose, OnPlaceSelect, sessionToken, mapRef }: props) {
+  const userLocation = useLocationStore.getState().coordinates
+  const [mapCenter, setMapCenter] = useState<Coordinates>({ accuracy: 0, latitude: 0, longitude: 0 })
   const searchInput = useRef<TextInput>(null)
   const textCol = useThemeColor({}, "text")
   const bgCol = useThemeColor({}, "darkBackground")
-
   const {
     setSearch,
     search,
@@ -36,8 +36,8 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, userLoc
     sections,
   } = usePlaceSearchSuggest(
     sessionToken,
+    userLocation ?? { accuracy: 0, latitude: 0, longitude: 0 },
     mapCenter,
-    userLocation,
     p => {
       OnPlaceSelect?.(p)
     }
@@ -45,7 +45,16 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, userLoc
 
   useEffect(() => {
     searchInput.current?.focus()
-  }, [])
+    const getMapCenter = async () => {
+      if (!mapRef.current) return
+      const c = await mapRef.current.getCenter()
+      setMapCenter(convertNumberTupleToCoordinates(
+        [c[1] ?? 0, c[0] ?? 0]
+      ))
+    }
+
+    getMapCenter()
+  }, [mapRef])
 
   return (
     <View style={[

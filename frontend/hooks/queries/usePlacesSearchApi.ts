@@ -14,8 +14,8 @@ export const useSearchPlace = (sessionToken: string, query: string, mapCenter: C
   retryDelay: 5 * TIME.SECOND
 })
 
-export const useRetrievePlace = (sessionToken: string, placeId: string, userLocation: Coordinates) => useQuery({
-  queryFn: () => retrievePlace(sessionToken, placeId, userLocation),
+export const useRetrievePlace = (sessionToken: string, placeId: string) => useQuery({
+  queryFn: () => retrievePlace(sessionToken, placeId),
   queryKey: ["place-retrieve", placeId],
   enabled: sessionToken.length > 0 && placeId.length > 0,
   staleTime: 60 * TIME.MINUTE

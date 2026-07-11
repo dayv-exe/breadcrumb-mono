@@ -1,7 +1,7 @@
 import { TIME } from '@/constants/appConstants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -18,7 +18,6 @@ interface LocationState {
   error: string | null;
   isTracking: boolean;
   lastUpdated: number | null;
-  lastGeocodedCoords: Coordinates | null;
 }
 
 interface LocationActions {
@@ -29,15 +28,21 @@ interface LocationActions {
 
 const LOCATION_CONFIG = {
   ACCURACY: Location.Accuracy.BestForNavigation,
-  DISTANCE_INTERVAL: 25,
-  TIME_INTERVAL: 15 * TIME.SECOND,
-  GEOCODE_DISTANCE_THRESHOLD: 25,
+  /** Watch fires when the device moves at least this far (metres). */
+  DISTANCE_INTERVAL_METRES: 10,
+  /**
+   * The watch is distance-driven, so a stationary user produces no updates.
+   * If nothing has arrived for this long, we actively fetch a fresh fix so
+   * `lastUpdated` never goes stale. This gives "25 m OR 60 s" semantics,
+   * which the OS options alone cannot express.
+   */
+  STALE_REFRESH_MS: 1 * TIME.HOUR,
 } as const;
 
 /** Haversine distance in metres between two coordinates. */
-function distanceMetres(a: Coordinates, b: Coordinates): number {
+export function distanceMetres(a: Coordinates, b: Coordinates): number {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6_371_000; // Earth radius in metres
+  const R = 6_371_000;
   const dLat = toRad(b.latitude - a.latitude);
   const dLon = toRad(b.longitude - a.longitude);
   const sinHalf = (x: number) => Math.sin(x / 2);
@@ -47,7 +52,15 @@ function distanceMetres(a: Coordinates, b: Coordinates): number {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/** Request foreground permission once; throws on denial. */
+function toCoordinates(location: Location.LocationObject): Coordinates {
+  return {
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+    accuracy: location.coords.accuracy,
+  };
+}
+
+/** Request foreground permission; throws on denial. */
 async function ensurePermission(): Promise<void> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') {
@@ -57,50 +70,59 @@ async function ensurePermission(): Promise<void> {
 
 /**
  * On Android, prompt the user to enable the network/GPS provider if it's off.
- * This is a no-op on iOS.
+ * No-op on iOS.
  */
 async function enableHighAccuracyIfNeeded(): Promise<void> {
-  if (Platform.OS === 'android') {
-    try {
-      await Location.enableNetworkProviderAsync();
-    } catch {
-      // User declined or API unavailable – we can still try with GPS-only.
-    }
+  if (Platform.OS !== 'android') return;
+  try {
+    await Location.enableNetworkProviderAsync();
+  } catch {
+    // User declined or API unavailable – GPS-only may still work.
   }
 }
 
-/** Fetch current position once and return normalised Coordinates. */
-async function fetchCurrentPosition(): Promise<Coordinates> {
-  const location = await Location.getCurrentPositionAsync({
-    accuracy: LOCATION_CONFIG.ACCURACY,
-  });
-  return {
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
-    accuracy: location.coords.accuracy,
-  };
-}
+// ---------------------------------------------------------------------------
+// Tracking session
+//
+// The subscription and timer live outside the store (they aren't serialisable
+// state). A generation counter makes start/stop race-safe: every start bumps
+// the generation, every async continuation checks it still owns the current
+// generation before touching the store, and stop simply bumps it again so any
+// in-flight start becomes a no-op.
+// ---------------------------------------------------------------------------
 
-let locationSubscription: Location.LocationSubscription | null = null;
+let generation = 0;
+let subscription: Location.LocationSubscription | null = null;
+let staleTimer: ReturnType<typeof setInterval> | null = null;
+
+function teardownSession(): void {
+  subscription?.remove();
+  subscription = null;
+  if (staleTimer !== null) {
+    clearInterval(staleTimer);
+    staleTimer = null;
+  }
+}
 
 export const useLocationStore = create<LocationState & LocationActions>()(
   persist(
     (set, get) => ({
       // -- state --
       coordinates: null,
-      address: null,
       isLoading: false,
       error: null,
       isTracking: false,
       lastUpdated: null,
-      lastGeocodedCoords: null,
 
       // -- actions --
 
       setError: (error) => set({ error }),
 
       startTracking: async () => {
-        if (get().isTracking) return;
+        if (get().isTracking || get().isLoading) return;
+
+        const session = ++generation;
+        const isCurrent = () => session === generation;
 
         set({ isLoading: true, error: null });
 
@@ -108,38 +130,57 @@ export const useLocationStore = create<LocationState & LocationActions>()(
           await ensurePermission();
           await enableHighAccuracyIfNeeded();
 
-          // Single location fetch for both coords and address.
-          const coords = await fetchCurrentPosition();
-
-          set({
-            coordinates: coords,
-            isLoading: false,
-            isTracking: true,
-            lastUpdated: Date.now(),
-            lastGeocodedCoords: coords,
+          // Immediate fix so the UI has something before the watch warms up.
+          const initial = await Location.getCurrentPositionAsync({
+            accuracy: LOCATION_CONFIG.ACCURACY,
           });
+          if (!isCurrent()) return; // stopped while we were starting
+          set({ coordinates: toCoordinates(initial), lastUpdated: Date.now() });
 
-          // Begin watching.
-          locationSubscription = await Location.watchPositionAsync(
+          const sub = await Location.watchPositionAsync(
             {
               accuracy: LOCATION_CONFIG.ACCURACY,
-              distanceInterval: LOCATION_CONFIG.DISTANCE_INTERVAL,
-              timeInterval: LOCATION_CONFIG.TIME_INTERVAL,
+              distanceInterval: LOCATION_CONFIG.DISTANCE_INTERVAL_METRES,
             },
-            async (location) => {
-              const newCoords: Coordinates = {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                accuracy: location.coords.accuracy,
-              };
-
-              const { lastGeocodedCoords } = get();
-
-              // Always update coordinates so the map / UI stays fresh.
-              set({ coordinates: newCoords, lastUpdated: Date.now() });
+            (location) => {
+              if (!isCurrent()) return;
+              set({ coordinates: toCoordinates(location), lastUpdated: Date.now() });
             },
           );
+
+          if (!isCurrent()) {
+            // stopTracking ran while watchPositionAsync was resolving.
+            sub.remove();
+            return;
+          }
+          subscription = sub;
+
+          // Fallback: refresh if the (distance-driven) watch goes quiet.
+          staleTimer = setInterval(async () => {
+            if (!isCurrent()) return;
+            const { lastUpdated } = get();
+            if (
+              lastUpdated !== null &&
+              Date.now() - lastUpdated < LOCATION_CONFIG.STALE_REFRESH_MS
+            ) {
+              return;
+            }
+            try {
+              const location = await Location.getCurrentPositionAsync({
+                accuracy: LOCATION_CONFIG.ACCURACY,
+              });
+              if (!isCurrent()) return;
+              set({ coordinates: toCoordinates(location), lastUpdated: Date.now() });
+            } catch {
+              // Transient failure – the next tick will retry.
+            }
+          }, LOCATION_CONFIG.STALE_REFRESH_MS);
+
+          // Only now is tracking genuinely live.
+          set({ isTracking: true, isLoading: false });
         } catch (error) {
+          if (!isCurrent()) return;
+          teardownSession();
           set({
             error: error instanceof Error ? error.message : 'Failed to start tracking',
             isLoading: false,
@@ -149,11 +190,9 @@ export const useLocationStore = create<LocationState & LocationActions>()(
       },
 
       stopTracking: () => {
-        if (locationSubscription) {
-          locationSubscription.remove();
-          locationSubscription = null;
-        }
-        set({ isTracking: false });
+        generation++; // invalidates any in-flight startTracking
+        teardownSession();
+        set({ isTracking: false, isLoading: false });
       },
     }),
     {
@@ -167,22 +206,19 @@ export const useLocationStore = create<LocationState & LocationActions>()(
   ),
 );
 
-export function useInitializeLocationTracking() {
+/**
+ * Starts tracking on mount and stops on unmount.
+ *
+ * Safe under React 18 Strict Mode without a ref guard: the double
+ * mount/unmount cycle just bumps the session generation, and the final
+ * mount's start wins.
+ */
+export function useInitializeLocationTracking(): void {
   const startTracking = useLocationStore((s) => s.startTracking);
   const stopTracking = useLocationStore((s) => s.stopTracking);
 
-  // Ref guards against React 18 Strict Mode double-invoking the effect.
-  const started = useRef(false);
-
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-
     startTracking();
-
-    return () => {
-      stopTracking();
-      started.current = false;
-    };
+    return () => stopTracking();
   }, [startTracking, stopTracking]);
 }

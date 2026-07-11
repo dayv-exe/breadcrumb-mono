@@ -134,9 +134,6 @@ export default function CustomMap({
   const { height } = useWindowDimensions()
   const { top: insetTop } = useSafeAreaInsets()
 
-
-  const coordinates = useLocationStore((s) => s.coordinates);
-
   async function handlePermissions(showPopUp: boolean = true) {
     const status = await Location.requestForegroundPermissionsAsync();
 
@@ -205,23 +202,14 @@ export default function CustomMap({
           attributionEnabled={false}
           logoPosition={{ bottom: 70, left: 15 }}
           onDidFinishLoadingMap={async () => {
+            const coords = useLocationStore.getState().coordinates
             onMapReady?.()
-            const c = await mapRef?.current?.getCenter()
-            setMapCenter?.({
-              accuracy: 0,
-              latitude: c?.[1] ?? 0,
-              longitude: c?.[0] ?? 0
-            })
+            setMapCenter?.(coords ?? { accuracy: 0, latitude: 0, longitude: 0 })
           }}
           onPress={handleMapPress}
           onLongPress={handleMapLongPress}
           onMapIdle={e => {
             onMapIdle?.(e)
-            setMapCenter?.({
-              accuracy: 0,
-              latitude: e.properties.center[1],
-              longitude: e.properties.center[0]
-            })
           }}
           onCameraChanged={async e => {
             onMapMove?.(e)
@@ -387,15 +375,13 @@ export default function CustomMap({
             </Mapbox.ShapeSource>
           )}
 
-          {coordinates && (
-            <Mapbox.UserLocation
-              visible
-              minDisplacement={5}
-              requestsAlwaysUse
-              showsUserHeadingIndicator
-              onPress={onLocationPuckPress}
-            />
-          )}
+          <Mapbox.UserLocation
+            visible
+            minDisplacement={5}
+            requestsAlwaysUse
+            showsUserHeadingIndicator
+            onPress={onLocationPuckPress}
+          />
 
           {<ShapeSource ref={markersRef} id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22} onPress={async e => {
             const feature = e.features[0];

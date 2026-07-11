@@ -1,5 +1,5 @@
 import axiosInstance from "@/constants/axios"
-import { Coordinates } from "@/utils/useLocationStore"
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore"
 import { RetrieveResponse, SuggestResponse } from "./models/placeSearch"
 
 export const searchPlace = async (sessionToken: string, query: string, mapCenter: Coordinates | null, userLocation: Coordinates): Promise<SuggestResponse> => {
@@ -12,9 +12,11 @@ export const searchPlace = async (sessionToken: string, query: string, mapCenter
   return data.message
 }
 
-export const retrievePlace = async (sessionToken: string, placeId: string, userLocation: Coordinates): Promise<RetrieveResponse> => {
+export const retrievePlace = async (sessionToken: string, placeId: string): Promise<RetrieveResponse> => {
+  const coords = useLocationStore.getState().coordinates
+  if (!coords) return { attribution: "", features: [], type: "FeatureCollection" }
   const { data } = await axiosInstance.post<{ message: RetrieveResponse }>(`/search/${placeId}?retrieve=true`, {
-    origin: { lat: userLocation.latitude, lon: userLocation.longitude },
+    origin: { lat: coords.latitude, lon: coords.longitude },
     sessionToken: sessionToken
   })
 

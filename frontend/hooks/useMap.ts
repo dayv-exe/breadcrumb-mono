@@ -103,6 +103,7 @@ export const useMap = (
   async function focusOnUserLocation() {
     setSelectedLocation(null)
     const curCoord = useLocationStore.getState().coordinates
+    console.log(curCoord)
     setCameraFn({
       centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
       zoomLevel: 12.6,

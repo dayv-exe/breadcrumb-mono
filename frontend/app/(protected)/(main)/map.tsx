@@ -11,7 +11,7 @@ import { useCrumb } from "@/hooks/useCrumb";
 import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
+import { Coordinates } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
@@ -80,7 +80,6 @@ export default function MapScreen() {
   const [sessionToken, setSessionToken] = useState(() => GenerateUUID())
   const mapRef = useRef<Mapbox.MapView>(null);
   const mapCamRef = useRef<Mapbox.Camera>(null)
-  const coordinates = useLocationStore(s => s.coordinates)
   const [mapCenter, setMapCenter] = useState<Coordinates | null>(null)
   const {
     selectedLocation,
@@ -102,7 +101,7 @@ export default function MapScreen() {
     mapCamRef,
     null
   )
-  const { clearSearchResult, searchResult, setPlaceId } = usePlaceSearchRetrieve(sessionToken, coordinates, coords => {
+  const { clearSearchResult, searchResult, setPlaceId } = usePlaceSearchRetrieve(sessionToken, coords => {
     clearSelectedLocation()
     focusOnSearchResult(coords)
   })
@@ -216,7 +215,7 @@ export default function MapScreen() {
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
         onCrumbsSelect={focusOnCrumbs}
-        centerCoordinate={coordinates ? convertCoordinatesToNumberTuple(coordinates) : undefined}
+        centerCoordinate={convertCoordinatesToNumberTuple(mapCenter ?? { accuracy: 0, latitude: 0, longitude: 0 })}
         cameraBottomPadding={cameraBottomPadding}
       />
 
@@ -234,10 +233,8 @@ export default function MapScreen() {
                 availableHeight={availableHeight}
                 HandleClosePress={closeSheet}
                 mapRef={mapRef}
-                userLocation={coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 }}
                 OnPlaceSelect={handlePlaceSelected}
                 sessionToken={sessionToken}
-                mapCenter={mapCenter}
               />
             ),
             snapPoints: [availableHeight],
