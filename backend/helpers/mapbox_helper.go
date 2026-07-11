@@ -311,6 +311,21 @@ func getLabelSelectedPlacesIds(fc FeatureCollection, clickedFeatureId string) pl
 		}
 	}
 
+	// for water, distance from clicked label must be 0
+	for _, water := range items["water"] {
+		if water.Properties.Tilequery.Distance == 0 {
+			log.Printf("found match structure:  %#v, target:  %#v", water.Properties, clickedLabel.Properties)
+			ids = append(ids, water.ID.String())
+		}
+	}
+
+	if len(ids) > 1 {
+		return placeIdResponse{
+			PlaceIds:  ids,
+			PlaceName: clickedLabel.Properties.Name,
+		}
+	}
+
 	log.Printf("found NO matches, returning all ids!")
 
 	// if none of the conditions above are met, return only clicked poi id
