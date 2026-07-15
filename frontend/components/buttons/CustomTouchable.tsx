@@ -29,13 +29,14 @@ type bProps = {
   customTextStyle?: StyleProp<TextStyle>
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children }: PropsWithChildren<bProps>) {
-  const fadedBg = useThemeColor({}, "fadedBackground")
-  const darkenVib = useThemeColor({}, "darkenVibrant")
-  const bg = useThemeColor({}, "background")
+export default function CustomTouchable({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth }: PropsWithChildren<bProps>) {
+  const theme = useThemeColor
   const mode = useColorScheme()
   const [clicked, setClicked] = useState(false)
   const bgCol = () => {
+    const fadedBg = theme({}, "fadedBackground")
+    const darkenVib = theme({}, "darkenVibrant")
+    const bg = theme({}, "background")
     switch (type) {
       case "prominent":
         return Colors.light.vibrantButton
@@ -92,6 +93,9 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         padding: squashed ? 6 : slim ? 10 : 15,
         paddingHorizontal: paddingHorizontal ? paddingHorizontal : squashed ? 13 : slim ? 10 : 15,
         borderRadius: borderRadius,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
         minWidth: useMinWidth ? 100 : 0
       },
       customStyle
@@ -105,14 +109,14 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
           <Spacer size="small" />
         </>
       }
-      {!children && !isPending && imgSrc && <>
+      {!isPending && imgSrc && <>
         <Image source={imgSrc} style={{
           width: imgSize ?? fontSize,
           height: imgSize ?? fontSize,
         }} />
         {!isPending && labelText && <Spacer size="small" />}
       </>}
-      {!children && !isPending && labelText && <Text numberOfLines={1} ellipsizeMode="tail" style={[
+      {!isPending && labelText && <Text numberOfLines={1} ellipsizeMode="tail" style={[
         styles.text,
         {
           color: getTextColor(),
@@ -121,7 +125,6 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
         },
         customTextStyle,
       ]}>{labelText}</Text>}
-      {!isPending && children}
     </TouchableOpacity>
   )
 }

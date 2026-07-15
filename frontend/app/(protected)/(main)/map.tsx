@@ -1,8 +1,11 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
+import CustomButton from "@/components/buttons/CustomButton";
 import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
+import MapFriendsView from "@/components/map/MapFriendsView";
 import PlaceSearch from "@/components/map/PlaceSearch";
+import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
 import { Colors } from "@/constants/Colors";
@@ -12,13 +15,15 @@ import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
+import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
-import { LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { CameraIcon, ChevronDownIcon, LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
+import React, { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
-import Reanimated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Reanimated, { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { scheduleOnRN } from "react-native-worklets";
 import { v4 as GenerateUUID } from "uuid";
 
 const token = Constants.expoConfig?.extra?.mapboxToken;
@@ -119,14 +124,14 @@ export default function MapScreen() {
   const { openSheet, closeSheet } = useBottomSheet()
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
-  const availableHeight = screenHeight - insets.top - 15
+  const availableHeight = screenHeight - insets.top - 5
   const [forceDark, setForceDark] = useState(false)
   const searchBgCol = useThemeColor({}, "darkBackground")
-  const [cameraBottomPadding, setCameraBottomPadding] = useState(0)
   const coordinates = useLocationStore(s => s.coordinates)
+  const bottomSheetRef = useRef<BottomSheet>(null)
 
   useEffect(() => {
-    
+
   }, [coordinates])
 
   // starts at screenHeight = sheet fully closed
@@ -153,7 +158,7 @@ export default function MapScreen() {
     }
   }
 
-  const fadeHeader = (visible: boolean) => {
+  const headerShown = (visible: boolean) => {
     Animated.timing(headerOpacity, {
       toValue: visible ? 1 : 0,
       duration: 250,
@@ -163,18 +168,31 @@ export default function MapScreen() {
 
 
   const CONTROLS_BOTTOM = 200;  // matches styles.mapControls.bottom
-  const GAP_ABOVE_SHEET = 30;  // breathing room between controls and sheet
+  const GAP_ABOVE_SHEET = 110;  // breathing room between controls and sheet
+  const HALF_OF_PAGE = screenHeight * 0.5
 
   const controlsAnimatedStyle = useAnimatedStyle(() => {
     const sheetVisibleHeight = screenHeight - sheetPosition.value;
-    const overlap = Math.max(0, sheetVisibleHeight + GAP_ABOVE_SHEET - CONTROLS_BOTTOM);
+    const overlap = Math.max(0, (sheetPosition.value >= HALF_OF_PAGE ? sheetVisibleHeight : HALF_OF_PAGE) + GAP_ABOVE_SHEET - CONTROLS_BOTTOM);
     return {
       transform: [{ translateY: -overlap }],
     };
   });
 
-  const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
+  useAnimatedReaction(
+    () => sheetPosition.value < screenHeight * .2, // true = sheet is high up
+    (isSheetUp, previous) => {
+      if (isSheetUp !== previous) {
+        scheduleOnRN(headerShown, !isSheetUp)
+      }
+    }
+  );
 
+  const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
+  const getHeaderColors = (): { fgColor: string, bgColor: string } => {
+    if (forceDark) return { fgColor: Colors.dark.text, bgColor: Colors.dark.background }
+    else return { fgColor: txtCol, bgColor: bgCol }
+  }
   return (
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
@@ -182,15 +200,36 @@ export default function MapScreen() {
         top: 0,
         opacity: headerOpacity,
       }]}>
-        <GradientView colors={[gradCol + "ff", gradCol + "ee", gradCol + "dd", gradCol + "cc", gradCol + "bb", gradCol + "aa", gradCol + "99", gradCol + "88", gradCol + "77", gradCol + "66", gradCol + "55", gradCol + "44", gradCol + "33", gradCol + "22", gradCol + "11", gradCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
+        <GradientView colors={[gradCol + "ff", gradCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
           paddingTop: insets.top,
-          paddingBottom: 15,
+          paddingBottom: 20,
           top: 0,
-          flexDirection: "column",
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: 'flex-start',
+          justifyContent: 'space-between',
+          paddingHorizontal: 15,
+
         }]}>
-          <CustomLabel bold adaptToTheme labelText={getPageName()} fontSize={23} customStyle={{ paddingHorizontal: 15, color: forceDark ? Colors.dark.text : txtCol }} />
+          <CustomButton
+            type="text"
+            customStyle={{
+              padding: 0,
+              paddingHorizontal: 0,
+            }}
+          >
+            <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={23} customStyle={{ color: getHeaderColors().fgColor }} />
+            <Spacer size="tiny" />
+            <ChevronDownIcon stroke={getHeaderColors().fgColor} strokeWidth={2.5} size={21} />
+          </CustomButton>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <CustomProfilePictureCircle size={35} />
+          </View>
         </GradientView>
       </Animated.View>
 
@@ -221,35 +260,37 @@ export default function MapScreen() {
         setMapCenter={setMapCenter}
         onCrumbsSelect={focusOnCrumbs}
         centerCoordinate={convertCoordinatesToNumberTuple(mapCenter ?? { accuracy: 0, latitude: 0, longitude: 0 })}
-        cameraBottomPadding={cameraBottomPadding}
       />
 
-      <Reanimated.View style={[styles.mapControls, controlsAnimatedStyle]}>
+      <Reanimated.View pointerEvents="box-none" style={[styles.mapControls, controlsAnimatedStyle, {
+      }]}>
         {is2dButtonVisible && <CustomFloatingSquare type="themed" handleClick={make2d}>
           <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold customStyle={{ opacity: .9 }} />
         </CustomFloatingSquare>}
         <Spacer size="small" />
-        <CustomFloatingSquare type="themed" handleClick={() => {
-          setSessionToken(GenerateUUID())
-          fadeHeader(false)
-          openSheet({
-            content: (
-              <PlaceSearch
-                availableHeight={availableHeight}
-                HandleClosePress={closeSheet}
-                mapRef={mapRef}
-                OnPlaceSelect={handlePlaceSelected}
-                sessionToken={sessionToken}
-              />
-            ),
-            snapPoints: [availableHeight],
-            reduceAnimations: false,
-            onSheetDismissed: () => fadeHeader(true),
-            showOverlay: false,
-            backgroundStyle: { backgroundColor: searchBgCol }
-          })
-        }}>
-          <SearchIcon opacity={.9} size={24} stroke={txtCol} strokeWidth={2.5} />
+        <CustomFloatingSquare type="themed"
+          handleClick={() => {
+            setSessionToken(GenerateUUID())
+            headerShown(false)
+            openSheet({
+              content: (
+                <PlaceSearch
+                  availableHeight={availableHeight}
+                  HandleClosePress={closeSheet}
+                  mapRef={mapRef}
+                  OnPlaceSelect={handlePlaceSelected}
+                  sessionToken={sessionToken}
+                />
+              ),
+              snapPoints: [availableHeight],
+              reduceAnimations: false,
+              onSheetDismissed: () => headerShown(true),
+              showOverlay: false,
+              backgroundStyle: { backgroundColor: searchBgCol }
+            })
+          }}
+        >
+          <SearchIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
         <Spacer size="small" />
         <CustomFloatingSquare type="themed" handleClick={() => setUseSatellite(!useSatellite)}>
@@ -259,9 +300,65 @@ export default function MapScreen() {
         <CustomFloatingSquare type="themed" handleClick={focusOnUserLocation}>
           <LocateIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
         </CustomFloatingSquare>
-        <Spacer size="small" />
+        <CustomButton
+          slim
+          type="less-prominent"
+          customStyle={{
+            position: "absolute",
+            alignSelf: "center",
+            bottom: 20,
+
+            elevation: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 1, height: 1 },
+            shadowOpacity: .25,
+            shadowRadius: 5,
+          }}
+        >
+          <CameraIcon size={25} stroke={Colors.dark.text} strokeWidth={2.5} />
+          <Spacer size="small" />
+          <CustomLabel bold width="auto" padding={0} labelText="New Crumb" fontSize={15} />
+        </CustomButton>
+        <Spacer size="medium" />
       </Reanimated.View>
-    </View>
+
+      <BottomSheet
+        ref={bottomSheetRef}
+        enableDynamicSizing
+        enableOverDrag
+        enableContentPanningGesture
+        enableHandlePanningGesture
+        enableBlurKeyboardOnGesture
+        animationConfigs={{
+          stiffness: 500,
+          damping: 20,
+          mass: 0.5,
+        }}
+        containerStyle={{
+          zIndex: 1000,
+        }}
+        snapPoints={["50%", ((availableHeight / screenHeight) * 100) + "%"]}
+        backgroundStyle={{
+
+          elevation: 10,
+          shadowColor: "black",
+          shadowOpacity: .175,
+          shadowOffset: { height: 1, width: 0 },
+          shadowRadius: 10,
+
+          backgroundColor: bgCol,
+          borderTopLeftRadius: 25,
+          borderTopRightRadius: 25,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: txtCol,
+          opacity: .9
+        }}
+        animatedPosition={sheetPosition}
+      >
+        <MapFriendsView bottomSheetRef={bottomSheetRef} screenHeight={screenHeight} sheetPosition={sheetPosition} />
+      </BottomSheet>
+    </View >
   );
 }
 
@@ -278,10 +375,14 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   mapControls: {
+    width: "100%",
     position: "absolute",
     bottom: 85,
-    right: 10,
-    zIndex: 100
+    zIndex: 100,
+    flexDirection: "column",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    paddingHorizontal: 10,
   },
   headerTextContainer: {
     paddingHorizontal: 20,
