@@ -22,6 +22,7 @@ type bProps = {
   useMinWidth?: boolean
   slim?: boolean
   bold?: boolean
+  freed?: boolean
   paddingHorizontal?: DimensionValue
   handleClick?: () => void
   debounceTime?: number
@@ -29,7 +30,7 @@ type bProps = {
   customTextStyle?: StyleProp<TextStyle>
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 15, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children }: PropsWithChildren<bProps>) {
+export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 1000, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children, freed }: PropsWithChildren<bProps>) {
   const fadedBg = useThemeColor({}, "fadedBackground")
   const darkenVib = useThemeColor({}, "darkenVibrant")
   const bg = useThemeColor({}, "background")
@@ -87,12 +88,12 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
       styles.button,
       {
         backgroundColor: disabled ? mode === "light" ? Colors.dark.tabIconDefault : Colors.light.tabIconDefault : backgroundColor,
-        height: slim ? 43 : "auto",
-        width: width,
-        padding: squashed ? 6 : slim ? 10 : 15,
-        paddingHorizontal: paddingHorizontal ? paddingHorizontal : squashed ? 13 : slim ? 10 : 15,
+        height: freed ? undefined : slim ? 43 : "auto",
+        width: freed ? undefined : width,
+        padding: freed ? undefined : squashed ? 6 : slim ? 10 : 15,
+        paddingHorizontal: freed ? undefined : paddingHorizontal ? paddingHorizontal : squashed ? 13 : slim ? 10 : 15,
         borderRadius: borderRadius,
-        minWidth: useMinWidth ? 100 : 0
+        minWidth: freed ? undefined : useMinWidth ? 100 : 0
       },
       customStyle
     ]}>

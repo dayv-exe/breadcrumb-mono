@@ -1,8 +1,8 @@
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
-import CustomFloatingSquare from "@/components/buttons/CustomFloatingSquare";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
+import MapControls from "@/components/map/MapControls";
 import MapFriendsView from "@/components/map/MapFriendsView";
 import PlaceSearch from "@/components/map/PlaceSearch";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
@@ -18,10 +18,11 @@ import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
-import { CameraIcon, ChevronDownIcon, LocateIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { ChevronDownIcon, SearchIcon } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
-import Reanimated, { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 import { v4 as GenerateUUID } from "uuid";
@@ -121,7 +122,7 @@ export default function MapScreen() {
   const mode = useColorScheme() ?? "light";
   const bgCol = useThemeColor({}, "background")
   const txtCol = useThemeColor({}, "text")
-  const { openSheet, closeSheet } = useBottomSheet()
+  const { openSheet, closeSheet, animatedPosition: globalSheetPosition } = useBottomSheet()
   const insets = useSafeAreaInsets()
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top - 5
@@ -129,6 +130,25 @@ export default function MapScreen() {
   const searchBgCol = useThemeColor({}, "darkBackground")
   const coordinates = useLocationStore(s => s.coordinates)
   const bottomSheetRef = useRef<BottomSheet>(null)
+
+  const handleSearchPress = () => {
+    setSessionToken(GenerateUUID())
+    openSheet({
+      content: (
+        <PlaceSearch
+          availableHeight={availableHeight}
+          HandleClosePress={closeSheet}
+          mapRef={mapRef}
+          OnPlaceSelect={handlePlaceSelected}
+          sessionToken={sessionToken}
+        />
+      ),
+      snapPoints: [availableHeight],
+      reduceAnimations: false,
+      showOverlay: false,
+      backgroundStyle: { backgroundColor: searchBgCol }
+    })
+  }
 
   useEffect(() => {
 
@@ -180,8 +200,9 @@ export default function MapScreen() {
   });
 
   useAnimatedReaction(
-    () => sheetPosition.value < screenHeight * .2, // true = sheet is high up
+    () => Math.min(sheetPosition.value, globalSheetPosition.value) < screenHeight * .2, // true = sheet is high up
     (isSheetUp, previous) => {
+      console.log(globalSheetPosition.value)
       if (isSheetUp !== previous) {
         scheduleOnRN(headerShown, !isSheetUp)
       }
@@ -189,10 +210,12 @@ export default function MapScreen() {
   );
 
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
-  const getHeaderColors = (): { fgColor: string, bgColor: string } => {
-    if (forceDark) return { fgColor: Colors.dark.text, bgColor: Colors.dark.background }
-    else return { fgColor: txtCol, bgColor: bgCol }
+  const getHeaderColors = (): { fgColor: string, bgColor: string, gradientCol: string } => {
+    if (forceDark || useSatellite) return { fgColor: Colors.dark.text, bgColor: Colors.dark.background, gradientCol: "#000000" }
+    else return { fgColor: txtCol, bgColor: bgCol, gradientCol: mode === "light" ? "#ffffff" : "#000000" }
   }
+
+  const nav = useRouter()
   return (
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
@@ -200,12 +223,12 @@ export default function MapScreen() {
         top: 0,
         opacity: headerOpacity,
       }]}>
-        <GradientView colors={[gradCol + "ff", gradCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
+        <GradientView colors={[getHeaderColors().gradientCol + "ff", getHeaderColors().gradientCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
           paddingTop: insets.top,
           paddingBottom: 20,
           top: 0,
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: 'space-between',
           paddingHorizontal: 15,
 
@@ -228,7 +251,19 @@ export default function MapScreen() {
               justifyContent: "center",
             }}
           >
-            <CustomProfilePictureCircle size={35} />
+            <CustomButton
+              freed
+              type="text"
+              customStyle={[styles.shadow, {
+                padding: 10,
+              }]}
+              handleClick={handleSearchPress}
+            >
+              <SearchIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
+            </CustomButton>
+            <CustomProfilePictureCircle size={40} handleClick={() => {
+              nav.push("/(protected)/(main)/profile")
+            }} />
           </View>
         </GradientView>
       </Animated.View>
@@ -262,65 +297,33 @@ export default function MapScreen() {
         centerCoordinate={convertCoordinatesToNumberTuple(mapCenter ?? { accuracy: 0, latitude: 0, longitude: 0 })}
       />
 
-      <Reanimated.View pointerEvents="box-none" style={[styles.mapControls, controlsAnimatedStyle, {
-      }]}>
-        {is2dButtonVisible && <CustomFloatingSquare type="themed" handleClick={make2d}>
-          <CustomLabel adaptToTheme labelText="2D" textAlign="center" bold customStyle={{ opacity: .9 }} />
-        </CustomFloatingSquare>}
-        <Spacer size="small" />
-        <CustomFloatingSquare type="themed"
-          handleClick={() => {
-            setSessionToken(GenerateUUID())
-            headerShown(false)
-            openSheet({
-              content: (
-                <PlaceSearch
-                  availableHeight={availableHeight}
-                  HandleClosePress={closeSheet}
-                  mapRef={mapRef}
-                  OnPlaceSelect={handlePlaceSelected}
-                  sessionToken={sessionToken}
-                />
-              ),
-              snapPoints: [availableHeight],
-              reduceAnimations: false,
-              onSheetDismissed: () => headerShown(true),
-              showOverlay: false,
-              backgroundStyle: { backgroundColor: searchBgCol }
-            })
-          }}
-        >
-          <SearchIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
-        </CustomFloatingSquare>
-        <Spacer size="small" />
-        <CustomFloatingSquare type="themed" handleClick={() => setUseSatellite(!useSatellite)}>
-          <SatelliteIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
-        </CustomFloatingSquare>
-        <Spacer size="small" />
-        <CustomFloatingSquare type="themed" handleClick={focusOnUserLocation}>
-          <LocateIcon opacity={.9} size={25} stroke={txtCol} strokeWidth={2.5} />
-        </CustomFloatingSquare>
-        <CustomButton
-          slim
-          type="less-prominent"
-          customStyle={{
-            position: "absolute",
-            alignSelf: "center",
-            bottom: 20,
-
-            elevation: 10,
-            shadowColor: "#000",
-            shadowOffset: { width: 1, height: 1 },
-            shadowOpacity: .25,
-            shadowRadius: 5,
-          }}
-        >
-          <CameraIcon size={25} stroke={Colors.dark.text} strokeWidth={2.5} />
-          <Spacer size="small" />
-          <CustomLabel bold width="auto" padding={0} labelText="New Crumb" fontSize={15} />
-        </CustomButton>
-        <Spacer size="medium" />
-      </Reanimated.View>
+      <MapControls
+        onFocusPress={focusOnUserLocation}
+        onSatellitePress={() => setUseSatellite(!useSatellite)}
+        pitchToggleVisible={is2dButtonVisible}
+        onPitchToggle={make2d}
+        onSearchPress={() => {
+          setSessionToken(GenerateUUID())
+          openSheet({
+            content: (
+              <PlaceSearch
+                availableHeight={availableHeight}
+                HandleClosePress={closeSheet}
+                mapRef={mapRef}
+                OnPlaceSelect={handlePlaceSelected}
+                sessionToken={sessionToken}
+              />
+            ),
+            snapPoints: [availableHeight],
+            reduceAnimations: false,
+            showOverlay: false,
+            backgroundStyle: { backgroundColor: searchBgCol },
+          })
+        }}
+        containerStyle={
+          controlsAnimatedStyle
+        }
+      />
 
       <BottomSheet
         ref={bottomSheetRef}
@@ -406,5 +409,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: .3,
     shadowRadius: 5,
+  },
+
+  shadow: {
+    elevation: 10,
+    shadowColor: "#000000",
+    shadowOffset: { width: 7, height: 7 },
+    shadowOpacity: .375,
+    shadowRadius: 10,
   },
 });

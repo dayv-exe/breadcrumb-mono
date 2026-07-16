@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 15,
+    borderRadius: 1000,
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0 },

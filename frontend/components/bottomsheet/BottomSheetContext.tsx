@@ -9,7 +9,8 @@ import {
   useRef,
   useState
 } from 'react';
-import { AnimatableNumericValue, StyleSheet, ViewStyle } from 'react-native';
+import { AnimatableNumericValue, StyleSheet, useWindowDimensions, ViewStyle } from 'react-native';
+import { SharedValue, useSharedValue } from 'react-native-reanimated';
 
 export type BottomSheetOptions = {
   content: ReactNode
@@ -32,11 +33,13 @@ export type BottomSheetOptions = {
 type BottomSheetContextType = {
   openSheet: (options: BottomSheetOptions) => void;
   closeSheet: () => void
+  animatedPosition: SharedValue<number>
 };
 
 const BottomSheetContext = createContext<BottomSheetContextType | undefined>(undefined)
 
 export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
+  const { height: screenHeight } = useWindowDimensions()
   const bottomSheetRef = useRef<BottomSheet>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [sheetOptions, setSheetOptions] = useState<BottomSheetOptions>({
@@ -67,7 +70,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
       borderRadius: options.borderRadius ?? 35,
       isScrollableContent: options.isScrollableContent ?? false,
       useRawComponent: options.useRawComponent ?? false,
-      onChange: options.onChange
+      onChange: options.onChange,
     })
     setIsSheetOpen(true)
     switch (options.fullExpansionOnOpen) {
@@ -106,9 +109,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
 
   const bgCol = useThemeColor({}, "background")
   const handleCol = useThemeColor({}, "text")
+  const animatedPosition = useSharedValue(screenHeight)
 
   return (
-    <BottomSheetContext.Provider value={{ openSheet, closeSheet }}>
+    <BottomSheetContext.Provider value={{ openSheet, closeSheet, animatedPosition }}>
       {children}
 
       <BottomSheet
@@ -144,6 +148,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         onChange={(index, pos, type) => {
           sheetOptions.onChange?.(pos)
         }}
+        animatedPosition={animatedPosition}
       >
         {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={{ flex: 1 }}>
           {isSheetOpen && sheetOptions.content}

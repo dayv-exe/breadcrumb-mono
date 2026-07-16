@@ -49,7 +49,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose
       if (!mapRef.current) return
       const c = await mapRef.current.getCenter()
       setMapCenter(convertNumberTupleToCoordinates(
-        [c[1] ?? 0, c[0] ?? 0]
+        [c[0] ?? 0, c[1] ?? 0]
       ))
     }
 
@@ -85,11 +85,15 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose
       </View>
       {
         searchFailed &&
-        <>
+        <View
+          style={{
+            paddingHorizontal: 15,
+          }}
+        >
           <Spacer />
           <CustomLabel labelText="🤔" fontSize={32} />
           <CustomLabel adaptToTheme fade labelText={`Hmmm...\nsomething is not quite right here`} />
-        </>
+        </View>
       }
 
       {
