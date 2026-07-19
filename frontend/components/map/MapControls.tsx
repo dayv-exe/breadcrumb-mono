@@ -1,7 +1,8 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
+import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
@@ -20,6 +21,8 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
+  const { openSheet, closeSheet } = useBottomSheet()
+  const { height } = useWindowDimensions()
 
   return (
     <Reanimated.View
@@ -94,11 +97,25 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           height: 55,
           shadowOffset: { height: 1, width: 1 }
         }]}
-        handleClick={onPitchToggle}
+        handleClick={() => {
+          openSheet({
+            content: (
+              <View style={{
+                width: "100%",
+                height: height,
+                backgroundColor: "black",
+              }}>
+
+              </View>
+            ),
+            showHandle: false,
+            snapPoints: ["100%"],
+            reduceAnimations: true,
+            fullExpansionOnOpen: true,
+          })
+        }}
       >
         <PlusIcon size={27} stroke={"#fff"} strokeWidth={2.5} />
-        {/* <Spacer size="tiny" />
-        <CustomLabel bold padding={0} width="auto" labelText="New Crumb" fontSize={15} /> */}
       </CustomButton>
     </Reanimated.View>
   )

@@ -1,7 +1,7 @@
 import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
 import React, { PropsWithChildren, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
   Easing,
@@ -47,6 +47,8 @@ function CameraComponent({
   shutterSignal,
   children,
 }: PropsWithChildren<cameraViewType>) {
+  const dimensions = useWindowDimensions()
+  const SIZE = dimensions.width * .5
   const format = useMemo(() => {
     return activeCamera!.formats.find(
       (f) => f.videoWidth === 1920 && f.videoHeight === 1080 && f.maxFps >= 28,
@@ -122,14 +124,23 @@ function CameraComponent({
 
   return (
     <GestureDetector gesture={gesture}>
-      <View style={StyleSheet.absoluteFill}>
-        <View style={StyleSheet.absoluteFill}>
+      <View style={{
+        width: SIZE,
+        height: SIZE,
+      }}>
+        <View style={{
+          width: SIZE,
+          height: SIZE,
+        }}>
           <ReanimatedCamera
             ref={cameraRef}
             enableZoomGesture
             style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: "black", borderTopLeftRadius: 25, borderTopRightRadius: 25, overflow: "hidden" },
+              {
+                width: SIZE,
+                height: SIZE,
+                backgroundColor: "black", borderTopLeftRadius: 25, borderTopRightRadius: 25, overflow: "hidden"
+              },
             ]}
             device={activeCamera!}
             isActive={true}

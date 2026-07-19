@@ -37,7 +37,7 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
         borderColor: useRedBorders ? "red" : "transparent"
       }
       , customStyle]}>
-      <SearchIcon size={imageSize} stroke={textCol} strokeWidth={2.5} />
+      <SearchIcon size={imageSize} stroke={textCol} strokeWidth={4} />
       <TextInput ref={ref} style={[
         styles.input,
         {
@@ -71,7 +71,7 @@ export default function CustomSearchInput({ value, handleChange, placeholder, bo
               ref.current?.focus()
             }}>
               <CircleXIcon size={20} stroke={textCol} fill={textCol} />
-              <XIcon size={11} stroke={bgCol} strokeWidth={4} style={{
+              <XIcon size={11} stroke={bgCol} strokeWidth={6} style={{
                 position: "absolute",
                 alignSelf: "center"
               }} />
