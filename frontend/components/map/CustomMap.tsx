@@ -147,10 +147,6 @@ export default function CustomMap({
     }
   }
 
-  async function handleCrumbMarkerPress(e: FeatureCollection) {
-
-  }
-
   useEffect(() => {
     handlePermissions(false);
   }, []);

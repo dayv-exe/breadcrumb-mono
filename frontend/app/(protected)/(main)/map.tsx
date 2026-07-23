@@ -127,6 +127,7 @@ export default function MapScreen() {
   const screenHeight = Dimensions.get("window").height
   const availableHeight = screenHeight - insets.top - 5
   const [forceDark, setForceDark] = useState(false)
+  const [cameraPadding, setCameraPadding] = useState(0)
   const searchBgCol = useThemeColor({}, "darkBackground")
   const coordinates = useLocationStore(s => s.coordinates)
   const bottomSheetRef = useRef<BottomSheet>(null)
@@ -202,7 +203,6 @@ export default function MapScreen() {
   useAnimatedReaction(
     () => Math.min(sheetPosition.value, globalSheetPosition.value) < screenHeight * .2, // true = sheet is high up
     (isSheetUp, previous) => {
-      console.log(globalSheetPosition.value)
       if (isSheetUp !== previous) {
         scheduleOnRN(headerShown, !isSheetUp)
       }
@@ -240,7 +240,7 @@ export default function MapScreen() {
               paddingHorizontal: 0,
             }}
           >
-            <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={23} customStyle={{ color: getHeaderColors().fgColor }} />
+            <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={27} customStyle={{ color: getHeaderColors().fgColor }} />
             <Spacer size="tiny" />
             <ChevronDownIcon stroke={getHeaderColors().fgColor} strokeWidth={2.5} size={21} />
           </CustomButton>
@@ -294,6 +294,7 @@ export default function MapScreen() {
         lock2dButtonAsHidden={lock2DButtonAsHidden}
         setMapCenter={setMapCenter}
         onCrumbsSelect={focusOnCrumbs}
+        cameraBottomPadding={cameraPadding}
         centerCoordinate={convertCoordinatesToNumberTuple(mapCenter ?? { accuracy: 0, latitude: 0, longitude: 0 })}
       />
 
@@ -302,24 +303,6 @@ export default function MapScreen() {
         onSatellitePress={() => setUseSatellite(!useSatellite)}
         pitchToggleVisible={is2dButtonVisible}
         onPitchToggle={make2d}
-        onSearchPress={() => {
-          setSessionToken(GenerateUUID())
-          openSheet({
-            content: (
-              <PlaceSearch
-                availableHeight={availableHeight}
-                HandleClosePress={closeSheet}
-                mapRef={mapRef}
-                OnPlaceSelect={handlePlaceSelected}
-                sessionToken={sessionToken}
-              />
-            ),
-            snapPoints: [availableHeight],
-            reduceAnimations: false,
-            showOverlay: false,
-            backgroundStyle: { backgroundColor: searchBgCol },
-          })
-        }}
         containerStyle={
           controlsAnimatedStyle
         }
@@ -340,7 +323,7 @@ export default function MapScreen() {
         containerStyle={{
           zIndex: 1000,
         }}
-        snapPoints={["50%", ((availableHeight / screenHeight) * 100) + "%"]}
+        snapPoints={[availableHeight]}
         backgroundStyle={{
 
           elevation: 10,

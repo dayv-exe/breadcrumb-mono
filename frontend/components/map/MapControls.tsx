@@ -1,4 +1,5 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useRouter } from "expo-router";
 import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
 import { StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
@@ -11,18 +12,18 @@ interface props {
   containerStyle?: StyleProp<ViewStyle>
   backgroundStyle?: StyleProp<ViewStyle>
   pitchToggleVisible: boolean
-  onSearchPress: () => void
   onSatellitePress: () => void
   onFocusPress: () => void
   onPitchToggle: () => void
 }
 
-export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, onSearchPress, pitchToggleVisible, onPitchToggle }: props) {
+export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, pitchToggleVisible, onPitchToggle }: props) {
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
   const { openSheet, closeSheet } = useBottomSheet()
   const { height } = useWindowDimensions()
+  const nav = useRouter()
 
   return (
     <Reanimated.View
