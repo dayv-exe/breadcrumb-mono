@@ -74,7 +74,7 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
           delayLongPress={150}
           onPress={handleTakePhoto}
           onLongPress={handleStartRecording}
-          style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#FFF", backgroundColor: isRecording ? "transparent" : "transparent" }]}
+          style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ddd", backgroundColor: isRecording ? "transparent" : "#FFF" }]}
         >
         </TouchableOpacity>
       </View>
@@ -86,10 +86,8 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
 const styles = StyleSheet.create({
   shutterContainer: {
     alignSelf: "center",
-    position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-    bottom: 30,
     width: "100%",
   },
   photoShutter: {

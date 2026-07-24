@@ -1,0 +1,27 @@
+new camera page
+new preview page
+allow user manually select location if accuracy poor
+improved background media processing
+pre-emptive media uploads
+
+crumb lock/unlocked and opened\unopened state management
+delete sent crumbs after 24h
+crumbs viewer component
+crumb replies
+chat list view
+cluster view
+chat ui view
+add user search to search tab in map page
+
+remove url signing for profile picture thumbnails
+
+friend request accept from list
+remove friend from list
+complete profile page
+block user feature
+
+notifications and background location processing
+took a screenshot notification
+
+bug report
+privacy policy

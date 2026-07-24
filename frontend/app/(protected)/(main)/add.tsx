@@ -3,7 +3,6 @@ import CameraControls from "@/components/camera/CameraControls";
 import CameraView from "@/components/camera/CameraView";
 import PreviewBunch from "@/components/camera/PreviewBunch";
 import PreviewScreen from "@/components/camera/PreviewScreen";
-import ShutterButton from "@/components/camera/ShutterButton";
 import RecordCrumb from "@/components/editor/RecordCrumb";
 import WriteCrumb from "@/components/editor/WriteCrumb";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
@@ -53,7 +52,7 @@ export default function AddScreen() {
   const maxHeight = height - insets.top
   const [recMode, setRecMode] = useState<recMode>("image")
   const addToPreview = useMediaStore(s => s.addMediaPreview)
-  
+
   const shutterSignal = useSharedValue(0);
 
   useEffect(() => {
@@ -83,24 +82,7 @@ export default function AddScreen() {
               {recMode === "audio" &&
                 <RecordCrumb recordingProgress={audioRecordingProgress} startRecording={startAudioRecording} finishAudioRecording={finishAudioRecording} cancelAudioRecording={cancelAudioRecording} />
               }
-              {recMode === "image" && <CameraView
-                activeCamera={activeCamera}
-                cameraRef={cameraRef}
-                isRecording={isRecording}
-                zoomLevel={zoomLevel}
-                stopRecording={stopRecording}
-                shutterSignal={shutterSignal}
-              >
-                <ShutterButton
-                  recordingProgress={recordingProgress}
-                  startRecording={startRecording}
-                  stopRecording={stopRecording}
-                  takePhoto={() => {
-                    shutterSignal.set(shutterSignal.get() + 1);
-                    takePhoto()
-                  }}
-                />
-              </CameraView>}
+              {recMode === "image" && <CameraView />}
               {activeCamera && (
                 <>
                   {recMode === "image" && <CameraControls

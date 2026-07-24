@@ -1,7 +1,9 @@
+import { useCamera } from "@/hooks/useCamera";
 import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
-import React, { PropsWithChildren, useMemo } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
+import React from "react";
+import { useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
   Easing,
@@ -13,7 +15,7 @@ import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withTiming,
+  withTiming
 } from "react-native-reanimated";
 import { Camera, CameraDevice, CameraProps } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
@@ -21,39 +23,51 @@ import RecordingIndicator from "../recordingIndicator";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
 import QuickSend from "./QuickSend";
+import ShutterButton from "./ShutterButton";
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera);
 
-type cameraViewType = {
-  activeCamera: CameraDevice | null;
-  isRecording: boolean;
-  cameraRef: React.RefObject<Camera | null>;
-  stopRecording: () => void;
-  zoomLevel: SharedValue<number>;
-  /** Bump this value (e.g. shutterSignal.set(shutterSignal.get() + 1))
-   *  right before takePhoto() to trigger the shutter flash. */
-  shutterSignal?: SharedValue<number>;
+type CameraViewType = {
+  onCapture?: () => void
+  onRecording?: () => void
+  onRecordingEnd?: () => void
 };
+
+type CameraComponentType = {
+  cameraRef: React.RefObject<Camera | null>
+  activeCamera: CameraDevice | null
+  zoomLevel: SharedValue<number>
+  startRecording: () => void
+  stopRecording: () => void
+  recordingProgress: SharedValue<number>
+  takePhoto: () => void
+}
 
 const SHUTTER_IN_MS = 25;
 const SHUTTER_OUT_MS = 150;
 
 function CameraComponent({
+  onCapture,
+  onRecording,
+  onRecordingEnd,
   activeCamera,
   cameraRef,
-  isRecording,
   stopRecording,
   zoomLevel,
-  shutterSignal,
-  children,
-}: PropsWithChildren<cameraViewType>) {
+  startRecording,
+  recordingProgress,
+  takePhoto,
+}: CameraViewType & CameraComponentType) {
+  const isRecording = useMediaStore(s => s.isRecording)
+  const isFocused = useIsFocused()
+  const shutterSignal = useSharedValue(0);
   const dimensions = useWindowDimensions()
-  const SIZE = dimensions.width * .5
-  const format = useMemo(() => {
-    return activeCamera!.formats.find(
-      (f) => f.videoWidth === 1920 && f.videoHeight === 1080 && f.maxFps >= 28,
-    );
-  }, [activeCamera]);
+  const SIZE = dimensions.width
+  // const format = useCameraFormat(activeCamera!, [
+  //   { videoResolution: { width: 1920, height: 1080 } },
+  //   { photoResolution: "max" },
+  //   { fps: 30 },
+  // ]);
 
   const animatedProps = useAnimatedProps<CameraProps>(
     () => ({ zoom: zoomLevel.get() }),
@@ -123,69 +137,85 @@ function CameraComponent({
     });
 
   return (
-    <GestureDetector gesture={gesture}>
-      <View style={{
-        width: SIZE,
-        height: SIZE,
-      }}>
-        <View style={{
-          width: SIZE,
-          height: SIZE,
-        }}>
-          <ReanimatedCamera
-            ref={cameraRef}
-            enableZoomGesture
-            style={[
-              {
+    <>
+      {isFocused && <View
+      >
+        <GestureDetector gesture={gesture}>
+          <View
+            style={{
+              width: SIZE,
+              height: SIZE,
+              overflow: "hidden",
+            }}
+          >
+            <ReanimatedCamera
+              ref={cameraRef}
+              enableZoomGesture
+              style={{
                 width: SIZE,
                 height: SIZE,
-                backgroundColor: "black", borderTopLeftRadius: 25, borderTopRightRadius: 25, overflow: "hidden"
-              },
-            ]}
-            device={activeCamera!}
-            isActive={true}
-            animatedProps={animatedProps}
-            audio={true}
-            photo={true}
-            video={true}
-            format={format}
-            photoQualityBalance="balanced"
-            outputOrientation={"preview"}
-          />
-        </View>
-
-        {/* shutter flash overlay */}
-        <Reanimated.View
-          pointerEvents="none"
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: "black",
-              borderTopLeftRadius: 25,
-              borderTopRightRadius: 25,
-              zIndex: 50,
-            },
-            shutterStyle,
-          ]}
+              }}
+              device={activeCamera!}
+              isActive={true}
+              animatedProps={animatedProps}
+              audio={true}
+              photo={true}
+              video={true}
+              photoQualityBalance="speed"
+              outputOrientation={"preview"}
+            />
+            {/* shutter flash overlay */}
+            <Reanimated.View
+              pointerEvents="none"
+              style={[
+                {
+                  position: "absolute",
+                  width: SIZE,
+                  height: SIZE,
+                  backgroundColor: "black",
+                  zIndex: 1000,
+                },
+                shutterStyle,
+              ]}
+            />
+          </View>
+        </GestureDetector>
+        <ShutterButton
+          recordingProgress={recordingProgress}
+          startRecording={startRecording}
+          stopRecording={stopRecording}
+          takePhoto={() => {
+            shutterSignal.set(shutterSignal.get() + 1)
+            takePhoto()
+          }}
         />
-
-        {children}
-      </View>
-    </GestureDetector>
+      </View>}
+    </>
   );
 }
 
 export default function CameraView({
-  activeCamera,
-  cameraRef,
-  isRecording,
-  stopRecording,
-  zoomLevel,
-  shutterSignal,
-  children,
-}: PropsWithChildren<cameraViewType>) {
-  const { hasCameraPermissions, hasMicPermissions, requestMediaPermissions } =
-    useMediaPermissions();
+  onCapture,
+  onRecording,
+  onRecordingEnd,
+}: CameraViewType) {
+  const {
+    hasCameraPermissions,
+    hasMicPermissions,
+    requestMediaPermissions,
+  } = useMediaPermissions();
+
+  const isRecording = useMediaStore(s => s.isRecording)
+
+  const {
+    activeCamera,
+    cameraRef,
+    startRecording,
+    stopRecording,
+    takePhoto,
+    recordingProgress,
+    zoomLevel,
+  } = useCamera()
 
   const selectedFriend = useMediaStore(s => s.selectedFriend);
 
@@ -217,14 +247,15 @@ export default function CameraView({
       <CameraComponent
         activeCamera={activeCamera}
         cameraRef={cameraRef}
+        onCapture={onCapture}
+        onRecording={onRecording}
+        onRecordingEnd={onRecordingEnd}
         stopRecording={stopRecording}
-        isRecording={isRecording}
         zoomLevel={zoomLevel}
-        shutterSignal={shutterSignal}
-      >
-        {children}
-      </CameraComponent>
-
+        recordingProgress={recordingProgress}
+        takePhoto={takePhoto}
+        startRecording={startRecording}
+      />
       {selectedFriend && <QuickSend friend={selectedFriend} />}
     </>
   );

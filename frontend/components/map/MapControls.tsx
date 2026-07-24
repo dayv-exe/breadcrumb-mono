@@ -3,8 +3,10 @@ import { useRouter } from "expo-router";
 import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
 import { StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
+import CameraView from "../camera/CameraView";
 import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 
@@ -17,6 +19,10 @@ interface props {
   onPitchToggle: () => void
 }
 
+function CameraComponent() {
+
+}
+
 export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, pitchToggleVisible, onPitchToggle }: props) {
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
@@ -24,6 +30,9 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
   const { openSheet, closeSheet } = useBottomSheet()
   const { height } = useWindowDimensions()
   const nav = useRouter()
+  const insets = useSafeAreaInsets()
+
+  const SIZE = 27
 
   return (
     <Reanimated.View
@@ -66,11 +75,11 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
             height: 50
           }}
         >
-          <SatelliteIcon stroke={textCol} strokeWidth={2.5} size={25} />
+          <SatelliteIcon stroke={textCol} strokeWidth={2} size={SIZE} />
         </CustomButton>
         <View style={{
-          width: 27,
-          height: 1,
+          width: SIZE,
+          height: 1.5,
           borderRadius: 1000,
           backgroundColor: fadedBgCol,
         }} />
@@ -83,7 +92,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
             height: 50,
           }}
         >
-          <LocateIcon stroke={textCol} strokeWidth={2.5} size={25} />
+          <LocateIcon stroke={textCol} strokeWidth={2} size={SIZE} />
         </CustomButton>
       </View>
 
@@ -99,14 +108,27 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           shadowOffset: { height: 1, width: 1 }
         }]}
         handleClick={() => {
+          // onFocusPress()
           openSheet({
             content: (
-              <View style={{
-                width: "100%",
-                height: height,
-                backgroundColor: "black",
-              }}>
-
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: "black",
+                }}
+              >
+                <CustomLabel fontSize={23} bold labelText="New Crumb" padding={0} customStyle={{
+                  paddingTop: insets.top,
+                  paddingHorizontal: 15,
+                }} />
+                <View
+                  style={{
+                    position: "absolute",
+                    top: "10%",
+                  }}
+                >
+                  <CameraView />
+                </View>
               </View>
             ),
             showHandle: false,

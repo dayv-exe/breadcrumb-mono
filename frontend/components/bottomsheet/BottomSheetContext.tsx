@@ -150,7 +150,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         }}
         animatedPosition={animatedPosition}
       >
-        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={{ flex: 1 }}>
+        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={[StyleSheet.absoluteFill, { flex: 1 }]}>
           {isSheetOpen && sheetOptions.content}
         </BottomSheetView>}
         {!sheetOptions.useRawComponent && sheetOptions.isScrollableContent &&
