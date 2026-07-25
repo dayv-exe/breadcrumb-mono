@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
   },
   photoShutter: {
     borderRadius: "100%",

@@ -106,7 +106,7 @@ export const useMap = (
     console.log(curCoord)
     setCameraFn({
       centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
-      zoomLevel: 12.6,
+      zoomLevel: 12.75,
       animationDuration: 1000,
       pitch: 0,
       heading: 0,

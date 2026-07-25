@@ -24,6 +24,7 @@ export type BottomSheetOptions = {
   showHandle?: boolean
   reduceAnimations?: boolean
   fullExpansionOnOpen?: boolean
+  absoluteFill?: boolean
   borderRadius?: string | AnimatableNumericValue | undefined
   isScrollableContent?: boolean
   useRawComponent?: boolean
@@ -131,10 +132,10 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
-        backgroundStyle={[sheetOptions.backgroundStyle, { backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow, {
+        backgroundStyle={[{ backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow, {
           borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
           borderTopRightRadius: sheetOptions.borderRadius ?? 35
-        }]}
+        }, sheetOptions.backgroundStyle,]}
         animationConfigs={!sheetOptions.reduceAnimations ? {
           stiffness: 500,
           damping: 20,
@@ -150,7 +151,7 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         }}
         animatedPosition={animatedPosition}
       >
-        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={[StyleSheet.absoluteFill, { flex: 1 }]}>
+        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={[sheetOptions.absoluteFill ? StyleSheet.absoluteFill : undefined, { flex: 1 }]}>
           {isSheetOpen && sheetOptions.content}
         </BottomSheetView>}
         {!sheetOptions.useRawComponent && sheetOptions.isScrollableContent &&

@@ -31,7 +31,7 @@ import { useMediaPermissions } from "./usePermissions";
 
 type useCameraReturnType = {
   flipCamera: () => void;
-  takePhoto: () => void;
+  takePhoto: (shutterSignal: SharedValue<number>) => void;
   setUseFlash: (s: "on" | "off") => void;
   startRecording: () => void;
   stopRecording: () => void;
@@ -230,7 +230,7 @@ export function useCamera(): useCameraReturnType {
     }
   }
 
-  async function takeNormalPhoto() {
+  async function takeNormalPhoto(shutterSignal: SharedValue<number>) {
     if (cameraRef.current) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
       try {
@@ -238,6 +238,7 @@ export function useCamera(): useCameraReturnType {
           flash: useFlash,
           enableShutterSound: false
         });
+        shutterSignal.set(shutterSignal.get() + 1)
         addMediaPreview({
           id: uuidv4(),
           type: "photo",
@@ -255,13 +256,8 @@ export function useCamera(): useCameraReturnType {
     }
   }
 
-  async function takePhoto() {
-    if (useFlash === "on") {
-      takeNormalPhoto()
-    } else {
-      // takeQuickPhoto()
-      takeNormalPhoto()
-    }
+  async function takePhoto(shutterSignal: SharedValue<number>) {
+    takeNormalPhoto(shutterSignal)
   }
 
   const [useFlash, setUseFlash] = useState<"on" | "off">("off");

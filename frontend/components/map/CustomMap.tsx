@@ -1,7 +1,7 @@
 import { SelectedLocation } from "@/api/models/locationTypes";
 import { RetrieveResponse } from "@/api/models/placeSearch";
 import { Colors } from "@/constants/Colors";
-import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates, getPressedLocationInfo } from "@/constants/mapFunctions";
+import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { showSettingsAlert } from "@/utils/helpers";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
@@ -154,20 +154,20 @@ export default function CustomMap({
 
   const handleMapPress = async (e: Feature<Geometry, GeoJsonProperties>) => {
     onMapPress(e);
-    if (mapRef?.current) {
-      const collection = await getPressedLocationInfo(e, mapRef);
-      const features = collection?.features
-      const poi = features?.[0];
-      onPoiSelect(poi ?? null)
-    }
+    // if (mapRef?.current) {
+    //   const collection = await getPressedLocationInfo(e, mapRef);
+    //   const features = collection?.features
+    //   const poi = features?.[0];
+    //   onPoiSelect(poi ?? null)
+    // }
   };
 
   const handleMapLongPress = async (e: Feature<Geometry, GeoJsonProperties>) => {
     onMapLongPress(e);
-    if (e.geometry.type === "Point") {
-      const coords = e.geometry.coordinates as [number, number];
-      onDroppedPin(coords)
-    }
+    // if (e.geometry.type === "Point") {
+    //   const coords = e.geometry.coordinates as [number, number];
+    //   onDroppedPin(coords)
+    // }
   }
 
   const offsets = {

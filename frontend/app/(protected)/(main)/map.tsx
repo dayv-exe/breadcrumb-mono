@@ -299,6 +299,7 @@ export default function MapScreen() {
       />
 
       <MapControls
+        useSatellite={useSatellite}
         onFocusPress={focusOnUserLocation}
         onSatellitePress={() => setUseSatellite(!useSatellite)}
         pitchToggleVisible={is2dButtonVisible}

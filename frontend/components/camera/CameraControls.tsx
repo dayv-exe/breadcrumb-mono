@@ -1,17 +1,20 @@
-import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
-import { useImagePicker } from "@/hooks/useImagePicker";
 import { useMediaStore } from "@/utils/mediaStore";
-import { ImagePlusIcon, LockIcon, SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
-import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { SharedValue } from "react-native-reanimated";
 import { useShallow } from "zustand/shallow";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
+import Spacer from "../Spacer";
+import ShutterButton from "./ShutterButton";
 
 type ctrlProps = {
   useFlash: "on" | "off"
   setUseFlash: (s: "on" | "off") => void
   flipCamera: () => void
-  showTextEditor: () => void
+  recordingProgress: SharedValue<number>
+  takePhoto: () => void
+  startRecording: () => void
+  stopRecording: () => void
 }
 
 const icons = {
@@ -22,53 +25,41 @@ const icons = {
   text: require("../../assets/images/icons/crumbtext_sel_light.png"),
 }
 
-export default function CameraControls({ useFlash, setUseFlash, flipCamera, showTextEditor }: ctrlProps) {
+export default function CameraControls({ useFlash, setUseFlash, flipCamera, recordingProgress, stopRecording, startRecording, takePhoto }: ctrlProps) {
   function toggleFlash() {
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
-
-  const insets = useSafeAreaInsets()
 
   const { isRecording, previews } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
     previews: s.mediaPreview
   })))
-  const { pickFromGallery, isLoading } = useImagePicker()
   const size = 25
+  const screenHeight = useWindowDimensions().height
 
   return (
     <View style={[styles.cameraControls, {
-      alignItems: 'flex-start'
+      bottom: screenHeight / 10
     }]}>
       <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
-      }]}>
-        <LockIcon size={size} stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      }]} handleClick={toggleFlash}>
+        {useFlash === "on" && <ZapIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
+        {useFlash === "off" && <ZapOffIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
       </CustomFloatingSquare>
-      <View>
-        <CustomFloatingSquare hardShadow customStyle={styles.imageButtons} onTouch={flipCamera}>
-          <SwitchCameraIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-        </CustomFloatingSquare>
-        <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
-          opacity: isRecording ? 0 : 1
-        }]} handleClick={toggleFlash}>
-          {useFlash === "on" && <ZapIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
-          {useFlash === "off" && <ZapOffIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
-        </CustomFloatingSquare>
-        <CustomFloatingSquare hardShadow handleClick={() => {
-          pickFromGallery({
-            allowsEditing: false,
-            mediaTypes: ["images", "videos"],
-            allowMultipleSel: true,
-            selectionLimit: MAX_PREVIEW_MEDIA - previews.length
-          });
-        }}
-          customStyle={[styles.imageButtons, {
-            opacity: isRecording ? 0 : 1
-          }]}>
-          <ImagePlusIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-        </CustomFloatingSquare>
-      </View>
+      <Spacer />
+
+      <ShutterButton
+        recordingProgress={recordingProgress}
+        startRecording={startRecording}
+        stopRecording={stopRecording}
+        takePhoto={takePhoto}
+      />
+
+      <Spacer />
+      <CustomFloatingSquare hardShadow customStyle={styles.imageButtons} onTouch={flipCamera}>
+        <SwitchCameraIcon size={size} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+      </CustomFloatingSquare>
     </View>
   )
 }
@@ -76,8 +67,6 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, show
 const styles = StyleSheet.create({
   cameraControls: {
     position: "absolute",
-    top: 0,
-    right: 0,
     zIndex: 100,
     flexDirection: "row",
     alignItems: "center",

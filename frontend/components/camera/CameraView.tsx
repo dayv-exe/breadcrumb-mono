@@ -17,13 +17,13 @@ import Reanimated, {
   withSequence,
   withTiming
 } from "react-native-reanimated";
-import { Camera, CameraDevice, CameraProps } from "react-native-vision-camera";
+import { Camera, CameraDevice, CameraProps, useCameraFormat } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
 import RecordingIndicator from "../recordingIndicator";
+import CameraControls from "./CameraControls";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
 import QuickSend from "./QuickSend";
-import ShutterButton from "./ShutterButton";
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera);
 
@@ -40,7 +40,10 @@ type CameraComponentType = {
   startRecording: () => void
   stopRecording: () => void
   recordingProgress: SharedValue<number>
-  takePhoto: () => void
+  takePhoto: (shutterSignal: SharedValue<number>) => void
+  flipCamera: () => void
+  useFlash: "on" | "off"
+  setUseFlash: (s: "on" | "off") => void
 }
 
 const SHUTTER_IN_MS = 25;
@@ -57,17 +60,22 @@ function CameraComponent({
   startRecording,
   recordingProgress,
   takePhoto,
+  flipCamera,
+  useFlash,
+  setUseFlash,
 }: CameraViewType & CameraComponentType) {
   const isRecording = useMediaStore(s => s.isRecording)
   const isFocused = useIsFocused()
   const shutterSignal = useSharedValue(0);
   const dimensions = useWindowDimensions()
   const SIZE = dimensions.width
-  // const format = useCameraFormat(activeCamera!, [
-  //   { videoResolution: { width: 1920, height: 1080 } },
-  //   { photoResolution: "max" },
-  //   { fps: 30 },
-  // ]);
+  const format = useCameraFormat(activeCamera!, [
+    { videoResolution: "max" },
+    { photoResolution: "max" },
+    { fps: "max" },
+    { photoAspectRatio: SIZE },
+    { videoAspectRatio: SIZE },
+  ]);
 
   const animatedProps = useAnimatedProps<CameraProps>(
     () => ({ zoom: zoomLevel.get() }),
@@ -139,10 +147,17 @@ function CameraComponent({
   return (
     <>
       {isFocused && <View
+        style={{
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <GestureDetector gesture={gesture}>
           <View
             style={{
+              position: "absolute",
+              top: dimensions.height / 6,
               width: SIZE,
               height: SIZE,
               overflow: "hidden",
@@ -150,6 +165,7 @@ function CameraComponent({
           >
             <ReanimatedCamera
               ref={cameraRef}
+              format={format}
               enableZoomGesture
               style={{
                 width: SIZE,
@@ -180,14 +196,16 @@ function CameraComponent({
             />
           </View>
         </GestureDetector>
-        <ShutterButton
+        <CameraControls
+          flipCamera={flipCamera}
+          setUseFlash={setUseFlash}
+          useFlash={useFlash}
+          takePhoto={() => {
+            takePhoto(shutterSignal)
+          }}
           recordingProgress={recordingProgress}
           startRecording={startRecording}
           stopRecording={stopRecording}
-          takePhoto={() => {
-            shutterSignal.set(shutterSignal.get() + 1)
-            takePhoto()
-          }}
         />
       </View>}
     </>
@@ -215,6 +233,9 @@ export default function CameraView({
     takePhoto,
     recordingProgress,
     zoomLevel,
+    flipCamera,
+    useFlash,
+    setUseFlash,
   } = useCamera()
 
   const selectedFriend = useMediaStore(s => s.selectedFriend);
@@ -255,6 +276,9 @@ export default function CameraView({
         recordingProgress={recordingProgress}
         takePhoto={takePhoto}
         startRecording={startRecording}
+        flipCamera={flipCamera}
+        setUseFlash={setUseFlash}
+        useFlash={useFlash}
       />
       {selectedFriend && <QuickSend friend={selectedFriend} />}
     </>

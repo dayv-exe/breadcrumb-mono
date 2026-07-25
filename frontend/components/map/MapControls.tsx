@@ -1,7 +1,11 @@
+import { Colors } from "@/constants/Colors";
+import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useLocationStore } from "@/utils/useLocationStore";
 import { useRouter } from "expo-router";
-import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
-import { StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from "react-native";
+import { ChevronDownIcon, LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
+import { useEffect } from "react";
+import { Dimensions, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
@@ -11,6 +15,7 @@ import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 
 interface props {
+  useSatellite: boolean
   containerStyle?: StyleProp<ViewStyle>
   backgroundStyle?: StyleProp<ViewStyle>
   pitchToggleVisible: boolean
@@ -23,16 +28,24 @@ function CameraComponent() {
 
 }
 
-export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, pitchToggleVisible, onPitchToggle }: props) {
+export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, pitchToggleVisible, onPitchToggle, useSatellite }: props) {
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
   const { openSheet, closeSheet } = useBottomSheet()
-  const { height } = useWindowDimensions()
+  const screenHeight = Dimensions.get("window").height
   const nav = useRouter()
   const insets = useSafeAreaInsets()
+  const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
+  const camBgCol = "black"
+  const camTextCol = Colors.dark.text
 
-  const SIZE = 27
+  useEffect(() => {
+    const coords = useLocationStore.getState().coordinates
+    setReverseGeocodeCoordinates(coords)
+  }, [])
+
+  const SIZE = 25
 
   return (
     <Reanimated.View
@@ -72,10 +85,10 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           handleClick={onSatellitePress}
           customStyle={{
             width: 50,
-            height: 50
+            height: 45
           }}
         >
-          <SatelliteIcon stroke={textCol} strokeWidth={2} size={SIZE} />
+          <SatelliteIcon stroke={useSatellite ? Colors.light.vibrantBackground : textCol} strokeWidth={2.25} size={SIZE} />
         </CustomButton>
         <View style={{
           width: SIZE,
@@ -89,10 +102,10 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           handleClick={onFocusPress}
           customStyle={{
             width: 50,
-            height: 50,
+            height: 45,
           }}
         >
-          <LocateIcon stroke={textCol} strokeWidth={2} size={SIZE} />
+          <LocateIcon stroke={textCol} strokeWidth={2.25} size={SIZE} />
         </CustomButton>
       </View>
 
@@ -110,21 +123,57 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
         handleClick={() => {
           // onFocusPress()
           openSheet({
+            backgroundStyle: {
+              backgroundColor: camBgCol,
+            },
             content: (
               <View
                 style={{
-                  flex: 1,
-                  backgroundColor: "black",
+                  height: screenHeight,
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                <CustomLabel fontSize={23} bold labelText="New Crumb" padding={0} customStyle={{
-                  paddingTop: insets.top,
-                  paddingHorizontal: 15,
-                }} />
                 <View
                   style={{
                     position: "absolute",
-                    top: "10%",
+                    top: insets.top,
+                    paddingHorizontal: 20,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      justifyContent: "center",
+                      flexGrow: 1,
+                      flexShrink: 1,
+                    }}
+                  >
+                    <CustomLabel labelText="New" allowTruncate fontSize={25} bold padding={0} />
+                    {address && <CustomLabel labelText={address.split(",")[0]} allowTruncate fontSize={13} fade padding={0}
+                      customStyle={{
+                        textAlign: "left",
+                        maxWidth: "45%",
+                      }}
+                    />}
+                  </View>
+                  <CustomButton
+                    freed
+                    type="text"
+                    paddingHorizontal={0}
+
+                  >
+                    <ChevronDownIcon stroke={camTextCol} strokeWidth={3} size={30} />
+                  </CustomButton>
+                </View>
+                <View
+                  style={{
+
                   }}
                 >
                   <CameraView />
@@ -132,9 +181,9 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
               </View>
             ),
             showHandle: false,
-            snapPoints: ["100%"],
             reduceAnimations: true,
             fullExpansionOnOpen: true,
+            snapPoints: [screenHeight],
           })
         }}
       >
