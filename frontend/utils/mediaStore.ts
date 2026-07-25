@@ -51,6 +51,9 @@ type MediaState = {
 
   applyCurrentMediaCrop: () => void;
   revertCurrentMediaCrop: () => void;
+
+  multiCrumbEnabled: boolean
+  setMultiCrumbEnabled: (s: boolean) => void
 };
 
 const normalizeMedia = (media: MediaData): MediaData => ({
@@ -91,6 +94,7 @@ const initialState = {
   selectedFriend: null,
   editing: "none" as EditingMode,
   sharing: false,
+  multiCrumbEnabled: false
 };
 
 export const useMediaStore = create<MediaState>((set, get) => ({
@@ -124,6 +128,8 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     }),
 
   setIsRecording: (isRecording) => set({ isRecording }),
+
+  setMultiCrumbEnabled: (enabled) => set({ multiCrumbEnabled: enabled }),
 
   addMediaPreview: (media) => {
     const state = get();

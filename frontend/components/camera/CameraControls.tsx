@@ -30,16 +30,16 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
-  const { isRecording, previews } = useMediaStore(useShallow(s => ({
+  const { isRecording, multiCrumbEnabled } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
-    previews: s.mediaPreview
+    multiCrumbEnabled: s.multiCrumbEnabled,
   })))
   const size = 25
   const screenHeight = useWindowDimensions().height
 
   return (
     <View style={[styles.cameraControls, {
-      bottom: screenHeight / 10
+      bottom: screenHeight / 11
     }]}>
       <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
@@ -54,6 +54,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
         startRecording={startRecording}
         stopRecording={stopRecording}
         takePhoto={takePhoto}
+        multiCrumbEnabled={multiCrumbEnabled}
       />
 
       <Spacer />

@@ -2,6 +2,7 @@ import { useCamera } from "@/hooks/useCamera";
 import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
+import { CopyIcon } from "lucide-react-native";
 import React from "react";
 import { useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -19,7 +20,11 @@ import Reanimated, {
 } from "react-native-reanimated";
 import { Camera, CameraDevice, CameraProps, useCameraFormat } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
+import { useShallow } from "zustand/shallow";
+import CustomButton from "../buttons/CustomButton";
+import CustomLabel from "../CustomLabel";
 import RecordingIndicator from "../recordingIndicator";
+import Spacer from "../Spacer";
 import CameraControls from "./CameraControls";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
@@ -64,7 +69,11 @@ function CameraComponent({
   useFlash,
   setUseFlash,
 }: CameraViewType & CameraComponentType) {
-  const isRecording = useMediaStore(s => s.isRecording)
+  const { isRecording, multiCrumbEnabled, setMultiCrumbEnabled } = useMediaStore(useShallow(s => ({
+    isRecording: s.isRecording,
+    multiCrumbEnabled: s.multiCrumbEnabled,
+    setMultiCrumbEnabled: s.setMultiCrumbEnabled,
+  })))
   const isFocused = useIsFocused()
   const shutterSignal = useSharedValue(0);
   const dimensions = useWindowDimensions()
@@ -196,6 +205,29 @@ function CameraComponent({
             />
           </View>
         </GestureDetector>
+
+        <View
+          style={{
+            position: "absolute",
+            bottom: (dimensions.height / 11) + 115,
+          }}
+        >
+          {/* Multi crumb view */}
+          <CustomButton
+            freed
+            customStyle={{
+              paddingHorizontal: 13,
+              paddingVertical: 8,
+            }}
+            type={multiCrumbEnabled ? "less-prominent" : "faded"}
+            handleClick={() => setMultiCrumbEnabled(!multiCrumbEnabled)}
+          >
+            <CopyIcon stroke={"white"} strokeWidth={2.5} size={17} />
+            <Spacer size="tiny" />
+            <CustomLabel labelText="Multi Crumb" bold fontSize={13} padding={0} />
+          </CustomButton>
+        </View>
+
         <CameraControls
           flipCamera={flipCamera}
           setUseFlash={setUseFlash}

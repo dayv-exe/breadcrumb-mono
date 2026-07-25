@@ -141,32 +141,33 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
                     paddingHorizontal: 20,
                     flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-end",
                     width: "100%",
                   }}
                 >
-                  <View
+                  {/* <View
                     style={{
                       flexDirection: "column",
                       alignItems: "flex-start",
                       justifyContent: "center",
                       flexGrow: 1,
                       flexShrink: 1,
+                      backgroundColor: "red",
                     }}
                   >
-                    <CustomLabel labelText="New" allowTruncate fontSize={25} bold padding={0} />
+                    <CustomLabel labelText={`New`} allowTruncate fontSize={25} bold padding={0} />
                     {address && <CustomLabel labelText={address.split(",")[0]} allowTruncate fontSize={13} fade padding={0}
                       customStyle={{
                         textAlign: "left",
                         maxWidth: "45%",
                       }}
                     />}
-                  </View>
+                  </View> */}
                   <CustomButton
                     freed
                     type="text"
                     paddingHorizontal={0}
-
+                    handleClick={closeSheet}
                   >
                     <ChevronDownIcon stroke={camTextCol} strokeWidth={3} size={30} />
                   </CustomButton>
@@ -184,6 +185,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
             reduceAnimations: true,
             fullExpansionOnOpen: true,
             snapPoints: [screenHeight],
+            allowDrag: false,
           })
         }}
       >

@@ -1,5 +1,6 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import { Friend, useMediaStore } from "@/utils/mediaStore";
+import { PlusIcon } from "lucide-react-native";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { useShallow } from "zustand/shallow";
@@ -19,9 +20,10 @@ type shutterProps = {
   startRecording: () => void
   stopRecording: () => void
   recordingProgress: SharedValue<number>
+  multiCrumbEnabled: boolean
 }
 
-export default function ShutterButton({ recordingProgress, startRecording, stopRecording, takePhoto }: shutterProps) {
+export default function ShutterButton({ recordingProgress, startRecording, stopRecording, takePhoto, multiCrumbEnabled }: shutterProps) {
   const { isRecording, mediaPreview, setShowMediaPreviews } = useMediaStore(
     useShallow(s => ({
       isRecording: s.isRecording,
@@ -76,6 +78,12 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
           onLongPress={handleStartRecording}
           style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ddd", backgroundColor: isRecording ? "transparent" : "#FFF" }]}
         >
+          {multiCrumbEnabled &&
+            <PlusIcon stroke={"#ddd"} strokeWidth={4} size={25} style={{
+              position: "absolute",
+              zIndex: 10000,
+            }} />
+          }
         </TouchableOpacity>
       </View>
       {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={recordingProgress} />}
