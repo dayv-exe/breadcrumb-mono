@@ -1,16 +1,10 @@
 import { Colors } from "@/constants/Colors";
-import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useLocationStore } from "@/utils/useLocationStore";
 import { useRouter } from "expo-router";
-import { ChevronDownIcon, LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
-import { useEffect } from "react";
-import { Dimensions, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
-import CameraView from "../camera/CameraView";
 import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 
@@ -24,26 +18,11 @@ interface props {
   onPitchToggle: () => void
 }
 
-function CameraComponent() {
-
-}
-
 export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, pitchToggleVisible, onPitchToggle, useSatellite }: props) {
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
-  const { openSheet, closeSheet } = useBottomSheet()
-  const screenHeight = Dimensions.get("window").height
   const nav = useRouter()
-  const insets = useSafeAreaInsets()
-  const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
-  const camBgCol = "black"
-  const camTextCol = Colors.dark.text
-
-  useEffect(() => {
-    const coords = useLocationStore.getState().coordinates
-    setReverseGeocodeCoordinates(coords)
-  }, [])
 
   const SIZE = 25
 
@@ -122,71 +101,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
         }]}
         handleClick={() => {
           // onFocusPress()
-          openSheet({
-            backgroundStyle: {
-              backgroundColor: camBgCol,
-            },
-            content: (
-              <View
-                style={{
-                  height: screenHeight,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <View
-                  style={{
-                    position: "absolute",
-                    top: insets.top,
-                    paddingHorizontal: 20,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    width: "100%",
-                  }}
-                >
-                  {/* <View
-                    style={{
-                      flexDirection: "column",
-                      alignItems: "flex-start",
-                      justifyContent: "center",
-                      flexGrow: 1,
-                      flexShrink: 1,
-                      backgroundColor: "red",
-                    }}
-                  >
-                    <CustomLabel labelText={`New`} allowTruncate fontSize={25} bold padding={0} />
-                    {address && <CustomLabel labelText={address.split(",")[0]} allowTruncate fontSize={13} fade padding={0}
-                      customStyle={{
-                        textAlign: "left",
-                        maxWidth: "45%",
-                      }}
-                    />}
-                  </View> */}
-                  <CustomButton
-                    freed
-                    type="text"
-                    paddingHorizontal={0}
-                    handleClick={closeSheet}
-                  >
-                    <ChevronDownIcon stroke={camTextCol} strokeWidth={3} size={30} />
-                  </CustomButton>
-                </View>
-                <View
-                  style={{
-
-                  }}
-                >
-                  <CameraView />
-                </View>
-              </View>
-            ),
-            showHandle: false,
-            reduceAnimations: true,
-            fullExpansionOnOpen: true,
-            snapPoints: [screenHeight],
-            allowDrag: false,
-          })
+          nav.push("/(protected)/(main)/camera")
         }}
       >
         <PlusIcon size={27} stroke={"#fff"} strokeWidth={2.5} />

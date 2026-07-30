@@ -9,27 +9,9 @@ import {
   useRef,
   useState
 } from 'react';
-import { AnimatableNumericValue, StyleSheet, useWindowDimensions, ViewStyle } from 'react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 import { SharedValue, useSharedValue } from 'react-native-reanimated';
-
-export type BottomSheetOptions = {
-  content: ReactNode
-  snapPoints?: (string | number)[]
-  dynamicHeight?: boolean
-  allowDrag?: boolean
-  showOverlay?: boolean
-  backgroundStyle?: ViewStyle
-  tapOutsideDismiss?: boolean
-  onSheetDismissed?: () => void
-  showHandle?: boolean
-  reduceAnimations?: boolean
-  fullExpansionOnOpen?: boolean
-  absoluteFill?: boolean
-  borderRadius?: string | AnimatableNumericValue | undefined
-  isScrollableContent?: boolean
-  useRawComponent?: boolean
-  onChange?: (position: number) => void
-};
+import { BottomSheetOptions } from './BottomSheetTypes';
 
 type BottomSheetContextType = {
   openSheet: (options: BottomSheetOptions) => void;
@@ -112,10 +94,29 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
   const handleCol = useThemeColor({}, "text")
   const animatedPosition = useSharedValue(screenHeight)
 
+  const animationConfigs = !sheetOptions.reduceAnimations ? {
+    stiffness: 500,
+    damping: 20,
+    mass: 0.5,
+  } : {
+    stiffness: 500,
+    damping: 120,
+    mass: 0.5,
+  }
+  const handleIndicatorStyle = { backgroundColor: handleCol }
+  const handleStyle = {
+    backgroundColor: sheetOptions.backgroundStyle?.backgroundColor ?? "transparent", borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
+    borderTopRightRadius: sheetOptions.borderRadius ?? 35
+  }
+  const backgroundStyle = [{ backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow, {
+    borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
+    borderTopRightRadius: sheetOptions.borderRadius ?? 35
+  }, sheetOptions.backgroundStyle,]
+  const BottomSheetViewStyle = [sheetOptions.absoluteFill ? StyleSheet.absoluteFill : undefined, { flex: 1 }]
+
   return (
     <BottomSheetContext.Provider value={{ openSheet, closeSheet, animatedPosition }}>
       {children}
-
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
@@ -123,35 +124,21 @@ export const BottomSheetProvider = ({ children }: { children: ReactNode }) => {
         enableDynamicSizing={sheetOptions.dynamicHeight}
         enableOverDrag={sheetOptions.allowDrag ?? true}
         enableContentPanningGesture={true}
-        enableHandlePanningGesture={sheetOptions.allowDrag ?? true}
-        handleIndicatorStyle={{ backgroundColor: handleCol }}
-        handleStyle={{
-          backgroundColor: sheetOptions.backgroundStyle?.backgroundColor ?? "transparent", borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
-          borderTopRightRadius: sheetOptions.borderRadius ?? 35
-        }}
+        enableHandlePanningGesture={sheetOptions.allowDrag}
+        handleIndicatorStyle={handleIndicatorStyle}
+        handleStyle={handleStyle}
         handleComponent={sheetOptions.showHandle ? undefined : null}
         enablePanDownToClose={sheetOptions.allowDrag ?? true}
         backdropComponent={sheetOptions.showOverlay !== false ? renderBackdrop : undefined}
-        backgroundStyle={[{ backgroundColor: bgCol }, sheetOptions.showOverlay ? styles.sheet : styles.sheetWithShadow, {
-          borderTopLeftRadius: sheetOptions.borderRadius ?? 35,
-          borderTopRightRadius: sheetOptions.borderRadius ?? 35
-        }, sheetOptions.backgroundStyle,]}
-        animationConfigs={!sheetOptions.reduceAnimations ? {
-          stiffness: 500,
-          damping: 20,
-          mass: 0.5,
-        } : {
-          stiffness: 500,
-          damping: 120,
-          mass: 0.5,
-        }}
+        backgroundStyle={backgroundStyle}
+        animationConfigs={animationConfigs}
         onClose={handleSheetClose}
         onChange={(index, pos, type) => {
           sheetOptions.onChange?.(pos)
         }}
         animatedPosition={animatedPosition}
       >
-        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={[sheetOptions.absoluteFill ? StyleSheet.absoluteFill : undefined, { flex: 1 }]}>
+        {!sheetOptions.useRawComponent && !sheetOptions.isScrollableContent && <BottomSheetView style={BottomSheetViewStyle}>
           {isSheetOpen && sheetOptions.content}
         </BottomSheetView>}
         {!sheetOptions.useRawComponent && sheetOptions.isScrollableContent &&

@@ -166,7 +166,7 @@ function CameraComponent({
           <View
             style={{
               position: "absolute",
-              top: dimensions.height / 6,
+              top: dimensions.height / 10,
               width: SIZE,
               height: SIZE,
               overflow: "hidden",
@@ -209,7 +209,7 @@ function CameraComponent({
         <View
           style={{
             position: "absolute",
-            bottom: (dimensions.height / 11) + 115,
+            bottom: (dimensions.height / 10) + 115,
           }}
         >
           {/* Multi crumb view */}
@@ -217,14 +217,15 @@ function CameraComponent({
             freed
             customStyle={{
               paddingHorizontal: 13,
-              paddingVertical: 8,
+              paddingVertical: 7,
+              opacity: multiCrumbEnabled ? 1 : .7
             }}
             type={multiCrumbEnabled ? "less-prominent" : "faded"}
             handleClick={() => setMultiCrumbEnabled(!multiCrumbEnabled)}
           >
             <CopyIcon stroke={"white"} strokeWidth={2.5} size={17} />
             <Spacer size="tiny" />
-            <CustomLabel labelText="Multi Crumb" bold fontSize={13} padding={0} />
+            <CustomLabel width="auto" labelText="Multi Crumb" bold fontSize={13} padding={0} />
           </CustomButton>
         </View>
 

@@ -39,7 +39,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
 
   return (
     <View style={[styles.cameraControls, {
-      bottom: screenHeight / 11
+      bottom: screenHeight / 10
     }]}>
       <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1

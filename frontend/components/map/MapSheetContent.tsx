@@ -5,7 +5,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { BottomSheetView } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
 import { useEffect } from "react";
-import Animated from "react-native-reanimated";
+import Animated, { SlideInRight, SlideOutLeft } from "react-native-reanimated";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import CustomLabel from "../CustomLabel";
 import CrumbBottomSheetView from "./CrumbBottomSheetView";
@@ -48,8 +48,8 @@ export default function MapSheetContent({ selectedLocation, clearSelectedItem, s
 
       <Animated.View
         key={nav.current}
-        // entering={SlideInRight}
-        // exiting={SlideOutLeft}
+        entering={SlideInRight}
+        exiting={SlideOutLeft}
         style={{
           paddingTop: 25,
         }}

@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 
-export type SheetRoute = "home" | "poi" | "pin" | "crumbs" | "crumb";
+export type MapSheetRoute = "home" | "poi" | "pin" | "crumbs" | "crumb";
+export type CameraPageRoute = "camera" | "preview"
 
-export type MapBottomSheetNavType<T> = {
+export type NavigatableBottomSheetViewType<T> = {
   current: string
   push: (route: T) => void
   pop: () => void
@@ -10,7 +11,7 @@ export type MapBottomSheetNavType<T> = {
   canGoBack: boolean
 }
 
-export function useSheetNavigation<T extends string>(initial: T): MapBottomSheetNavType<T> {
+export function useSheetNavigation<T extends string>(initial: T): NavigatableBottomSheetViewType<T> {
   const [stack, setStack] = useState<T[]>([initial]);
   const current = stack[stack.length - 1];
 
