@@ -25,7 +25,6 @@ import RecordingIndicator from "../recordingIndicator";
 import CameraControls from "./CameraControls";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
-import QuickSend from "./QuickSend";
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera);
 
@@ -292,7 +291,6 @@ export default function CameraView({
         setUseFlash={setUseFlash}
         useFlash={useFlash}
       />
-      {selectedFriend && <QuickSend friend={selectedFriend} />}
     </>
   );
 }

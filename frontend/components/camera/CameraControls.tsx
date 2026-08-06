@@ -32,11 +32,11 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
-  const { isRecording, multiCrumbEnabled, mediaPreview, clear } = useMediaStore(useShallow(s => ({
+  const { isRecording, multiCrumbEnabled, mediaPreview, setShowMediaPreviews } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
     multiCrumbEnabled: s.multiCrumbEnabled,
     mediaPreview: s.mediaPreview,
-    clear: s.discardAllMediaPreview,
+    setShowMediaPreviews: s.setShowMediaPreviews,
   })))
   const size = 25
   const previewSize = 20
@@ -47,7 +47,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
       bottom: screenHeight / 10,
     }]}>
       {mediaPreview.length > 0 && <CustomButton
-        handleClick={clear}
+        handleClick={() => setShowMediaPreviews(true)}
         freed
         type="less-prominent"
         customStyle={{

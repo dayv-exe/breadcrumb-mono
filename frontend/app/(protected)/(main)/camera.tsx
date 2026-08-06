@@ -1,5 +1,6 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CameraView from "@/components/camera/CameraView";
+import PreviewScreen from "@/components/camera/PreviewScreen";
 import CustomLabel from "@/components/CustomLabel";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { useMediaStore } from "@/utils/mediaStore";
@@ -9,10 +10,14 @@ import { ChevronLeftIcon } from "lucide-react-native";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useShallow } from "zustand/shallow";
 
 export default function CameraPage() {
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
-  const isRecording = useMediaStore(s => s.isRecording)
+  const { isRecording, showMediaPreview } = useMediaStore(useShallow(s => ({
+    isRecording: s.isRecording,
+    showMediaPreview: s.showMediaPreviews,
+  })))
   const insets = useSafeAreaInsets()
   const nav = useRouter()
 
@@ -56,7 +61,8 @@ export default function CameraPage() {
           <CustomLabel textAlign="center" allowTruncate fade width="auto" labelText={address?.split(",")[0] ?? "Current location"} padding={0} fontSize={13} />
         </View>
       </View>
-      <CameraView />
+      {!showMediaPreview && <CameraView />}
+      {showMediaPreview && <PreviewScreen />}
     </View>
   )
 }
