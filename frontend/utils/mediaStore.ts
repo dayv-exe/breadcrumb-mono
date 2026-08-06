@@ -94,7 +94,7 @@ const initialState = {
   selectedFriend: null,
   editing: "none" as EditingMode,
   sharing: false,
-  multiCrumbEnabled: false
+  multiCrumbEnabled: true
 };
 
 export const useMediaStore = create<MediaState>((set, get) => ({

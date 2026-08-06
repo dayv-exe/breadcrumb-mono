@@ -2,7 +2,6 @@ import { useCamera } from "@/hooks/useCamera";
 import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useIsFocused } from "@react-navigation/native";
-import { CopyIcon } from "lucide-react-native";
 import React from "react";
 import { useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -18,13 +17,11 @@ import Reanimated, {
   withSequence,
   withTiming
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Camera, CameraDevice, CameraProps, useCameraFormat } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
 import { useShallow } from "zustand/shallow";
-import CustomButton from "../buttons/CustomButton";
-import CustomLabel from "../CustomLabel";
 import RecordingIndicator from "../recordingIndicator";
-import Spacer from "../Spacer";
 import CameraControls from "./CameraControls";
 import NoCameraFound from "./NoCameraFound";
 import NoCameraPermission from "./NoCameraPermission";
@@ -155,92 +152,72 @@ function CameraComponent({
 
   return (
     <>
-      {isFocused && <View
-        style={{
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      {isFocused &&
         <GestureDetector gesture={gesture}>
           <View
             style={{
-              position: "absolute",
-              top: dimensions.height / 10,
-              width: SIZE,
-              height: SIZE,
-              overflow: "hidden",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <ReanimatedCamera
-              ref={cameraRef}
-              format={format}
-              enableZoomGesture
+            <View
               style={{
+                position: "absolute",
+                top: dimensions.height / 10,
                 width: SIZE,
                 height: SIZE,
+                overflow: "hidden",
               }}
-              device={activeCamera!}
-              isActive={true}
-              animatedProps={animatedProps}
-              audio={true}
-              photo={true}
-              video={true}
-              photoQualityBalance="speed"
-              outputOrientation={"preview"}
-            />
-            {/* shutter flash overlay */}
-            <Reanimated.View
-              pointerEvents="none"
-              style={[
-                {
-                  position: "absolute",
+            >
+              <ReanimatedCamera
+                ref={cameraRef}
+                format={format}
+                enableZoomGesture
+                style={{
                   width: SIZE,
                   height: SIZE,
-                  backgroundColor: "black",
-                  zIndex: 1000,
-                },
-                shutterStyle,
-              ]}
+                }}
+                device={activeCamera!}
+                isActive={true}
+                animatedProps={animatedProps}
+                audio={true}
+                photo={true}
+                video={true}
+                photoQualityBalance="speed"
+                outputOrientation={"preview"}
+              />
+              {/* shutter flash overlay */}
+              <Reanimated.View
+                pointerEvents="none"
+                style={[
+                  {
+                    position: "absolute",
+                    width: SIZE,
+                    height: SIZE,
+                    backgroundColor: "black",
+                    zIndex: 1000,
+                  },
+                  shutterStyle,
+                ]}
+              />
+            </View>
+
+            <CameraControls
+              flipCamera={flipCamera}
+              setUseFlash={setUseFlash}
+              useFlash={useFlash}
+              takePhoto={() => {
+                takePhoto(shutterSignal)
+                onCapture?.()
+              }}
+              recordingProgress={recordingProgress}
+              startRecording={startRecording}
+              stopRecording={stopRecording}
             />
           </View>
         </GestureDetector>
-
-        <View
-          style={{
-            position: "absolute",
-            bottom: (dimensions.height / 10) + 115,
-          }}
-        >
-          {/* Multi crumb view */}
-          <CustomButton
-            freed
-            customStyle={{
-              paddingHorizontal: 13,
-              paddingVertical: 7,
-              opacity: multiCrumbEnabled ? 1 : .7
-            }}
-            type={multiCrumbEnabled ? "less-prominent" : "faded"}
-            handleClick={() => setMultiCrumbEnabled(!multiCrumbEnabled)}
-          >
-            <CopyIcon stroke={"white"} strokeWidth={2.5} size={17} />
-            <Spacer size="tiny" />
-            <CustomLabel width="auto" labelText="Multi Crumb" bold fontSize={13} padding={0} />
-          </CustomButton>
-        </View>
-
-        <CameraControls
-          flipCamera={flipCamera}
-          setUseFlash={setUseFlash}
-          useFlash={useFlash}
-          takePhoto={() => {
-            takePhoto(shutterSignal)
-          }}
-          recordingProgress={recordingProgress}
-          startRecording={startRecording}
-          stopRecording={stopRecording}
-        />
-      </View>}
+      }
     </>
   );
 }
@@ -257,6 +234,7 @@ export default function CameraView({
   } = useMediaPermissions();
 
   const isRecording = useMediaStore(s => s.isRecording)
+  const insetTop = useSafeAreaInsets().top
 
   const {
     activeCamera,
@@ -295,6 +273,7 @@ export default function CameraView({
         <RecordingIndicator
           customStyle={{
             zIndex: 100,
+            top: insetTop,
           }}
         />
       )}

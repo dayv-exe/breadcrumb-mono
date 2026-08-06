@@ -63,7 +63,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           type="text"
           handleClick={onSatellitePress}
           customStyle={{
-            width: 50,
+            width: 55,
             height: 45
           }}
         >
@@ -80,7 +80,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           type="text"
           handleClick={onFocusPress}
           customStyle={{
-            width: 50,
+            width: 55,
             height: 45,
           }}
         >

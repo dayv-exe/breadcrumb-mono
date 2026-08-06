@@ -2,6 +2,7 @@ import CustomButton from "@/components/buttons/CustomButton";
 import CameraView from "@/components/camera/CameraView";
 import CustomLabel from "@/components/CustomLabel";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
+import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
 import { useRouter } from "expo-router";
 import { ChevronLeftIcon } from "lucide-react-native";
@@ -11,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CameraPage() {
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
+  const isRecording = useMediaStore(s => s.isRecording)
   const insets = useSafeAreaInsets()
   const nav = useRouter()
 
@@ -31,7 +33,8 @@ export default function CameraPage() {
     >
       <View
         style={[styles.header, {
-          top: insets.top
+          top: insets.top,
+          opacity: isRecording ? 0 : 1,
         }]}
       >
         <CustomButton
@@ -50,7 +53,7 @@ export default function CameraPage() {
           ]}
         >
           <CustomLabel textAlign="center" bold width="auto" labelText="New" padding={0} fontSize={21} />
-          <CustomLabel textAlign="center" allowTruncate fade width="auto" labelText={address?.split(",")[0]} padding={0} fontSize={13} />
+          <CustomLabel textAlign="center" allowTruncate fade width="auto" labelText={address?.split(",")[0] ?? "Current location"} padding={0} fontSize={13} />
         </View>
       </View>
       <CameraView />
@@ -61,7 +64,9 @@ export default function CameraPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black"
+    backgroundColor: "black",
+    alignItems: "center",
+    justifyContent: "center",
   },
   header: {
     position: "absolute",

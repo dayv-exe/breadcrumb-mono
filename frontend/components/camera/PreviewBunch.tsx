@@ -1,55 +1,48 @@
 import { useMediaStore } from "@/utils/mediaStore";
 import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import Reanimated, { useAnimatedStyle, withSpring } from "react-native-reanimated";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import Reanimated from "react-native-reanimated";
 import { useShallow } from "zustand/shallow";
-import PreviewCard from "./PreviewCard";
+import SmallPreviewCard from "./SmallPreviewCard";
 
-export default function PreviewBunch() {
-  const { setShowMediaPreviews, mediaPreview, selectedFriend, isRecording } =
+interface props {
+  style?: StyleProp<ViewStyle>
+  size?: number
+}
+
+export default function PreviewBunch({ style, size }: props) {
+  const SIZE = size ?? 1080 * 0.05
+  const { mediaPreview, isRecording } =
     useMediaStore(
       useShallow((s) => ({
-        setShowMediaPreviews: s.setShowMediaPreviews,
         mediaPreview: s.mediaPreview,
-        selectedFriend: s.selectedFriend,
         isRecording: s.isRecording,
       }))
     );
-  const previewContainerStyle = useAnimatedStyle(() => {
-    return {
-      bottom: withSpring(!selectedFriend ? 95 : 180, {
-        damping: 25,
-        stiffness: 250,
-        mass: 1
-      }),
-      left: withSpring(!selectedFriend ? 70 : 45, {
-        damping: 25,
-        stiffness: 250,
-        mass: 1,
-      }),
-    };
-  }, [selectedFriend]);
 
   return (
     <>
       {(
-        <Reanimated.View style={[styles.previewContainer, previewContainerStyle]}>
-          <TouchableOpacity onPress={() => setShowMediaPreviews(true)} style={[styles.previewTouchable, {
+        <Reanimated.View style={[styles.previewContainer, style, {
+          // width: SIZE,
+          // height: SIZE,
+        }]}>
+          <View style={[styles.previewTouchable, {
             opacity: isRecording ? 0 : 1
           }]}>
             {mediaPreview.map((media, index) => {
               return (
-                <PreviewCard
+                <SmallPreviewCard
                   key={index}
                   media={media}
                   index={index}
                   src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri}
-                  active
+                  size={SIZE}
                   animateIn={index === mediaPreview.length - 1}
                 />
               );
             })}
-          </TouchableOpacity>
+          </View>
         </Reanimated.View>
       )}
     </>
@@ -58,11 +51,10 @@ export default function PreviewBunch() {
 
 const styles = StyleSheet.create({
   previewContainer: {
-    position: "absolute",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    width: "auto",
+    backgroundColor: "red",
   },
   previewTouchable: {
     flexDirection: "row",

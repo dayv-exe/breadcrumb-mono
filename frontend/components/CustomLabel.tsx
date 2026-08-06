@@ -19,7 +19,7 @@ type lProps = {
   allowTruncate?: boolean
 }
 
-export default function CustomLabel({ labelText = "Label", textAlign = "left", adaptToTheme = false, bold = false, fade = false, fitContent = false, width = "100%", fontSize = 17, italic = false, padding = 5, textColor, customStyle, allowTruncate }: lProps) {
+export default function CustomLabel({ labelText = "Label", textAlign = "left", adaptToTheme = false, bold = false, fade = false, fitContent = true, width = "100%", fontSize = 17, italic = false, padding = 5, textColor, customStyle, allowTruncate }: lProps) {
   const textCol = useThemeColor({}, "text")
   return (
     <Text

@@ -40,7 +40,7 @@ export enum TIME {
   HOUR = 60 * (60 * 1000)
 }
 
-export const MAX_PREVIEW_MEDIA = 5;
+export const MAX_PREVIEW_MEDIA = 10;
 
 export const PRESET_COLORS = [
   "#FFFFFF", "#000000", "#FF3B30", "#FF9500", "#FFCC00",
