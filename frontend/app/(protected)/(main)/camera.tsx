@@ -1,7 +1,7 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CameraView from "@/components/camera/CameraView";
-import PreviewScreen from "@/components/camera/PreviewScreen";
 import CustomLabel from "@/components/CustomLabel";
+import Spacer from "@/components/Spacer";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useLocationStore } from "@/utils/useLocationStore";
@@ -14,17 +14,21 @@ import { useShallow } from "zustand/shallow";
 
 export default function CameraPage() {
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
-  const { isRecording, showMediaPreview } = useMediaStore(useShallow(s => ({
+  const { isRecording } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
-    showMediaPreview: s.showMediaPreviews,
   })))
   const insets = useSafeAreaInsets()
   const nav = useRouter()
 
+  const resolveAddress = () => {
+    const curCoords = useLocationStore.getState().coordinates
+    setReverseGeocodeCoordinates(curCoords)
+  }
+
   useEffect(() => {
-    const coord = useLocationStore.getState().coordinates
-    setReverseGeocodeCoordinates(coord)
+    resolveAddress()
   }, [])
+
 
   function handleGoBack() {
     nav.dismiss()
@@ -33,7 +37,7 @@ export default function CameraPage() {
   return (
     <View
       style={[styles.container, {
-        paddingTop: insets.top
+        paddingTop: insets.top + 15
       }]}
     >
       <View
@@ -57,12 +61,26 @@ export default function CameraPage() {
 
           ]}
         >
-          <CustomLabel textAlign="center" bold width="auto" labelText="New" padding={0} fontSize={21} />
-          <CustomLabel textAlign="center" allowTruncate fade width="auto" labelText={address?.split(",")[0] ?? "Current location"} padding={0} fontSize={13} />
+          <CustomLabel
+            textAlign="center"
+            bold
+            width="auto"
+            labelText={address?.split(",")[0] ?? "Current Address"}
+            padding={0}
+            fontSize={16}
+          />
+          <Spacer size="tiny" />
+          <CustomLabel
+            textAlign="center"
+            fade
+            width="auto"
+            labelText="New"
+            padding={0}
+            fontSize={14}
+          />
         </View>
       </View>
-      {!showMediaPreview && <CameraView />}
-      {showMediaPreview && <PreviewScreen />}
+      <CameraView />
     </View>
   )
 }
@@ -79,7 +97,7 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   title: {
 

@@ -328,10 +328,10 @@ export default function MapScreen() {
         backgroundStyle={{
 
           elevation: 10,
-          shadowColor: "black",
-          shadowOpacity: .175,
-          shadowOffset: { height: 1, width: 0 },
-          shadowRadius: 10,
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: .375,
+          shadowRadius: 15,
 
           backgroundColor: bgCol,
           borderTopLeftRadius: 25,
