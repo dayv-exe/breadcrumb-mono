@@ -1,4 +1,5 @@
 import { useMediaStore } from "@/utils/mediaStore";
+import { useRouter } from "expo-router";
 import { ChevronRightIcon, SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
@@ -41,13 +42,14 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
   const size = 25
   const previewSize = 20
   const screenHeight = useWindowDimensions().height
+  const nav = useRouter()
 
   return (
     <View style={[styles.cameraControls, {
       bottom: screenHeight / 10,
     }]}>
       {mediaPreview.length > 0 && <CustomButton
-        handleClick={() => setShowMediaPreviews(true)}
+        handleClick={() => nav.push("/(protected)/(main)/preview")}
         freed
         type="less-prominent"
         customStyle={{

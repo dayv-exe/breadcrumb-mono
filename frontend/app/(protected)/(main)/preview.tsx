@@ -1,38 +1,26 @@
 import CustomButton from "@/components/buttons/CustomButton";
-import CameraView from "@/components/camera/CameraView";
 import CustomLabel from "@/components/CustomLabel";
 import Spacer from "@/components/Spacer";
 import { UseGetAddress } from "@/hooks/useGetAddress";
-import { useMediaStore } from "@/utils/mediaStore";
-import { useRouter } from "expo-router";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { ChevronLeftIcon } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useShallow } from "zustand/shallow";
 
-export default function CameraPage() {
-  const { isRecording } = useMediaStore(useShallow(s => ({
-    isRecording: s.isRecording,
-  })))
+export default function Preview() {
+  const bgCol = useThemeColor({}, "background")
   const insets = useSafeAreaInsets()
-  const nav = useRouter()
-
   const { address } = UseGetAddress()
-
-  function handleGoBack() {
-    nav.dismiss()
-  }
 
   return (
     <View
       style={[styles.container, {
-        paddingTop: insets.top + 15
+        backgroundColor: "black"
       }]}
     >
       <View
         style={[styles.header, {
           top: insets.top,
-          opacity: isRecording ? 0 : 1,
         }]}
       >
         <CustomButton
@@ -41,7 +29,6 @@ export default function CameraPage() {
             styles.backButton
           ]}
           type="text"
-          handleClick={handleGoBack}
         >
           <ChevronLeftIcon stroke={"white"} strokeWidth={3.5} size={25} />
         </CustomButton>
@@ -54,22 +41,21 @@ export default function CameraPage() {
             textAlign="center"
             bold
             width="auto"
-            labelText={address?.split(",")[0] ?? "Current Address"}
+            labelText={"Share crumbs"}
             padding={0}
-            fontSize={16}
+            fontSize={18}
           />
           <Spacer size="tiny" />
           <CustomLabel
             textAlign="center"
             fade
             width="auto"
-            labelText="New"
+            labelText={address?.split(",")[0] ?? "Current Location"}
             padding={0}
             fontSize={14}
           />
         </View>
       </View>
-      <CameraView />
     </View>
   )
 }
@@ -77,9 +63,6 @@ export default function CameraPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
   },
   header: {
     position: "absolute",

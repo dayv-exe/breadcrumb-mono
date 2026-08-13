@@ -151,7 +151,7 @@ function CameraComponent({
 
   return (
     <>
-      {isFocused &&
+      {true &&
         <GestureDetector gesture={gesture}>
           <View
             style={{
