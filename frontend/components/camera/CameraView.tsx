@@ -127,7 +127,16 @@ function CameraComponent({
   // for pan to zoom while recording
   const zoomOffset = useSharedValue(0);
 
-  const gesture = Gesture.Pan()
+  const flipCameraGesture = Gesture.Tap()
+    .numberOfTaps(2)
+    .maxDuration(200)
+    .onEnd((e, didDoubleTap) => {
+      if (didDoubleTap) {
+        scheduleOnRN(flipCamera)
+      }
+    })
+
+  const zoomGesture = Gesture.Pan()
     .onBegin(() => {
       zoomOffset.set(zoomLevel.get());
     })
@@ -148,6 +157,8 @@ function CameraComponent({
     .onEnd(() => {
       scheduleOnRN(handleTouchEnd);
     });
+
+  const gesture = Gesture.Simultaneous(flipCameraGesture, zoomGesture)
 
   return (
     <>

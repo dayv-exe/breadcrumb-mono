@@ -1,8 +1,9 @@
 import { Colors } from "@/constants/Colors";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
 import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -23,6 +24,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
   const nav = useRouter()
+  const mediaPreviews = useMediaStore(s => s.mediaPreview)
 
   const SIZE = 25
 
@@ -63,7 +65,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           type="text"
           handleClick={onSatellitePress}
           customStyle={{
-            width: 50,
+            width: 52,
             height: 45
           }}
         >
@@ -80,7 +82,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           type="text"
           handleClick={onFocusPress}
           customStyle={{
-            width: 50,
+            width: 52,
             height: 45,
           }}
         >
@@ -105,6 +107,22 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
         }}
       >
         <PlusIcon size={27} stroke={"#fff"} strokeWidth={2.5} />
+        {mediaPreviews.length > 0 && <View
+          style={{
+            position: "absolute",
+            width: 23,
+            height: 23,
+            padding: 5,
+            borderRadius: "100%",
+            backgroundColor: "red",
+            top: -5,
+            right: -5,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 11, fontWeight: "bold", color: "white" }}>{mediaPreviews.length}</Text>
+        </View>}
       </CustomButton>
     </Reanimated.View>
   )

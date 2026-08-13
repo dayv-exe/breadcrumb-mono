@@ -1,11 +1,16 @@
+import { Colors } from "@/constants/Colors";
+import { UseGetAddress } from "@/hooks/useGetAddress";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
-import { ChevronRightIcon, SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
+import { SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
+import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
+import PreviewAndShare from "../crumbs/PreviewAndShare";
 import Spacer from "../Spacer";
 import PreviewBunch from "./PreviewBunch";
 import ShutterButton from "./ShutterButton";
@@ -43,13 +48,33 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
   const previewSize = 20
   const screenHeight = useWindowDimensions().height
   const nav = useRouter()
+  const darkBgCol = Colors.dark.background
+  const { openSheet, closeSheet } = useBottomSheet()
+  const insetTop = useSafeAreaInsets().top
+  const height = useWindowDimensions().height
+  const availableHeight = height - insetTop
+  const { address } = UseGetAddress()
+
+  function showPreview() {
+    openSheet({
+      content: (
+        <PreviewAndShare closeSheet={closeSheet} address={address ?? "Current location"} />
+      ),
+      backgroundStyle: {
+        backgroundColor: darkBgCol,
+      },
+      snapPoints: ["100%"],
+      fullExpansionOnOpen: true,
+      showHandle: false
+    })
+  }
 
   return (
     <View style={[styles.cameraControls, {
       bottom: screenHeight / 10,
     }]}>
       {mediaPreview.length > 0 && <CustomButton
-        handleClick={() => nav.push("/(protected)/(main)/preview")}
+        handleClick={showPreview}
         freed
         type="less-prominent"
         customStyle={{
@@ -69,8 +94,8 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
         />
         <Text
           style={{ color: "#FFF", fontWeight: "bold" }}
-        >Edit & Share</Text>
-        <ChevronRightIcon stroke="#FFF" strokeWidth={2} size={21} />
+        >Preview & Share</Text>
+        <Spacer size="small" />
       </CustomButton>}
       <CustomFloatingSquare hardShadow customStyle={[styles.imageButtons, {
         opacity: isRecording ? 0 : 1
