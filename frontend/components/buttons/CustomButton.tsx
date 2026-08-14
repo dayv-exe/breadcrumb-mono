@@ -25,12 +25,13 @@ type bProps = {
   freed?: boolean
   paddingHorizontal?: DimensionValue
   handleClick?: () => void
+  handleLongPress?: () => void
   debounceTime?: number
   customStyle?: StyleProp<ViewStyle>
   customTextStyle?: StyleProp<TextStyle>
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 1000, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children, freed }: PropsWithChildren<bProps>) {
+export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, handleLongPress, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 1000, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children, freed }: PropsWithChildren<bProps>) {
   const fadedBg = useThemeColor({}, "fadedBackground")
   const darkenVib = useThemeColor({}, "darkenVibrant")
   const bg = useThemeColor({}, "background")
@@ -75,7 +76,7 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
   }
 
   return (
-    <TouchableOpacity disabled={disabled} onPress={() => {
+    <TouchableOpacity disabled={disabled} onLongPress={handleLongPress} delayLongPress={150} onPress={() => {
       // debounce clicks and disable clicks is button is in loading state
       if (!clicked) {
         if (!allowMultipleClicks) { setClicked(true) }

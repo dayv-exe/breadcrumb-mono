@@ -1,63 +1,35 @@
+import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useMediaStore } from "@/utils/mediaStore";
 import { ChevronDownIcon, Trash2Icon } from "lucide-react-native";
-import { DimensionValue, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 import CustomButton from "../buttons/CustomButton";
-import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
 import CrumbView from "./CrumbView";
 
 interface props {
-  address: string
   closeSheet: () => void
 }
 
-const NUM_OF_COLUMNS = 3
-function FriendShareItem({ name }: { name?: string }) {
-  const WIDTH: DimensionValue = `${100 / NUM_OF_COLUMNS}%`
-
-  return (
-    <View
-      style={{
-        width: WIDTH,
-        alignItems: "center",
-      }}
-    >
-      <View
-        style={{
-          width: 80,
-          height: 125,
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "flex-start",
-        }}
-      >
-        <CustomProfilePictureCircle
-          size={70}
-          customStyle={{
-            marginBottom: 7,
-          }}
-        />
-        <Text
-          style={{
-            color: "white",
-            textAlign: "center",
-          }}
-          numberOfLines={2}
-        >{name ?? "Test"}</Text>
-      </View>
-    </View>
-  )
-}
-
-export default function PreviewAndShare({ address, closeSheet }: props) {
+export default function PreviewAndShare({ closeSheet }: props) {
   const { mediaPreview, discardAllMedia } = useMediaStore(useShallow(s => ({
     mediaPreview: s.mediaPreview,
     discardAllMedia: s.discardAllMediaPreview,
   })))
   const insets = useSafeAreaInsets()
+  const {
+    address,
+    isPending,
+    locationOptions,
+    recipients,
+    selectedLocation,
+    setRecipients,
+    setSelectedLocation,
+    setShowMap,
+    showMap,
+  } = useShareCrumb(() => { })
   function handleDiscardAllMedia() {
     closeSheet()
     discardAllMedia()
@@ -89,7 +61,7 @@ export default function PreviewAndShare({ address, closeSheet }: props) {
         >
           <ChevronDownIcon stroke={"white"} strokeWidth={3.5} size={25} />
         </CustomButton>
-        <CustomLabel fontSize={18} bold labelText="Preview" />
+        <CustomLabel fontSize={18} bold labelText="Preview & Share" />
         <CustomButton
           type="text"
           freed
@@ -110,9 +82,11 @@ export default function PreviewAndShare({ address, closeSheet }: props) {
         </CustomButton>
       </View>
 
+      <Spacer />
+
       <ScrollView
         style={{
-          paddingTop: 25,
+          paddingBottom: 50
         }}
       >
         <ScrollView
@@ -139,20 +113,23 @@ export default function PreviewAndShare({ address, closeSheet }: props) {
         </ScrollView>
 
         <Spacer size="big" />
+
         <View
           style={{
             paddingHorizontal: 15,
           }}
         >
-          <CustomLabel labelText="Share with" bold fontSize={16} />
-          <Spacer size="small" />
+          <CustomLabel labelText="Share with" fontSize={16} bold customStyle={{
+            paddingHorizontal: 10,
+          }} />
           <View
             style={{
+              marginTop: 10,
               flexDirection: "row",
               flexWrap: "wrap",
             }}
           >
-            <FriendShareItem name="(Me) David" />
+
           </View>
         </View>
       </ScrollView>

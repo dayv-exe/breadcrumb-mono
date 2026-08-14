@@ -1,7 +1,6 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CameraView from "@/components/camera/CameraView";
 import CustomLabel from "@/components/CustomLabel";
-import { UseGetAddress } from "@/hooks/useGetAddress";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
 import { ChevronLeftIcon } from "lucide-react-native";
@@ -15,8 +14,6 @@ export default function CameraPage() {
   })))
   const insets = useSafeAreaInsets()
   const nav = useRouter()
-
-  const { address } = UseGetAddress()
 
   function handleGoBack() {
     nav.dismiss()
@@ -57,9 +54,9 @@ export default function CameraPage() {
             textAlign="center"
             bold
             width="auto"
-            labelText={address?.split(",")[0] ?? "Current Address"}
+            labelText={"Camera"}
             padding={0}
-            fontSize={16}
+            fontSize={18}
           />
         </View>
       </View>

@@ -1,5 +1,4 @@
 import { Colors } from "@/constants/Colors";
-import { UseGetAddress } from "@/hooks/useGetAddress";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
 import { SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
@@ -45,12 +44,11 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
   const insetTop = useSafeAreaInsets().top
   const height = useWindowDimensions().height
   const availableHeight = height - insetTop
-  const { address } = UseGetAddress()
 
   function showPreview() {
     openSheet({
       content: (
-        <PreviewAndShare closeSheet={closeSheet} address={address ?? "Current location"} />
+        <PreviewAndShare closeSheet={closeSheet} />
       ),
       backgroundStyle: {
         backgroundColor: darkBgCol,

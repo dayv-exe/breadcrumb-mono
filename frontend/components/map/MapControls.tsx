@@ -16,10 +16,11 @@ interface props {
   pitchToggleVisible: boolean
   onSatellitePress: () => void
   onFocusPress: () => void
+  onFocusLongPress: () => void
   onPitchToggle: () => void
 }
 
-export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onSatellitePress, pitchToggleVisible, onPitchToggle, useSatellite }: props) {
+export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onFocusLongPress, onSatellitePress, pitchToggleVisible, onPitchToggle, useSatellite }: props) {
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
@@ -81,6 +82,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           freed
           type="text"
           handleClick={onFocusPress}
+          handleLongPress={onFocusLongPress}
           customStyle={{
             width: 52,
             height: 45,

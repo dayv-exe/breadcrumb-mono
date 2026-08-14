@@ -92,6 +92,7 @@ export default function MapScreen() {
     focusOnCrumbs,
     focusOnDroppedPin,
     focusOnPoiLabel,
+    focusOnCurrentCenterLocation,
     clearSelectedLocation,
     focusOnUserLocation,
     setDroppedPinRadius,
@@ -301,6 +302,7 @@ export default function MapScreen() {
       <MapControls
         useSatellite={useSatellite}
         onFocusPress={focusOnUserLocation}
+        onFocusLongPress={focusOnCurrentCenterLocation}
         onSatellitePress={() => setUseSatellite(!useSatellite)}
         pitchToggleVisible={is2dButtonVisible}
         onPitchToggle={make2d}

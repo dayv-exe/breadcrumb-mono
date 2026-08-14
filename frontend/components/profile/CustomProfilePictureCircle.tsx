@@ -2,7 +2,7 @@ import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { colorForUserId } from "@/utils/userColor";
-import { AnimatableNumericValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { AnimatableNumericValue, ColorSchemeName, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 
 type props = {
@@ -15,12 +15,14 @@ type props = {
   handleClick?: (src: string,) => void
   backgroundColor?: string
   useUserColor?: boolean
+  forceMode?: ColorSchemeName
 }
 
-export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, backgroundColor, useUserColor }: props) {
+export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, backgroundColor, useUserColor, forceMode }: props) {
   const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? "");
   const { data: userDetails } = useGetUser(userId ?? "")
-  const mode = useColorScheme();
+  const deviceMode = useColorScheme();
+  const mode = forceMode ?? deviceMode
 
   const fgColLight = "#555";
   const fgColDark = "#fff";

@@ -15,6 +15,7 @@ export type CustomMapHook = {
   focusOnCrumbs: (crumbIds: string[], coordinates: Coordinates) => void
   focusOnSearchResult: (c: [number, number]) => void
   focusOnUserLocation: () => void
+  focusOnCurrentCenterLocation: () => void
   clearSelectedLocation: () => void
   is2dButtonVisible: boolean
   set2dButtonVisible: (s: boolean) => void
@@ -104,7 +105,16 @@ export const useMap = (
     setSelectedLocation(null)
     const curCoord = useLocationStore.getState().coordinates
     setCameraFn({
-      // centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
+      centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
+      zoomLevel: 12.5,
+      animationDuration: 1000,
+      pitch: 0,
+      heading: 0,
+    })
+  }
+
+  async function focusOnCurrentCenterLocation() {
+    setCameraFn({
       zoomLevel: 12.5,
       animationDuration: 1000,
       pitch: 0,
@@ -145,6 +155,7 @@ export const useMap = (
     },
     focusOnSearchResult,
     focusOnUserLocation,
+    focusOnCurrentCenterLocation,
     focusOnCrumbs: (ids, coords) => {
       focusOnSelectedLocation({
         type: "crumb",
