@@ -127,6 +127,7 @@ export default function PreviewAndShare({ address, closeSheet }: props) {
               return (
                 <CrumbView
                   key={media.id}
+                  size={300}
                   imageUri={media.uri}
                   style={{
                     marginRight: 10,

@@ -25,14 +25,6 @@ type ctrlProps = {
   stopRecording: () => void
 }
 
-const icons = {
-  flash: require("../../assets/images/icons/flash_sel_light.png"),
-  noFlash: require("../../assets/images/icons/noflash_sel_light.png"),
-  friends: require("../../assets/images/icons/searchfriends_sel_light.png"),
-  gallery: require("../../assets/images/icons/gallery_unsel_light.png"),
-  text: require("../../assets/images/icons/crumbtext_sel_light.png"),
-}
-
 export default function CameraControls({ useFlash, setUseFlash, flipCamera, recordingProgress, stopRecording, startRecording, takePhoto }: ctrlProps) {
   function toggleFlash() {
     setUseFlash(useFlash === "on" ? "off" : "on")
@@ -65,7 +57,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
       },
       snapPoints: ["100%"],
       fullExpansionOnOpen: true,
-      showHandle: false
+      showHandle: false,
     })
   }
 

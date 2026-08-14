@@ -1,7 +1,6 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CameraView from "@/components/camera/CameraView";
 import CustomLabel from "@/components/CustomLabel";
-import Spacer from "@/components/Spacer";
 import { UseGetAddress } from "@/hooks/useGetAddress";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
@@ -46,10 +45,14 @@ export default function CameraPage() {
           <ChevronLeftIcon stroke={"white"} strokeWidth={3.5} size={25} />
         </CustomButton>
         <View
-          style={[
-
-          ]}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
+          {/* <MapPinIcon stroke={"white"} strokeWidth={2.5} size={18} />
+          <Spacer size="tiny" /> */}
           <CustomLabel
             textAlign="center"
             bold
@@ -57,15 +60,6 @@ export default function CameraPage() {
             labelText={address?.split(",")[0] ?? "Current Address"}
             padding={0}
             fontSize={16}
-          />
-          <Spacer size="tiny" />
-          <CustomLabel
-            textAlign="center"
-            fade
-            width="auto"
-            labelText="New"
-            padding={0}
-            fontSize={14}
           />
         </View>
       </View>

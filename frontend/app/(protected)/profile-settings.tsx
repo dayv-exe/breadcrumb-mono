@@ -40,7 +40,7 @@ const OptionItem = ({ name, value, handleClick }: SettingOption) => {
     <TouchableOpacity style={{
       minHeight: 60,
       flexDirection: "column",
-      alignItems: "center",
+      alignItems: "flex-start",
       justifyContent: "center",
       paddingHorizontal: 10,
       paddingVertical: 10

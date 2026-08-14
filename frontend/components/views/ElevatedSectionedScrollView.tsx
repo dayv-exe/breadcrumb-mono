@@ -8,7 +8,9 @@ import {
   RefreshControl,
   ScrollView,
   ScrollViewProps,
+  StyleProp,
   StyleSheet,
+  TextStyle,
   View
 } from "react-native";
 import CustomLabel from "../CustomLabel";
@@ -54,7 +56,7 @@ interface ElevatedSectionedScrollViewProps extends Omit<ScrollViewProps, "onScro
   sections: Section[];
   /** Distance from bottom (px) to trigger loading more. Default 200 */
   scrollThreshold?: number;
-  sectionTitleStyle?: object;
+  sectionTitleStyle?: StyleProp<TextStyle>;
   /** Called on pull-to-refresh. Should return a Promise that resolves when refresh is done. */
   hideSectionTitles?: boolean
   onRefresh?: () => Promise<void>;
@@ -124,7 +126,7 @@ export function ElevatedSectionedScrollView({
           key={`${section.key}-header`}
           style={[styles.stickyHeader, { backgroundColor: darkBg, paddingHorizontal: 15 }]}
         >
-          <CustomLabel adaptToTheme bold labelText={section.title} fontSize={14} customStyle={[sectionTitleStyle, { backgroundColor: darkBg, padding: 0 }]} />
+          <CustomLabel adaptToTheme bold labelText={section.title} customStyle={[{ backgroundColor: darkBg, padding: 0, fontSize: 14 }, sectionTitleStyle]} />
         </View>
       );
     }
@@ -136,7 +138,7 @@ export function ElevatedSectionedScrollView({
           key={`${section.key}-body`}
           style={{ marginTop: 0, marginBottom: isLast ? 100 : 0, paddingHorizontal: 15, }}
         >
-          <ElevatedSection title={section.title ?? ""}>
+          <ElevatedSection title={section.title ?? ""} titleStyle={sectionTitleStyle}>
             {section.data.map((item, i) => (
               <React.Fragment key={section.keyExtractor(item)}>
                 {section.renderItem(item, i)}

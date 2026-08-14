@@ -26,7 +26,12 @@ export default function CrumbView({ imageUri, size = 320, style }: props) {
       >
         <Image
           source={{ uri: imageUri }}
-          style={{ width: "100%", height: "100%" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            borderWidth: .5,
+            borderColor: "grey"
+          }}
           resizeMode="cover"
         />
       </View>
