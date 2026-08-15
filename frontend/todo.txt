@@ -25,3 +25,7 @@ took a screenshot notification
 
 bug report
 privacy policy
+
+// AFTER LAUNCH
+
+add search to select friends to share with

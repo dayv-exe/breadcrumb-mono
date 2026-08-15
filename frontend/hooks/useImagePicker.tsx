@@ -46,11 +46,10 @@ function getImageResizeMode(imageWidth: number, imageHeight: number, screenDimen
 export const useImagePicker = (): UseImagePickerReturn => {
   const [image, setImage] = useState<MediaData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { addMediaPreview, mediaPreviews, setShowMediaPreviews } = useMediaStore(useShallow(
+  const { addMediaPreview, mediaPreviews } = useMediaStore(useShallow(
     s => ({
       addMediaPreview: s.addMediaPreview,
       mediaPreviews: s.mediaPreview,
-      setShowMediaPreviews: s.setShowMediaPreviews
     })
   ));
   const screenDimensions = useWindowDimensions();
@@ -76,7 +75,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
         }
         processed.push({
           index: 0,
-          uploadState: {error: null, pending: false, uploadUrl: ""},
+          uploadState: { error: null, pending: false, uploadUrl: "" },
           id: uuidv4(),
           uri: asset.uri,
           width: asset.width,
@@ -105,7 +104,6 @@ export const useImagePicker = (): UseImagePickerReturn => {
         showCancelBtn: false,
         primaryBtnText: "Okay",
         onPrimary: () => {
-          setShowMediaPreviews(true)
           hideModal()
         }
       })

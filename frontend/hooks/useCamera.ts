@@ -55,13 +55,12 @@ function normalizeFileUri(path: string) {
 }
 
 export function useCamera(): useCameraReturnType {
-  const { addMediaPreview, setIsRecording, mediaPreview, setShowMediaPreview, replaceMediaPreview } = useMediaStore(
+  const { addMediaPreview, setIsRecording, mediaPreview, replaceMediaPreview } = useMediaStore(
     useShallow(s => ({
       addMediaPreview: s.addMediaPreview,
       replaceMediaPreview: s.replaceMediaPreview,
       setIsRecording: s.setIsRecording,
       mediaPreview: s.mediaPreview,
-      setShowMediaPreview: s.setShowMediaPreviews,
     }))
   );
   const mediaPrevLen = useRef(mediaPreview.length)
@@ -209,7 +208,6 @@ export function useCamera(): useCameraReturnType {
           index: 0,
           uploadState: { error: null, pending: false, uploadUrl: "" }
         });
-        setShowMediaPreview(true)
 
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid).catch(() => { });
         const photo = await photoPromise
@@ -311,7 +309,6 @@ export function useCamera(): useCameraReturnType {
         index: 0,
         uploadState: { error: null, pending: false, uploadUrl: "" }
       })
-      setShowMediaPreview(true)
     } else {
       console.error("Failed to find recording!")
     }

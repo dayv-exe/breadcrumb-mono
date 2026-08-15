@@ -1,7 +1,6 @@
-import { LocationSelectionManner, SelectedLocation } from "@/api/models/locationTypes"
+import { LocationSelectionManner } from "@/api/models/locationTypes"
 import CustomLabel from "@/components/CustomLabel"
 import { useModal } from "@/components/modals/ModalContext"
-import { LocationOptionsProps } from "@/components/share/LocationOption"
 import Spacer from "@/components/Spacer"
 import { DEFAULT_CRUMB_RADIUS, ShowToast } from "@/constants/appConstants"
 import { useMediaStore } from "@/utils/mediaStore"
@@ -25,15 +24,10 @@ interface iRecipient {
 }
 
 type ShareCrumbType = {
-  selectedLocation: SelectedLocation | null
-  setSelectedLocation: (l: SelectedLocation) => void
-  locationOptions: LocationOptionsProps[]
   recipients: iRecipient[]
   setRecipients: (rs: iRecipient[]) => void
   isPending: boolean
   handleShare: () => void
-  showMap: boolean
-  setShowMap: (s: boolean) => void
   address: string | null
 }
 
@@ -42,68 +36,27 @@ export function useShareCrumb(
 ): ShareCrumbType {
   const textCol = useThemeColor({}, "text")
   const { showModal, hideModal } = useModal()
-  const [showMap, setShowMap] = useState(false)
-  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null)
   const [recipients, setRecipients] = useState<iRecipient[]>([])
   const [isPending, setIsPending] = useState(false)
   const resetMediaStore = useMediaStore(s => s.reset)
   const crumbMedia = useMediaStore(s => s.mediaPreview)
   const coordinates = useLocationStore(s => s.coordinates)
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
-  const usePlural = crumbMedia.length > 1
 
   useEffect(() => {
-    if (selectedLocation) {
-      setReverseGeocodeCoordinates(selectedLocation.coordinates)
-    } else {
-      setReverseGeocodeCoordinates(coordinates)
-    }
-  }, [selectedLocation])
-
-  const locationOptions: LocationOptionsProps[] = [
-    {
-      iconEmoji: "📍",
-      name: "My current location",
-      selected: !selectedLocation,
-      selectedText: `Crumb${usePlural ? "s" : ""} can only be opened here`,
-      onPressed: () => {
-        setSelectedLocation(null)
-      }
-    },
-    {
-      iconEmoji: "🗺️",
-      name: "Choose on map",
-      selectedName: selectedLocation?.type !== "crumb" ? selectedLocation?.type === "pin" ? address ? `Pin (${address})` : "Dropped pin" : selectedLocation?.poi.properties?.name : "Crumb",
-      selected: selectedLocation !== null,
-      selectedText: `Crumb${usePlural ? "s" : ""} can only be opened there`,
-      onPressed: () => {
-        setShowMap(true)
-      }
-    },
-  ]
+    setReverseGeocodeCoordinates(coordinates)
+  }, [coordinates])
 
   const { upload } = useMediaUpload({
     onSuccess: files => {
-      const poiId = selectedLocation?.type === "poi" && selectedLocation.poi.id ? selectedLocation.poi.id.toString() : undefined
-      const crumbCoordinates = selectedLocation ? selectedLocation.coordinates : coordinates
-      let crumbRadius: number
-      let crumbLocationSelManner: LocationSelectionManner
-
-      if (selectedLocation && selectedLocation.type === "pin") {
-        crumbLocationSelManner = "dropped-pin"
-        crumbRadius = selectedLocation.radius
-      } else if (selectedLocation && selectedLocation.type === "poi") {
-        crumbLocationSelManner = "label"
-        crumbRadius = 0
-      } else {
-        crumbLocationSelManner = "gps"
-        crumbRadius = coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS
-      }
+      const poiId = undefined
+      const crumbCoordinates = coordinates
+      let crumbRadius: number = coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS
+      let crumbLocationSelManner: LocationSelectionManner = "gps"
 
       if (!crumbCoordinates) {
         throw new Error("Crumb does not have a valid coordinate!")
       }
-
 
       shareCrumb({
         id: files[0].crumbId,
@@ -182,15 +135,10 @@ export function useShareCrumb(
   };
 
   return {
-    setSelectedLocation,
-    selectedLocation,
-    locationOptions,
     recipients,
     setRecipients,
     isPending,
     handleShare,
-    showMap,
-    setShowMap,
     address,
   }
 }

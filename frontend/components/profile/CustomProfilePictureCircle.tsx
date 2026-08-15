@@ -50,8 +50,8 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
         justifyContent: "center",
         borderRadius: borderRadius ?? size / 2,
         overflow: "hidden",
-        borderColor: "rgba(0, 0, 0, .1)",
-        borderWidth: 1
+        outlineColor: "rgba(0, 0, 0, .1)",
+        outlineWidth: 1
       }, customStyle]}
       onPress={() => handleClick?.(url ?? "")}
     >

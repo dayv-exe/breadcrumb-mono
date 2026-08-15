@@ -65,10 +65,8 @@ function CameraComponent({
   useFlash,
   setUseFlash,
 }: CameraViewType & CameraComponentType) {
-  const { isRecording, multiCrumbEnabled, setMultiCrumbEnabled } = useMediaStore(useShallow(s => ({
+  const { isRecording } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
-    multiCrumbEnabled: s.multiCrumbEnabled,
-    setMultiCrumbEnabled: s.setMultiCrumbEnabled,
   })))
   const isFocused = useIsFocused()
   const shutterSignal = useSharedValue(0);
@@ -258,8 +256,6 @@ export default function CameraView({
     useFlash,
     setUseFlash,
   } = useCamera()
-
-  const selectedFriend = useMediaStore(s => s.selectedFriend);
 
   if (!hasCameraPermissions || !hasMicPermissions) {
     let missingPermissions = [];

@@ -332,7 +332,7 @@ export default function MapScreen() {
           elevation: 10,
           shadowColor: "#000000",
           shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: .375,
+          shadowOpacity: .175,
           shadowRadius: 15,
 
           backgroundColor: bgCol,

@@ -3,7 +3,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
 import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -101,7 +101,6 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           zIndex: 5000,
           width: 55,
           height: 55,
-          shadowOffset: { height: 1, width: 1 }
         }]}
         handleClick={() => {
           // onFocusPress()
@@ -112,18 +111,18 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
         {mediaPreviews.length > 0 && <View
           style={{
             position: "absolute",
-            width: 23,
-            height: 23,
-            padding: 5,
+            width: 10,
+            height: 10,
+            // padding: 5,
             borderRadius: "100%",
             backgroundColor: "red",
-            top: -5,
-            right: -5,
+            top: 3,
+            right: 3,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Text style={{ fontSize: 11, fontWeight: "bold", color: "white" }}>{mediaPreviews.length}</Text>
+
         </View>}
       </CustomButton>
     </Reanimated.View>
@@ -152,8 +151,8 @@ const styles = StyleSheet.create({
   shadow: {
     elevation: 10,
     shadowColor: "#000000",
-    shadowOffset: { width: 7, height: 7 },
-    shadowOpacity: .375,
-    shadowRadius: 10,
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: .25,
+    shadowRadius: 5,
   },
 })

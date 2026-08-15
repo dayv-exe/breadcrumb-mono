@@ -28,7 +28,7 @@ export function FriendShareItem({ name, onChange, userid, isSelected }: props) {
     >
       <View
         style={{
-          width: 70,
+          width: 75,
           height: 115,
           flexDirection: "column",
           alignItems: "center",
@@ -36,39 +36,38 @@ export function FriendShareItem({ name, onChange, userid, isSelected }: props) {
         }}
       >
         <CustomProfilePictureCircle
-          useUserColor
+          userId={userid}
           forceMode="light"
           size={63}
           customStyle={{
-            marginBottom: 4,
+            marginBottom: 5,
             borderWidth: 1,
-            outlineWidth: 5,
-            outlineColor: isSelected ? Colors.light.vibrantBackground : "transparent"
           }}
         />
 
         {isSelected && <View
           style={{
-            backgroundColor: Colors.light.vibrantBackground,
-            padding: 5,
+            backgroundColor: Colors.dark.vibrantBackground,
+            width: 23,
+            height: 23,
             borderRadius: "100%",
             position: "absolute",
             bottom: 50,
-            right: -3,
-            // borderWidth: 2,
-            // borderColor: darkBgCol,
+            right: 0,
             outlineWidth: 3,
-            outlineColor: darkBgCol
+            outlineColor: darkBgCol,
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <CheckIcon stroke="white" strokeWidth={3.5} size={13} />
+          <CheckIcon stroke="white" strokeWidth={4} size={16} />
         </View>}
 
         <Text
           style={{
             color: "white",
             textAlign: "center",
-            fontSize: 14
+            fontSize: 13
           }}
           numberOfLines={2}
         >{name ?? "Test"}</Text>

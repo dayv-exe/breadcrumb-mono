@@ -1,10 +1,8 @@
 import { Colors } from "@/constants/Colors";
 import { useMediaStore } from "@/utils/mediaStore";
-import { useRouter } from "expo-router";
 import { SwitchCameraIcon, ZapIcon, ZapOffIcon } from "lucide-react-native";
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
@@ -29,21 +27,15 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
     setUseFlash(useFlash === "on" ? "off" : "on")
   }
 
-  const { isRecording, multiCrumbEnabled, mediaPreview, setShowMediaPreviews } = useMediaStore(useShallow(s => ({
+  const { isRecording, mediaPreview } = useMediaStore(useShallow(s => ({
     isRecording: s.isRecording,
-    multiCrumbEnabled: s.multiCrumbEnabled,
     mediaPreview: s.mediaPreview,
-    setShowMediaPreviews: s.setShowMediaPreviews,
   })))
   const size = 25
   const previewSize = 20
   const screenHeight = useWindowDimensions().height
-  const nav = useRouter()
   const darkBgCol = Colors.dark.background
   const { openSheet, closeSheet } = useBottomSheet()
-  const insetTop = useSafeAreaInsets().top
-  const height = useWindowDimensions().height
-  const availableHeight = height - insetTop
 
   function showPreview() {
     openSheet({
@@ -53,9 +45,10 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
       backgroundStyle: {
         backgroundColor: darkBgCol,
       },
+      useRawComponent: true,
       snapPoints: ["100%"],
-      fullExpansionOnOpen: true,
       showHandle: false,
+      allowDrag: false,
     })
   }
 
@@ -100,7 +93,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
         startRecording={startRecording}
         stopRecording={stopRecording}
         takePhoto={takePhoto}
-        multiCrumbEnabled={multiCrumbEnabled}
+        multiCrumbEnabled={true}
       />
 
       <Spacer />

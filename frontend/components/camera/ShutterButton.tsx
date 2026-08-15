@@ -23,11 +23,10 @@ type shutterProps = {
 }
 
 export default function ShutterButton({ recordingProgress, startRecording, stopRecording, takePhoto, multiCrumbEnabled }: shutterProps) {
-  const { isRecording, mediaPreview, setShowMediaPreviews } = useMediaStore(
+  const { isRecording, mediaPreview } = useMediaStore(
     useShallow(s => ({
       isRecording: s.isRecording,
       mediaPreview: s.mediaPreview,
-      setShowMediaPreviews: s.setShowMediaPreviews
     }))
   )
   const { showModal, hideModal } = useModal()
@@ -44,7 +43,6 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
         showCancelBtn: false,
         primaryBtnText: "Okay",
         onPrimary: () => {
-          setShowMediaPreviews(true)
           hideModal()
         }
       })
@@ -70,7 +68,7 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
           onLongPress={handleStartRecording}
           style={[styles.photoShutter, { borderColor: isRecording ? "transparent" : "#ddd", backgroundColor: isRecording ? "transparent" : "#FFF" }]}
         >
-         
+
         </TouchableOpacity>
       </View>
       {isRecording && <RecordingProgressRing size={90} strokeWidth={10} progress={recordingProgress} />}
