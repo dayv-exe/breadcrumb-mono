@@ -1,6 +1,6 @@
 custom_email
 main_handler
 process_upload
-queue_actions
+queue_worker
 signup_presignup
 signup_unfinished_remover

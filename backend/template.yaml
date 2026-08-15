@@ -659,11 +659,11 @@ Resources:
         - AttributeName: sk
           KeyType: RANGE
 
-  QueueActions:
+  QueueWorker:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${AWS::StackName}-bread-queue-actions-${EnvironmentName}
-      CodeUri: bin/queue_actions/queue_actions.zip
+      FunctionName: !Sub ${AWS::StackName}-bread-queue-worker-${EnvironmentName}
+      CodeUri: bin/queue_worker/queue_worker.zip
       Handler: bootstrap
       Description: function to handle stuff in queue
       Policies: 

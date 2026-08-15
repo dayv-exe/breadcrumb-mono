@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleQueueActions(ctx context.Context, sqs events.SQSEvent) error {
+func HandleQueueWorker(ctx context.Context, sqs events.SQSEvent) error {
 	for _, msg := range sqs.Records {
 		var action helpers.QueueAction
 		if err := json.Unmarshal([]byte(msg.Body), &action); err != nil {
