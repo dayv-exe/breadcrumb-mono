@@ -23,7 +23,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		userId = utils.GetAuthenticatedUserid()
 	}
 
-	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, includeUserProfile, &lastEvalKey, nil)
+	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, includeUserProfile, lastEvalKey, nil)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}

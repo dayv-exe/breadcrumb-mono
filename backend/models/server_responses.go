@@ -111,7 +111,7 @@ func encodeLastEvalKey(key map[string]types.AttributeValue) string {
 	return base64.URLEncoding.EncodeToString(jsonBytes)
 }
 
-func DecodeLastEvalKey(key string) (map[string]types.AttributeValue, error) {
+func DecodeLastEvalKey(key string) (*map[string]types.AttributeValue, error) {
 
 	if key == "" {
 		return nil, nil
@@ -127,5 +127,5 @@ func DecodeLastEvalKey(key string) (map[string]types.AttributeValue, error) {
 		return nil, err
 	}
 
-	return lastKey, nil
+	return &lastKey, nil
 }
