@@ -18,7 +18,7 @@ enum LOCATION_OPTIONS {
   global = "Global"
 }
 
-interface iRecipient {
+export interface iRecipient {
   id: string,
   name: string
 }
