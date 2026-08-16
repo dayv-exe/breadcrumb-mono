@@ -6,6 +6,7 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -13,6 +14,7 @@ import (
 func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userId, userIdExists := req.PathParameters["id"] // the user who's friends we want to view
 	lastEvalKey, err := models.DecodeLastEvalKey(req.QueryStringParameters["next"])
+	includeUserProfile := strings.ToLower(req.QueryStringParameters["showProfile"]) == "true"
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to decode last evaluated key! Try again.", err), nil
 	}
@@ -21,7 +23,7 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		userId = utils.GetAuthenticatedUserid()
 	}
 
-	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, &lastEvalKey, nil)
+	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, includeUserProfile, &lastEvalKey, nil)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}

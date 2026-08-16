@@ -106,7 +106,20 @@ func (this *friendshipHelper) GetFriendshipStatus(currentUserId string, otherUse
 	return constants.FRIENDSHIP_STATUS_NOT_FRIENDS, nil
 }
 
-func (this *friendshipHelper) GetAllFriends(userId string, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
+func (this *friendshipHelper) GetAllFriends(userId string, includeUserProfile bool, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
+	friends := make([]models.UserDisplayInfo, 0)
+
+	if includeUserProfile {
+		userHelper := NewUserHelper(this.Ctx)
+		userProfile, err := userHelper.FindById(utils.GetAuthenticatedUserid())
+
+		if err != nil {
+			return nil, err
+		}
+
+		friends = append(friends, userProfile.UserDisplayInfo)
+	}
+
 	condition := expression.KeyEqual(expression.Key("pk"), expression.Value(utils.AddPrefix(models.FriendItemPk, userId))).And(
 		expression.KeyBeginsWith(expression.Key("sk"), models.FriendItemSk),
 	)
@@ -129,8 +142,10 @@ func (this *friendshipHelper) GetAllFriends(userId string, lastEvalKey *map[stri
 		},
 	)
 
+	friends = append(friends, result.Items...)
+
 	return &listResponse[models.UserDisplayInfo]{
-		Items:       result.Items,
+		Items:       friends,
 		LastEvalKey: result.LastEvaluatedKey,
 	}, nil
 }
@@ -247,7 +262,7 @@ func (f *friendshipHelper) updateFriendshipDisplayInfo(currentUser *models.User)
 	var lastEvalKey map[string]types.AttributeValue
 
 	for {
-		result, err := f.GetAllFriends(currentUser.Userid, &lastEvalKey, nil)
+		result, err := f.GetAllFriends(currentUser.Userid, false, &lastEvalKey, nil)
 		if err != nil {
 			log.Println("Failed to get user friends!")
 			return err
@@ -283,7 +298,7 @@ func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) err
 	var lastEvalKey map[string]types.AttributeValue
 
 	for {
-		result, err := f.GetAllFriends(currentUser.Userid, &lastEvalKey, nil)
+		result, err := f.GetAllFriends(currentUser.Userid, false, &lastEvalKey, nil)
 		if err != nil {
 			log.Println("Failed to get user friends!")
 			return err
