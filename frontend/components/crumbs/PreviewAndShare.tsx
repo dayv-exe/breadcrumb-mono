@@ -1,11 +1,12 @@
 import { UserDetails } from "@/api/models/userDetails";
+import { Colors } from "@/constants/Colors";
 import { useGetFriends } from "@/hooks/queries/useFriendsApi";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useMediaStore } from "@/utils/mediaStore";
 import { ChevronDownIcon, MapPinIcon, Trash2Icon } from "lucide-react-native";
-import { useEffect } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
 import CustomLabel from "../CustomLabel";
@@ -14,9 +15,15 @@ import CustomButton from "../buttons/CustomButton";
 import CrumbView from "./CrumbView";
 import { FriendShareItem } from "./FriendShareItem";
 
+
 interface props {
   closeSheet: () => void
 }
+
+const CRUMBVIEW_SIZE = 300
+
+const BG = Colors.light.darkenVibrant
+const BG_FADE = Colors.light.vibrantBackground + "00"
 
 function deriveFriendName(name: string | null, nickname: string | null, defaultName: string = "<no name>") {
   if (name) return name
@@ -73,6 +80,17 @@ export default function PreviewAndShare({ closeSheet }: props) {
 
   const usePlural = mediaPreview.length > 1
 
+  const scrollRef = useRef<ScrollView>(null)
+  const layouts = useRef<Record<string, { x: number; width: number }>>({})
+  const { width: screenWidth } = useWindowDimensions()
+
+  const centerOnCrumb = useCallback((id: string) => {
+    const layout = layouts.current[id]
+    if (!layout) return
+    const x = layout.x + layout.width / 2 - screenWidth / 2
+    scrollRef.current?.scrollTo({ x: Math.max(0, x), animated: true })
+  }, [screenWidth])
+
   return (
     <View
       style={[styles.container, {
@@ -100,7 +118,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
           <ChevronDownIcon stroke={"white"} strokeWidth={3.5} size={25} />
         </CustomButton>
         <CustomLabel fontSize={18} bold labelText="Preview" />
-        {mediaPreview.length > 1 && <CustomButton
+        {<CustomButton
           type="text"
           freed
           customStyle={{
@@ -127,6 +145,8 @@ export default function PreviewAndShare({ closeSheet }: props) {
       >
         <Spacer />
         <ScrollView
+          ref={scrollRef}
+          keyboardShouldPersistTaps="never"
           horizontal
           showsHorizontalScrollIndicator={false}
           style={{
@@ -143,6 +163,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
                   style={{
                     marginRight: 10,
                   }}
+                  onCaptionFocus={() => centerOnCrumb(media.id)}
                 />
               )
             })
@@ -208,25 +229,33 @@ export default function PreviewAndShare({ closeSheet }: props) {
             alignItems: "center",
             justifyContent: "flex-start",
             flexDirection: "row",
-            marginHorizontal: "7%",
+            marginHorizontal: insets.bottom + 10,
             marginTop: 7,
           }}
         >
-          <MapPinIcon stroke="white" strokeWidth={2} size={14} />
+          <MapPinIcon stroke="white" strokeWidth={2.5} size={14} />
           <Spacer size="tiny" />
           <CustomLabel fontSize={13} labelText={address?.split(",")[0] ?? "Current location"} customStyle={{
           }} />
         </View>
         <Spacer />
-        <CustomButton
-          type="less-prominent"
-          customStyle={{
-            marginHorizontal: "5%",
+        <TouchableOpacity
+          style={{
+            marginHorizontal: insets.bottom,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            paddingHorizontal: 25,
+            backgroundColor: BG,
+            marginBottom: insets.bottom / 2,
+            borderRadius: 1000,
+            overflow: "hidden",
           }}
         >
-          <CustomLabel fontSize={16} bold labelText={`Leave Crumb${usePlural ? "s" : ""} Here`} />
-          {recipients.length > 1 && <CustomLabel fontSize={16} labelText={` (${recipients.length})`} />}
-        </CustomButton>
+          <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>{`Leave Crumb${usePlural ? "s" : ""} Here`}</Text>
+          {recipients.length > 1 && <Text style={{ color: "white", fontSize: 16 }}>{` [${recipients.length}]`}</Text>}
+        </TouchableOpacity>
       </View>}
     </View>
   )

@@ -11,9 +11,10 @@ interface props {
   mediaData: MediaData
   size?: number
   style?: StyleProp<ViewStyle>
+  onCaptionFocus?: () => void
 }
 
-export default function CrumbView({ mediaData, size = 320, style }: props) {
+export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus }: props) {
   const [caption, setCaption] = useState(mediaData.caption)
   const borderThickness = size / 25
 
@@ -80,6 +81,7 @@ export default function CrumbView({ mediaData, size = 320, style }: props) {
         <TextInput
           maxLength={50}
           value={caption}
+          onFocus={onCaptionFocus}
           onChangeText={e => setCaption(e)}
           onEndEditing={() => {
             updateCaption(mediaData.id, caption ?? "")

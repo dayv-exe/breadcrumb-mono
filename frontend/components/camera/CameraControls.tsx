@@ -49,6 +49,7 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
       snapPoints: ["100%"],
       showHandle: false,
       allowDrag: false,
+      reduceAnimations: true,
     })
   }
 

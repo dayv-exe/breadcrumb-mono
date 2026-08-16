@@ -5,7 +5,6 @@ import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 type GradientViewProps = {
   children?: React.ReactNode;
 
-  // 👇 enforce at least 2 colors
   colors: readonly [string, string, ...string[]];
 
   start?: { x: number; y: number };

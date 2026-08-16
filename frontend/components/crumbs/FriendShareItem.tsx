@@ -47,7 +47,7 @@ export function FriendShareItem({ name, onChange, userid, isSelected }: props) {
 
         {isSelected && <View
           style={{
-            backgroundColor: Colors.dark.vibrantBackground,
+            backgroundColor: Colors.dark.darkenVibrant,
             width: 23,
             height: 23,
             borderRadius: "100%",
