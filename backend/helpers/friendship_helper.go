@@ -109,7 +109,7 @@ func (this *friendshipHelper) GetFriendshipStatus(currentUserId string, otherUse
 func (this *friendshipHelper) GetAllFriends(userId string, includeUserProfile bool, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
 	friends := make([]models.UserDisplayInfo, 0)
 
-	if includeUserProfile {
+	if includeUserProfile && lastEvalKey == nil {
 		userHelper := NewUserHelper(this.Ctx)
 		userProfile, err := userHelper.FindById(utils.GetAuthenticatedUserid())
 
@@ -117,6 +117,7 @@ func (this *friendshipHelper) GetAllFriends(userId string, includeUserProfile bo
 			return nil, err
 		}
 
+		userProfile.UserDisplayInfo.IsCurrentUser = true
 		friends = append(friends, userProfile.UserDisplayInfo)
 	}
 

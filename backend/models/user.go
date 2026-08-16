@@ -17,9 +17,10 @@ type User struct {
 }
 
 type UserDisplayInfo struct {
-	Userid   string `dynamodbav:"pk" json:"userId"`
-	Nickname string `dynamodbav:"gsi" json:"nickname"`
-	Name     string `dynamodbav:"fullname" json:"name"`
+	Userid        string `dynamodbav:"pk" json:"userId"`
+	Nickname      string `dynamodbav:"gsi" json:"nickname"`
+	Name          string `dynamodbav:"fullname" json:"name"`
+	IsCurrentUser bool   `json:"currentUser"`
 }
 
 type UserDisplayInfoNoId struct {
