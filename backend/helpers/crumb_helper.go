@@ -24,7 +24,7 @@ func NewCrumbHelper(ctx context.Context) *crumbHelper {
 	}
 }
 
-func (h *crumbHelper) SendCrumb(userId string, crumb models.CrumbBody) error {
+func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 	if crumb.Id == "" {
 		return fmt.Errorf("Crumb id cannot be empty")
 	}
@@ -126,6 +126,37 @@ func (h *crumbHelper) OpenCrumb(otherUser, crumbId string) ([]resItem, error) {
 	return h.getCrumbContent(otherUser, crumbId)
 }
 
+func (h *crumbHelper) CrumbExists(ownerId, crumbNonCompositeId string) (bool, error) {
+	keyCondition := expression.KeyEqual(expression.Key("pk"), expression.Value(
+		models.CrumbIdPrefix+crumbNonCompositeId,
+	)).And(
+		expression.KeyBeginsWith(expression.Key("sk"), models.CrumbPkPrefix+ownerId),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
+	if err != nil {
+		log.Printf("ERROR: Failed to build expression")
+		return false, err
+	}
+
+	result, err := QueryItems(
+		newHelper(h.Ctx, nil),
+		nil,
+		aws.String("GSIndex2"),
+		expr,
+		aws.Int32(1),
+		func(item []map[string]types.AttributeValue) []models.Crumb {
+			return *models.ConvertToCrumbs(item, nil)
+		},
+	)
+
+	if err != nil {
+		return false, err
+	}
+
+	return len(result.Items) > 0, nil
+}
+
 var defaultCrumbProjection = expression.NamesList(
 	expression.Name("id"),
 	expression.Name("latitude"),
@@ -185,7 +216,6 @@ func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*qu
 type resItem struct {
 	Index     int                 `json:"index"`
 	Media     string              `json:"media"`
-	Overlay   string              `json:"overlay"`
 	Thumbnail string              `json:"thumbnail"`
 	Caption   models.CrumbCaption `json:"caption,omitempty"`
 }
@@ -244,12 +274,10 @@ func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, err
 	for _, media := range crumb.Media {
 		mediaKey, _, _ := cloudfrontHelper.GetSignedUrl(media.MediaKey, constants.CRUMB_MEDIA_URL_TTL)
 		thumbnailKey, _, _ := cloudfrontHelper.GetSignedUrl(media.ThumbnailKey, constants.CRUMB_MEDIA_URL_TTL)
-		overlayKey, _, _ := cloudfrontHelper.GetSignedUrl(media.OverlayKey, constants.CRUMB_MEDIA_URL_TTL)
 
 		res[media.Index] = resItem{
 			Index:     media.Index,
 			Media:     mediaKey,
-			Overlay:   overlayKey,
 			Thumbnail: thumbnailKey,
 		}
 	}

@@ -21,7 +21,6 @@ import (
 type MediaItem struct {
 	Index             int8                `json:"index"`
 	MediaFileName     string              `json:"media"`
-	OverlayFileName   string              `json:"overlay"`
 	ThumbnailFileName string              `json:"thumbnail"`
 	Caption           models.CrumbCaption `json:"caption"`
 	Type              string              `json:"type"`
@@ -31,7 +30,6 @@ type ValidPresignedMediaItem struct {
 	Index         int8                `json:"index"`
 	CrumbId       string              `json:"crumbId"`
 	MediaFile     ValidPresignedFile  `json:"media,omitempty"`
-	OverlayFile   ValidPresignedFile  `json:"overlay,omitempty"`
 	ThumbnailFile ValidPresignedFile  `json:"thumbnail,omitempty"`
 	Caption       models.CrumbCaption `json:"caption,omitempty"`
 	Type          string              `json:"type"`
@@ -120,7 +118,6 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 				Index:         file.Index,
 				CrumbId:       crumbId,
 				MediaFile:     ValidPresignedFile{},
-				OverlayFile:   ValidPresignedFile{},
 				ThumbnailFile: ValidPresignedFile{},
 				Caption:       file.Caption,
 				Type:          file.Type,
@@ -143,11 +140,6 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 			continue
 		}
 
-		overlay, invalid := presignFileAsMedia(ctx, userID, crumbId, mediaId, file.OverlayFileName, file.Index, "overlay")
-		if invalid != nil {
-			invalidFiles = append(invalidFiles, *invalid)
-		}
-
 		thumbnail, invalid := presignFileAsMedia(ctx, userID, crumbId, mediaId, file.ThumbnailFileName, file.Index, "thumbnail")
 		if invalid != nil {
 			invalidFiles = append(invalidFiles, *invalid)
@@ -157,7 +149,6 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 			Index:         file.Index,
 			CrumbId:       crumbId,
 			MediaFile:     media,
-			OverlayFile:   overlay,
 			ThumbnailFile: thumbnail,
 			Type:          file.Type,
 		})
@@ -200,13 +191,6 @@ func presignFileAsMedia(ctx context.Context, userId, crumbId, mediaId, fileName 
 	}
 
 	switch layer {
-	case "overlay":
-		if !utils.IsAllowedOverlayMimeType(contentType) {
-			return ValidPresignedFile{}, &InvalidPresignedFile{
-				FileName: fileName,
-				Reason:   "File type not allowed for overlays",
-			}
-		}
 	case "thumbnail":
 		if !utils.IsAllowedThumbnailMimeType(contentType) {
 			return ValidPresignedFile{}, &InvalidPresignedFile{

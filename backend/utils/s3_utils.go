@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/aws/aws-lambda-go/events"
 )
 
 var allowedMimeTypes = map[string]string{
@@ -17,13 +20,23 @@ var allowedMimeTypes = map[string]string{
 	"audio/aac":       "aac",
 }
 
-var allowedOverlayMimeTypes = map[string]string{
-	"image/png": "png",
-}
-
 var allowedThumbnailMimeTypes = map[string]string{
 	"image/jpeg": "jpg",
 	"image/png":  "png",
+}
+
+type S3ObjectCreatedDetail struct {
+	Bucket struct {
+		Name string `json:"name"`
+	} `json:"bucket"`
+	Object struct {
+		Key       string `json:"key"`
+		Size      int64  `json:"size"`
+		ETag      string `json:"etag"`
+		Sequencer string `json:"sequencer"`
+	} `json:"object"`
+	Reason    string `json:"reason"`
+	RequestID string `json:"request-id"`
 }
 
 func NormalizeContentType(contentType string) string {
@@ -32,11 +45,6 @@ func NormalizeContentType(contentType string) string {
 
 func IsAllowedMimeType(contentType string) bool {
 	_, ok := allowedMimeTypes[NormalizeContentType(contentType)]
-	return ok
-}
-
-func IsAllowedOverlayMimeType(contentType string) bool {
-	_, ok := allowedOverlayMimeTypes[NormalizeContentType(contentType)]
 	return ok
 }
 
@@ -56,9 +64,33 @@ var DefaultDir = "uploads/unprocessed"
 var ProcessedDir = "uploads/processed"
 
 func GenerateMediaKey(userId, crumbId, fileName string) string {
+	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
 	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, crumbId, fileName)
 }
 
 func GenerateProfilePictureKey(userId, fileName string) string {
+	// 'uploads/processed/{userid}/{file_name}'
 	return fmt.Sprintf("%s/%s/%s", ProcessedDir, userId, fileName)
+}
+
+func GetUseridFromKey(key string) string {
+	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
+	return strings.Split(key, "/")[2]
+}
+func GetCrumbNonCompositeIdFromKey(key string) string {
+	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
+	return strings.Split(key, "/")[3]
+}
+func GetCrumbMediaFileNameFromKey(key string) string {
+	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
+	return strings.Split(key, "/")[4]
+}
+
+func UnmarshalS3ObjectCreatedDetails(event events.EventBridgeEvent) (*S3ObjectCreatedDetail, error) {
+	var objDet S3ObjectCreatedDetail
+	if err := json.Unmarshal(event.Detail, &objDet); err != nil {
+		return nil, err
+	}
+
+	return &objDet, nil
 }

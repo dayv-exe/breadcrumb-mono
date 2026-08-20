@@ -9,11 +9,12 @@ import (
 // store info on a media file that was preemptively uploaded but the user hasnt shared the crumb yet.
 
 const (
-	MediaDraftPkPrefix = "DRAFT_OWNER#"
-	MediaDraftSkPrefix = "DRAFT_MEDIA_KEY#"
+	MediaDraftPkPrefix      = "DRAFT_OWNER#"
+	MediaDraftSkPrefix      = "DRAFT_MEDIA_KEY#"
+	MediaDraftCrumbIdPrefix = "DRAFT_MEDIA_CRUMB_ID#"
 )
 
-type MediaDraft struct {
+type DraftMediaFlag struct {
 	Userid    string `dynamodbav:"userid" json:"-"`
 	MediaKey  string `dynamodbav:"mediaKey" json:"-"`
 	TimeStamp string `dynamodbav:"timeStamp" json:"-"`
@@ -22,26 +23,26 @@ type MediaDraft struct {
 	SK string `dynamodbav:"sk" json:"-"`
 }
 
-func NewMediaDraft(userid, mediaKey string) MediaDraft {
+func NewDraftMediaFlag(userid, mediaKey string) *DraftMediaFlag {
 	time := utils.GetNormalDateAndTime()
 
-	return MediaDraft{
+	return &DraftMediaFlag{
 		Userid:    userid,
 		MediaKey:  mediaKey,
 		TimeStamp: time,
 	}
 }
 
-func (m MediaDraft) ApplyPrefixes() {
+func (m *DraftMediaFlag) ApplyPrefixes() {
 	m.PK = MediaDraftPkPrefix + m.Userid
 	m.SK = MediaDraftSkPrefix + m.MediaKey
 }
 
-func ConvertToMediaDraft(items *[]map[string]types.AttributeValue) *[]MediaDraft {
-	return utils.DatabaseItemsToStructs[MediaDraft](*items, nil)
+func ConvertToMediaDraftFlags(items *[]map[string]types.AttributeValue) *[]DraftMediaFlag {
+	return utils.DatabaseItemsToStructs[DraftMediaFlag](*items, nil)
 }
 
-func GetMediaDraftKey(userid, mediaKey string) map[string]types.AttributeValue {
+func GetMediaDraftFlagKey(userid, mediaKey string) map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{
 		"pk": &types.AttributeValueMemberS{Value: MediaDraftPkPrefix + userid},
 		"sk": &types.AttributeValueMemberS{Value: MediaDraftSkPrefix + mediaKey},

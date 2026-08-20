@@ -33,7 +33,6 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":     &dbTypes.AttributeValueMemberN{Value: "0"},
 			"media":     &dbTypes.AttributeValueMemberS{Value: "img-key-1"},
-			"overlay":   &dbTypes.AttributeValueMemberS{Value: ""},
 			"thumbnail": &dbTypes.AttributeValueMemberS{Value: ""},
 		}},
 	}},

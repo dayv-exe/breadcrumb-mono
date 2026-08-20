@@ -34,10 +34,14 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	}
 
 	helper := helpers.NewCrumbHelper(ctx)
-	err := helper.SendCrumb(userId, body)
+	err := helper.ShareCrumb(userId, body)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to send crumb!", err), nil
 	}
+
+	// remove draft flag from media
+	draftFlagHelper := helpers.NewDraftMediaFlagHelper(ctx)
+	draftFlagHelper.RemoveDraftMediaFlags(userId, body.MediaKeys)
 
 	return models.SuccessfulRequestResponse("Crumb sent!", true), nil
 }

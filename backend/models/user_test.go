@@ -29,7 +29,6 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 	"profilePicture": &dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 		"index":     &dbTypes.AttributeValueMemberN{Value: "0"},
 		"media":     &dbTypes.AttributeValueMemberS{Value: "m1"},
-		"overlay":   &dbTypes.AttributeValueMemberS{Value: "o1"},
 		"thumbnail": &dbTypes.AttributeValueMemberS{Value: "t1"},
 	}},
 }
@@ -44,7 +43,6 @@ func TestUser_DatabaseFormat(t *testing.T) {
 
 	user.ProfilePicture.Index = 0
 	user.ProfilePicture.MediaKey = "m1"
-	user.ProfilePicture.OverlayKey = "o1"
 	user.ProfilePicture.ThumbnailKey = "t1"
 
 	result := *utils.ToDatabaseFormat(user)
