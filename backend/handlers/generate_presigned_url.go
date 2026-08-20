@@ -19,22 +19,22 @@ import (
 )
 
 type MediaItem struct {
-	Index             int8             `json:"index"`
-	MediaFileName     string           `json:"media"`
-	OverlayFileName   string           `json:"overlay"`
-	ThumbnailFileName string           `json:"thumbnail"`
-	Text              models.CrumbText `json:"text"`
-	Type              string           `json:"type"`
+	Index             int8                `json:"index"`
+	MediaFileName     string              `json:"media"`
+	OverlayFileName   string              `json:"overlay"`
+	ThumbnailFileName string              `json:"thumbnail"`
+	Caption           models.CrumbCaption `json:"caption"`
+	Type              string              `json:"type"`
 }
 
 type ValidPresignedMediaItem struct {
-	Index         int8               `json:"index"`
-	CrumbId       string             `json:"crumbId"`
-	MediaFile     ValidPresignedFile `json:"media,omitempty"`
-	OverlayFile   ValidPresignedFile `json:"overlay,omitempty"`
-	ThumbnailFile ValidPresignedFile `json:"thumbnail,omitempty"`
-	Text          models.CrumbText   `json:"text,omitempty"`
-	Type          string             `json:"type"`
+	Index         int8                `json:"index"`
+	CrumbId       string              `json:"crumbId"`
+	MediaFile     ValidPresignedFile  `json:"media,omitempty"`
+	OverlayFile   ValidPresignedFile  `json:"overlay,omitempty"`
+	ThumbnailFile ValidPresignedFile  `json:"thumbnail,omitempty"`
+	Caption       models.CrumbCaption `json:"caption,omitempty"`
+	Type          string              `json:"type"`
 }
 
 type PresignRequest struct {
@@ -122,7 +122,7 @@ func handleGeneratePresignedUrls(ctx context.Context, req events.APIGatewayV2HTT
 				MediaFile:     ValidPresignedFile{},
 				OverlayFile:   ValidPresignedFile{},
 				ThumbnailFile: ValidPresignedFile{},
-				Text:          file.Text,
+				Caption:       file.Caption,
 				Type:          file.Type,
 			})
 

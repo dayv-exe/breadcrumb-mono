@@ -183,11 +183,11 @@ func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*qu
 }
 
 type resItem struct {
-	Index     int              `json:"index"`
-	Media     string           `json:"media"`
-	Overlay   string           `json:"overlay"`
-	Thumbnail string           `json:"thumbnail"`
-	Text      models.CrumbText `json:"text,omitempty"`
+	Index     int                 `json:"index"`
+	Media     string              `json:"media"`
+	Overlay   string              `json:"overlay"`
+	Thumbnail string              `json:"thumbnail"`
+	Caption   models.CrumbCaption `json:"caption,omitempty"`
 }
 
 func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, error) {
@@ -207,7 +207,7 @@ func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, err
 	)
 
 	proj := expression.NamesList(
-		expression.Name("text"),
+		expression.Name("caption"),
 		expression.Name("media"),
 	)
 
@@ -238,7 +238,7 @@ func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, err
 
 	crumb = result.Items[0]
 
-	res := make([]resItem, len(crumb.Media)+len(crumb.Text))
+	res := make([]resItem, len(crumb.Media)+len(crumb.Caption))
 	cloudfrontHelper := NewCloudfrontHelper(h.Ctx)
 
 	for _, media := range crumb.Media {
@@ -254,12 +254,12 @@ func (h *crumbHelper) getCrumbContent(otherUser, crumbId string) ([]resItem, err
 		}
 	}
 
-	for _, text := range crumb.Text {
-		res[text.Index] = resItem{
-			Index: text.Index,
-			Text: models.CrumbText{
-				Index:   text.Index,
-				Content: text.Content,
+	for _, caption := range crumb.Caption {
+		res[caption.Index] = resItem{
+			Index: caption.Index,
+			Caption: models.CrumbCaption{
+				Index:   caption.Index,
+				Content: caption.Content,
 			},
 		}
 	}

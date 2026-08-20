@@ -23,7 +23,7 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"locationSelectionManner": &dbTypes.AttributeValueMemberS{Value: "gps"},
 	"placeId":                 &dbTypes.AttributeValueMemberS{Value: "p1"},
 	"time":                    &dbTypes.AttributeValueMemberS{Value: "100"},
-	"text": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
+	"caption": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
 			"content": &dbTypes.AttributeValueMemberS{Value: "hello world"},
@@ -65,7 +65,7 @@ func NewTestCrumbBody() CrumbBody {
 		Longitude:               -1,
 		Radius:                  10,
 		LocationSelectionManner: "gps",
-		Text: []CrumbText{
+		Caption: []CrumbCaption{
 			{
 				Index:   0,
 				Content: "hello world",
