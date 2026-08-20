@@ -22,7 +22,7 @@ type MediaDraft struct {
 	SK string `dynamodbav:"sk" json:"-"`
 }
 
-func (m *MediaDraft) NewMediaDraft(userid, mediaKey string) MediaDraft {
+func NewMediaDraft(userid, mediaKey string) MediaDraft {
 	time := utils.GetNormalDateAndTime()
 
 	return MediaDraft{
@@ -32,11 +32,18 @@ func (m *MediaDraft) NewMediaDraft(userid, mediaKey string) MediaDraft {
 	}
 }
 
-func (m *MediaDraft) ApplyPrefixes() {
+func (m MediaDraft) ApplyPrefixes() {
 	m.PK = MediaDraftPkPrefix + m.Userid
 	m.SK = MediaDraftSkPrefix + m.MediaKey
 }
 
 func ConvertToMediaDraft(items *[]map[string]types.AttributeValue) *[]MediaDraft {
 	return utils.DatabaseItemsToStructs[MediaDraft](*items, nil)
+}
+
+func GetMediaDraftKey(userid, mediaKey string) map[string]types.AttributeValue {
+	return map[string]types.AttributeValue{
+		"pk": &types.AttributeValueMemberS{Value: MediaDraftPkPrefix + userid},
+		"sk": &types.AttributeValueMemberS{Value: MediaDraftSkPrefix + mediaKey},
+	}
 }
