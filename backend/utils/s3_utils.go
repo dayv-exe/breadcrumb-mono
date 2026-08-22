@@ -3,9 +3,14 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"mime"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/google/uuid"
 )
 
 var allowedMimeTypes = map[string]string{
@@ -39,6 +44,11 @@ type S3ObjectCreatedDetail struct {
 	RequestID string `json:"request-id"`
 }
 
+type UnsignedKey struct {
+	Key         string
+	ContentType string
+}
+
 func NormalizeContentType(contentType string) string {
 	return strings.ToLower(strings.TrimSpace(contentType))
 }
@@ -63,14 +73,14 @@ func GetExtensionFromMimeType(contentType string) string {
 var DefaultDir = "uploads/unprocessed"
 var ProcessedDir = "uploads/processed"
 
-func GenerateMediaKey(userId, crumbId, fileName string) string {
+func GetMediaDirectory(userId, nonCompositeCrumbId, objectName string) string {
 	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
-	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, crumbId, fileName)
+	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, nonCompositeCrumbId, objectName)
 }
 
-func GenerateProfilePictureKey(userId, fileName string) string {
+func GetProfilePictureDirectory(userId, objectName string) string {
 	// 'uploads/processed/{userid}/{file_name}'
-	return fmt.Sprintf("%s/%s/%s", ProcessedDir, userId, fileName)
+	return fmt.Sprintf("%s/%s/%s", ProcessedDir, userId, objectName)
 }
 
 func GetUseridFromKey(key string) string {
@@ -93,4 +103,113 @@ func UnmarshalS3ObjectCreatedDetails(event events.EventBridgeEvent) (*S3ObjectCr
 	}
 
 	return &objDet, nil
+}
+
+func GenerateUUID() (string, error) {
+	randHash, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	return randHash.String(), nil
+}
+
+func getMediaObjectName(isThumbnail bool, ext string) string {
+	mediaId, err := GenerateUUID()
+	if err != nil {
+		log.Fatalf("Failed to generate uuid for media object name! %v", err)
+	}
+
+	layer := ""
+	if isThumbnail {
+		layer = "thumbnail"
+	}
+	return fmt.Sprintf("%s_%s%s", mediaId, layer, ext)
+}
+
+func getProfilePictureObjectName(userid string, isThumbnail bool) string {
+	timestamp := time.Now().Unix()
+	objectName := fmt.Sprintf("%s_%d.jpg", userid, timestamp)
+	if isThumbnail {
+		objectName = fmt.Sprintf("%s_%d_thumbnail.jpg", userid, timestamp)
+	}
+
+	return objectName
+}
+
+func generateKey(userid, nonCompositeCrumbId, filename string, isProfilePicture, isThumbnail bool) (UnsignedKey, error) {
+	// key, contentType, error
+	if strings.TrimSpace(filename) == "" {
+		return UnsignedKey{
+			Key:         "",
+			ContentType: "",
+		}, fmt.Errorf("No file name given! Filename: %v", filename)
+	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	if ext == "" {
+		return UnsignedKey{
+			Key:         "",
+			ContentType: "",
+		}, fmt.Errorf("The file has no extension! Filename: %v", filename)
+	}
+
+	if ext == "" {
+		// vid thumbnail from app does not always have ext in file name
+		// it is always jpg
+		ext = ".jpg"
+	}
+
+	contentType := mime.TypeByExtension(ext)
+	if contentType == "" {
+		return UnsignedKey{
+			Key:         "",
+			ContentType: "",
+		}, fmt.Errorf("Unrecognized file extension! Filename: %v", filename)
+	}
+
+	switch isThumbnail {
+	case true:
+		if !IsAllowedThumbnailMimeType(contentType) {
+			return UnsignedKey{
+				Key:         "",
+				ContentType: "",
+			}, fmt.Errorf("File type not allowed for thumbnails Filename: %v", filename)
+		}
+
+	default:
+		if !IsAllowedMimeType(contentType) {
+			return UnsignedKey{
+				Key:         "",
+				ContentType: "",
+			}, fmt.Errorf("File type is not allowed Filename: %v", filename)
+		}
+	}
+
+	var objectName string
+	var key string
+	if isProfilePicture {
+		objectName = getProfilePictureObjectName(userid, isThumbnail)
+		key = GetProfilePictureDirectory(userid, objectName)
+	} else {
+		objectName = getMediaObjectName(isThumbnail, ext)
+		key = GetMediaDirectory(userid, nonCompositeCrumbId, objectName)
+	}
+
+	return UnsignedKey{
+		Key:         key,
+		ContentType: contentType,
+	}, nil
+}
+
+func GenerateProfilePictureKey(userid, filename string, isThumbnail bool) (UnsignedKey, error) {
+	return generateKey(userid, "", filename, true, isThumbnail)
+}
+
+func GenerateMediaKey(userid, nonCompositeCrumbId, filename string, isThumbnail bool) (*UnsignedKey, error) {
+	key, err := generateKey(userid, nonCompositeCrumbId, filename, false, isThumbnail)
+	if err != nil {
+		return nil, err
+	}
+
+	return &key, nil
 }

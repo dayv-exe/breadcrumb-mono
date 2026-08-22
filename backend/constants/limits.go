@@ -19,8 +19,8 @@ const (
 	BIRTHDATE_CHANGE_DELAY    = 3                  // days
 	EMAIL_CHANGE_DELAY        = 21                 // days
 	MAX_FRIENDS               = 258                // friends
-	MAX_UPLOAD_AMOUNT         = 5                  // items
-	MAX_UPLOAD_SIZE           = (50 * 1024) * 1024 // 50 MB
+	MAX_UPLOAD_AMOUNT         = 2                  // items
+	MAX_UPLOAD_SIZE           = (30 * 1024) * 1024 // 50 MB
 	MAP_ZOOM_SMALL            = 10                 // for geo hashing
 	MAP_ZOOM_MID              = 7                  // for geo hashing
 	MAP_ZOOM_BIG              = 2                  // for geo hashing

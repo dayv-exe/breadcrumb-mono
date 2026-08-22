@@ -34,7 +34,7 @@ type CrumbMedia struct {
 }
 
 type CrumbBody struct {
-	Id                      string         `json:"id"`
+	NonCompositeId          string         `json:"nonCompositeDd"`
 	Receivers               []string       `json:"receivers"`
 	Latitude                float64        `json:"latitude"`
 	Longitude               float64        `json:"longitude"`
@@ -125,8 +125,8 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailb
 	}
 	time := utils.GetNormalDateAndTime()
 	return Crumb{
-		Id:                      crumbBody.Id + owner + otherUser,
-		NonCompositeId:          crumbBody.Id,
+		Id:                      crumbBody.NonCompositeId + owner + otherUser,
+		NonCompositeId:          crumbBody.NonCompositeId,
 		Sender:                  sender,
 		Receiver:                receiver,
 		Latitude:                crumbBody.Latitude,

@@ -25,7 +25,7 @@ func NewCrumbHelper(ctx context.Context) *crumbHelper {
 }
 
 func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
-	if crumb.Id == "" {
+	if crumb.NonCompositeId == "" {
 		return fmt.Errorf("Crumb id cannot be empty")
 	}
 

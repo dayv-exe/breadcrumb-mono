@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -21,8 +22,8 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		return models.ServerSideErrorResponse("Invalid request body!", err), nil
 	}
 
-	if body.Id == "" {
-		return models.InvalidRequestErrorResponse("Crumb body must contain an id that corresponds to its media items id!"), nil
+	if len(strings.TrimSpace(body.NonCompositeId)) < 5 {
+		return models.InvalidRequestErrorResponse("Crumb body must contain a valid non-composite id!"), nil
 	}
 
 	if len(body.Receivers) < 1 {

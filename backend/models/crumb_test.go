@@ -58,7 +58,7 @@ func TestMain(m *testing.M) {
 
 func NewTestCrumbBody() CrumbBody {
 	return CrumbBody{
-		Id:                      "c1",
+		NonCompositeId:          "c1",
 		Receivers:               []string{"r1"},
 		Latitude:                50,
 		Longitude:               -1,
