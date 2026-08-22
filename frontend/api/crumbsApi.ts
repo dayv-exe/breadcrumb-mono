@@ -1,22 +1,21 @@
 import axiosInstance from "@/constants/axios"
 import { UpsertCrumbs } from "./db/crumbsDb"
-import { Crumb } from "./models/crumb"
+import { Crumb, CrumbCaption } from "./models/crumb"
 import { CrumbMarkerDetails } from "./models/CrumbMarkerDetails"
 import { crumbMedia } from "./models/crumbMedia"
-import { crumbText } from "./models/crumbText"
 import { LocationSelectionManner } from "./models/locationTypes"
 
 
 
 export type crumbBody = {
-  id: string
+  nonCompositeId: string
   receivers: string[]
   latitude: number
   longitude: number
   radius: number
   locationSelectionManner: LocationSelectionManner
   mediaItems: crumbMedia[]
-  text?: crumbText[]
+  caption?: CrumbCaption[]
   clickedFeatureId?: string
   address?: string
 }

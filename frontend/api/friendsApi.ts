@@ -11,9 +11,9 @@ type FriendsPage = {
   next?: string
 }
 
-export const getFriends = async (id: string, next?: string): Promise<FriendsPage> => {
-  const endPoint = `/friends/${id}`
-  const endPointNextPage = `/friends/${id}?next=${next}`
+export const getFriends = async (id: string, includeUserProfile?: boolean, next?: string): Promise<FriendsPage> => {
+  const endPoint = `/friends/${id}?showProfile=${includeUserProfile}`
+  const endPointNextPage = endPoint + `&next=${next}`
   const { data } = await axiosInstance.get<FriendsResponse>(next ? endPointNextPage : endPoint)
   return { Friends: data.message, next: data.next }
 }

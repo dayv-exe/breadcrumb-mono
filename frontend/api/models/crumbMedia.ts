@@ -4,6 +4,5 @@ export type crumbMedia = {
   index: number
   media?: string
   type: MediaType
-  overlay?: string
   thumbnail?: string
 }

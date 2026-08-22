@@ -1,14 +1,18 @@
 import axiosInstance from "@/constants/axios";
 import { MediaData, MediaType } from "@/constants/media";
-import { crumbText } from "./models/crumbText";
+import { CrumbCaption } from "./models/crumb";
+
+export type PresignRequest = {
+  nonCompositeId: string
+  files: MediaData[]
+}
 
 export type PresignedMediaItem = {
   index: number
   crumbId: string
   media: validPresignedMediaItemFile | null
-  overlay: validPresignedMediaItemFile | null
   thumbnail: validPresignedMediaItemFile | null
-  text: crumbText | null
+  text: CrumbCaption | null
   type: MediaType
 }
 
@@ -33,12 +37,12 @@ export type presignedUrlResponse = {
 };
 
 export const getPresignedUrls = async (
-  files: MediaData[]
+  presignRequest: PresignRequest
 ): Promise<presignedUrlResponse | null> => {
-  const endpoint = files[0].type === "profilePhoto" ? "/media-access?action=presign&profilePicture=true" : "/media-access?action=presign"
+  const endpoint = presignRequest.files[0].type === "profilePhoto" ? "/media-access?action=presign&profilePicture=true" : "/media-access?action=presign"
   const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
     endpoint,
-    { files }
+    presignRequest
   );
 
   return data.message

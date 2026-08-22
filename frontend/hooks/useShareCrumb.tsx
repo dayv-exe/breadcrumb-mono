@@ -59,11 +59,11 @@ export function useShareCrumb(
       }
 
       shareCrumb({
-        id: files[0].crumbId,
+        nonCompositeId: files[0].crumbId,
         latitude: crumbCoordinates.latitude,
         longitude: crumbCoordinates.longitude,
         clickedFeatureId: poiId,
-        text: files.filter(f => f.type === "text").map(f => ({
+        caption: files.filter(f => f.type === "text").map(f => ({
           index: f.index,
           content: f.text?.content ?? ""
         })),
@@ -71,7 +71,6 @@ export function useShareCrumb(
           index: f.index,
           media: f.media?.mediaKey,
           type: f.type,
-          overlay: f.overlay?.mediaKey,
           thumbnail: f.thumbnail?.mediaKey,
         })),
         radius: crumbRadius,

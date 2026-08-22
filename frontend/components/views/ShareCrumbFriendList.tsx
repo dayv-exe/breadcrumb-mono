@@ -1,11 +1,11 @@
 import { UserDetails } from "@/api/models/userDetails";
 import { useGetFriends } from "@/hooks/queries/useFriendsApi";
-import { useGetUser } from "@/hooks/queries/useUserApi";
 import { iRecipient } from "@/hooks/useShareCrumb";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import { FriendShareItem } from "../crumbs/FriendShareItem";
 import CustomLabel from "../CustomLabel";
+import Spacer from "../Spacer";
 
 interface props {
   recipients: iRecipient[]
@@ -21,22 +21,12 @@ export default function ShareCrumbFriendList({ recipients, setRecipients }: prop
     fetchNextPage: friendsFetchNextPage,
     isFetchingNextPage: friendsIsFetchingNextPage,
     isFetchNextPageError: friendsIsFetchingNextPageError,
-  } = useGetFriends("")
+    refetch: friendsRefetch,
+  } = useGetFriends("", true)
 
-  const {
-    data: currentUser,
-    error: currentUserError,
-    isPending: currentUserPending,
-  } = useGetUser("")
-
-  type FriendOption = {
-    isCurrentUser: boolean
-  } & UserDetails;
-
-  const friends: FriendOption[] = [
-    { ...currentUser!, isCurrentUser: true },
+  const friends: UserDetails[] = [
     ...(friendsResponse?.pages.flatMap((page) =>
-      page.Friends.map((f): FriendOption => ({ ...f, isCurrentUser: false }))
+      page.Friends.map((f): UserDetails => ({ ...f }))
     ) ?? []),
   ];
 
@@ -62,12 +52,12 @@ export default function ShareCrumbFriendList({ recipients, setRecipients }: prop
           flexWrap: "wrap",
         }}
       >
-        {friends.map(friend => {
+        {!friendsError && !friendsPending && friends.map(friend => {
           return (
             <FriendShareItem
               key={friend.userId}
               isSelected={recipients.some(r => r.id === friend.userId)}
-              name={`${friend.userId === currentUser?.userId ? "(Me)" : ""} ${deriveFriendName(friend.name, friend.nickname)}`}
+              name={`${friend.currentUser ? "(Me)" : ""} ${deriveFriendName(friend.name, friend.nickname)}`}
               onChange={s => {
                 if (s) {
                   // select
@@ -85,6 +75,36 @@ export default function ShareCrumbFriendList({ recipients, setRecipients }: prop
             />
           )
         })}
+      </View>
+
+      <View
+      >
+        {(friendsPending || friendsIsFetchingNextPage) &&
+          <ActivityIndicator
+            color={"white"}
+          />
+        }
+
+        {friendsError &&
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 15,
+            }}
+          >
+            <CustomLabel labelText="😭" fontSize={23} />
+            <Spacer size="tiny" />
+            <CustomLabel labelText="failed to load friends" />
+            <Spacer size="small" />
+            <CustomButton type="faded" freed labelText="Try Again" handleClick={friendsRefetch} disabled={friendsPending} customStyle={{
+              paddingHorizontal: 10,
+              paddingVertical: 7,
+            }} />
+          </View>
+        }
       </View>
 
       {friendsHasNextPage && <CustomButton

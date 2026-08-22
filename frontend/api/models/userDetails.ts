@@ -34,4 +34,5 @@ export interface UserDetails {
   suspensionReason: string | null;
   userId: string | null;
   friends: FRIENDSHIP_STATUS | null;
+  currentUser: boolean | null
 }

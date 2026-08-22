@@ -11,7 +11,7 @@ interface UseMediaUploadOptions {
 
 function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   for (const med of processedMedia) {
-    for (const path of [med.uri, med.media, med.overlay, med.thumbnail]) {
+    for (const path of [med.uri, med.media, med.thumbnail]) {
       if (!path) continue;
       try {
         const f = new File(path);
@@ -25,6 +25,13 @@ function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
 
 export function useMediaUpload(options?: UseMediaUploadOptions) {
   const { mutate: presignedUrl } = useGetPresignedUrl();
+  const handleSuccess = (validFiles: PresignedMediaItem[]) => {
+    options?.onSuccess?.(validFiles)
+  }
+
+  const handleError = (error: unknown) => {
+    options?.onError?.(error)
+  }
 
   const uploadFile = async (file: validPresignedMediaItemFile) => {
     const formData = new FormData();
@@ -57,35 +64,32 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
 
   };
 
-  const upload = async (processedMedia: MediaData[]) => {
-    presignedUrl(processedMedia, {
+  const upload = async (processedMedia: MediaData[], nonCompositeId?: string) => {
+    presignedUrl({
+      nonCompositeId: nonCompositeId ?? "",
+      files: processedMedia
+    }, {
       onSuccess: async (s) => {
+        const validFiles = s?.validFiles;
+        if (!validFiles?.length) {
+          options?.onError?.("No valid files to upload!")
+          return;
+        }
+
+        const uploads: validPresignedMediaItemFile[] = [];
+
+        validFiles.forEach((file) => {
+          if (file.media?.uploadUrl) uploads.push(file.media);
+          if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
+        });
+
         try {
-          s?.invalidFiles.map(f => {
-            console.log("Name: " + f.fileName + "\n" + "Reason: " + f.reason)
-          })
-          const validFiles = s?.validFiles;
-          if (!validFiles?.length) {
-            options?.onError?.("No valid files to upload!")
-            return;
-          }
-
-          const uploads: validPresignedMediaItemFile[] = [];
-
-          validFiles.forEach((file) => {
-            if (file.media?.uploadUrl) uploads.push(file.media);
-            if (file.overlay?.uploadUrl) uploads.push(file.overlay);
-            if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
-          });
-
           await Promise.all(uploads.map(uploadFile));
-          // delete all files from cache
           deleteUploadedFilesLocally(processedMedia)
-          options?.onSuccess?.(validFiles);
+          handleSuccess(validFiles)
         } catch (err) {
           console.log("Upload error:", err);
-          options?.onError?.(err);
-        } finally {
+          handleError(err)
         }
       },
       onError: (e) => {

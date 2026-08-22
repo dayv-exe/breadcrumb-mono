@@ -1,4 +1,5 @@
 import { DeleteLocalDatabase, logAllTable } from "@/api/db/InitDb";
+import { extractBackendMsg } from "@/api/models/apiResponse";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -311,12 +312,12 @@ export default function ProfileSettingsScreen() {
 
   const { showModal, hideModal } = useModal()
   const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
-  const { mutate: updateProfilePictureKey, isError } = useUpdateProfilePicture()
+  const { mutate: updateProfilePictureKey, isError, error } = useUpdateProfilePicture()
   const { upload } = useMediaUpload({
     onSuccess(file) {
       if (isError || !file[0].media?.mediaKey) {
         showModal({
-          message: "Failed to change profile picture, try again!",
+          message: extractBackendMsg(error),
           onPrimary: hideModal,
           primaryBtnText: "Ok"
         })
@@ -330,22 +331,23 @@ export default function ProfileSettingsScreen() {
         onSuccess() {
 
         },
-        onError() {
+        onError(e) {
           showModal({
-            message: "Failed to update profile picture, try again.",
+            message: extractBackendMsg(e),
             primaryBtnText: "Close",
             onPrimary: hideModal
           })
         }
       })
     },
-    onError() {
+    onError(e) {
       showModal({
-        message: "Failed to change profile picture, try again!",
+        message: extractBackendMsg(e),
         onPrimary: hideModal,
         primaryBtnText: "Ok"
       })
     }
+
   })
 
   const handlePressChangePic = () => {
@@ -382,7 +384,6 @@ export default function ProfileSettingsScreen() {
     const original = (await context.renderAsync()).saveAsync({ compress: .8 })
     const thumbnail = (await context.resize({ width: 200, height: 200 }).renderAsync()).saveAsync({ compress: .8 })
     await upload([{
-      index: 0,
       id: "",
       uri: (await original).uri,
       media: (await original).uri,
