@@ -146,17 +146,18 @@ func generateKey(userid, nonCompositeCrumbId, filename string, isProfilePicture,
 	}
 
 	ext := strings.ToLower(filepath.Ext(filename))
+
+	if ext == "" && isThumbnail {
+		// vid thumbnail from app does not always have ext in file name
+		// it is always jpg
+		ext = ".jpg"
+	}
+
 	if ext == "" {
 		return UnsignedKey{
 			Key:         "",
 			ContentType: "",
 		}, fmt.Errorf("The file has no extension! Filename: %v", filename)
-	}
-
-	if ext == "" {
-		// vid thumbnail from app does not always have ext in file name
-		// it is always jpg
-		ext = ".jpg"
 	}
 
 	contentType := mime.TypeByExtension(ext)
