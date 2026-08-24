@@ -18,8 +18,8 @@ export const useUploadQueueStore = create<UploadQueueState>((set, get) => ({
   add: (item) => {
     item.uploadState = {
       error: null,
-      pending: true,
-      uploadUrl: ""
+      progress: 0,
+      status: "pending",
     }
     set((state) => ({ queue: [...state.queue, item] }))
   },
@@ -28,8 +28,8 @@ export const useUploadQueueStore = create<UploadQueueState>((set, get) => ({
     const created = items.map(item => {
       item.uploadState = {
         error: null,
-        pending: true,
-        uploadUrl: "",
+        progress: 0,
+        status: "pending",
       }
 
       return item
@@ -47,5 +47,5 @@ export const useUploadQueueStore = create<UploadQueueState>((set, get) => ({
 
   clear: () => set({ queue: [] }),
 
-  next: () => get().queue.find((i) => i.uploadState.pending === true),
+  next: () => get().queue.find((i) => i.uploadState.status === "pending"),
 }));

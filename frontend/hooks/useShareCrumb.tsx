@@ -63,11 +63,11 @@ export function useShareCrumb(
         latitude: crumbCoordinates.latitude,
         longitude: crumbCoordinates.longitude,
         clickedFeatureId: poiId,
-        caption: files.filter(f => f.type === "text").map(f => ({
+        caption: files.map(f => ({
           index: f.index,
           content: f.text?.content ?? ""
         })),
-        mediaItems: files.filter(f => f.type !== "text").map(f => ({
+        mediaItems: files.map(f => ({
           index: f.index,
           media: f.media?.mediaKey,
           type: f.type,

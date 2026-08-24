@@ -1,10 +1,18 @@
 
-export type MediaType = "photo" | "video" | "audio" | "text" | "profilePhoto" | null;
+export type MediaType = "photo" | "video" | "profilePhoto" | null;
 
 export type UploadState = {
-  uploadUrl: string
+  status: "pending" | "uploading" | "failed" | "complete"
   error: Error | null
-  pending: boolean
+  progress: number
+}
+
+export function defaultMediaDataUploadState(): UploadState {
+  return {
+    error: null,
+    progress: 0,
+    status: "pending",
+  }
 }
 
 // --- Media Data ---

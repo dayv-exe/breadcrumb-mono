@@ -1,7 +1,7 @@
 import { useBigActivityIndicator } from "@/components/modals/BigActivityIndicatorContext";
 import { useModal } from "@/components/modals/ModalContext";
 import { MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS, MEDIA_FULL_MESSAGE } from "@/constants/appConstants";
-import { MediaData } from "@/constants/media";
+import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
 import { useMediaStore } from "@/utils/mediaStore";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -74,7 +74,6 @@ export const useImagePicker = (): UseImagePickerReturn => {
           return
         }
         processed.push({
-          uploadState: { error: null, pending: false, uploadUrl: "" },
           id: uuidv4(),
           localUri: asset.uri,
           width: asset.width,
@@ -85,7 +84,8 @@ export const useImagePicker = (): UseImagePickerReturn => {
               : "video",
           fileName: asset.fileName ?? "",
           fileSize: asset.fileSize,
-          resizeMode: getImageResizeMode(asset.width, asset.height, screenDimensions)
+          resizeMode: getImageResizeMode(asset.width, asset.height, screenDimensions),
+          uploadState: defaultMediaDataUploadState()
         })
       })
       return processed

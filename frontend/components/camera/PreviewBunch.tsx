@@ -36,7 +36,7 @@ export default function PreviewBunch({ style, size }: props) {
                   key={index}
                   media={media}
                   index={index}
-                  src={media.type === "video" && media.thumbnail ? media.thumbnail : media.uri}
+                  src={media.type === "video" && media.thumbnailUri ? media.thumbnailUri : media.localUri}
                   size={SIZE}
                   animateIn={index === mediaPreview.length - 1}
                 />
