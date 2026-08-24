@@ -18,7 +18,6 @@ export const useUploadQueueStore = create<UploadQueueState>((set, get) => ({
   add: (item) => {
     item.uploadState = {
       error: null,
-      progress: 0,
       status: "pending",
     }
     set((state) => ({ queue: [...state.queue, item] }))
@@ -28,7 +27,6 @@ export const useUploadQueueStore = create<UploadQueueState>((set, get) => ({
     const created = items.map(item => {
       item.uploadState = {
         error: null,
-        progress: 0,
         status: "pending",
       }
 

@@ -1,11 +1,7 @@
-import { MAX_AUDIO_DURATION_MILLISECONDS, MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
+import { MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
+import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
 import { useMediaStore } from "@/utils/mediaStore";
-import {
-  RecordingPresets,
-  setAudioModeAsync,
-  useAudioRecorder,
-  useAudioRecorderState
-} from 'expo-audio';
+import { useUploadQueueStore } from "@/utils/uploadStore";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createVideoThumbnail } from "react-native-compressor";
@@ -20,14 +16,12 @@ import {
   Camera,
   CameraDevice,
   CameraDeviceFormat,
-  PhotoFile,
   useCameraDevice,
-  VideoFile,
+  VideoFile
 } from "react-native-vision-camera";
 import { scheduleOnRN } from "react-native-worklets";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
-import { useMediaPermissions } from "./usePermissions";
 
 type useCameraReturnType = {
   flipCamera: () => void;
@@ -36,12 +30,7 @@ type useCameraReturnType = {
   startRecording: () => void;
   stopRecording: () => void;
 
-  startAudioRecording: () => void
-  finishAudioRecording: () => void
-  cancelAudioRecording: () => void
-
   recordingProgress: SharedValue<number>;
-  audioRecordingProgress: SharedValue<number>;
   zoomLevel: SharedValue<number>;
   format: CameraDeviceFormat | undefined;
 
@@ -62,11 +51,11 @@ export function useCamera(): useCameraReturnType {
       mediaPreview: s.mediaPreview,
     }))
   );
+  const { add, } = useUploadQueueStore()
   const mediaPrevLen = useRef(mediaPreview.length)
   useEffect(() => {
     mediaPrevLen.current = mediaPreview.length
   }, [mediaPreview])
-  const { requestRecordingPermission } = useMediaPermissions()
 
   const backCamera = useCameraDevice("back");
   const frontCamera = useCameraDevice("front");
@@ -83,7 +72,6 @@ export function useCamera(): useCameraReturnType {
     return cams;
   }, [frontCamera, backCamera]);
 
-  const vidPlaceHolderFrame = useRef<PhotoFile | null>(null)
   const recordingProgress = useSharedValue(0);
   const zoomLevel = useSharedValue(activeCamera?.neutralZoom ?? 1);
   const format = useMemo(() => {
@@ -91,9 +79,6 @@ export function useCamera(): useCameraReturnType {
       (f) => f.videoWidth === 1920 && f.videoHeight === 1080 && f.maxFps >= 28,
     );
   }, [activeCamera]);
-
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
-  const recorderState = useAudioRecorderState(audioRecorder)
 
   useEffect(() => {
     if (availableCameras.length > 0) {
@@ -151,16 +136,21 @@ export function useCamera(): useCameraReturnType {
 
         await cameraRef.current.startRecording({
           flash: useFlash,
+          fileType: "mp4",
           onRecordingFinished: async (video: VideoFile) => {
             const path = normalizeFileUri(video.path)
             const thumbnail = normalizeFileUri(await (await createVideoThumbnail(path)).path)
-            addMediaPreview({
+            const newMedia: MediaData = {
               id: uuidv4(),
               type: "video",
-              uri: path,
-              thumbnail: thumbnail,
+              localUri: path,
+              thumbnailUri: thumbnail,
               resizeMode: "cover",
-            });
+              uploadState: defaultMediaDataUploadState(),
+            }
+            addMediaPreview(newMedia);
+
+            add(newMedia)
 
             if (shouldAutoRestart.current) {
               shouldAutoRestart.current = false
@@ -190,15 +180,17 @@ export function useCamera(): useCameraReturnType {
           enableShutterSound: false
         });
         shutterSignal.set(shutterSignal.get() + 1)
-        addMediaPreview({
+        const newMedia: MediaData = {
           id: uuidv4(),
           type: "photo",
-          uri: normalizeFileUri(photo.path),
+          localUri: normalizeFileUri(photo.path),
           resizeMode: "cover",
           width: photo.width,
           height: photo.height,
-        });
-        // setShowMediaPreview(true)
+          uploadState: defaultMediaDataUploadState()
+        }
+        addMediaPreview(newMedia);
+        add(newMedia)
       } catch (error) {
         console.error("Error taking photo:", error);
       }
@@ -210,58 +202,6 @@ export function useCamera(): useCameraReturnType {
   }
 
   const [useFlash, setUseFlash] = useState<"on" | "off">("off");
-
-  const audioRecordingProgress = useSharedValue(0);
-
-  async function startAudioRecording() {
-    const perms = await requestRecordingPermission();
-    if (!perms) return;
-    await audioRecorder.prepareToRecordAsync();
-    await setAudioModeAsync({
-      allowsRecording: true,
-      playsInSilentMode: true,
-    });
-
-    audioRecordingProgress.value = 0;
-    audioRecordingProgress.value = withTiming(
-      1,
-      {
-        duration: MAX_AUDIO_DURATION_MILLISECONDS,
-        easing: Easing.linear,
-      },
-      (finished) => {
-        if (finished) {
-          scheduleOnRN(finishAudioRecording);
-        }
-      },
-    );
-
-    setIsRecording(true)
-    audioRecorder.record();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
-  }
-
-  async function cancelAudioRecording() {
-    setIsRecording(false)
-    await audioRecorder.stop();
-    cancelAnimation(audioRecordingProgress);
-    audioRecordingProgress.value = 0;
-  }
-
-  async function finishAudioRecording(addToPreview = false) {
-    await cancelAudioRecording()
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)
-    if (audioRecorder.uri) {
-      addMediaPreview({
-        id: uuidv4(),
-        resizeMode: "contain",
-        type: "audio",
-        uri: normalizeFileUri(audioRecorder.uri),
-      })
-    } else {
-      console.error("Failed to find recording!")
-    }
-  }
 
   return {
     flipCamera,
@@ -275,9 +215,5 @@ export function useCamera(): useCameraReturnType {
     zoomLevel,
     startRecording,
     stopRecording,
-    startAudioRecording,
-    finishAudioRecording,
-    cancelAudioRecording,
-    audioRecordingProgress,
   };
 }

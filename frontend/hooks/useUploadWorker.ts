@@ -1,95 +1,65 @@
+import { extractBackendMsg } from '@/api/models/apiResponse';
 import { MediaData } from '@/constants/media';
+import { useMediaStore } from '@/utils/mediaStore';
 import { useUploadQueueStore } from '@/utils/uploadStore';
 import { useEffect, useRef } from 'react';
-
-export type UploadFn = (
-  item: MediaData,
-  helpers: {
-    signal: AbortSignal;
-    onProgress: (progress: number) => void;
-  },
-) => Promise<void>;
+import { useMediaUpload } from './useMediaUpload';
 
 interface UseUploadWorkerOptions {
-  uploadFn: UploadFn;
   concurrency?: number;
   enabled?: boolean;
 }
 
 export function useUploadWorker({
-  uploadFn,
   concurrency = 3,
   enabled = true,
 }: UseUploadWorkerOptions) {
   const queue = useUploadQueueStore((s) => s.queue);
-  const activeRef = useRef<Map<string, AbortController>>(new Map());
+  const nonCompId = useMediaStore(s => s.noncompositeCrumbId)
+
+  const { upload } = useMediaUpload();
+  const activeRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!enabled) return;
 
-    const store = useUploadQueueStore.getState;
     const active = activeRef.current;
 
-    // Cancel uploads whose items were removed from the queue.
-    const liveIds = new Set(store().queue.map((i) => i.id));
-    for (const [id, controller] of active) {
-      if (!liveIds.has(id)) {
-        controller.abort();
-        active.delete(id);
-      }
+    // Forget items that were removed from the queue while in flight.
+    const liveIds = new Set(
+      useUploadQueueStore.getState().queue.map((i) => i.id),
+    );
+    for (const id of active) {
+      if (!liveIds.has(id)) active.delete(id);
     }
 
     const start = async (item: MediaData) => {
-      const controller = new AbortController();
-      active.set(item.id, controller);
+      active.add(item.id);
       useUploadQueueStore.getState().update(item.id, {
-        uploadState: {
-          status: "uploading",
-          error: null,
-          progress: 0,
-        }
+        uploadState: { status: 'uploading', error: null },
       });
 
       try {
-        await uploadFn(item, {
-          signal: controller.signal,
-          onProgress: (progress) =>
-            useUploadQueueStore.getState().update(item.id, {
-              ...item, uploadState: {
-                ...item.uploadState,
-                progress: Math.max(0, Math.min(100, progress)),
-              }
-            }),
+        console.log("uploading for item: ", item)
+        await upload([item], nonCompId);
+        useUploadQueueStore.getState().update(item.id, {
+          uploadState: { status: 'complete', error: null },
         });
-        if (!controller.signal.aborted) {
-          useUploadQueueStore
-            .getState()
-            .update(item.id, {
-              ...item, uploadState: {
-                ...item.uploadState,
-                progress: 100,
-                status: "complete",
-              }
-            });
-        }
-      } catch (err) {
-        if (!controller.signal.aborted) {
-          useUploadQueueStore.getState().update(item.id, {
-            ...item, uploadState: {
-              ...item.uploadState,
-              error: err instanceof Error ? err : Error(String(err)),
-              status: "failed",
-            }
-          });
-        }
+        console.log("done uploading item: ", item)
+      } catch (error) {
+        useUploadQueueStore.getState().update(item.id, {
+          uploadState: {
+            status: 'failed',
+            error: error instanceof Error ? error : new Error(String(error)),
+          },
+        });
+        console.log("error while uploading item: ", extractBackendMsg(error))
       }
 
       active.delete(item.id);
       pump();
     };
 
-    // Fill open slots with pending items. next() returns the first 'pending'
-    // item, and start() flips status synchronously, so each loop picks a new one.
     const pump = () => {
       while (active.size < concurrency) {
         const item = useUploadQueueStore.getState().next();
@@ -99,18 +69,13 @@ export function useUploadWorker({
     };
 
     pump();
-  }, [concurrency, enabled, queue, uploadFn]);
+  }, [concurrency, enabled, nonCompId, queue, upload]);
 
-  // On unmount, abort everything in flight.
-  useEffect(() => {
-    const active = activeRef.current;
-    return () => {
-      for (const controller of active.values()) controller.abort();
-      active.clear();
-    };
-  }, []);
-
-  const activeCount = queue.filter((i) => i.uploadState.status === "uploading").length;
-  const pendingCount = queue.filter((i) => i.uploadState.status === "pending").length;
+  const activeCount = queue.filter(
+    (i) => i.uploadState.status === 'uploading',
+  ).length;
+  const pendingCount = queue.filter(
+    (i) => i.uploadState.status === 'pending',
+  ).length;
   return { activeCount, pendingCount, isUploading: activeCount > 0 };
 }

@@ -15,7 +15,7 @@ import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
 import { ElevatedSectionedScrollView, Section } from "@/components/views/ElevatedSectionedScrollView";
-import { MediaData } from "@/constants/media";
+import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
 import { useDeleteUser, useGetUser, useUpdateProfilePicture } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
@@ -312,43 +312,8 @@ export default function ProfileSettingsScreen() {
 
   const { showModal, hideModal } = useModal()
   const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
-  const { mutate: updateProfilePictureKey, isError, error } = useUpdateProfilePicture()
-  const { upload } = useMediaUpload({
-    onSuccess(file) {
-      if (isError || !file[0].media?.mediaKey) {
-        showModal({
-          message: extractBackendMsg(error),
-          onPrimary: hideModal,
-          primaryBtnText: "Ok"
-        })
-        return
-      }
-
-      updateProfilePictureKey({
-        imageKey: file[0].media.mediaKey,
-        thumbnailKey: file[0].thumbnail!.mediaKey
-      }, {
-        onSuccess() {
-
-        },
-        onError(e) {
-          showModal({
-            message: extractBackendMsg(e),
-            primaryBtnText: "Close",
-            onPrimary: hideModal
-          })
-        }
-      })
-    },
-    onError(e) {
-      showModal({
-        message: extractBackendMsg(e),
-        onPrimary: hideModal,
-        primaryBtnText: "Ok"
-      })
-    }
-
-  })
+  const { mutateAsync: updateProfilePictureKey } = useUpdateProfilePicture()
+  const { upload } = useMediaUpload()
 
   const handlePressChangePic = () => {
     openSheet({
@@ -383,14 +348,26 @@ export default function ProfileSettingsScreen() {
 
     const original = (await context.renderAsync()).saveAsync({ compress: .8 })
     const thumbnail = (await context.resize({ width: 200, height: 200 }).renderAsync()).saveAsync({ compress: .8 })
-    await upload([{
-      id: "",
-      localUri: (await original).uri,
-      thumbnailUri: (await thumbnail).uri,
-      type: "profilePhoto",
-      resizeMode: "contain",
-      uploadState: { pending: false, uploadUrl: "", error: null }
-    }])
+    try {
+      const files = await upload([{
+        id: "",
+        localUri: (await original).uri,
+        thumbnailUri: (await thumbnail).uri,
+        type: "profilePhoto",
+        resizeMode: "contain",
+        uploadState: defaultMediaDataUploadState(),
+      }])
+      await updateProfilePictureKey({
+        imageKey: files[0].media.mediaKey,
+        thumbnailKey: files[0].thumbnail?.mediaKey ?? ""
+      })
+    } catch (error) {
+      showModal({
+        message: extractBackendMsg(error),
+        onPrimary: hideModal,
+        primaryBtnText: "Ok"
+      })
+    }
     closeSheet()
   }
 

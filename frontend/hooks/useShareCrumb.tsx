@@ -12,12 +12,6 @@ import { useMediaUpload } from "./useMediaUpload"
 import { useReverseGeocode } from "./useReverseGeocode"
 import { useThemeColor } from "./useThemeColor"
 
-enum LOCATION_OPTIONS {
-  gps = "My location",
-  custom = "Choose on map",
-  global = "Global"
-}
-
 export interface iRecipient {
   id: string,
   name: string
@@ -45,58 +39,11 @@ export function useShareCrumb(
 
   useEffect(() => {
     setReverseGeocodeCoordinates(coordinates)
-  }, [coordinates])
+  }, [coordinates, setReverseGeocodeCoordinates])
 
-  const { upload } = useMediaUpload({
-    onSuccess: files => {
-      const poiId = undefined
-      const crumbCoordinates = coordinates
-      let crumbRadius: number = coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS
-      let crumbLocationSelManner: LocationSelectionManner = "gps"
+  const { upload } = useMediaUpload();
 
-      if (!crumbCoordinates) {
-        throw new Error("Crumb does not have a valid coordinate!")
-      }
-
-      shareCrumb({
-        nonCompositeId: files[0].crumbId,
-        latitude: crumbCoordinates.latitude,
-        longitude: crumbCoordinates.longitude,
-        clickedFeatureId: poiId,
-        caption: files.map(f => ({
-          index: f.index,
-          content: f.text?.content ?? ""
-        })),
-        mediaItems: files.map(f => ({
-          index: f.index,
-          media: f.media?.mediaKey,
-          type: f.type,
-          thumbnail: f.thumbnail?.mediaKey,
-        })),
-        radius: crumbRadius,
-        locationSelectionManner: crumbLocationSelManner,
-        receivers: recipients.map(r => r.id),
-        address: address ?? undefined
-      }, {
-        onSuccess: () => {
-          setIsPending(false)
-          hideModal()
-          resetMediaStore()
-          ShowToast("✅ Done")
-        },
-        onError: err => {
-          setIsPending(false)
-          handleNotifyErr(err)
-        }
-      })
-    },
-    onError: (err) => {
-      setIsPending(false)
-      handleNotifyErr(err)
-    },
-  });
-
-  const { mutate: shareCrumb } = useShareCrumbApi()
+  const { mutateAsync: shareCrumb } = useShareCrumbApi()
 
   const handleNotifyErr = (err: any) => {
     console.log("Share failed:", err);
@@ -130,7 +77,47 @@ export function useShareCrumb(
       )
     })
     await processMedia()
-    upload(crumbMedia);
+    const files = await upload(crumbMedia);
+    const poiId = undefined
+    const crumbCoordinates = coordinates
+    let crumbRadius: number = coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS
+    let crumbLocationSelManner: LocationSelectionManner = "gps"
+
+    if (!crumbCoordinates) {
+      throw new Error("Crumb does not have a valid coordinate!")
+    }
+
+    shareCrumb({
+      nonCompositeId: files[0].crumbId,
+      latitude: crumbCoordinates.latitude,
+      longitude: crumbCoordinates.longitude,
+      clickedFeatureId: poiId,
+      caption: files.map(f => ({
+        index: f.index,
+        content: f.text?.content ?? ""
+      })),
+      mediaItems: files.map(f => ({
+        index: f.index,
+        media: f.media?.mediaKey,
+        type: f.type,
+        thumbnail: f.thumbnail?.mediaKey,
+      })),
+      radius: crumbRadius,
+      locationSelectionManner: crumbLocationSelManner,
+      receivers: recipients.map(r => r.id),
+      address: address ?? undefined
+    }, {
+      onSuccess: () => {
+        setIsPending(false)
+        hideModal()
+        resetMediaStore()
+        ShowToast("✅ Done")
+      },
+      onError: err => {
+        setIsPending(false)
+        handleNotifyErr(err)
+      }
+    })
   };
 
   return {

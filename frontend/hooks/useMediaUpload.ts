@@ -3,12 +3,6 @@ import { MediaData } from "@/constants/media";
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
 import { File } from "expo-file-system";
 
-interface UseMediaUploadOptions {
-  isProfilePicture?: boolean
-  onSuccess?: (files: PresignedMediaItem[]) => void;
-  onError?: (error: unknown) => void;
-}
-
 function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   for (const med of processedMedia) {
     for (const path of [med.localUri, med.thumbnailUri]) {
@@ -23,16 +17,8 @@ function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   }
 }
 
-export function useMediaUpload(options?: UseMediaUploadOptions) {
-  const { mutate: presignedUrl } = useGetPresignedUrl();
-  const handleSuccess = (validFiles: PresignedMediaItem[]) => {
-    options?.onSuccess?.(validFiles)
-  }
-
-  const handleError = (error: unknown) => {
-    options?.onError?.(error)
-  }
-
+export function useMediaUpload() {
+  const { mutateAsync: getPresignedUrl, } = useGetPresignedUrl();
   const uploadFile = async (file: validPresignedMediaItemFile) => {
     const formData = new FormData();
 
@@ -64,39 +50,28 @@ export function useMediaUpload(options?: UseMediaUploadOptions) {
 
   };
 
-  const upload = async (processedMedia: MediaData[], nonCompositeId?: string) => {
-    presignedUrl({
-      nonCompositeId: nonCompositeId ?? "",
-      files: processedMedia
-    }, {
-      onSuccess: async (s) => {
-        const validFiles = s?.validFiles;
-        if (!validFiles?.length) {
-          options?.onError?.("No valid files to upload!")
-          return;
-        }
+  const upload = async (processedMedia: MediaData[], nonCompositeId?: string): Promise<PresignedMediaItem[]> => {
+    const presignedUrlResponse = await getPresignedUrl({
+      files: processedMedia,
+      crumbNonCompositeId: nonCompositeId ?? ""
+    })
 
-        const uploads: validPresignedMediaItemFile[] = [];
+    const validFiles = presignedUrlResponse.validFiles;
+    if (!validFiles.length) {
+      throw new Error("No valid files to upload!")
+    }
 
-        validFiles.forEach((file) => {
-          if (file.media?.uploadUrl) uploads.push(file.media);
-          if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
-        });
+    const uploads: validPresignedMediaItemFile[] = [];
 
-        try {
-          await Promise.all(uploads.map(uploadFile));
-          deleteUploadedFilesLocally(processedMedia)
-          handleSuccess(validFiles)
-        } catch (err) {
-          console.log("Upload error:", err);
-          handleError(err)
-        }
-      },
-      onError: (e) => {
-        console.log("Presigned URL error:", e);
-        options?.onError?.(e);
-      },
+    validFiles.forEach((file) => {
+      if (file.media.uploadUrl) uploads.push(file.media);
+      if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
     });
+
+    await Promise.all(uploads.map(uploadFile));
+    deleteUploadedFilesLocally(processedMedia)
+
+    return validFiles
   };
 
   return { upload };

@@ -2,20 +2,16 @@ import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import {
   MediaData
 } from "@/constants/media";
+import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 
-export type Friend = {
-  id: string;
-  name: string;
-  avatar: string;
-  isOnline: boolean;
-};
 
 export type EditingMode = "none" | "crop" | "text" | "sticker";
 
 type MediaState = {
   mediaPreview: MediaData[];
   isRecording: boolean;
+  noncompositeCrumbId: string
 
   reset: () => void;
   setIsRecording: (isRecording: boolean) => void;
@@ -30,6 +26,7 @@ type MediaState = {
 const initialState = {
   mediaPreview: [],
   isRecording: false,
+
 };
 
 export const useMediaStore = create<MediaState>((set, get) => {
@@ -57,12 +54,19 @@ export const useMediaStore = create<MediaState>((set, get) => {
   return {
     ...initialState,
 
+    noncompositeCrumbId: "",
+
     reset: () => set(initialState),
 
     setIsRecording: (isRecording) => set({ isRecording }),
 
     addMediaPreview: (media) => {
       const state = get();
+      let nonCompId = state.noncompositeCrumbId
+
+      if (state.noncompositeCrumbId.length < 1 || state.mediaPreview.length < 1) {
+        nonCompId = uuidv4()
+      }
 
       if (state.mediaPreview.length >= MAX_PREVIEW_MEDIA) {
         return "";
@@ -70,6 +74,7 @@ export const useMediaStore = create<MediaState>((set, get) => {
 
       set({
         mediaPreview: [...state.mediaPreview, media],
+        noncompositeCrumbId: nonCompId,
       });
 
       return media.id;

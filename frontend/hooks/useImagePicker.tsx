@@ -85,7 +85,7 @@ export const useImagePicker = (): UseImagePickerReturn => {
           fileName: asset.fileName ?? "",
           fileSize: asset.fileSize,
           resizeMode: getImageResizeMode(asset.width, asset.height, screenDimensions),
-          uploadState: defaultMediaDataUploadState()
+          uploadState: defaultMediaDataUploadState(),
         })
       })
       return processed
