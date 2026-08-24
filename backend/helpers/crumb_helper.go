@@ -127,10 +127,10 @@ func (h *crumbHelper) OpenCrumb(otherUser, crumbId string) ([]resItem, error) {
 }
 
 func (h *crumbHelper) CrumbExists(ownerId, crumbNonCompositeId string) (bool, error) {
-	keyCondition := expression.KeyEqual(expression.Key("pk"), expression.Value(
+	keyCondition := expression.KeyEqual(expression.Key("gsi2"), expression.Value(
 		models.CrumbIdPrefix+crumbNonCompositeId,
 	)).And(
-		expression.KeyBeginsWith(expression.Key("sk"), models.CrumbPkPrefix+ownerId),
+		expression.KeyBeginsWith(expression.Key("gsi2Sk"), models.CrumbPkPrefix+ownerId),
 	)
 
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
