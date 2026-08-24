@@ -11,7 +11,7 @@ interface UseMediaUploadOptions {
 
 function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   for (const med of processedMedia) {
-    for (const path of [med.uri, med.media, med.thumbnail]) {
+    for (const path of [med.localUri, med.thumbnailUri]) {
       if (!path) continue;
       try {
         const f = new File(path);

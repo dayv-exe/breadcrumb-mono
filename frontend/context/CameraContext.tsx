@@ -21,7 +21,7 @@ type CameraContextType = {
   onSendMedia?: (media: MediaData) => void | Promise<void>;
   setOnSendMedia: (callback: (media: MediaData) => void | Promise<void>) => void;
   mediaPreview: MediaPreview | null
-  setMediaPreview: (media: MediaPreview) => void 
+  setMediaPreview: (media: MediaPreview) => void
 
   flipCamera: () => void
   activeCamera: CameraDevice | null
@@ -93,7 +93,7 @@ export function CameraProvider({ children }: { children: ReactNode }) {
 
   const handleDiscardMedia = () => {
     // when user cancels preview
-    if (currentMedia?.uri) {
+    if (currentMedia?.localUri) {
       // delete from temp or whatever
     }
 

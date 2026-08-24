@@ -1,7 +1,7 @@
 
 export type MediaType = "photo" | "video" | "audio" | "text" | "profilePhoto" | null;
 
-type UploadState = {
+export type UploadState = {
   uploadUrl: string
   error: Error | null
   pending: boolean
@@ -10,9 +10,9 @@ type UploadState = {
 // --- Media Data ---
 export type MediaData = {
   id: string
-  uri: string; // raw
-  media?: string // processed
-  thumbnail?: string; // processed
+  localUri: string
+  thumbnailUri?: string
+  uploadState: UploadState
   type: MediaType;
   duration?: number;
   width?: number;
@@ -22,5 +22,4 @@ export type MediaData = {
   resizeMode: "cover" | "contain";
   caption?: string
   isPlaceholder?: boolean
-  uploadState: UploadState
 };

@@ -55,10 +55,9 @@ function normalizeFileUri(path: string) {
 }
 
 export function useCamera(): useCameraReturnType {
-  const { addMediaPreview, setIsRecording, mediaPreview, replaceMediaPreview } = useMediaStore(
+  const { addMediaPreview, setIsRecording, mediaPreview } = useMediaStore(
     useShallow(s => ({
       addMediaPreview: s.addMediaPreview,
-      replaceMediaPreview: s.replaceMediaPreview,
       setIsRecording: s.setIsRecording,
       mediaPreview: s.mediaPreview,
     }))
@@ -161,8 +160,6 @@ export function useCamera(): useCameraReturnType {
               uri: path,
               thumbnail: thumbnail,
               resizeMode: "cover",
-              uploadState: { error: null, pending: false, uploadUrl: "" },
-              index: 0,
             });
 
             if (shouldAutoRestart.current) {
@@ -184,50 +181,6 @@ export function useCamera(): useCameraReturnType {
 
   const cameraRef = useRef<Camera>(null);
 
-  async function takeQuickPhoto() {
-    const camera = cameraRef.current;
-    let placeholderIndex = -1
-    if (camera) {
-      try {
-        const photoPromise = camera.takePhoto({
-          flash: useFlash,
-          enableShutterSound: false
-        })
-
-        const snapshotPromise = camera.takeSnapshot({
-          quality: 0,
-        })
-
-        const snapshot = await snapshotPromise
-        placeholderIndex = addMediaPreview({
-          id: uuidv4(),
-          type: "photo",
-          uri: normalizeFileUri(snapshot.path),
-          resizeMode: "cover",
-          isPlaceholder: true,
-          index: 0,
-          uploadState: { error: null, pending: false, uploadUrl: "" }
-        });
-
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid).catch(() => { });
-        const photo = await photoPromise
-        replaceMediaPreview(placeholderIndex, {
-          id: uuidv4(),
-          type: "photo",
-          uri: normalizeFileUri(photo.path),
-          resizeMode: "cover",
-          isPlaceholder: false,
-          index: 0,
-          height: photo.height,
-          width: photo.width,
-          uploadState: { error: null, pending: false, uploadUrl: "" }
-        });
-      } catch (error) {
-        console.error("Error taking photo:", error);
-      }
-    }
-  }
-
   async function takeNormalPhoto(shutterSignal: SharedValue<number>) {
     if (cameraRef.current) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)
@@ -242,10 +195,8 @@ export function useCamera(): useCameraReturnType {
           type: "photo",
           uri: normalizeFileUri(photo.path),
           resizeMode: "cover",
-          index: 0,
           width: photo.width,
           height: photo.height,
-          uploadState: { error: null, pending: false, uploadUrl: "" }
         });
         // setShowMediaPreview(true)
       } catch (error) {
@@ -306,8 +257,6 @@ export function useCamera(): useCameraReturnType {
         resizeMode: "contain",
         type: "audio",
         uri: normalizeFileUri(audioRecorder.uri),
-        index: 0,
-        uploadState: { error: null, pending: false, uploadUrl: "" }
       })
     } else {
       console.error("Failed to find recording!")

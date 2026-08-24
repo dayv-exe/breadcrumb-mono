@@ -378,16 +378,15 @@ export default function ProfileSettingsScreen() {
     const originY = (image.height! - size) / 2
 
     const context = ImageManipulator.ImageManipulator
-      .manipulate(image.uri)
+      .manipulate(image.localUri)
       .crop({ originX, originY, width: size, height: size })
 
     const original = (await context.renderAsync()).saveAsync({ compress: .8 })
     const thumbnail = (await context.resize({ width: 200, height: 200 }).renderAsync()).saveAsync({ compress: .8 })
     await upload([{
       id: "",
-      uri: (await original).uri,
-      media: (await original).uri,
-      thumbnail: (await thumbnail).uri,
+      localUri: (await original).uri,
+      thumbnailUri: (await thumbnail).uri,
       type: "profilePhoto",
       resizeMode: "contain",
       uploadState: { pending: false, uploadUrl: "", error: null }
