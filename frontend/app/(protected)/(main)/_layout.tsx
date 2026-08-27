@@ -1,7 +1,7 @@
-import { useUploadWorker } from "@/hooks/useUploadWorker";
+import { useAutoUploadWorker } from "@/hooks/useAutoUploadWorker";
 import { Stack } from "expo-router";
 export default function MainScreen() {
-  useUploadWorker({
+  useAutoUploadWorker({
     concurrency: 2,
     enabled: true,
   })

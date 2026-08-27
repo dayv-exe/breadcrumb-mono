@@ -17,7 +17,7 @@ function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   }
 }
 
-export function useMediaUpload() {
+export function useManualUpload() {
   const { mutateAsync: getPresignedUrl, } = useGetPresignedUrl();
   const uploadFile = async (file: validPresignedMediaItemFile) => {
     const formData = new FormData();

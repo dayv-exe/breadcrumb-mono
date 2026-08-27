@@ -1,7 +1,7 @@
 import { MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
+import { useUploadQueueStore } from "@/hooks/useAutoUploadQueue";
 import { useMediaStore } from "@/utils/mediaStore";
-import { useUploadQueueStore } from "@/utils/uploadStore";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createVideoThumbnail } from "react-native-compressor";

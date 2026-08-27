@@ -20,7 +20,7 @@ import { useDeleteUser, useGetUser, useUpdateProfilePicture } from "@/hooks/quer
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useImagePicker } from "@/hooks/useImagePicker";
-import { useMediaUpload } from "@/hooks/useMediaUpload";
+import { useMediaUpload } from "@/hooks/useManualUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/utils/authStore";
 import * as ImageManipulator from "expo-image-manipulator";

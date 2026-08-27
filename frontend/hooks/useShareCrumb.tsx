@@ -1,14 +1,10 @@
 import { LocationSelectionManner } from "@/api/models/locationTypes"
-import CustomLabel from "@/components/CustomLabel"
 import { useModal } from "@/components/modals/ModalContext"
-import Spacer from "@/components/Spacer"
 import { DEFAULT_CRUMB_RADIUS, ShowToast } from "@/constants/appConstants"
 import { useMediaStore } from "@/utils/mediaStore"
 import { useLocationStore } from "@/utils/useLocationStore"
 import { useEffect, useState } from "react"
-import { ActivityIndicator, View } from "react-native"
 import { useShareCrumbApi } from "./queries/useCrumbsApi"
-import { useMediaUpload } from "./useMediaUpload"
 import { useReverseGeocode } from "./useReverseGeocode"
 import { useThemeColor } from "./useThemeColor"
 
@@ -41,8 +37,6 @@ export function useShareCrumb(
     setReverseGeocodeCoordinates(coordinates)
   }, [coordinates, setReverseGeocodeCoordinates])
 
-  const { upload } = useMediaUpload();
-
   const { mutateAsync: shareCrumb } = useShareCrumbApi()
 
   const handleNotifyErr = (err: any) => {
@@ -57,27 +51,6 @@ export function useShareCrumb(
 
   const handleShare = async () => {
     if (recipients.length === 0) return
-    setIsPending(true)
-    showModal({
-      content: (
-        <View style={{
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center"
-        }}>
-          <CustomLabel bold adaptToTheme textAlign="center" labelText="Sharing, hang tight..." />
-          <Spacer />
-          < ActivityIndicator color={textCol} style={{
-            width: 17,
-            height: 17,
-          }
-          } />
-          < Spacer />
-        </View>
-      )
-    })
-    await processMedia()
-    const files = await upload(crumbMedia);
     const poiId = undefined
     const crumbCoordinates = coordinates
     let crumbRadius: number = coordinates?.accuracy ?? DEFAULT_CRUMB_RADIUS

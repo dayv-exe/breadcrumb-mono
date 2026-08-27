@@ -1,9 +1,9 @@
 import { extractBackendMsg } from '@/api/models/apiResponse';
 import { MediaData } from '@/constants/media';
 import { useMediaStore } from '@/utils/mediaStore';
-import { useUploadQueueStore } from '@/utils/uploadStore';
 import { useEffect, useRef } from 'react';
-import { useMediaUpload } from './useMediaUpload';
+import { useAutoUploadQueue } from './useAutoUploadQueue';
+import { useManualUpload } from './useManualUpload';
 
 interface UseUploadWorkerOptions {
   concurrency?: number;
@@ -28,7 +28,7 @@ function defaultIsRetryable(error: unknown): boolean {
   return true;
 }
 
-export function useUploadWorker({
+export function useAutoUploadWorker({
   concurrency = 3,
   enabled = true,
   maxRetries = 3,
@@ -36,10 +36,10 @@ export function useUploadWorker({
   maxRetryDelayMs = 30000,
   isRetryable = defaultIsRetryable,
 }: UseUploadWorkerOptions) {
-  const queue = useUploadQueueStore((s) => s.queue);
+  const queue = useAutoUploadQueue((s) => s.queue);
   const nonCompId = useMediaStore((s) => s.noncompositeCrumbId);
 
-  const { upload } = useMediaUpload();
+  const { upload } = useManualUpload();
   const activeRef = useRef<Set<string>>(new Set());
   const attemptsRef = useRef<Map<string, number>>(new Map());
   const retryTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
@@ -63,7 +63,7 @@ export function useUploadWorker({
 
     // forget items that have been removed
     const liveIds = new Set(
-      useUploadQueueStore.getState().queue.map((i) => i.id),
+      useAutoUploadQueue.getState().queue.map((i) => i.id),
     );
     for (const id of active) {
       if (!liveIds.has(id)) active.delete(id);
@@ -87,7 +87,7 @@ export function useUploadWorker({
         Math.min(maxRetryDelayMs, baseRetryDelayMs * 2 ** (attempt - 1)) +
         Math.random() * 250;
 
-      useUploadQueueStore.getState().update(item.id, {
+      useAutoUploadQueue.getState().update(item.id, {
         uploadState: {
           status: 'retrying',
           error: error instanceof Error ? error : new Error(String(error)),
@@ -99,7 +99,7 @@ export function useUploadWorker({
       const timer = setTimeout(() => {
         retryTimers.delete(item.id);
         // Flip back to pending so pump() picks it up on the next tick.
-        useUploadQueueStore.getState().update(item.id, {
+        useAutoUploadQueue.getState().update(item.id, {
           uploadState: { status: 'pending', error: null },
         });
         pump();
@@ -113,14 +113,14 @@ export function useUploadWorker({
       const attempt = (attempts.get(item.id) ?? 0) + 1;
       attempts.set(item.id, attempt);
 
-      useUploadQueueStore.getState().update(item.id, {
+      useAutoUploadQueue.getState().update(item.id, {
         uploadState: { status: 'uploading', error: null, attempt },
       });
 
       try {
         await upload([item], nonCompId);
         attempts.delete(item.id);
-        useUploadQueueStore.getState().update(item.id, {
+        useAutoUploadQueue.getState().update(item.id, {
           uploadState: { status: 'complete', error: null },
         });
       } catch (error) {
@@ -134,7 +134,7 @@ export function useUploadWorker({
           scheduleRetry(item, attempt, error);
         } else {
           attempts.delete(item.id);
-          useUploadQueueStore.getState().update(item.id, {
+          useAutoUploadQueue.getState().update(item.id, {
             uploadState: {
               status: 'failed',
               error: error instanceof Error ? error : new Error(String(error)),
@@ -154,7 +154,7 @@ export function useUploadWorker({
 
     const pump = () => {
       while (active.size < concurrency) {
-        const item = useUploadQueueStore.getState().next();
+        const item = useAutoUploadQueue.getState().next();
         if (!item) break;
         void start(item);
       }
