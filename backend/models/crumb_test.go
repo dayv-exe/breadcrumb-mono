@@ -23,17 +23,12 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"locationSelectionManner": &dbTypes.AttributeValueMemberS{Value: "gps"},
 	"placeId":                 &dbTypes.AttributeValueMemberS{Value: "p1"},
 	"time":                    &dbTypes.AttributeValueMemberS{Value: "100"},
-	"caption": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
-		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
-			"index":   &dbTypes.AttributeValueMemberN{Value: "0"},
-			"content": &dbTypes.AttributeValueMemberS{Value: "hello world"},
-		}},
-	}},
 	"media": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":     &dbTypes.AttributeValueMemberN{Value: "0"},
 			"media":     &dbTypes.AttributeValueMemberS{Value: "img-key-1"},
 			"thumbnail": &dbTypes.AttributeValueMemberS{Value: ""},
+			"caption":   &dbTypes.AttributeValueMemberS{Value: ""},
 		}},
 	}},
 	"geohash": &dbTypes.AttributeValueMemberS{Value: "hash"},
@@ -64,14 +59,8 @@ func NewTestCrumbBody() CrumbBody {
 		Longitude:               -1,
 		Radius:                  10,
 		LocationSelectionManner: "gps",
-		Caption: []CrumbCaption{
-			{
-				Index:   0,
-				Content: "hello world",
-			},
-		},
-		MediaKeys: []CrumbMedia{{Index: 0, MediaKey: "img-key-1"}},
-		Address:   "1 Test Street",
+		MediaKeys:               []CrumbMedia{{Index: 0, MediaKey: "img-key-1", Caption: ""}},
+		Address:                 "1 Test Street",
 	}
 }
 

@@ -30,6 +30,7 @@ var testUserDynamo = map[string]dbTypes.AttributeValue{
 		"index":     &dbTypes.AttributeValueMemberN{Value: "0"},
 		"media":     &dbTypes.AttributeValueMemberS{Value: "m1"},
 		"thumbnail": &dbTypes.AttributeValueMemberS{Value: "t1"},
+		"caption":   &dbTypes.AttributeValueMemberS{Value: ""},
 	}},
 }
 

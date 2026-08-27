@@ -31,19 +31,19 @@ type CrumbMedia struct {
 	Index        int    `json:"index" dynamodbav:"index"`
 	MediaKey     string `json:"media" dynamodbav:"media"`
 	ThumbnailKey string `json:"thumbnail,omitempty" dynamodbav:"thumbnail"`
+	Caption      string `json:"caption" dynamodbav:"caption"`
 }
 
 type CrumbBody struct {
-	NonCompositeId          string         `json:"nonCompositeDd"`
-	Receivers               []string       `json:"receivers"`
-	Latitude                float64        `json:"latitude"`
-	Longitude               float64        `json:"longitude"`
-	Radius                  float32        `json:"radius"`
-	LocationSelectionManner string         `json:"locationSelectionManner"`
-	Caption                 []CrumbCaption `json:"caption"`
-	MediaKeys               []CrumbMedia   `json:"media"`
-	ClickedFeatureId        string         `json:"clickedFeatureId"`
-	Address                 string         `json:"address"`
+	NonCompositeId          string       `json:"nonCompositeDd"`
+	Receivers               []string     `json:"receivers"`
+	Latitude                float64      `json:"latitude"`
+	Longitude               float64      `json:"longitude"`
+	Radius                  float32      `json:"radius"`
+	LocationSelectionManner string       `json:"locationSelectionManner"`
+	MediaKeys               []CrumbMedia `json:"media"`
+	ClickedFeatureId        string       `json:"clickedFeatureId"`
+	Address                 string       `json:"address"`
 }
 
 type CrumbMarkerDetails struct {
@@ -54,22 +54,21 @@ type CrumbMarkerDetails struct {
 }
 
 type Crumb struct {
-	Id                      string         `json:"id" dynamodbav:"id"`
-	NonCompositeId          string         `json:"nonCompositeId" dynamodbav:"nonCompositeId"`
-	Sender                  string         `json:"sender" dynamodbav:"sender"`
-	Receiver                string         `json:"receiver" dynamodbav:"receiver"`
-	Latitude                float64        `json:"latitude" dynamodbav:"latitude"`
-	Longitude               float64        `json:"longitude" dynamodbav:"longitude"`
-	Radius                  float32        `json:"radius" dynamodbav:"radius"`
-	LocationSelectionManner string         `json:"locationSelectionManner" dynamodbav:"locationSelectionManner"`
-	PlaceId                 string         `json:"placeId" dynamodbav:"placeId"`
-	Caption                 []CrumbCaption `json:"caption" dynamodbav:"caption"`
-	Media                   []CrumbMedia   `json:"media" dynamodbav:"media"`
-	Geohash                 string         `json:"geohash" dynamodbav:"geohash"`
-	Saved                   bool           `json:"saved" dynamodbav:"-"`
-	Unlocked                bool           `json:"unlocked" dynamodbav:"unlocked"`
-	FormattedAddress        string         `json:"formattedAddress" dynamodbav:"formattedAddress"`
-	PlaceName               string         `json:"placename" dynamodbav:"placename"`
+	Id                      string       `json:"id" dynamodbav:"id"`
+	NonCompositeId          string       `json:"nonCompositeId" dynamodbav:"nonCompositeId"`
+	Sender                  string       `json:"sender" dynamodbav:"sender"`
+	Receiver                string       `json:"receiver" dynamodbav:"receiver"`
+	Latitude                float64      `json:"latitude" dynamodbav:"latitude"`
+	Longitude               float64      `json:"longitude" dynamodbav:"longitude"`
+	Radius                  float32      `json:"radius" dynamodbav:"radius"`
+	LocationSelectionManner string       `json:"locationSelectionManner" dynamodbav:"locationSelectionManner"`
+	PlaceId                 string       `json:"placeId" dynamodbav:"placeId"`
+	Media                   []CrumbMedia `json:"media" dynamodbav:"media"`
+	Geohash                 string       `json:"geohash" dynamodbav:"geohash"`
+	Saved                   bool         `json:"saved" dynamodbav:"-"`
+	Unlocked                bool         `json:"unlocked" dynamodbav:"unlocked"`
+	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
+	PlaceName               string       `json:"placename" dynamodbav:"placename"`
 
 	Time string `json:"time" dynamodbav:"time"`
 
@@ -133,7 +132,6 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailb
 		Longitude:               crumbBody.Longitude,
 		Radius:                  crumbBody.Radius,
 		LocationSelectionManner: crumbBody.LocationSelectionManner,
-		Caption:                 crumbBody.Caption,
 		Media:                   crumbBody.MediaKeys,
 		Saved:                   saved,
 		Unlocked:                saved,
