@@ -2,8 +2,10 @@
 export type MediaType = "photo" | "video" | "profilePhoto" | null;
 
 export type UploadState = {
-  status: "pending" | "uploading" | "failed" | "complete"
+  status: "pending" | "uploading" | "failed" | "complete" | "retrying"
   error: Error | null
+  attempt?: number
+  nextRetryAt?: number
 }
 
 export function defaultMediaDataUploadState(): UploadState {
