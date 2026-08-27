@@ -1,10 +1,10 @@
-import { getCrumbMarkers, getLatestCrumbs, shareCrumb } from "@/api/crumbsApi";
+import { getCrumbMarkers, getLatestCrumbs, uploadCrumbMetadata } from "@/api/crumbsApi";
 import { Crumb } from "@/api/models/crumb";
 import { TIME } from "@/constants/appConstants";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
-export const useShareCrumbApi = () => useMutation({
-  mutationFn: shareCrumb
+export const useUploadCrumbMetadataApi = () => useMutation({
+  mutationFn: uploadCrumbMetadata
 })
 
 export const useGetLatestCrumbs = (userid: string, lastCrumb: Crumb | null) => {

@@ -1,6 +1,5 @@
 import { MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
-import { useUploadQueueStore } from "@/hooks/useAutoUploadQueue";
 import { useMediaStore } from "@/utils/mediaStore";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +21,7 @@ import {
 import { scheduleOnRN } from "react-native-worklets";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
+import { useAutoUploadQueue } from "./useAutoUploadQueue";
 
 type useCameraReturnType = {
   flipCamera: () => void;
@@ -51,7 +51,7 @@ export function useCamera(): useCameraReturnType {
       mediaPreview: s.mediaPreview,
     }))
   );
-  const { add, } = useUploadQueueStore()
+  const { add, } = useAutoUploadQueue()
   const mediaPrevLen = useRef(mediaPreview.length)
   useEffect(() => {
     mediaPrevLen.current = mediaPreview.length

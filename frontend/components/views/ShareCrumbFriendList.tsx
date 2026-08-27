@@ -1,6 +1,6 @@
 import { UserDetails } from "@/api/models/userDetails";
 import { useGetFriends } from "@/hooks/queries/useFriendsApi";
-import { iRecipient } from "@/hooks/useShareCrumb";
+import { iRecipient } from "@/hooks/useUploadCrumbMetadata";
 import { ActivityIndicator, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import { FriendShareItem } from "../crumbs/FriendShareItem";

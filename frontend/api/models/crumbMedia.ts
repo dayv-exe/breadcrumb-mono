@@ -5,4 +5,5 @@ export type crumbMedia = {
   media?: string
   type: MediaType
   thumbnail?: string
+  caption?: string
 }

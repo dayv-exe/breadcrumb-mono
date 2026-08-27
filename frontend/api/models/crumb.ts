@@ -16,7 +16,6 @@ export type Crumb = {
   radius: number
   locationSelectionManner: LocationSelectionManner
   placeId: string
-  caption?: CrumbCaption[]
   media: crumbMedia[]
   geohash: string
   time: string

@@ -1,4 +1,4 @@
-import { useShareCrumb } from "@/hooks/useShareCrumb";
+import { useShareCrumb } from "@/hooks/useUploadCrumbMetadata";
 import { useMediaStore } from "@/utils/mediaStore";
 import { ChevronDownIcon, MapPinIcon, Trash2Icon } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
