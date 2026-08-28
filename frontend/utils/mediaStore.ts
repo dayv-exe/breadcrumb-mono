@@ -19,6 +19,7 @@ type MediaState = {
   remove: (id: string) => void;
   updateUploadState: (id: string, state: UploadState) => void;
   updateMediaCaption: (id: string, text: string) => void;
+  getFailedUploads: () => MediaData[]
   clear: () => void;
   next: () => MediaData | undefined;
 };
@@ -75,5 +76,7 @@ export const useMediaStore = create<MediaState>((set, get) => {
     clear: () => set(initialState),
 
     next: () => get().media.find((i) => i.uploadState.status === "pending"),
+
+    getFailedUploads: () => get().media.filter(m => m.uploadState.status === "failed")
   }
 })

@@ -4,7 +4,6 @@ import { useLocationStore } from "@/utils/useLocationStore"
 import { useEffect, useState } from "react"
 import { useUploadCrumbMetadataApi } from "./queries/useCrumbsApi"
 import { useReverseGeocode } from "./useReverseGeocode"
-import { useUploadStore } from "./useUploadStore"
 
 export interface iRecipient {
   id: string,
@@ -24,7 +23,7 @@ export function useUploadCrumbMetadata(): UploadCrumbMetadataState {
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
   const media = useMediaStore(s => s.media)
   const nonCompId = useMediaStore(s => s.noncompositeCrumbId)
-  const { success } = useUploadStore()
+  const failedUploads = useMediaStore(s => s.getFailedUploads)
 
   useEffect(() => {
     setReverseGeocodeCoordinates(coordinates)
@@ -33,12 +32,13 @@ export function useUploadCrumbMetadata(): UploadCrumbMetadataState {
   const { mutateAsync: uploadMetadata } = useUploadCrumbMetadataApi()
 
   const upload = async () => {
+
     if (recipients.length === 0) {
       throw new Error("Crumbs must have at least one recipient!")
-    }
-
-    if (!success) {
+    } else if (failedUploads.length > 0) {
       throw new Error("Upload crumb media first before metadata!")
+    } else if (!coordinates || !coordinates.accuracy) {
+      throw new Error("Crumbs must have latitude, longitude and radius!")
     }
 
     const crumb: crumbBody = {
@@ -52,14 +52,15 @@ export function useUploadCrumbMetadata(): UploadCrumbMetadataState {
           thumbnail: m.uploadState.thumbnailStorageKey,
         }
       )),
-      receivers: [],
-      latitude: 0,
-      longitude: 0,
-      radius: 0,
-      locationSelectionManner: "label",
-      address: "",
-      clickedFeatureId: ""
+      receivers: recipients.map(r => r.id),
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      radius: coordinates.accuracy,
+      locationSelectionManner: "gps",
+      address: address ?? "",
     }
+
+    await uploadMetadata(crumb)
 
   };
 

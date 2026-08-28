@@ -20,8 +20,8 @@ import { useDeleteUser, useGetUser, useUpdateProfilePicture } from "@/hooks/quer
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useImagePicker } from "@/hooks/useImagePicker";
-import { useManualUpload } from "@/hooks/useManualUpload";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useUploadMedia } from "@/hooks/useUploadMedia";
 import { useAuthStore } from "@/utils/authStore";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -313,7 +313,7 @@ export default function ProfileSettingsScreen() {
   const { showModal, hideModal } = useModal()
   const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
   const { mutateAsync: updateProfilePictureKey } = useUpdateProfilePicture()
-  const { upload } = useManualUpload()
+  const { upload } = useUploadMedia({})
 
   const handlePressChangePic = () => {
     openSheet({
@@ -349,17 +349,17 @@ export default function ProfileSettingsScreen() {
     const original = (await context.renderAsync()).saveAsync({ compress: .8 })
     const thumbnail = (await context.resize({ width: 200, height: 200 }).renderAsync()).saveAsync({ compress: .8 })
     try {
-      const files = await upload([{
+      const file = await upload({
         id: "",
         localUri: (await original).uri,
         thumbnailUri: (await thumbnail).uri,
         type: "profilePhoto",
         resizeMode: "contain",
         uploadState: defaultMediaDataUploadState(),
-      }])
+      })
       await updateProfilePictureKey({
-        imageKey: files[0].media.mediaKey,
-        thumbnailKey: files[0].thumbnail?.mediaKey ?? ""
+        imageKey: file.media.mediaKey,
+        thumbnailKey: file.thumbnail?.mediaKey ?? ""
       })
     } catch (error) {
       showModal({
