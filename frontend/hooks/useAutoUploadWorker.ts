@@ -2,7 +2,6 @@ import { extractBackendMsg } from '@/api/models/apiResponse';
 import { MediaData } from '@/constants/media';
 import { useMediaStore } from '@/utils/mediaStore';
 import { useEffect, useRef } from 'react';
-import { useAutoUploadQueue } from './useAutoUploadQueue';
 import { useManualUpload } from './useManualUpload';
 
 interface UseUploadWorkerOptions {
@@ -36,7 +35,7 @@ export function useAutoUploadWorker({
   maxRetryDelayMs = 30000,
   isRetryable = defaultIsRetryable,
 }: UseUploadWorkerOptions) {
-  const queue = useAutoUploadQueue((s) => s.queue);
+  const queue = useMediaStore((s) => s.media);
   const nonCompId = useMediaStore((s) => s.noncompositeCrumbId);
 
   const { upload } = useManualUpload();
@@ -63,7 +62,7 @@ export function useAutoUploadWorker({
 
     // forget items that have been removed
     const liveIds = new Set(
-      useAutoUploadQueue.getState().queue.map((i) => i.id),
+      useMediaStore.getState().media.map((i) => i.id),
     );
     for (const id of active) {
       if (!liveIds.has(id)) active.delete(id);
@@ -87,21 +86,20 @@ export function useAutoUploadWorker({
         Math.min(maxRetryDelayMs, baseRetryDelayMs * 2 ** (attempt - 1)) +
         Math.random() * 250;
 
-      useAutoUploadQueue.getState().update(item.id, {
-        uploadState: {
-          status: 'retrying',
-          error: error instanceof Error ? error : new Error(String(error)),
-          attempt,
-          nextRetryAt: Date.now() + delay,
-        },
-      });
+      useMediaStore.getState().updateUploadState(item.id, {
+        status: 'retrying',
+        error: error instanceof Error ? error : new Error(String(error)),
+        attempt,
+        nextRetryAt: Date.now() + delay,
+      },
+      );
 
       const timer = setTimeout(() => {
         retryTimers.delete(item.id);
         // Flip back to pending so pump() picks it up on the next tick.
-        useAutoUploadQueue.getState().update(item.id, {
-          uploadState: { status: 'pending', error: null },
-        });
+        useMediaStore.getState().updateUploadState(item.id,
+          { status: 'pending', error: null },
+        );
         pump();
       }, delay);
 
@@ -113,15 +111,18 @@ export function useAutoUploadWorker({
       const attempt = (attempts.get(item.id) ?? 0) + 1;
       attempts.set(item.id, attempt);
 
-      useAutoUploadQueue.getState().update(item.id, {
-        uploadState: { status: 'uploading', error: null, attempt },
-      });
+      useMediaStore.getState().updateUploadState(item.id,
+        { status: 'uploading', error: null, attempt },
+      );
 
       try {
-        await upload([item], nonCompId);
+        const files = await upload([item], nonCompId);
         attempts.delete(item.id);
-        useAutoUploadQueue.getState().update(item.id, {
-          uploadState: { status: 'complete', error: null },
+        useMediaStore.getState().updateUploadState(item.id, {
+          status: 'complete',
+          error: null,
+          storageKey: files[0].media.mediaKey,
+          thumbnailStorageKey: files[0].thumbnail?.mediaKey
         });
       } catch (error) {
         const canRetry = attempt <= maxRetries && isRetryable(error);
@@ -134,13 +135,13 @@ export function useAutoUploadWorker({
           scheduleRetry(item, attempt, error);
         } else {
           attempts.delete(item.id);
-          useAutoUploadQueue.getState().update(item.id, {
-            uploadState: {
-              status: 'failed',
-              error: error instanceof Error ? error : new Error(String(error)),
-              attempt,
-            },
-          });
+          useMediaStore.getState().updateUploadState(item.id, {
+
+            status: 'failed',
+            error: error instanceof Error ? error : new Error(String(error)),
+            attempt,
+          },
+          );
           console.error(
             `upload failed permanently for ${item.id}:`,
             extractBackendMsg(error),
@@ -154,7 +155,7 @@ export function useAutoUploadWorker({
 
     const pump = () => {
       while (active.size < concurrency) {
-        const item = useAutoUploadQueue.getState().next();
+        const item = useMediaStore.getState().next();
         if (!item) break;
         void start(item);
       }

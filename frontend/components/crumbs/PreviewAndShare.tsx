@@ -1,4 +1,4 @@
-import { useShareCrumb } from "@/hooks/useUploadCrumbMetadata";
+import { useUploadCrumbMetadata } from "@/hooks/useUploadCrumbMetadata";
 import { useMediaStore } from "@/utils/mediaStore";
 import { ChevronDownIcon, MapPinIcon, Trash2Icon } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
@@ -18,17 +18,16 @@ interface props {
 
 export default function PreviewAndShare({ closeSheet }: props) {
   const { mediaPreview, discardAllMedia } = useMediaStore(useShallow(s => ({
-    mediaPreview: s.mediaPreview,
-    discardAllMedia: s.discardAllMediaPreview,
+    mediaPreview: s.media,
+    discardAllMedia: s.clear,
   })))
   const insets = useSafeAreaInsets()
 
   const {
     address,
-    isPending,
     recipients,
     setRecipients,
-  } = useShareCrumb(() => { })
+  } = useUploadCrumbMetadata()
   function handleDiscardAllMedia() {
     discardAllMedia()
   }

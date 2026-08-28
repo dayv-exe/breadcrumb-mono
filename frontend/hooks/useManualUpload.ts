@@ -67,10 +67,10 @@ export function useManualUpload() {
       if (file.media.uploadUrl) uploads.push(file.media);
       if (file.thumbnail?.uploadUrl) uploads.push(file.thumbnail);
     });
-
+    
     await Promise.all(uploads.map(uploadFile));
     deleteUploadedFilesLocally(processedMedia)
-
+    
     return validFiles
   };
 

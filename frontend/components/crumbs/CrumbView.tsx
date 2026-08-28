@@ -19,11 +19,11 @@ export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus
   const borderThickness = size / 25
 
   const {
-    discardCrumb,
+    removeCrumb,
     updateCaption,
   } = useMediaStore(useShallow(s => ({
     updateCaption: s.updateMediaCaption,
-    discardCrumb: s.discardMediaPreview,
+    removeCrumb: s.remove,
   })))
 
   return (
@@ -64,7 +64,7 @@ export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus
             backgroundColor: "rgba(0, 0, 0, .175)"
           }}
           freed
-          handleClick={() => discardCrumb(mediaData.id)}
+          handleClick={() => removeCrumb(mediaData.id)}
         >
           <Trash2Icon stroke="white" strokeWidth={2.5} size={20} />
         </CustomButton>

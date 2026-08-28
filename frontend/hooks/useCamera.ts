@@ -21,7 +21,6 @@ import {
 import { scheduleOnRN } from "react-native-worklets";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/shallow";
-import { useAutoUploadQueue } from "./useAutoUploadQueue";
 
 type useCameraReturnType = {
   flipCamera: () => void;
@@ -44,18 +43,17 @@ function normalizeFileUri(path: string) {
 }
 
 export function useCamera(): useCameraReturnType {
-  const { addMediaPreview, setIsRecording, mediaPreview } = useMediaStore(
+  const { add, setIsRecording, media } = useMediaStore(
     useShallow(s => ({
-      addMediaPreview: s.addMediaPreview,
+      add: s.add,
       setIsRecording: s.setIsRecording,
-      mediaPreview: s.mediaPreview,
+      media: s.media,
     }))
   );
-  const { add, } = useAutoUploadQueue()
-  const mediaPrevLen = useRef(mediaPreview.length)
+  const mediaPrevLen = useRef(media.length)
   useEffect(() => {
-    mediaPrevLen.current = mediaPreview.length
-  }, [mediaPreview])
+    mediaPrevLen.current = media.length
+  }, [media])
 
   const backCamera = useCameraDevice("back");
   const frontCamera = useCameraDevice("front");
@@ -148,9 +146,7 @@ export function useCamera(): useCameraReturnType {
               resizeMode: "cover",
               uploadState: defaultMediaDataUploadState(),
             }
-            addMediaPreview(newMedia);
-
-            add(newMedia)
+            add(newMedia);
 
             if (shouldAutoRestart.current) {
               shouldAutoRestart.current = false
@@ -189,8 +185,7 @@ export function useCamera(): useCameraReturnType {
           height: photo.height,
           uploadState: defaultMediaDataUploadState()
         }
-        addMediaPreview(newMedia);
-        add(newMedia)
+        add(newMedia);
       } catch (error) {
         console.error("Error taking photo:", error);
       }

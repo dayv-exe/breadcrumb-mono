@@ -6,6 +6,8 @@ export type UploadState = {
   error: Error | null
   attempt?: number
   nextRetryAt?: number
+  storageKey?: string
+  thumbnailStorageKey?: string
 }
 
 export function defaultMediaDataUploadState(): UploadState {

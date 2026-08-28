@@ -25,7 +25,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
   const nav = useRouter()
-  const mediaPreviews = useMediaStore(s => s.mediaPreview)
+  const mediaPreviews = useMediaStore(s => s.media)
 
   const SIZE = 25
 

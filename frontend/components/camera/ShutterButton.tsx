@@ -1,18 +1,10 @@
 import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
-import { Friend, useMediaStore } from "@/utils/mediaStore";
+import { useMediaStore } from "@/utils/mediaStore";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { useShallow } from "zustand/shallow";
 import { useModal } from "../modals/ModalContext";
 import RecordingProgressRing from "../posts/recordingProgressRing";
-
-const friends: Friend[] = [
-  { id: '1', name: 'Sarah', avatar: 'https://i.pravatar.cc/150?img=1', isOnline: true },
-  { id: '2', name: 'Mike', avatar: 'https://i.pravatar.cc/150?img=2', isOnline: false },
-  { id: '3', name: 'Emma', avatar: 'https://i.pravatar.cc/150?img=3', isOnline: true },
-  { id: '4', name: 'John', avatar: 'https://i.pravatar.cc/150?img=4', isOnline: false },
-  { id: '5', name: 'Lisa', avatar: 'https://i.pravatar.cc/150?img=5', isOnline: true },
-];
 
 type shutterProps = {
   takePhoto: () => void
@@ -26,7 +18,7 @@ export default function ShutterButton({ recordingProgress, startRecording, stopR
   const { isRecording, mediaPreview } = useMediaStore(
     useShallow(s => ({
       isRecording: s.isRecording,
-      mediaPreview: s.mediaPreview,
+      mediaPreview: s.media,
     }))
   )
   const { showModal, hideModal } = useModal()

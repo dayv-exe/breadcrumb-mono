@@ -2,7 +2,7 @@ import { MediaType } from "@/constants/media"
 
 export type crumbMedia = {
   index: number
-  media?: string
+  media: string
   type: MediaType
   thumbnail?: string
   caption?: string

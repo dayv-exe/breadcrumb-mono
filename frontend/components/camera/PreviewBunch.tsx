@@ -15,7 +15,7 @@ export default function PreviewBunch({ style, size }: props) {
   const { mediaPreview, isRecording } =
     useMediaStore(
       useShallow((s) => ({
-        mediaPreview: s.mediaPreview,
+        mediaPreview: s.media,
         isRecording: s.isRecording,
       }))
     );

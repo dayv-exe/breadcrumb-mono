@@ -13,9 +13,9 @@ const BG_FADE = Colors.light.vibrantBackground + "00"
 
 export default function ShareCrumbButton({ recipientNames }: props) {
   const insets = useSafeAreaInsets()
-  const mediaPreview = useMediaStore(s => s.mediaPreview)
+  const media = useMediaStore(s => s.media)
 
-  const usePlural = mediaPreview.length > 1
+  const usePlural = media.length > 1
 
   return (
     <TouchableOpacity
