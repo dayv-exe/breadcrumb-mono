@@ -1,7 +1,7 @@
 import { PresignedMediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
 import { MediaData } from "@/constants/media";
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
-import { useUploadQueue } from "@/utils/uploadQueue";
+import { useMediaStore } from "@/utils/mediaStore";
 import { File } from "expo-file-system";
 
 export function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
@@ -46,7 +46,7 @@ export function useUploadMedia({
   maxDelayMs = 15_000,
 }: Options = {}) {
   const { mutateAsync: getPresignedUrl } = useGetPresignedUrl();
-  const updateUploadState = useUploadQueue((s) => s.updateUploadState);
+  const updateUploadState = useMediaStore((s) => s.updateUploadState);
 
   const uploadFile = async (file: validPresignedMediaItemFile) => {
     const formData = new FormData();
@@ -85,7 +85,6 @@ export function useUploadMedia({
     media: MediaData,
     nonCompositeId?: string
   ): Promise<PresignedMediaItem> => {
-    console.log("started upload in upload hook");
 
     const uploadedParts = new Set<string>();
     let lastError: unknown;

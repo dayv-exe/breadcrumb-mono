@@ -1,6 +1,5 @@
 import { MediaData } from '@/constants/media';
 import { useMediaStore } from '@/utils/mediaStore';
-import { useUploadQueue } from '@/utils/uploadQueue';
 import { useRef } from 'react';
 import { useUploadMedia } from './useUploadMedia';
 
@@ -43,7 +42,7 @@ export function useConcurrentMediaUpload({
 
       const pump = () => {
         while (active.size < concurrency) {
-          const item = useUploadQueue.getState().next();
+          const item = useMediaStore.getState().next();
           if (!item) break;
           void start(item);
         }

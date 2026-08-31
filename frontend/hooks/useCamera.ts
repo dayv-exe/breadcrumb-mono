@@ -1,7 +1,6 @@
 import { MAX_PREVIEW_MEDIA, MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
 import { useMediaStore } from "@/utils/mediaStore";
-import { useUploadQueue } from "@/utils/uploadQueue";
 import * as Haptics from "expo-haptics";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createVideoThumbnail } from "react-native-compressor";
@@ -51,7 +50,6 @@ export function useCamera(): useCameraReturnType {
       media: s.media,
     }))
   );
-  const addToUploadQueue = useUploadQueue(s => s.add)
   const mediaPrevLen = useRef(media.length)
   useEffect(() => {
     mediaPrevLen.current = media.length
@@ -148,7 +146,6 @@ export function useCamera(): useCameraReturnType {
               uploadState: defaultMediaDataUploadState(),
             }
             add(newMedia);
-            addToUploadQueue(newMedia)
             if (shouldAutoRestart.current) {
               shouldAutoRestart.current = false
               startRecording()
@@ -187,7 +184,6 @@ export function useCamera(): useCameraReturnType {
           uploadState: defaultMediaDataUploadState()
         }
         add(newMedia);
-        addToUploadQueue(newMedia)
       } catch (error) {
         console.error("Error taking photo:", error);
       }

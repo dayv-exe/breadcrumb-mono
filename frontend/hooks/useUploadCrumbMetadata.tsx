@@ -1,6 +1,5 @@
 import { crumbBody } from "@/api/crumbsApi"
 import { useMediaStore } from "@/utils/mediaStore"
-import { useUploadQueue } from "@/utils/uploadQueue"
 import { useLocationStore } from "@/utils/useLocationStore"
 import { useEffect, useState } from "react"
 import { useUploadCrumbMetadataApi } from "./queries/useCrumbsApi"
@@ -25,7 +24,7 @@ export function useUploadCrumbMetadata(): UploadCrumbMetadataState {
   const { address, setReverseGeocodeCoordinates } = useReverseGeocode()
   const nonCompId = useMediaStore(s => s.noncompositeCrumbId)
   const { failed: uploadFailed, success: uploadsSuccessful } = useUploadStore()
-  const queue = useUploadQueue(s => s.queue)
+  const queue = useMediaStore(s => s.media)
 
   useEffect(() => {
     setReverseGeocodeCoordinates(coordinates)

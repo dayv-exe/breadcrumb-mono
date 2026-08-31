@@ -38,7 +38,6 @@ export default function CameraControls({ useFlash, setUseFlash, flipCamera, reco
   const { openSheet, closeSheet } = useBottomSheet()
 
   function showPreview() {
-    console.log("showing preview")
     openSheet({
       content: (
         <PreviewAndShare closeSheet={closeSheet} />

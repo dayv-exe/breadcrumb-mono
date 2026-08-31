@@ -1,5 +1,6 @@
 import {
-  MediaData
+  MediaData,
+  UploadState
 } from "@/constants/media";
 import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
@@ -17,6 +18,10 @@ type MediaState = {
   updateMediaCaption: (id: string, text: string) => void;
   remove: (id: string) => void;
   clear: () => void;
+
+  next: () => MediaData | undefined;
+  updateUploadState: (id: string, patch: UploadState) => void;
+  getUploadState: (id: string) => UploadState | undefined
 };
 
 const initialState = {
@@ -61,5 +66,13 @@ export const useMediaStore = create<MediaState>((set, get) => {
     },
 
     clear: () => set(initialState),
+
+    next: () => get().media.find((i) => i.uploadState.status === "pending"),
+
+    getUploadState: (id) => get().media.find(m => m.id === id)?.uploadState,
+    updateUploadState: (id, patch) =>
+      set((state) => ({
+        media: state.media.map((i) => (i.id === id ? { ...i, uploadState: patch } : i)),
+      })),
   }
 })
