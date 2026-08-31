@@ -1,11 +1,10 @@
 import { PresignedMediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
 import { MediaData } from "@/constants/media";
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
-import { useMediaStore } from "@/utils/mediaStore";
+import { useUploadQueue } from "@/utils/uploadQueue";
 import { File } from "expo-file-system";
-import { useRef } from "react";
 
-function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
+export function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   for (const med of processedMedia) {
     for (const path of [med.localUri, med.thumbnailUri]) {
       if (!path) continue;
@@ -24,26 +23,31 @@ function isRetryable(error: unknown): boolean {
     (error as { status?: number })?.status ??
     (error as { response?: { status?: number } })?.response?.status;
 
-  if (typeof status === 'number') {
+  if (typeof status === "number") {
     if (status === 408 || status === 429) return true;
     return status >= 500 && status < 600;
   }
 
-  // no status usually means a network error
+  // no status means a network error
   return true;
 }
 
-interface options {
-  maxRetries?: number
-  baseDelayMs?: number
-  maxDelayMs?: number
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+interface Options {
+  maxRetries?: number;
+  baseDelayMs?: number;
+  maxDelayMs?: number;
 }
 
 export function useUploadMedia({
   baseDelayMs = 1_000,
   maxRetries = 3,
-  maxDelayMs = 15_000
-}: options) {
+  maxDelayMs = 15_000,
+}: Options = {}) {
+  const { mutateAsync: getPresignedUrl } = useGetPresignedUrl();
+  const updateUploadState = useUploadQueue((s) => s.updateUploadState);
+
   const uploadFile = async (file: validPresignedMediaItemFile) => {
     const formData = new FormData();
 
@@ -72,105 +76,82 @@ export function useUploadMedia({
       });
       throw new Error(`Upload failed for ${file.mediaKey}`);
     }
-
   };
 
-  const { mutateAsync: getPresignedUrl, } = useGetPresignedUrl();
+  const backoffFor = (attempt: number) =>
+    Math.min(maxDelayMs, baseDelayMs * 2 ** attempt) + Math.random() * 250;
 
-  const updateUploadState = useMediaStore(s => s.updateUploadState)
-  const attemptsRef = useRef<Map<string, number>>(new Map())
-  const partUploadedRef = useRef<Set<string>>(new Set())
+  const upload = async (
+    media: MediaData,
+    nonCompositeId?: string
+  ): Promise<PresignedMediaItem> => {
+    console.log("started upload in upload hook");
 
-  const scheduleRetry = (media: MediaData, attempt: number, noncompositeId?: string) => {
-    const delay =
-      Math.min(maxDelayMs, baseDelayMs * 2 ** (attempt - 1)) +
-      Math.random() * 250;
+    const uploadedParts = new Set<string>();
+    let lastError: unknown;
 
-    updateUploadState(media.id, {
-      ...media.uploadState,
-      status: 'pending',
-    })
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      updateUploadState(media.id, { status: "uploading", error: null });
 
-    setTimeout(() => {
-      upload(media, noncompositeId)
-    }, delay)
-  }
+      const presignedUrlResponse = await getPresignedUrl({
+        files: [media],
+        crumbNonCompositeId: nonCompositeId ?? "",
+      });
 
-  const upload = async (media: MediaData, nonCompositeId?: string): Promise<PresignedMediaItem> => {
-    const attempts = attemptsRef.current
-    const partUploaded = partUploadedRef.current
-
-    const attempt = attempts.get(media.id) ?? 0
-    attempts.set(media.id, attempt + 1)
-
-    const presignedUrlResponse = await getPresignedUrl({
-      files: [media],
-      crumbNonCompositeId: nonCompositeId ?? ""
-    })
-
-    const validFiles = presignedUrlResponse.validFiles;
-    if (!validFiles.length) {
-      const err = new Error("No valid files to upload!")
-      updateUploadState(media.id, {
-        ...media.uploadState,
-        status: 'failed',
-        error: err
-      })
-      throw err
-    }
-
-    const validFile = validFiles[0]
-
-    updateUploadState(media.id, {
-      ...media.uploadState,
-      status: "uploading",
-      error: null
-    })
-
-    try {
-      if (!partUploaded.has(media.localUri)) {
-        // only upload this part if it has not already been uploaded
-        await uploadFile(validFile.media)
-        updateUploadState(media.id, {
-          ...media.uploadState,
-          storageKey: validFile.media.mediaKey
-        })
-        partUploaded.add(media.localUri)
+      const validFiles = presignedUrlResponse.validFiles;
+      if (!validFiles.length) {
+        const err = new Error("No valid files to upload!");
+        updateUploadState(media.id, { status: "failed", error: err });
+        throw err;
       }
 
-      if (validFile.thumbnail) {
-        // only upload this part if it has a thumbnail
-        if (!partUploaded.has(media.thumbnailUri!)) {
-          // only upload this part if it has not already been uploaded
-          await uploadFile(validFile.thumbnail)
-          updateUploadState(media.id, {
-            ...media.uploadState,
-            thumbnailStorageKey: validFile.media.mediaKey
-          })
-          partUploaded.add(media.thumbnailUri!)
+      const validFile = validFiles[0];
+
+      const hasThumbnail = validFile.thumbnail && media.thumbnailUri
+      const thumbnailStorageKey = validFile.thumbnail?.mediaKey ?? ""
+
+      try {
+        if (!uploadedParts.has(media.localUri)) {
+          await uploadFile(validFile.media);
+          uploadedParts.add(media.localUri);
         }
-      }
-    } catch (error) {
-      if (attempt < maxRetries && isRetryable(error)) {
-        scheduleRetry(media, attempt, nonCompositeId)
-      } else {
-        updateUploadState(media.id, {
-          ...media.uploadState,
-          status: 'failed',
-          error: error instanceof Error ? error : new Error(String(error))
-        })
 
-        throw error
+        if (hasThumbnail) {
+          if (!uploadedParts.has(media.thumbnailUri!)) {
+            await uploadFile(validFile.thumbnail!);
+            uploadedParts.add(media.thumbnailUri!);
+          }
+        }
+
+        updateUploadState(media.id, {
+          status: "complete",
+          error: null,
+          thumbnailStorageKey: thumbnailStorageKey,
+          storageKey: validFile.media.mediaKey
+        });
+
+        // deleteUploadedFilesLocally([media]);
+        return validFile;
+      } catch (error) {
+        lastError = error;
+
+        const canRetry = attempt < maxRetries && isRetryable(error);
+        if (!canRetry) {
+          updateUploadState(media.id, {
+            status: "failed",
+            error: error instanceof Error ? error : new Error(String(error)),
+          });
+          throw error;
+        }
+
+        // await the backoff so the retry stays on this promise chain and the
+        await delay(backoffFor(attempt));
       }
     }
 
-    updateUploadState(media.id, {
-      ...media.uploadState,
-      status: 'complete',
-      error: null
-    })
-    deleteUploadedFilesLocally([media])
-    return validFile
+    throw lastError instanceof Error
+      ? lastError
+      : new Error(String(lastError ?? "upload failed"));
   };
 
   return { upload };

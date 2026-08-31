@@ -5,13 +5,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface props {
   recipientNames: string[]
+  onShare: () => void
 }
 
 const BG = Colors.light.darkenVibrant
-const BG_FADE = Colors.light.vibrantBackground + "00"
 
 
-export default function ShareCrumbButton({ recipientNames }: props) {
+export default function ShareCrumbButton({ recipientNames, onShare }: props) {
   const insets = useSafeAreaInsets()
   const media = useMediaStore(s => s.media)
 
@@ -31,6 +31,7 @@ export default function ShareCrumbButton({ recipientNames }: props) {
         borderRadius: 1000,
         overflow: "hidden",
       }}
+      onPress={onShare}
     >
       <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>{`Leave Crumb${usePlural ? "s" : ""} Here`}</Text>
       {recipientNames.length > 1 && <Text style={{ color: "white", fontSize: 16 }}>{` [${recipientNames.length}]`}</Text>}

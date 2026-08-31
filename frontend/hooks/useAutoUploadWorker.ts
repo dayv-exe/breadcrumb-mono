@@ -1,6 +1,7 @@
 import { extractBackendMsg } from '@/api/models/apiResponse';
 import { MediaData } from '@/constants/media';
 import { useMediaStore } from '@/utils/mediaStore';
+import { useUploadQueue } from '@/utils/uploadQueue';
 import { useEffect, useRef } from 'react';
 import { useUploadMedia } from './useUploadMedia';
 
@@ -20,7 +21,7 @@ export function useAutoUploadWorker({
   baseRetryDelayMs = 1000,
   maxRetryDelayMs = 30000,
 }: UseUploadWorkerOptions) {
-  const queue = useMediaStore((s) => s.media);
+  const queue = useUploadQueue((s) => s.queue);
   const nonCompId = useMediaStore((s) => s.noncompositeCrumbId);
 
   const { upload } = useUploadMedia({});
@@ -33,7 +34,7 @@ export function useAutoUploadWorker({
 
     // forget items that have been removed
     const liveIds = new Set(
-      useMediaStore.getState().media.map((i) => i.id),
+      useUploadQueue.getState().queue.map((i) => i.id),
     );
     for (const id of active) {
       if (!liveIds.has(id)) active.delete(id);
@@ -43,7 +44,8 @@ export function useAutoUploadWorker({
       active.add(item.id);
 
       try {
-       await upload(item, nonCompId);
+        console.log("started upload in worker")
+        await upload(item, nonCompId);
       } catch (error) {
         console.error(
           `upload failed for ${item.id}:`,
@@ -57,7 +59,7 @@ export function useAutoUploadWorker({
 
     const pump = () => {
       while (active.size < concurrency) {
-        const item = useMediaStore.getState().next();
+        const item = useUploadQueue.getState().next();
         if (!item) break;
         void start(item);
       }

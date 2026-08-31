@@ -1,4 +1,4 @@
-import { useMediaStore } from "@/utils/mediaStore"
+import { useUploadQueue } from "@/utils/uploadQueue"
 
 type UseUploadStoreState = {
   activeCount: number
@@ -11,11 +11,11 @@ type UseUploadStoreState = {
 }
 
 export function useUploadStore(): UseUploadStoreState {
-  const media = useMediaStore(s => s.media)
-  const activeCount = media.filter(i => i.uploadState.status === "uploading").length
-  const pendingCount = media.filter(i => i.uploadState.status === "pending").length
-  const retryingCount = media.filter(i => i.uploadState.status === "retrying").length
-  const errorCount = media.filter(i => i.uploadState.status === "failed").length
+  const queue = useUploadQueue(s => s.queue)
+  const activeCount = queue.filter(i => i.uploadState.status === "uploading").length
+  const pendingCount = queue.filter(i => i.uploadState.status === "pending").length
+  const retryingCount = queue.filter(i => i.uploadState.status === "retrying").length
+  const errorCount = queue.filter(i => i.uploadState.status === "failed").length
 
   return {
     activeCount,

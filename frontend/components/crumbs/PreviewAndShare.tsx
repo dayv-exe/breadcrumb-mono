@@ -1,4 +1,6 @@
-import { useUploadCrumbMetadata } from "@/hooks/useUploadCrumbMetadata";
+import { extractBackendMsg } from "@/api/models/apiResponse";
+import { ShowToast } from "@/constants/appConstants";
+import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useMediaStore } from "@/utils/mediaStore";
 import { ChevronDownIcon, MapPinIcon, Trash2Icon } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
@@ -9,6 +11,7 @@ import CustomLabel from "../CustomLabel";
 import Spacer from "../Spacer";
 import CustomButton from "../buttons/CustomButton";
 import ShareCrumbButton from "../buttons/ShareCrumbButton";
+import { useModal } from "../modals/ModalContext";
 import ShareCrumbFriendList from "../views/ShareCrumbFriendList";
 import CrumbView from "./CrumbView";
 
@@ -23,11 +26,23 @@ export default function PreviewAndShare({ closeSheet }: props) {
   })))
   const insets = useSafeAreaInsets()
 
+  const { hideModal, showModal } = useModal()
+
   const {
+    share,
     address,
     recipients,
     setRecipients,
-  } = useUploadCrumbMetadata()
+  } = useShareCrumb({
+    onError(error) {
+      showModal({
+        content: extractBackendMsg(error)
+      })
+    },
+    onSuccess: () => {
+      ShowToast("Done")
+    }
+  })
   function handleDiscardAllMedia() {
     discardAllMedia()
   }
@@ -153,6 +168,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
         </View>
         <Spacer />
         <ShareCrumbButton
+          onShare={share}
           recipientNames={recipients.map(r => r.name)}
         />
       </View>}
