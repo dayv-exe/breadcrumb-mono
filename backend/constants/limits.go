@@ -18,7 +18,7 @@ const (
 	CRUMB_MEDIA_URL_TTL       = 5  //mins
 	PROFILE_PICTURE_URL_TTL   = 15 //mins
 	NAME_CHANGE_DELAY         = 3  // days
-	DRAFT_MEDIA_TTL           = 6 * time.Hour
+	DRAFT_MEDIA_TTL           = 5 * time.Minute
 	BIRTHDATE_CHANGE_DELAY    = 3                  // days
 	EMAIL_CHANGE_DELAY        = 21                 // days
 	MAX_FRIENDS               = 258                // friends
