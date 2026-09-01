@@ -702,6 +702,11 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:DeleteObject
+            Resource: !Sub "${MediaBucket.Arn}/*"
 
   BreadQueue:
     Type: AWS::SQS::Queue

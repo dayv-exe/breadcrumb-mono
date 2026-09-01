@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	utils.InitHandlerDependencies(utils.WithDatabaseAndNoQueue())
+	utils.InitHandlerDependencies(utils.WithDatabaseAndNoQueue(), utils.WithBucket())
 }
 
 func main() {
