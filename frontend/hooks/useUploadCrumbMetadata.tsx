@@ -43,7 +43,7 @@ export function useUploadCrumbMetadata(): UploadCrumbMetadataState {
 
       const crumb: crumbBody = {
         nonCompositeId: nonCompId,
-        mediaItems: queue.map((m, index) => (
+        media: queue.map((m, index) => (
           {
             index: index,
             type: m.type,

@@ -29,6 +29,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
   const { hideModal, showModal } = useModal()
 
   const {
+    isPending,
     share,
     address,
     recipients,
@@ -36,7 +37,12 @@ export default function PreviewAndShare({ closeSheet }: props) {
   } = useShareCrumb({
     onError(error) {
       showModal({
-        content: extractBackendMsg(error)
+        content: (
+          <>
+            <CustomLabel adaptToTheme labelText={extractBackendMsg(error)} />
+            <CustomButton labelText="ok" handleClick={hideModal} />
+          </>
+        )
       })
     },
     onSuccess: () => {
@@ -168,6 +174,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
         </View>
         <Spacer />
         <ShareCrumbButton
+          disabled={isPending}
           onShare={share}
           recipientNames={recipients.map(r => r.name)}
         />

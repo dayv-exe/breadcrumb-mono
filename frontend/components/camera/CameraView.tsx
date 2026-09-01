@@ -1,3 +1,4 @@
+import { MAX_VIDEO_DURATION_MILLISECONDS } from "@/constants/appConstants";
 import { useCamera } from "@/hooks/useCamera";
 import { useMediaPermissions } from "@/hooks/usePermissions";
 import { useMediaStore } from "@/utils/mediaStore";
@@ -157,6 +158,7 @@ function CameraComponent({
     });
 
   const gesture = Gesture.Simultaneous(flipCameraGesture, zoomGesture)
+  const safeBitrateMbps = (400 / MAX_VIDEO_DURATION_MILLISECONDS) * 0.8;
 
   return (
     <>
@@ -194,6 +196,7 @@ function CameraComponent({
                 video={true}
                 photoQualityBalance="speed"
                 outputOrientation={"preview"}
+                videoBitRate={safeBitrateMbps}
               />
               {/* shutter flash overlay */}
               <Reanimated.View

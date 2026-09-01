@@ -19,7 +19,7 @@ export default function CrumbsUploadingIndicator({ title, uploadedCount, totalCo
         backgroundColor: bgCol
       }]}
     >
-      <CustomLabel adaptToTheme bold fontSize={17} labelText={title ?? "uploading media"} />
+      <CustomLabel adaptToTheme bold fontSize={17} labelText={title ?? "uploading media..."} />
       <Spacer size="medium" />
       <PieLoader percentage={pct} size={50} />
       <Spacer size="tiny" />

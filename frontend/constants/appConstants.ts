@@ -1,6 +1,6 @@
 import Toast from "react-native-toast-message";
 
-export const SUGGESTED_EMAIL_DOMAINS = ["@gmail.com", "@icloud.com", "@solent.ac.uk"];
+export const SUGGESTED_EMAIL_DOMAINS = ["@gmail.com", "@icloud.com",];
 export const MAX_AGE = 120;
 export const MIN_AGE = 13;
 export const MAX_USERNAME_LEN = 15;
@@ -11,7 +11,7 @@ export const MAX_RIDICULOUS_AGE = 200;
 export const MIN_RIDICULOUS_AGE = -21;
 export const MIN_PASSWORD_LENGTH = 8;
 export const MAX_PASSWORD_LENGTH = 32;
-export const MAX_VIDEO_DURATION_MILLISECONDS = 15000;
+export const MAX_VIDEO_DURATION_MILLISECONDS = 15_000;
 export const MAX_AUDIO_DURATION_MILLISECONDS = 30000;
 export const MAX_SEARCH_STRING_CHARS = 20;
 export const USERNAME_CHANGE_DELAY = 3; //days

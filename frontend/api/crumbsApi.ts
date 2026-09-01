@@ -14,7 +14,7 @@ export type crumbBody = {
   longitude: number
   radius: number
   locationSelectionManner: LocationSelectionManner
-  mediaItems: crumbMedia[]
+  media: crumbMedia[]
   clickedFeatureId?: string
   address?: string
 }

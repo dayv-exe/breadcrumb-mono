@@ -134,6 +134,7 @@ export function useCamera(): useCameraReturnType {
         await cameraRef.current.startRecording({
           flash: useFlash,
           fileType: "mp4",
+          videoCodec: "h265",
           onRecordingFinished: async (video: VideoFile) => {
             const path = normalizeFileUri(video.path)
             const thumbnail = normalizeFileUri(await (await createVideoThumbnail(path)).path)

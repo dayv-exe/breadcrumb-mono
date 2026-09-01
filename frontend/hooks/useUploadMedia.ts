@@ -23,6 +23,10 @@ function isRetryable(error: unknown): boolean {
     (error as { status?: number })?.status ??
     (error as { response?: { status?: number } })?.response?.status;
 
+  if (typeof error === "string" && error.startsWith("Upload rejected for")) {
+    return false
+  }
+
   if (typeof status === "number") {
     if (status === 408 || status === 429) return true;
     return status >= 500 && status < 600;
@@ -74,7 +78,7 @@ export function useUploadMedia({
         status: response.status,
         body: errorText,
       });
-      throw new Error(`Upload failed for ${file.mediaKey}`);
+      throw new Error(`Upload rejected for ${file.mediaKey}`);
     }
   };
 
@@ -133,7 +137,7 @@ export function useUploadMedia({
         return validFile;
       } catch (error) {
         lastError = error;
-
+        
         const canRetry = attempt < maxRetries && isRetryable(error);
         if (!canRetry) {
           updateUploadState(media.id, {

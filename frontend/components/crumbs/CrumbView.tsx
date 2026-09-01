@@ -46,7 +46,7 @@ export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus
         }}
       >
         <Image
-          source={{ uri: mediaData.localUri }}
+          source={{ uri: mediaData.type === "video" ? mediaData.thumbnailUri : mediaData.localUri }}
           style={{
             width: "100%",
             height: "100%",

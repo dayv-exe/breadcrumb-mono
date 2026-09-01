@@ -4,6 +4,7 @@ import { Text, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface props {
+  disabled?: boolean
   recipientNames: string[]
   onShare: () => void
 }
@@ -11,7 +12,7 @@ interface props {
 const BG = Colors.light.darkenVibrant
 
 
-export default function ShareCrumbButton({ recipientNames, onShare }: props) {
+export default function ShareCrumbButton({ recipientNames, onShare, disabled }: props) {
   const insets = useSafeAreaInsets()
   const media = useMediaStore(s => s.media)
 
@@ -19,6 +20,7 @@ export default function ShareCrumbButton({ recipientNames, onShare }: props) {
 
   return (
     <TouchableOpacity
+    disabled={disabled}
       style={{
         marginHorizontal: insets.bottom,
         flexDirection: "row",

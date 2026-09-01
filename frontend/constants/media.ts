@@ -2,7 +2,7 @@
 export type MediaType = "photo" | "video" | "profilePhoto" | null;
 
 export type UploadState = {
-  status: "pending" | "uploading" | "failed" | "complete" | "retrying"
+  status: "pending" | "uploading" | "failed" | "complete"
   error: Error | null
   storageKey?: string
   thumbnailStorageKey?: string
