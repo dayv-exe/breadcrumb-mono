@@ -1,7 +1,9 @@
 package models
 
 import (
+	"backend/constants"
 	"backend/utils"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -19,8 +21,9 @@ type DraftMediaFlag struct {
 	MediaKey  string `dynamodbav:"mediaKey" json:"-"`
 	TimeStamp string `dynamodbav:"timeStamp" json:"-"`
 
-	PK string `dynamodbav:"pk" json:"-"`
-	SK string `dynamodbav:"sk" json:"-"`
+	PK  string `dynamodbav:"pk" json:"-"`
+	SK  string `dynamodbav:"sk" json:"-"`
+	TTL int64  `dynamodbav:"ttl" json:"-"`
 }
 
 func NewDraftMediaFlag(userid, mediaKey string) *DraftMediaFlag {
@@ -36,6 +39,7 @@ func NewDraftMediaFlag(userid, mediaKey string) *DraftMediaFlag {
 func (m *DraftMediaFlag) ApplyPrefixes() {
 	m.PK = MediaDraftPkPrefix + m.Userid
 	m.SK = MediaDraftSkPrefix + m.MediaKey
+	m.TTL = time.Now().Add(constants.DRAFT_MEDIA_TTL).Unix()
 }
 
 func ConvertToMediaDraftFlags(items *[]map[string]types.AttributeValue) *[]DraftMediaFlag {

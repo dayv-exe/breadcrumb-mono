@@ -1,5 +1,7 @@
 package constants
 
+import "time"
+
 const (
 	MIN_AGE                   = 13
 	MAX_AGE                   = 120
@@ -13,9 +15,10 @@ const (
 	MAX_CHUNKABLE_LEN         = 10 // max length a nickname or name can be for creating search index
 	MAX_SEARCH_STRING_CHARS   = 20
 	PRESIGNED_URL_EXPIRY      = 15
-	CRUMB_MEDIA_URL_TTL       = 5                  //mins
-	PROFILE_PICTURE_URL_TTL   = 15                 //mins
-	NAME_CHANGE_DELAY         = 3                  // days
+	CRUMB_MEDIA_URL_TTL       = 5  //mins
+	PROFILE_PICTURE_URL_TTL   = 15 //mins
+	NAME_CHANGE_DELAY         = 3  // days
+	DRAFT_MEDIA_TTL           = 6 * time.Hour
 	BIRTHDATE_CHANGE_DELAY    = 3                  // days
 	EMAIL_CHANGE_DELAY        = 21                 // days
 	MAX_FRIENDS               = 258                // friends

@@ -571,6 +571,11 @@ Resources:
     Properties:
       TableName: !Sub "${AWS::StackName}-${EnvironmentName}-Main-Table"
       BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
       AttributeDefinitions:
         - AttributeName: pk
           AttributeType: S
@@ -676,6 +681,27 @@ Resources:
           Type: SQS
           Properties:
             Queue: !GetAtt BreadQueue.Arn
+
+  TTLExpiryHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-${EnvironmentName}-ttl-expiry-handler"
+      CodeUri: bin/ttl_handler/ttl_handler.zip
+      Handler: bootstrap
+      Description: Runs when items expire via TTL
+      Events:
+        StreamEvent:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt UsersTable.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 10
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"eventName":["REMOVE"],"userIdentity":{"type":["Service"],"principalId":["dynamodb.amazonaws.com"]}}'
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
 
   BreadQueue:
     Type: AWS::SQS::Queue
