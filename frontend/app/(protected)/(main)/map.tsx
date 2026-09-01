@@ -4,7 +4,7 @@ import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
 import MapControls from "@/components/map/MapControls";
 import MapFriendsView from "@/components/map/MapFriendsView";
-import PlaceSearch from "@/components/map/PlaceSearch";
+import PeoplePlaceSearch from "@/components/map/PeoplePlaceSearch";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import Spacer from "@/components/Spacer";
 import GradientView from "@/components/views/GradientView";
@@ -137,7 +137,7 @@ export default function MapScreen() {
     setSessionToken(GenerateUUID())
     openSheet({
       content: (
-        <PlaceSearch
+        <PeoplePlaceSearch
           availableHeight={availableHeight}
           HandleClosePress={closeSheet}
           mapRef={mapRef}

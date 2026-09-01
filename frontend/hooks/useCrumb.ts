@@ -27,20 +27,11 @@ export const useCrumb = (): UseCrumbType => {
     else if (crumb.saved) return "saved"
   }
 
-  useEffect(() => {
-    fetchCrumbs()
-  }, [userid, mailbox])
-
   const [crumbFeatures, setCrumbFeatures] = useState<FeatureCollection>({
     type: 'FeatureCollection',
     features: [
     ],
   })
-
-  const getCrumbs = async (ids: string[]): Promise<Crumb[]> => {
-    const crumbs = await GetCrumbsByIds(ids)
-    return crumbs
-  }
 
   const newCrumbFeature = (crumbId: string, sender: string, receiver: string, lat: number, lon: number, senderNickname: string, prompt: string, placename: string): Feature<Point, GeoJsonProperties> => {
     return {
@@ -59,6 +50,35 @@ export const useCrumb = (): UseCrumbType => {
         coordinates: [lon, lat]
       }
     }
+  }
+
+  const fetchCrumbs = async () => {
+    const crumbs = await GetAllCrumbs(mailbox)
+    const features: Feature<Point>[] = crumbs.map(crumb => (newCrumbFeature(
+      crumb.id,
+      crumb.sender,
+      crumb.receiver,
+      crumb.latitude,
+      crumb.longitude,
+      "x",
+      "",
+      crumb.placename,
+    )));
+
+
+    setCrumbFeatures({
+      type: 'FeatureCollection',
+      features
+    });
+  }
+
+  useEffect(() => {
+    fetchCrumbs()
+  }, [userid, mailbox])
+
+  const getCrumbs = async (ids: string[]): Promise<Crumb[]> => {
+    const crumbs = await GetCrumbsByIds(ids)
+    return crumbs
   }
 
   const updateCrumbs = async () => {
@@ -97,26 +117,6 @@ export const useCrumb = (): UseCrumbType => {
     }
   };
 
-  const fetchCrumbs = async () => {
-    const crumbs = await GetAllCrumbs(mailbox)
-    const features: Feature<Point>[] = crumbs.map(crumb => (newCrumbFeature(
-      crumb.id,
-      crumb.sender,
-      crumb.receiver,
-      crumb.latitude,
-      crumb.longitude,
-      "x",
-      "",
-      crumb.placename,
-    )));
-
-
-    setCrumbFeatures({
-      type: 'FeatureCollection',
-      features
-    });
-  }
-
   const crumbImages = useMemo<{ [key: string]: Mapbox.ImageEntry }>(
     () =>
       (crumbMarkers ?? []).reduce<{ [key: string]: Mapbox.ImageEntry }>(
@@ -131,7 +131,7 @@ export const useCrumb = (): UseCrumbType => {
 
   useFocusEffect(
     useCallback(() => {
-      updateCrumbs(); // runs immediately on focus
+      updateCrumbs();
 
       const interval = setInterval(() => {
         updateCrumbs();

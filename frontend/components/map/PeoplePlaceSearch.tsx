@@ -1,5 +1,6 @@
 import { convertNumberTupleToCoordinates } from "@/constants/mapFunctions";
 import { usePlaceSearchSuggest } from "@/hooks/usePlaceSearchSuggest";
+import { useSearchUser } from "@/hooks/useSearchUser";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
@@ -21,27 +22,39 @@ interface props {
   sessionToken: string
 }
 
-export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose, OnPlaceSelect, sessionToken, mapRef }: props) {
-  const userLocation = useLocationStore.getState().coordinates
+export default function PeoplePlaceSearch({ HandleClosePress, availableHeight, OnClose, OnPlaceSelect, sessionToken, mapRef }: props) {
   const [mapCenter, setMapCenter] = useState<Coordinates>({ accuracy: 0, latitude: 0, longitude: 0 })
   const searchInput = useRef<TextInput>(null)
   const textCol = useThemeColor({}, "text")
   const bgCol = useThemeColor({}, "darkBackground")
+  const normBgCol = useThemeColor({}, "background")
   const {
-    setSearch,
-    search,
-    searchFailed,
-    searchPending,
-    places,
-    sections,
+    setSearch: setSearchPlaceStr,
+    search: placeSearch,
+    searchFailed: placeSearchFailed,
+    searchPending: placeSearchPending,
+    places: placesSearchResult,
+    section: placeSearchSection,
   } = usePlaceSearchSuggest(
     sessionToken,
-    userLocation ?? { accuracy: 0, latitude: 0, longitude: 0 },
+    useLocationStore.getState().coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 },
     mapCenter,
     p => {
       OnPlaceSelect?.(p)
     }
   )
+
+  const {
+    searchError: userSearchError,
+    searchFailed: userSearchFailed,
+    searchPending: userSearchPending,
+    searchStr: userSearchStr,
+    section: userSearchSection,
+    setSearchStr: setUserSearchStr,
+    users: userSearchResult,
+  } = useSearchUser()
+
+  const sections = [userSearchSection, placeSearchSection]
 
   useEffect(() => {
     searchInput.current?.focus()
@@ -72,8 +85,9 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose
         paddingHorizontal: 15,
       }}>
         <CustomSearchInput ref={searchInput} handleChange={e => {
-          setSearch(e)
-        }} value={search} placeholder="Find a place" />
+          setUserSearchStr(e)
+          setSearchPlaceStr(e)
+        }} value={userSearchStr} placeholder="places or people you know" />
         <Spacer size="small" />
         {HandleClosePress && <CustomFloatingSquare handleClick={HandleClosePress} isFlat customStyle={{
           backgroundColor: "transparent",
@@ -84,7 +98,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose
         </CustomFloatingSquare>}
       </View>
       {
-        searchFailed &&
+        placeSearchFailed || userSearchFailed &&
         <View
           style={{
             paddingHorizontal: 15,
@@ -96,8 +110,15 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose
         </View>
       }
 
+      {userSearchStr.length > 0 && ((userSearchResult?.length ?? 0) > 0 || (placesSearchResult?.length ?? 0) > 0) &&
+        <>
+          <Spacer />
+          <ElevatedSectionedScrollView sections={sections} style={{ padding: 0, margin: 0, shadowRadius: 0 }} />
+        </>
+      }
+
       {
-        searchPending && !searchFailed &&
+        userSearchPending || placeSearchPending &&
         <>
           <Spacer />
           <ActivityIndicator />
@@ -105,15 +126,7 @@ export default function PlaceSearch({ HandleClosePress, availableHeight, OnClose
       }
 
       {
-        places && places.length > 0 &&
-        <>
-          <Spacer />
-          <ElevatedSectionedScrollView sections={sections} style={{ padding: 0, margin: 0 }} />
-        </>
-      }
-
-      {
-        places && places.length < 1 &&
+        userSearchStr.length > 0 && (placesSearchResult?.length ?? 0) < 1 && (userSearchResult?.length ?? 0) < 1 && (!userSearchPending && !placeSearchPending) &&
         <View style={{
           paddingHorizontal: 15,
         }}>

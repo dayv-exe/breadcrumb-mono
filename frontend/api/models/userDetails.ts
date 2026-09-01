@@ -32,7 +32,7 @@ export interface UserDetails {
   name: string | null;
   nickname: string | null;
   suspensionReason: string | null;
-  userId: string | null;
+  userId: string;
   friends: FRIENDSHIP_STATUS | null;
   currentUser: boolean | null
 }

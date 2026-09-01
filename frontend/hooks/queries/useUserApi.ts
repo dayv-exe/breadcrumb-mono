@@ -36,7 +36,7 @@ export const useGetUser = (idOrNickname: string) => useQuery({
   staleTime: 10 * TIME.MINUTE
 })
 
-export const useSearchUser = (str: string) => useQuery({
+export const useSearchUserApi = (str: string) => useQuery({
   queryFn: () => searchUser(str),
   queryKey: ["search-user", str],
   staleTime: 2 * TIME.MINUTE,

@@ -9,7 +9,7 @@ import CustomView from "@/components/views/CustomView";
 import ElevatedView from "@/components/views/ElevatedView";
 import SunkenView from "@/components/views/SunkenView";
 import { MAX_SEARCH_STRING_CHARS } from "@/constants/appConstants";
-import { useSearchUser } from "@/hooks/queries/useUserApi";
+import { useSearchUserApi } from "@/hooks/queries/useUserApi";
 import { debounce } from "@/utils/debounce";
 import { showSettingsAlert } from "@/utils/helpers";
 import { useIsFocused } from "@react-navigation/native";
@@ -138,7 +138,7 @@ export default function SearchScreen() {
     data: search,
     isPending: searchPending,
     error: searchErr
-  } = useSearchUser(debouncedSearchStr.trim())
+  } = useSearchUserApi(debouncedSearchStr.trim())
 
   function handleSearchInputChange(e: string) {
     setSearchStr(e)
