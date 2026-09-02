@@ -36,7 +36,7 @@ async function openAndInit() {
 
     CREATE TABLE IF NOT EXISTS chats (
       friend_id PRIMARY KEY TEXT NOT NULL,
-      lastCrumbTS TEXT NOT NULL
+      timestamp TEXT NOT NULL
     )
 
     CREATE INDEX IF NOT EXISTS idx_crumbs_lockable

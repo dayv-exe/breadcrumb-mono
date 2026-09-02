@@ -3,106 +3,139 @@ import { distanceMeters, getDb } from "./InitDb";
 
 const CHUNK_SIZE = 120;
 
-function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
-  const crumbPlaceholders = crumbs
-    .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .join(", ");
+type SqlValue = string | number | null;
 
-  const places = crumbs.flatMap((crumb) =>
-    crumb.placeId
-      .split(",")
-      .filter(Boolean)
-      .map((place) => [place, crumb.id])
-  );
+type UpsertTable<T> = {
+  table: string;
+  columns: string[];
+  conflictColumns: string[];
+  onConflict?: "update" | "nothing";
+  toRows: (item: T) => SqlValue[][];
+};
 
-  const placesPlaceholders = places
-    .map(() => "(?, ?)")
-    .join(", ");
+function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
+  const rowPlaceholder = `(${config.columns.map(() => "?").join(", ")})`
+  const placeholders = rows.map(() => rowPlaceholder).join(", ")
+  const conflictKeys = config.conflictColumns.join(", ")
 
-  const crumbValues = crumbs.flatMap((crumb) => [
-    crumb.id,
-    crumb.nonCompositeId,
-    crumb.latitude,
-    crumb.longitude,
-    crumb.sender,
-    crumb.receiver,
-    (crumb.sender === userid ? "sent" : "received") as CrumbMailbox,
-    crumb.unlocked ? 1 : 0,
-    crumb.opened ? 1 : 0,
-    crumb.time,
-    crumb.radius,
-    crumb.locationSelectionManner,
-    crumb.formattedAddress,
-    crumb.placename
-  ]);
+  let conflictClause: string;
+  if (config.onConflict === "nothing") {
+    conflictClause = `ON CONFLICT(${conflictKeys}) DO NOTHING`
+  } else {
+    const updates = config.columns
+      .filter((c) => !config.conflictColumns.includes(c))
+      .map((c) => `${c} = excluded.${c}`)
+      .join(", ");
+    conflictClause = `ON CONFLICT(${conflictKeys}) DO UPDATE SET ${updates}`
+  }
 
-  return {
-    crumbSql: `
-      INSERT INTO crumbs (
-        id,
-        nonCompositeId,
-        latitude,
-        longitude,
-        sender,
-        receiver,
-        mailbox,
-        unlocked,
-        opened,
-        time,
-        radius,
-        locationSelectionManner,
-        formattedAddress,
-        placename
-      )
-      VALUES ${crumbPlaceholders}
-      ON CONFLICT(id) DO UPDATE SET
-        nonCompositeId = excluded.nonCompositeId,
-        latitude = excluded.latitude,
-        longitude = excluded.longitude,
-        sender = excluded.sender,
-        receiver = excluded.receiver,
-        mailbox = excluded.mailbox,
-        unlocked = excluded.unlocked,
-        opened = excluded.opened,
-        time = excluded.time,
-        radius = excluded.radius,
-        locationSelectionManner = excluded.locationSelectionManner,
-        formattedAddress = excluded.formattedAddress,
-        placename = excluded.placename;
-    `,
+  const sql = `
+    INSERT INTO ${config.table} (${config.columns.join(", ")})
+    VALUES ${placeholders}
+    ${conflictClause};
+  `;
 
-    placesSql: `
-      INSERT INTO places (
-        place_id,
-        crumb_id
-      )
-      VALUES ${placesPlaceholders}
-      ON CONFLICT(place_id, crumb_id) DO NOTHING;
-    `,
+  return { sql, values: rows.flat() };
+}
 
-    crumbValues,
-    placesValues: places.flat()
-  };
+const DEFAULT_MAX_PARAMS = 999;
+
+async function bulkUpsert<T>(
+  items: T[],
+  tables: UpsertTable<T>[],
+  options: { maxParams?: number } = {},
+) {
+  if (items.length === 0) return;
+  const maxParams = options.maxParams ?? DEFAULT_MAX_PARAMS;
+
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    for (const table of tables) {
+      const colCount = table.columns.length;
+      const maxRowsPerBatch = Math.floor(maxParams / colCount);
+      if (maxRowsPerBatch < 1) {
+        throw new Error(
+          `Table "${table.table}" has ${colCount} columns, exceeding the ` +
+          `${maxParams}-parameter limit for a single row.`,
+        );
+      }
+
+      const rows = items.flatMap(table.toRows);
+      for (let i = 0; i < rows.length; i += maxRowsPerBatch) {
+        const batch = rows.slice(i, i + maxRowsPerBatch);
+        const { sql, values } = buildUpsertQuery(table, batch);
+        await db.runAsync(sql, values);
+      }
+    }
+  });
 }
 
 export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
-  if (crumbs.length === 0) return;
   try {
-    const db = await getDb();
+    await bulkUpsert(crumbs, [
+      {
+        table: "crumbs",
+        columns: [
+          "id", "nonCompositeId", "latitude", "longitude", "sender",
+          "receiver", "mailbox", "unlocked", "opened", "time",
+          "radius", "locationSelectionManner", "formattedAddress", "placename",
+        ],
+        conflictColumns: ["id"],
+        toRows: (crumb) => [[
+          crumb.id,
+          crumb.nonCompositeId,
+          crumb.latitude,
+          crumb.longitude,
+          crumb.sender,
+          crumb.receiver,
+          (crumb.sender === userid ? "sent" : "received") as CrumbMailbox,
+          crumb.unlocked ? 1 : 0,
+          crumb.opened ? 1 : 0,
+          crumb.time,
+          crumb.radius,
+          crumb.locationSelectionManner,
+          crumb.formattedAddress,
+          crumb.placename,
+        ]]
+      },
+      {
+        table: "places",
+        columns: ["place_id", "crumb_id"],
+        conflictColumns: ["place_id", "crumb_id"],
+        toRows: (crumb) =>
+          crumb.placeId
+            .split(",")
+            .filter(Boolean)
+            .map((place) => [place, crumb.id]),
+      },
+    ])
+  } catch (error) {
+    console.error("Failed to upsert crumb reason: ", error)
+  }
+}
 
-    await db.withTransactionAsync(async () => {
-      for (let i = 0; i < crumbs.length; i += CHUNK_SIZE) {
-        const chunk = crumbs.slice(i, i + CHUNK_SIZE);
-        const { crumbSql, placesSql, crumbValues, placesValues } = buildUpsertCrumbsQuery(userid, chunk);
-
-        await db.runAsync(crumbSql, crumbValues);
-        if (placesValues.length > 0) {
-          await db.runAsync(placesSql, placesValues);
-        }
+export async function UpsertChats(otherUserid: string, timestamp: string) {
+  const chat: { friend_id: string, timestamp: string } = {
+    friend_id: otherUserid,
+    timestamp: timestamp,
+  }
+  try {
+    await bulkUpsert([chat], [
+      {
+        table: "chats",
+        conflictColumns: ["friend_id"],
+        onConflict: "update",
+        columns: [
+          "friend_id", "timestamp",
+        ],
+        toRows: (chat) => [[
+          chat.friend_id,
+          chat.timestamp,
+        ]]
       }
-    });
-  } catch (e) {
-    console.log("the err is indeed:", e);
+    ])
+  } catch (error) {
+
   }
 }
 
