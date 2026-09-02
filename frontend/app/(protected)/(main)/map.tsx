@@ -26,7 +26,7 @@ import { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-nat
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 import { v4 as GenerateUUID } from "uuid";
-
+ 
 const token = Constants.expoConfig?.extra?.mapboxToken;
 if (!token) {
   console.warn("Mapbox token is missing!");

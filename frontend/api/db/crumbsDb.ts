@@ -1,9 +1,7 @@
-import type { Position } from "geojson";
 import { Crumb, CrumbMailbox } from "../models/crumb";
-import { getDb } from "./InitDb";
+import { distanceMeters, getDb } from "./InitDb";
 
-const CHUNK_SIZE = 120
-
+const CHUNK_SIZE = 120;
 
 function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
   const crumbPlaceholders = crumbs
@@ -28,11 +26,7 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
     crumb.longitude,
     crumb.sender,
     crumb.receiver,
-    (crumb.saved
-      ? "saved"
-      : crumb.sender === userid
-        ? "sent"
-        : "received") as CrumbMailbox,
+    (crumb.sender === userid ? "sent" : "received") as CrumbMailbox,
     crumb.unlocked ? 1 : 0,
     crumb.time,
     crumb.radius,
@@ -105,7 +99,7 @@ export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
       }
     });
   } catch (e) {
-    console.log("the err is indeed:", e)
+    console.log("the err is indeed:", e);
   }
 }
 
@@ -115,61 +109,73 @@ export async function GetLastCrumbDetails(): Promise<Crumb | null> {
     const c = await db.getFirstAsync<Crumb>(
       `SELECT id, receiver, sender, time FROM crumbs ORDER BY time DESC LIMIT 1`,
     );
-    return c ?? null
+    return c ?? null;
   } catch (e) {
     console.log("THE ERROR IS INDEED: ", e);
-    return null
+    return null;
   }
 }
 
-export async function GetCrumbsInViewport(
-  ne: Position,
-  sw: Position,
-  sent?: boolean,
-): Promise<Crumb[]> {
-  const [neLon, neLat] = ne;
-  const [swLon, swLat] = sw;
-
+export async function unlockNearbyCrumbsByDistance(
+  lat: number,
+  lon: number,
+  radius: number,
+): Promise<string[]> {
   const db = await getDb();
 
-  const crossesAntimeridian = neLon < swLon;
+  const candidates = await db.getAllAsync<Crumb>(`
+    SELECT id, latitude, longitude, radius
+    FROM crumbs
+    WHERE unlocked = 0
+  `);
 
-  const lonClause = crossesAntimeridian
-    ? "(longitude >= ? OR longitude <= ?)"  // wraps the antimeridian
-    : "(longitude >= ? AND longitude <= ?)";
+  const toUnlock = candidates
+    .filter(
+      (c) =>
+        distanceMeters(lat, lon, c.latitude, c.longitude) <=
+        radius + (c.radius ?? 0),
+    )
+    .map((c) => c.id);
 
-  const rows = await db.getAllAsync<Crumb>(
-    `SELECT * FROM crumbs 
-     WHERE latitude <= ? AND latitude >= ? AND ${lonClause} AND sent = ${sent ? 1 : 0}
-     ORDER BY time DESC`,
-    [neLat, swLat, swLon, neLon]
-  );
+  if (toUnlock.length === 0) return [];
 
-  return rows;
+  for (let i = 0; i < toUnlock.length; i += CHUNK_SIZE) {
+    const chunk = toUnlock.slice(i, i + CHUNK_SIZE);
+    const placeholders = chunk.map(() => "?").join(",");
+    await db.runAsync(
+      `UPDATE crumbs SET unlocked = 1 WHERE id IN (${placeholders})`,
+      chunk,
+    );
+  }
+
+  return toUnlock;
 }
 
-export async function GetCrumbsByDistance(
-  userLat: number,
-  userLon: number,
-  sent?: boolean
-): Promise<(Crumb)[]> {
+export async function unlockNearbyCrumbsByPlace(
+  placeIds: string[]
+): Promise<string[]> {
   const db = await getDb();
+  const placeholders = placeIds.map(() => "?").join(",")
 
-  const lonScale = Math.cos((userLat * Math.PI) / 180);
+  const toUnlock = await db.getAllAsync<string>(`
+    SELECT crumb_id
+    FROM places
+    WHERE place_id = ${placeholders}
+  `, placeIds);
 
-  const rows = await db.getAllAsync<Crumb>(
-    `SELECT *,
-      (
-        ((latitude - ?) * 111320.0) * ((latitude - ?) * 111320.0) +
-        ((longitude - ?) * 111320.0 * ?) * ((longitude - ?) * 111320.0 * ?)
-      ) AS distanceSq
-     FROM crumbs
-     WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND sent = ${sent ? 1 : 0}
-     ORDER BY distanceSq ASC`,
-    [userLat, userLat, userLon, lonScale, userLon, lonScale]
-  );
+  if (toUnlock.length === 0) return [];
 
-  return rows
+  const CHUNK = 500;
+  for (let i = 0; i < toUnlock.length; i += CHUNK) {
+    const chunk = toUnlock.slice(i, i + CHUNK);
+    const ph = chunk.map(() => "?").join(",");
+    await db.runAsync(
+      `UPDATE crumbs SET unlocked = 1 WHERE id IN (${ph})`,
+      chunk,
+    );
+  }
+
+  return toUnlock;
 }
 
 export async function GetAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
@@ -181,62 +187,16 @@ export async function GetAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
     [mailbox]
   );
 
-  return rows
-}
-
-export async function GetCrumbsByIds(ids: string[]): Promise<Crumb[]> {
-  if (ids.length < 1) return []
-  const db = await getDb()
-  const placeholders = ids.map(() => "?").join(",")
-
-  const rows = await db.getAllAsync<Crumb>(
-    `SELECT * FROM crumbs
-      WHERE id IN (${placeholders})`,
-    ids
-  )
-
-  return rows
-}
-
-export async function GetGroupedCrumbsByIds(ids: string[], groupBySender: boolean): Promise<Record<string, Crumb[]>> {
-  if (ids.length < 1) return {}
-  const db = await getDb()
-  const placeholders = ids.map(() => "?").join(",")
-
-  const rows = await db.getAllAsync<Crumb>(
-    `SELECT * FROM crumbs
-      WHERE id IN (${placeholders})`,
-    ids
-  )
-
-  return rows.reduce<Record<string, Crumb[]>>((groups, crumb) => {
-    const key = crumb[groupBySender ? "sender" : "receiver"]
-    if (!groups[key]) groups[key] = []
-    groups[key].push(crumb)
-    return groups
-  }, {})
-}
-
-export async function GetRecentCrumbedFriendIds(currentUserid: string): Promise<Set<string>> {
-  const db = await getDb()
-
-  const rows = await db.getAllAsync<{ otherUser: string }>(
-    `SELECT DISTINCT sender AS otherUser
-   FROM crumbs
-   WHERE receiver = ? AND sender != ?`,
-    [currentUserid, currentUserid]
-  )
-
-  return new Set(rows.map(r => r.otherUser))
+  return rows;
 }
 
 export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<Crumb>(
-    `SELECT * FROM crumbs  
+    `SELECT * FROM crumbs
      WHERE id = ?`,
     [crumbId]
   );
 
-  return row
+  return row;
 }
