@@ -19,6 +19,7 @@ async function openAndInit() {
       receiver TEXT NOT NULL,
       mailbox TEXT NOT NULL CHECK(mailbox IN ('sent', 'received')),
       unlocked INTEGER NOT NULL DEFAULT 0 CHECK(unlocked IN (0, 1)),
+      opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
       time INTEGER NOT NULL,
       locationSelectionManner TEXT NOT NULL CHECK(locationSelectionManner IN ('gps', 'label', 'dropped-pin', 'none')),
       radius REAL,
@@ -32,6 +33,11 @@ async function openAndInit() {
       PRIMARY KEY (place_id, crumb_id),
       FOREIGN KEY (crumb_id) REFERENCES crumbs(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS chats (
+      friend_id PRIMARY KEY TEXT NOT NULL,
+      lastCrumbTS TEXT NOT NULL
+    )
 
     CREATE INDEX IF NOT EXISTS idx_crumbs_lockable
       ON crumbs(latitude)

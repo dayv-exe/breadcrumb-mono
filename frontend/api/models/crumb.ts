@@ -20,6 +20,7 @@ export type Crumb = {
   geohash: string
   time: string
   unlocked: boolean
+  opened: boolean
   saved: boolean
   formattedAddress: string
   placename: string

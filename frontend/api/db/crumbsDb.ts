@@ -5,7 +5,7 @@ const CHUNK_SIZE = 120;
 
 function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
   const crumbPlaceholders = crumbs
-    .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
     .join(", ");
 
   const places = crumbs.flatMap((crumb) =>
@@ -28,6 +28,7 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
     crumb.receiver,
     (crumb.sender === userid ? "sent" : "received") as CrumbMailbox,
     crumb.unlocked ? 1 : 0,
+    crumb.opened ? 1 : 0,
     crumb.time,
     crumb.radius,
     crumb.locationSelectionManner,
@@ -46,6 +47,7 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
         receiver,
         mailbox,
         unlocked,
+        opened,
         time,
         radius,
         locationSelectionManner,
@@ -61,6 +63,7 @@ function buildUpsertCrumbsQuery(userid: string, crumbs: Crumb[]) {
         receiver = excluded.receiver,
         mailbox = excluded.mailbox,
         unlocked = excluded.unlocked,
+        opened = excluded.opened,
         time = excluded.time,
         radius = excluded.radius,
         locationSelectionManner = excluded.locationSelectionManner,
@@ -154,26 +157,38 @@ export async function unlockNearbyCrumbsByDistance(
 export async function unlockNearbyCrumbsByPlace(
   placeIds: string[]
 ): Promise<string[]> {
+  if (placeIds.length === 0) return [];
+
   const db = await getDb();
-  const placeholders = placeIds.map(() => "?").join(",")
+  const placeIdPlaceholders = placeIds.map(() => "?").join(",");
 
-  const toUnlock = await db.getAllAsync<string>(`
-    SELECT crumb_id
-    FROM places
-    WHERE place_id = ${placeholders}
-  `, placeIds);
+  const rows = await db.getAllAsync<{ crumb_id: string }>(
+    `SELECT DISTINCT p.crumb_id
+       FROM places p
+       JOIN crumbs c ON c.id = p.crumb_id
+      WHERE p.place_id IN (${placeIdPlaceholders})
+        AND c.unlocked = 0`,
+    placeIds
+  );
 
+  const toUnlock = rows.map((r) => r.crumb_id);
   if (toUnlock.length === 0) return [];
 
-  const CHUNK = 500;
-  for (let i = 0; i < toUnlock.length; i += CHUNK) {
-    const chunk = toUnlock.slice(i, i + CHUNK);
-    const ph = chunk.map(() => "?").join(",");
-    await db.runAsync(
-      `UPDATE crumbs SET unlocked = 1 WHERE id IN (${ph})`,
-      chunk,
-    );
-  }
+  await db.withTransactionAsync(async () => {
+    for (let i = 0; i < toUnlock.length; i += CHUNK_SIZE) {
+      const crumbIds = toUnlock.slice(i, i + CHUNK_SIZE);
+      const ph = crumbIds.map(() => "?").join(",");
+
+      await db.runAsync(
+        `UPDATE crumbs SET unlocked = 1 WHERE id IN (${ph})`,
+        crumbIds
+      );
+      await db.runAsync(
+        `DELETE FROM places WHERE crumb_id IN (${ph})`,
+        crumbIds
+      );
+    }
+  });
 
   return toUnlock;
 }
