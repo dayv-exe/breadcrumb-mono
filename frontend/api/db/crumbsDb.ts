@@ -1,16 +1,16 @@
 import { Crumb, CrumbMailbox } from "../models/crumb";
 import { distanceMeters, getDb } from "./InitDb";
 
-const CHUNK_SIZE = 120;
+const CHUNK_SIZE = 120
 
-type SqlValue = string | number | null;
+type SqlValue = string | number | null
 
 type UpsertTable<T> = {
-  table: string;
-  columns: string[];
-  conflictColumns: string[];
-  onConflict?: "update" | "nothing";
-  toRows: (item: T) => SqlValue[][];
+  table: string
+  columns: string[]
+  conflictColumns: string[]
+  onConflict?: "update" | "nothing"
+  toRows: (item: T) => SqlValue[][]
 };
 
 function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
@@ -35,10 +35,10 @@ function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
     ${conflictClause};
   `;
 
-  return { sql, values: rows.flat() };
+  return { sql, values: rows.flat() }
 }
 
-const DEFAULT_MAX_PARAMS = 999;
+const DEFAULT_MAX_PARAMS = 999
 
 async function bulkUpsert<T>(
   items: T[],
@@ -46,7 +46,7 @@ async function bulkUpsert<T>(
   options: { maxParams?: number } = {},
 ) {
   if (items.length === 0) return;
-  const maxParams = options.maxParams ?? DEFAULT_MAX_PARAMS;
+  const maxParams = options.maxParams ?? DEFAULT_MAX_PARAMS
 
   const db = await getDb();
   await db.withTransactionAsync(async () => {
@@ -110,7 +110,7 @@ export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
       },
     ])
   } catch (error) {
-    console.error("Failed to upsert crumb reason: ", error)
+    console.error("Failed to upsert crumbs reason: ", error)
   }
 }
 
@@ -135,7 +135,7 @@ export async function UpsertChats(otherUserid: string, timestamp: string) {
       }
     ])
   } catch (error) {
-
+    console.error("failed to upsert chats! REASON: ", error)
   }
 }
 
@@ -227,15 +227,37 @@ export async function unlockNearbyCrumbsByPlace(
 }
 
 export async function GetAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
-  const db = await getDb();
+  const db = await getDb()
   const rows = await db.getAllAsync<Crumb>(
     `SELECT * FROM crumbs
      WHERE mailbox = ?
      ORDER BY time DESC`,
     [mailbox]
-  );
+  )
 
-  return rows;
+  return rows
+}
+
+export async function getCrumbsWith(otherUserid: string): Promise<Crumb[]> {
+  const db = await getDb()
+  const rows = await db.getAllAsync<Crumb>(
+    `SELECT * FROM crumbs
+     WHERE sender = ? OR receiver = ?
+     ORDER BY time ASC`,
+    [otherUserid, otherUserid]
+  )
+
+  return rows
+}
+
+export async function getChatList(): Promise<string[]> {
+  const db = await getDb()
+  const rows = await db.getAllAsync<{ friend_id: string }>(
+    `SELECT friend_id FROM chats
+     ORDER BY timestamp DESC`,
+  )
+
+  return rows.map(c => c.friend_id)
 }
 
 export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
