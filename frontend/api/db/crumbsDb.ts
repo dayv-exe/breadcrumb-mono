@@ -4,12 +4,13 @@ import { distanceMeters, getDb } from "./InitDb";
 const CHUNK_SIZE = 120
 
 type SqlValue = string | number | null
-
+type MergeOptions = "overwrite" | "keepIfEmpty" | "fillIfNull"
 type UpsertTable<T> = {
   table: string
   columns: string[]
   conflictColumns: string[]
   onConflict?: "update" | "nothing"
+  columnMerge?: Record<string, MergeOptions>
   toRows: (item: T) => SqlValue[][]
 };
 
@@ -24,7 +25,18 @@ function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
   } else {
     const updates = config.columns
       .filter((c) => !config.conflictColumns.includes(c))
-      .map((c) => `${c} = excluded.${c}`)
+      .map((c) => {
+        const incoming = `excluded.${c}`;
+        const existing = `${config.table}.${c}`; // unqualified name = existing row
+        switch (config.columnMerge?.[c] ?? "overwrite") {
+          case "keepIfEmpty":
+            return `${c} = COALESCE(NULLIF(${incoming}, ''), ${existing})`;
+          case "fillIfNull":
+            return `${c} = COALESCE(${existing}, ${incoming})`;
+          default:
+            return `${c} = ${incoming}`;
+        }
+      })
       .join(", ");
     conflictClause = `ON CONFLICT(${conflictKeys}) DO UPDATE SET ${updates}`
   }
@@ -96,7 +108,7 @@ export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
           crumb.locationSelectionManner,
           crumb.formattedAddress,
           crumb.placename,
-        ]]
+        ]],
       },
       {
         table: "places",
@@ -107,6 +119,20 @@ export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
             .split(",")
             .filter(Boolean)
             .map((place) => [place, crumb.id]),
+      },
+      {
+        // move friend to the top of the chat list when a new crumb is shared with them
+        table: "chats",
+        columns: ["friend_id", "timestamp, friendshipStartTimestamp"],
+        conflictColumns: ["friend_id"],
+        toRows: (crumb => [[
+          crumb.sender !== userid ? crumb.sender : crumb.receiver,
+          crumb.time,
+          crumb.time,
+        ]]),
+        columnMerge: {
+          friendshipStartTimestamp: "fillIfNull"
+        }
       },
     ])
   } catch (error) {
@@ -126,12 +152,16 @@ export async function UpsertChats(otherUserid: string, timestamp: string) {
         conflictColumns: ["friend_id"],
         onConflict: "update",
         columns: [
-          "friend_id", "timestamp",
+          "friend_id", "timestamp", "friendshipStartTimestamp"
         ],
         toRows: (chat) => [[
           chat.friend_id,
           chat.timestamp,
-        ]]
+          chat.timestamp,
+        ]],
+        columnMerge: {
+          friendshipStartTimestamp: "fillIfNull",
+        }
       }
     ])
   } catch (error) {
@@ -258,6 +288,10 @@ export async function getChatList(): Promise<string[]> {
   )
 
   return rows.map(c => c.friend_id)
+}
+
+export async function chatHasUnlockedCrumb(otherUserid: string) {
+
 }
 
 export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {

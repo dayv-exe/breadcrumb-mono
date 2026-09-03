@@ -1,5 +1,5 @@
 import { getLatestCrumbs } from "@/api/crumbsApi";
-import { GetAllCrumbs, GetCrumbsByIds, GetLastCrumbDetails } from "@/api/db/crumbsDb";
+import { GetAllCrumbs, GetLastCrumbDetails } from "@/api/db/crumbsDb";
 import { Crumb, CrumbMailbox } from "@/api/models/crumb";
 import { useAuthStore } from "@/utils/authStore";
 import Mapbox from "@rnmapbox/maps";
@@ -54,7 +54,7 @@ export const useCrumb = (): UseCrumbType => {
 
   const fetchCrumbs = async () => {
     const crumbs = await GetAllCrumbs(mailbox)
-    const features: Feature<Point>[] = crumbs.map(crumb => (newCrumbFeature(
+    const features: Feature<Point>[] = crumbs.filter(c => !c.notificationMessage).map(crumb => (newCrumbFeature(
       crumb.id,
       crumb.sender,
       crumb.receiver,
@@ -77,8 +77,7 @@ export const useCrumb = (): UseCrumbType => {
   }, [userid, mailbox])
 
   const getCrumbs = async (ids: string[]): Promise<Crumb[]> => {
-    const crumbs = await GetCrumbsByIds(ids)
-    return crumbs
+    return []
   }
 
   const updateCrumbs = async () => {
@@ -92,7 +91,7 @@ export const useCrumb = (): UseCrumbType => {
       if (latestCrumb.crumbs) {
         const newFeatures: Feature<Point>[] = []
 
-        latestCrumb.crumbs.map(crumb => {
+        latestCrumb.crumbs.filter(c => !c.notificationMessage).map(crumb => {
           if (resolveCrumbMailbox(crumb) !== mailbox) return
           newFeatures.push(
             newCrumbFeature(

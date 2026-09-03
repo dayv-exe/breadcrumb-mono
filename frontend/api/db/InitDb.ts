@@ -35,9 +35,10 @@ async function openAndInit() {
     );
 
     CREATE TABLE IF NOT EXISTS chats (
-      friend_id PRIMARY KEY TEXT NOT NULL,
-      timestamp TEXT NOT NULL
-    )
+      friend_id TEXT PRIMARY KEY NOT NULL,
+      timestamp TEXT NOT NULL,
+      friendshipStartTimestamp TEXT NOT NULL
+    );
 
     CREATE INDEX IF NOT EXISTS idx_crumbs_lockable
       ON crumbs(latitude)
