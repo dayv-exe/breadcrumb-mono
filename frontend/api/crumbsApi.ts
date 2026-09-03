@@ -1,5 +1,5 @@
 import axiosInstance from "@/constants/axios"
-import { UpsertCrumbs } from "./db/crumbsDb"
+import { upsertCrumbs } from "./db/crumbsDb"
 import { Crumb } from "./models/crumb"
 import { CrumbMarkerDetails } from "./models/CrumbMarkerDetails"
 import { crumbMedia } from "./models/crumbMedia"
@@ -24,7 +24,7 @@ type CrumbsResponse = {
   next?: string
 }
 
-type CrumbsPage = {
+export type CrumbsPage = {
   crumbs: Crumb[]
   next?: string
 }
@@ -33,7 +33,7 @@ export const getLatestCrumbs = async (userid: string, lastCrumb: Crumb | null): 
   const otherUser = lastCrumb ? userid === lastCrumb?.sender ? lastCrumb?.receiver : lastCrumb?.sender : undefined
   let url = `/crumbs${lastCrumb?.id ? `?id=${lastCrumb.id}` : ""}${otherUser ? `&otherUser=${otherUser}` : ""}${lastCrumb?.time ? `&time=${lastCrumb.time}` : ""}`
   const { data } = await axiosInstance.get<CrumbsResponse>(url)
-  UpsertCrumbs(userid, data.message)
+  upsertCrumbs(userid, data.message)
   return { crumbs: data.message, next: data.next }
 }
 

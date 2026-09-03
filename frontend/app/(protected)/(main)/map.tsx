@@ -115,7 +115,6 @@ export default function MapScreen() {
 
   const {
     crumbFeatures,
-    crumbImages,
     setMailbox,
     mailbox,
   } = useCrumb()
@@ -279,7 +278,6 @@ export default function MapScreen() {
         maxZoomLvlToDark={2.075}
         setForceDark={setForceDark}
         featureCollection={crumbFeatures}
-        featureCollectionImages={crumbImages}
         searchResult={searchResult}
         onMapPress={() => {
           clearSearchResult()

@@ -82,7 +82,7 @@ async function bulkUpsert<T>(
   });
 }
 
-export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
+export async function upsertCrumbs(userid: string, crumbs: Crumb[]) {
   try {
     await bulkUpsert(crumbs, [
       {
@@ -140,7 +140,7 @@ export async function UpsertCrumbs(userid: string, crumbs: Crumb[]) {
   }
 }
 
-export async function UpsertChats(otherUserid: string, timestamp: string) {
+export async function upsertChats(otherUserid: string, timestamp: string) {
   const chat: { friend_id: string, timestamp: string } = {
     friend_id: otherUserid,
     timestamp: timestamp,
@@ -169,7 +169,7 @@ export async function UpsertChats(otherUserid: string, timestamp: string) {
   }
 }
 
-export async function GetLastCrumbDetails(): Promise<Crumb | null> {
+export async function getLastCrumbDetails(): Promise<Crumb | null> {
   try {
     const db = await getDb();
     const c = await db.getFirstAsync<Crumb>(
@@ -256,7 +256,7 @@ export async function unlockNearbyCrumbsByPlace(
   return toUnlock;
 }
 
-export async function GetAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
+export async function getAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
   const db = await getDb()
   const rows = await db.getAllAsync<Crumb>(
     `SELECT * FROM crumbs
@@ -290,11 +290,7 @@ export async function getChatList(): Promise<string[]> {
   return rows.map(c => c.friend_id)
 }
 
-export async function chatHasUnlockedCrumb(otherUserid: string) {
-
-}
-
-export async function GetCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
+export async function getCrumbFromLocal(crumbId: string): Promise<Crumb | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<Crumb>(
     `SELECT * FROM crumbs
