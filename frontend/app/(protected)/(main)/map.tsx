@@ -301,8 +301,10 @@ export default function MapScreen() {
 
       <MapControls
         useSatellite={useSatellite}
-        onFocusPress={focusOnUserLocation}
-        onSearchPress={handleSearchPress}
+        onFocusPress={() => {
+          focusOnUserLocation()
+          clearSearchResult()
+        }}
         onFocusLongPress={focusOnCurrentCenterLocation}
         onSatellitePress={() => setUseSatellite(!useSatellite)}
         pitchToggleVisible={is2dButtonVisible}
@@ -346,7 +348,7 @@ export default function MapScreen() {
         }}
         animatedPosition={sheetPosition}
       >
-        <MapFriendsView bottomSheetRef={bottomSheetRef} screenHeight={screenHeight} sheetPosition={sheetPosition} />
+        <MapFriendsView bottomSheetRef={bottomSheetRef} screenHeight={screenHeight} sheetPosition={sheetPosition} onSearchPress={handleSearchPress} />
       </BottomSheet>
     </View >
   );

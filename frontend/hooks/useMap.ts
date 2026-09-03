@@ -83,7 +83,8 @@ export const useMap = (
       centerCoordinate: coords,
       animationDuration: 400,
       animationMode: "easeTo",
-      zoomLevel: 17
+      zoomLevel: 17,
+      pitch: 45,
     })
   }
 
