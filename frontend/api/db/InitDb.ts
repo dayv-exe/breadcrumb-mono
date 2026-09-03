@@ -3,6 +3,8 @@ import * as SQLite from "expo-sqlite";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
+let txChain: Promise<unknown> = Promise.resolve();
+
 async function openAndInit() {
   const db = await SQLite.openDatabaseAsync(LOCAL_DATABASE_NAME);
   await db.execAsync(`
@@ -58,6 +60,12 @@ export function getDb() {
     dbPromise = openAndInit();
   }
   return dbPromise;
+}
+
+export function withDbLock<T>(task: () => Promise<T>): Promise<T> {
+  const run = txChain.then(task, task);   // run regardless of prior outcome
+  txChain = run.then(() => { }, () => { }); // swallow errors so one failure can't poison the queue
+  return run;
 }
 
 export function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: number): number {

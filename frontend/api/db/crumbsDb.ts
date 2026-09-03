@@ -1,5 +1,5 @@
 import { Crumb, CrumbMailbox } from "../models/crumb";
-import { distanceMeters, getDb } from "./InitDb";
+import { distanceMeters, getDb, withDbLock } from "./InitDb";
 
 const CHUNK_SIZE = 120
 
@@ -61,25 +61,27 @@ async function bulkUpsert<T>(
   const maxParams = options.maxParams ?? DEFAULT_MAX_PARAMS
 
   const db = await getDb();
-  await db.withTransactionAsync(async () => {
-    for (const table of tables) {
-      const colCount = table.columns.length;
-      const maxRowsPerBatch = Math.floor(maxParams / colCount);
-      if (maxRowsPerBatch < 1) {
-        throw new Error(
-          `Table "${table.table}" has ${colCount} columns, exceeding the ` +
-          `${maxParams}-parameter limit for a single row.`,
-        );
-      }
+  await withDbLock(() =>
+    db.withTransactionAsync(async () => {
+      for (const table of tables) {
+        const colCount = table.columns.length;
+        const maxRowsPerBatch = Math.floor(maxParams / colCount);
+        if (maxRowsPerBatch < 1) {
+          throw new Error(
+            `Table "${table.table}" has ${colCount} columns, exceeding the ` +
+            `${maxParams}-parameter limit for a single row.`,
+          );
+        }
 
-      const rows = items.flatMap(table.toRows);
-      for (let i = 0; i < rows.length; i += maxRowsPerBatch) {
-        const batch = rows.slice(i, i + maxRowsPerBatch);
-        const { sql, values } = buildUpsertQuery(table, batch);
-        await db.runAsync(sql, values);
+        const rows = items.flatMap(table.toRows);
+        for (let i = 0; i < rows.length; i += maxRowsPerBatch) {
+          const batch = rows.slice(i, i + maxRowsPerBatch);
+          const { sql, values } = buildUpsertQuery(table, batch);
+          await db.runAsync(sql, values);
+        }
       }
-    }
-  });
+    })
+  )
 }
 
 export async function upsertCrumbs(userid: string, crumbs: Crumb[]) {
@@ -123,7 +125,7 @@ export async function upsertCrumbs(userid: string, crumbs: Crumb[]) {
       {
         // move friend to the top of the chat list when a new crumb is shared with them
         table: "chats",
-        columns: ["friend_id", "timestamp, friendshipStartTimestamp"],
+        columns: ["friend_id", "timestamp", "friendshipStartTimestamp"],
         conflictColumns: ["friend_id"],
         toRows: (crumb => [[
           crumb.sender !== userid ? crumb.sender : crumb.receiver,
@@ -225,33 +227,37 @@ export async function unlockNearbyCrumbsByPlace(
   const db = await getDb();
   const placeIdPlaceholders = placeIds.map(() => "?").join(",");
 
-  const rows = await db.getAllAsync<{ crumb_id: string }>(
-    `SELECT DISTINCT p.crumb_id
+  const rows = await withDbLock(() =>
+    db.getAllAsync<{ crumb_id: string }>(
+      `SELECT DISTINCT p.crumb_id
        FROM places p
        JOIN crumbs c ON c.id = p.crumb_id
       WHERE p.place_id IN (${placeIdPlaceholders})
         AND c.unlocked = 0`,
-    placeIds
-  );
+      placeIds
+    )
+  )
 
   const toUnlock = rows.map((r) => r.crumb_id);
   if (toUnlock.length === 0) return [];
 
-  await db.withTransactionAsync(async () => {
-    for (let i = 0; i < toUnlock.length; i += CHUNK_SIZE) {
-      const crumbIds = toUnlock.slice(i, i + CHUNK_SIZE);
-      const ph = crumbIds.map(() => "?").join(",");
+  await withDbLock(() =>
+    db.withTransactionAsync(async () => {
+      for (let i = 0; i < toUnlock.length; i += CHUNK_SIZE) {
+        const crumbIds = toUnlock.slice(i, i + CHUNK_SIZE);
+        const ph = crumbIds.map(() => "?").join(",");
 
-      await db.runAsync(
-        `UPDATE crumbs SET unlocked = 1 WHERE id IN (${ph})`,
-        crumbIds
-      );
-      await db.runAsync(
-        `DELETE FROM places WHERE crumb_id IN (${ph})`,
-        crumbIds
-      );
-    }
-  });
+        await db.runAsync(
+          `UPDATE crumbs SET unlocked = 1 WHERE id IN (${ph})`,
+          crumbIds
+        );
+        await db.runAsync(
+          `DELETE FROM places WHERE crumb_id IN (${ph})`,
+          crumbIds
+        );
+      }
+    })
+  )
 
   return toUnlock;
 }
@@ -280,7 +286,7 @@ export async function getCrumbsWith(otherUserid: string): Promise<Crumb[]> {
   return rows
 }
 
-export async function getChatList(): Promise<string[]> {
+export async function getCrumbFeed(): Promise<string[]> {
   const db = await getDb()
   const rows = await db.getAllAsync<{ friend_id: string }>(
     `SELECT friend_id FROM chats

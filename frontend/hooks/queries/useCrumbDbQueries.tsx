@@ -1,4 +1,4 @@
-import { getAllCrumbs, getChatList, getCrumbFromLocal, getCrumbsWith } from "@/api/db/crumbsDb";
+import { getAllCrumbs, getCrumbFeed, getCrumbFromLocal, getCrumbsWith } from "@/api/db/crumbsDb";
 import { CrumbMailbox } from "@/api/models/crumb";
 import {
   useQuery,
@@ -20,7 +20,7 @@ export function useDbInvalidation() {
 
       clearTimeout(debounce);
       debounce = setTimeout(() => {
-        qc.invalidateQueries({ queryKey: ["chatList"] })
+        qc.invalidateQueries({ queryKey: ["crumbFeed"] })
         qc.invalidateQueries({ queryKey: ["crumbs"] });
       }, 100);
     });
@@ -40,10 +40,10 @@ export function DbBridge({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function useChatList() {
+export function useCrumbFeed() {
   return useQuery({
-    queryKey: ["chatList"],
-    queryFn: getChatList,
+    queryKey: ["crumbFeed"],
+    queryFn: getCrumbFeed,
   });
 }
 

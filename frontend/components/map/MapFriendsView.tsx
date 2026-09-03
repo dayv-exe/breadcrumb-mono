@@ -1,12 +1,10 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { SearchIcon } from "lucide-react-native";
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { SharedValue, useAnimatedReaction } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
-import CustomButton from "../buttons/CustomButton";
-import CustomLabel from "../CustomLabel";
+import CrumbFeed from "../views/CrumbFeed";
 
 interface props {
   screenHeight: number
@@ -36,46 +34,7 @@ export default function MapFriendsView({ sheetPosition, screenHeight, onSearchPr
 
   return (
     <BottomSheetView>
-      <View
-        style={[styles.container, {
-
-        }]}
-      >
-        <View
-          style={{
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 40,
-            paddingHorizontal: 15,
-          }}
-        >
-          <CustomLabel customStyle={{
-            paddingVertical: 5,
-          }} adaptToTheme fade textAlign="center" labelText="No crumbs near you" />
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "absolute",
-            right: 20,
-            top: 0,
-          }}
-        >
-          <CustomButton
-            freed
-            type="theme-faded"
-            customStyle={{
-              padding: 10
-            }}
-            handleClick={onSearchPress}
-          >
-            <SearchIcon color={textCol} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} size={20} />
-          </CustomButton>
-        </View>
-      </View>
+      <CrumbFeed />
     </BottomSheetView>
   )
 }
