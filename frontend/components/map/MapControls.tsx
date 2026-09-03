@@ -2,7 +2,7 @@ import { Colors } from "@/constants/Colors";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
-import { LocateIcon, PlusIcon, SatelliteIcon } from "lucide-react-native";
+import { LocateIcon, PlusIcon, SatelliteIcon, SearchIcon } from "lucide-react-native";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
 import CustomButton from "../buttons/CustomButton";
@@ -18,9 +18,10 @@ interface props {
   onFocusPress: () => void
   onFocusLongPress: () => void
   onPitchToggle: () => void
+  onSearchPress: () => void
 }
 
-export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onFocusLongPress, onSatellitePress, pitchToggleVisible, onPitchToggle, useSatellite }: props) {
+export default function MapControls({ containerStyle, backgroundStyle, onFocusPress, onFocusLongPress, onSatellitePress, pitchToggleVisible, onPitchToggle, onSearchPress, useSatellite }: props) {
   const bgCol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const fadedBgCol = useThemeColor({}, "fadedBackground")
@@ -55,6 +56,18 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
         </CustomButton>
         <Spacer size="small" />
       </>}
+      <CustomButton
+        freed
+        type="themed"
+        customStyle={[styles.shadow, {
+          width: 50,
+          height: 50,
+        }]}
+        handleClick={onSearchPress}
+      >
+        <SearchIcon stroke={useSatellite ? Colors.light.vibrantBackground : textCol} strokeWidth={2.5} size={SIZE - 3} />
+      </CustomButton>
+      <Spacer size="small" />
       <View
         style={[styles.background, styles.shadow, {
           width: "auto",

@@ -19,14 +19,14 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { ChevronDownIcon, SearchIcon } from "lucide-react-native";
+import { BellIcon, ChevronDownIcon } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
 import { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 import { v4 as GenerateUUID } from "uuid";
- 
+
 const token = Constants.expoConfig?.extra?.mapboxToken;
 if (!token) {
   console.warn("Mapbox token is missing!");
@@ -191,7 +191,7 @@ export default function MapScreen() {
 
   const CONTROLS_BOTTOM = 200;  // matches styles.mapControls.bottom
   const GAP_ABOVE_SHEET = 110;  // breathing room between controls and sheet
-  const HALF_OF_PAGE = screenHeight * 0.5
+  const HALF_OF_PAGE = (screenHeight * 0.5)
 
   const controlsAnimatedStyle = useAnimatedStyle(() => {
     const sheetVisibleHeight = screenHeight - sheetPosition.value;
@@ -258,9 +258,9 @@ export default function MapScreen() {
               customStyle={[styles.shadow, {
                 padding: 10,
               }]}
-              handleClick={handleSearchPress}
+              handleClick={() => { }}
             >
-              <SearchIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
+              <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
             </CustomButton>
             <CustomProfilePictureCircle size={40} handleClick={() => {
               nav.push("/(protected)/(main)/profile")
@@ -302,6 +302,7 @@ export default function MapScreen() {
       <MapControls
         useSatellite={useSatellite}
         onFocusPress={focusOnUserLocation}
+        onSearchPress={handleSearchPress}
         onFocusLongPress={focusOnCurrentCenterLocation}
         onSatellitePress={() => setUseSatellite(!useSatellite)}
         pitchToggleVisible={is2dButtonVisible}
