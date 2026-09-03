@@ -70,7 +70,6 @@ type Crumb struct {
 	Opened                  bool         `json:"opened" dynamobdav:"opened"`
 	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName               string       `json:"placename" dynamodbav:"placename"`
-	NotificationMessage     string       `json:"notificationMessage" dynamodbav:"notificationMessage"`
 
 	Time string `json:"time" dynamodbav:"time"`
 

@@ -34,10 +34,9 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"geohash": &dbTypes.AttributeValueMemberS{Value: "hash"},
 
 	// new fields on Crumb
-	"unlocked":            &dbTypes.AttributeValueMemberBOOL{Value: false},
-	"formattedAddress":    &dbTypes.AttributeValueMemberS{Value: "1 Test Street"},
-	"placename":           &dbTypes.AttributeValueMemberS{Value: ""},
-	"notificationMessage": &dbTypes.AttributeValueMemberS{Value: ""},
+	"unlocked":         &dbTypes.AttributeValueMemberBOOL{Value: false},
+	"formattedAddress": &dbTypes.AttributeValueMemberS{Value: "1 Test Street"},
+	"placename":        &dbTypes.AttributeValueMemberS{Value: ""},
 
 	// gsi owner is the receiver for a received crumb
 	"gsi":   &dbTypes.AttributeValueMemberS{Value: "CRUMB_OWNER#r1"},
