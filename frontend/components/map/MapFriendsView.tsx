@@ -74,14 +74,6 @@ export default function MapFriendsView({ sheetPosition, screenHeight, onSearchPr
           >
             <SearchIcon color={textCol} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} size={20} />
           </CustomButton>
-          {/* <CustomFloatingSquare handleClick={handleToggleSheet} isFlat customStyle={{
-            backgroundColor: "transparent",
-            width: 30,
-            height: 30
-          }}>
-            {isOpened && <ChevronDown color={textCol} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} />}
-            {!isOpened && <ChevronUp color={textCol} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} />}
-          </CustomFloatingSquare> */}
         </View>
       </View>
     </BottomSheetView>
