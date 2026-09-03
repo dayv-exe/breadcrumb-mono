@@ -67,8 +67,10 @@ type Crumb struct {
 	Geohash                 string       `json:"geohash" dynamodbav:"geohash"`
 	Saved                   bool         `json:"saved" dynamodbav:"-"`
 	Unlocked                bool         `json:"unlocked" dynamodbav:"unlocked"`
+	Opened                  bool         `json:"opened" dynamobdav:"opened"`
 	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
 	PlaceName               string       `json:"placename" dynamodbav:"placename"`
+	NotificationMessage     string       `json:"notificationMessage" dynamodbav:"notificationMessage"`
 
 	Time string `json:"time" dynamodbav:"time"`
 
@@ -135,6 +137,7 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver, mailb
 		Media:                   crumbBody.MediaKeys,
 		Saved:                   saved,
 		Unlocked:                saved,
+		Opened:                  false,
 		FormattedAddress:        crumbBody.Address,
 		Geohash:                 geohash.Encode(crumbBody.Latitude, crumbBody.Longitude),
 		Time:                    time,

@@ -36,6 +36,7 @@ func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 	crumbs := make([]*models.Crumb, 0)
 
 	for _, receiver := range crumb.Receivers {
+		// check that receiver has not blocked sender here
 		// bi-directional crumbs one for sender one for receiver
 		receiversCopy := models.CreateReceivedCrumb(&crumb, userId, receiver)
 		crumbs = append(crumbs, &receiversCopy)
