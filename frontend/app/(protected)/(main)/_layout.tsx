@@ -1,16 +1,23 @@
 import { useAutoUploadWorker } from "@/hooks/useAutoUploadWorker";
+import { useUnlockCrumb } from "@/hooks/useUnlockCrumb";
 import { Stack } from "expo-router";
+
+const screenOptions = { headerShown: false } as const;
+
+function UnlockCrumb() {
+  useUnlockCrumb()
+  return null
+}
+
 export default function MainScreen() {
-  useAutoUploadWorker({
-    concurrency: 2,
-    enabled: true,
-  })
+  useAutoUploadWorker({ concurrency: 2, enabled: true })
 
   return (
-    <Stack screenOptions={{
-      headerShown: false,
-    }}>
-      <Stack.Screen name="map" />
-    </Stack>
+    <>
+      <UnlockCrumb />
+      <Stack screenOptions={screenOptions}>
+        <Stack.Screen name="map" />
+      </Stack>
+    </>
   );
 }

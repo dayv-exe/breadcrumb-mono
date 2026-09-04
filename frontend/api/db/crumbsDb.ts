@@ -38,7 +38,9 @@ function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
         }
       })
       .join(", ");
-    conflictClause = `ON CONFLICT(${conflictKeys}) DO UPDATE SET ${updates}`
+    conflictClause = updates
+      ? `ON CONFLICT(${conflictKeys}) DO UPDATE SET ${updates}`
+      : `ON CONFLICT(${conflictKeys}) DO NOTHING`;
   }
 
   const sql = `
@@ -46,7 +48,6 @@ function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
     VALUES ${placeholders}
     ${conflictClause};
   `;
-
   return { sql, values: rows.flat() }
 }
 
@@ -251,10 +252,10 @@ export async function unlockNearbyCrumbsByPlace(
           `UPDATE crumbs SET unlocked = 1 WHERE id IN (${ph})`,
           crumbIds
         );
-        await db.runAsync(
-          `DELETE FROM places WHERE crumb_id IN (${ph})`,
-          crumbIds
-        );
+        // await db.runAsync(
+        //   `DELETE FROM places WHERE crumb_id IN (${ph})`,
+        //   crumbIds
+        // );
       }
     })
   )

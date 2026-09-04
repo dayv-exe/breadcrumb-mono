@@ -145,8 +145,9 @@ export default function ViewFriendsScreen() {
           alignItems: "center",
           justifyContent: "center"
         }}>
-          <CustomLabel labelText="👻" textAlign="center" adaptToTheme fontSize={37} />
-          <CustomLabel adaptToTheme textAlign="center" fade labelText="Nothing to see here" />
+          <CustomLabel labelText="👻" textAlign="center" adaptToTheme fontSize={40} />
+          <Spacer size="tiny" />
+          <CustomLabel fontSize={16} adaptToTheme textAlign="center" labelText={`nothing to see here`} />
         </View>
       }
       <Spacer />

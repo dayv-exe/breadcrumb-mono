@@ -6,7 +6,9 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 let txChain: Promise<unknown> = Promise.resolve();
 
 async function openAndInit() {
-  const db = await SQLite.openDatabaseAsync(LOCAL_DATABASE_NAME);
+  const db = await SQLite.openDatabaseAsync(LOCAL_DATABASE_NAME, {
+    enableChangeListener: true,
+  });
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
     PRAGMA synchronous = NORMAL;

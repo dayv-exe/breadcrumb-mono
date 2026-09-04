@@ -7,30 +7,9 @@ import CustomHeader from "@/components/views/CustomHeader";
 import CustomRefreshableScrollView from "@/components/views/CustomRefreshableScrollView";
 import CustomView from "@/components/views/CustomView";
 import { useAcceptFriendRequests, useGetFriendRequests, useRejectFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
-import { useIsFocused } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
-
-const icons = {
-  next: {
-    light: require("../../assets/images/icons/next_sel_light.png"),
-    dark: require("../../assets/images/icons/next_sel_dark.png")
-  },
-  back: {
-    light: require("../../assets/images/icons/close_unsel_light.png"),
-    dark: require("../../assets/images/icons/close_unsel_dark.png")
-  },
-  contacts: {
-    light: require("../../assets/images/icons/contacts_sel_light.png"),
-    dark: require("../../assets/images/icons/contacts_sel_light.png")
-  }
-}
-
-export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
 
 function NoResultComponent() {
   return (
@@ -61,7 +40,6 @@ function LoadingComponent() {
 }
 
 export default function FindFriendsScreen() {
-  const focused = useIsFocused()
   const router = useRouter()
 
   const { data: requests, isPending: requestsIsPending, error: requestError, refetch: requestRefetch } = useGetFriendRequests()
@@ -101,7 +79,7 @@ export default function FindFriendsScreen() {
 
   return (
     <CustomView adaptToTheme horizontalPadding={15}>
-      <CustomHeader title="Friend requests" handleBack={() => router.dismiss()} />
+      <CustomHeader title="Add Friends" handleBack={() => router.dismiss()} />
       <CustomRefreshableScrollView isRefreshing={requestsIsPending} onRefresh={() => {
         requestRefetch()
       }}>
@@ -136,12 +114,12 @@ export default function FindFriendsScreen() {
           }
         </View>
         <Spacer />
-        <View style={styles.suggested}>
+        {/* <View style={styles.suggested}>
           <CustomLabel bold textAlign="left" adaptToTheme labelText="Suggested friends" />
-        </View>
+        </View> */}
         <Spacer />
         <View style={[styles.suggested]}>
-          <CustomButton width="100%" imgSrc={getIconImage("contacts", false)} slim labelText="Invite contacts" type="less-prominent" handleClick={() => {
+          <CustomButton width="100%" slim labelText="Invite contacts" type="less-prominent" handleClick={() => {
             router.push("/invite-friends")
           }} />
         </View>

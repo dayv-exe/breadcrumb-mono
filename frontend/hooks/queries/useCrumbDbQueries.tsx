@@ -4,39 +4,31 @@ import {
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
-import * as SQLite from "expo-sqlite";
-import React, { useEffect } from "react";
+import React from "react";
+import { useWatchDbChanges } from "../useWatchDbChanges";
 
 const WATCHED_TABLES = new Set(["crumbs", "chats", "places"]);
 
 export function useDbInvalidation() {
   const qc = useQueryClient();
 
-  useEffect(() => {
-    let debounce: ReturnType<typeof setTimeout> | undefined;
+  const mbReceived: CrumbMailbox = "received"
+  const mbSaved: CrumbMailbox = "saved"
+  const mbSent: CrumbMailbox = "sent"
 
-    const sub = SQLite.addDatabaseChangeListener(({ tableName }) => {
-      if (!WATCHED_TABLES.has(tableName)) return;
-
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        qc.invalidateQueries({ queryKey: ["crumbFeed"] })
-        qc.invalidateQueries({ queryKey: ["crumbs"] });
-      }, 100);
-    });
-
-    return () => {
-      clearTimeout(debounce);
-      sub.remove();
-    };
-  }, [qc]);
+  useWatchDbChanges({
+    watchedTables: WATCHED_TABLES,
+    onChange: () => {
+      qc.invalidateQueries({ queryKey: ["crumbFeed"] })
+      qc.invalidateQueries({ queryKey: ["crumbs", mbReceived] })
+      qc.invalidateQueries({ queryKey: ["crumbs", mbSaved] })
+      qc.invalidateQueries({ queryKey: ["crumbs", mbSent] })
+    }
+  })
 }
 
-// ---------------------------------------------------------------------------
-// Provider — wrap your app root with this once
-// ---------------------------------------------------------------------------
 export function DbBridge({ children }: { children: React.ReactNode }) {
-  useDbInvalidation(); // must run inside the provider (uses useQueryClient)
+  useDbInvalidation();
   return <>{children}</>;
 }
 
