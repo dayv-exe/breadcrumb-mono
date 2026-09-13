@@ -3,7 +3,7 @@ package models
 type MediaItem struct {
 	Index             int8         `json:"index"`
 	MediaFileName     string       `json:"localUri"`
-	ThumbnailFileName string       `json:"thumbnailUri"`
+	ThumbnailFileName string       `json:"thumbnail"`
 	Caption           CrumbCaption `json:"caption"`
 	Type              string       `json:"type"`
 }
