@@ -15,7 +15,7 @@ import { ElevatedSectionedScrollView } from "../views/ElevatedSectionedScrollVie
 
 interface props {
   OnPlaceSelect?: (placeId: string) => void
-  OnPersonSelect?: (userid: string) => void
+  OnPersonSelect?: (userid: string, displayName: string) => void
   OnClose?: () => void
   HandleClosePress?: () => void
   mapRef: React.RefObject<Mapbox.MapView | null>
@@ -54,8 +54,8 @@ export default function PeoplePlaceSearch({ HandleClosePress, availableHeight, O
     setSearchStr: setUserSearchStr,
     users: userSearchResult,
   } = useSearchUser({
-    onSelect: (id) => {
-      OnPersonSelect?.(id)
+    onSelect: (id, displayName) => {
+      OnPersonSelect?.(id, displayName)
     }
   })
 

@@ -14,7 +14,6 @@ export function useDbInvalidation() {
   const qc = useQueryClient();
 
   const mbReceived: CrumbMailbox = "received"
-  const mbSaved: CrumbMailbox = "saved"
   const mbSent: CrumbMailbox = "sent"
 
   useWatchDbChanges({
@@ -22,7 +21,6 @@ export function useDbInvalidation() {
     onChange: () => {
       qc.invalidateQueries({ queryKey: ["crumbFeed"] })
       qc.invalidateQueries({ queryKey: ["crumbs", mbReceived] })
-      qc.invalidateQueries({ queryKey: ["crumbs", mbSaved] })
       qc.invalidateQueries({ queryKey: ["crumbs", mbSent] })
     }
   })

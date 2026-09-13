@@ -1,4 +1,4 @@
-import { UserSharedPageDetails } from "@/api/models/userDetails";
+import { UserInitialDetails } from "@/api/userApi";
 import CustomButton from "@/components/buttons/CustomButton";
 import PreviewBunch from "@/components/camera/PreviewBunch";
 import CrumbSharedItem from "@/components/crumbs/CrumbSharedItem";
@@ -20,11 +20,10 @@ export default function Shared() {
   const bgCol = useThemeColor({}, "background")
   const crumbBorderCol = useThemeColor({}, "fadedBackground")
   const insets = useSafeAreaInsets()
-  const { userid, displayName } = useLocalSearchParams<UserSharedPageDetails>()
+  const { userid, displayName } = useLocalSearchParams<UserInitialDetails>()
   const userCol = colorForUserId(userid)
   const topPadding = insets.top
   const { data: crumbs, error: crumbsError, isPending: crumbsPending } = useCrumbsWith(userid, useLocationStore.getState().coordinates!)
-  console.log(crumbsError)
 
   const router = useRouter()
 

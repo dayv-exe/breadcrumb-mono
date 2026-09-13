@@ -2,10 +2,17 @@ import axiosInstance, { editUserDetailsData } from "@/constants/axios"
 import { MediaData } from "@/constants/media"
 import { GetId } from "@/constants/userAccountDetails"
 import { UserDetails } from "./models/userDetails"
+
 export type UserInitialDetails = {
-  sub: string
-  nickname: string
-  name: string
+  userid: string
+  displayName: string
+  displayNickname?: string
+}
+
+export const getDisplayName = (user: UserDetails | undefined | null, defaultToNickname: boolean = false) => {
+  if (!user) return "<unknown user>"
+  else if (!defaultToNickname && user.name) return user.name
+  else return user.nickname || "<unknown user>"
 }
 
 export const createUser = async (userDetails: UserInitialDetails): Promise<string> => {

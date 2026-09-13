@@ -31,7 +31,7 @@ export default function CrumbSharedItem({ crumb }: props) {
         }}
       />
       <Spacer size="small" />
-      <CustomLabel adaptToTheme width="auto" labelText="Tap to view" />
+      <CustomLabel adaptToTheme width="auto" labelText={crumb.mailbox === "sent" ? "" : crumb.unlocked ? "Tap to view" : "Locked"} />
     </CustomButton>
   )
 }

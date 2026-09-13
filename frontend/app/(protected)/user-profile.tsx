@@ -1,3 +1,4 @@
+import { UserInitialDetails } from "@/api/userApi";
 import BaseProfile from "@/components/profile/BaseProfile";
 import { useLocalSearchParams } from "expo-router";
 
@@ -26,8 +27,8 @@ export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function UserProfileScreen() {
-  const { userId, tempNickname } = useLocalSearchParams<{ userId: string, tempNickname?:string }>()
+  const { userid, displayNickname } = useLocalSearchParams<UserInitialDetails>()
   return (
-    <BaseProfile userId={userId} tempNickname={tempNickname} showBackButton />
+    <BaseProfile userId={userid} tempNickname={displayNickname} showBackButton />
   )
 }

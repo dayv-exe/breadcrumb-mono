@@ -1,4 +1,4 @@
-import { unlockNearbyCrumbsByDistance, unlockNearbyCrumbsByPlace } from "@/api/db/crumbsDb";
+
 import { useLocationStore } from "@/utils/useLocationStore";
 import { useEffect } from "react";
 import { useGetNearbyPlaces } from "./queries/useGetNearbyPlacesApi";
@@ -18,22 +18,8 @@ export function useUnlockCrumb() {
   })
 
   useEffect(() => {
-    async function unlock() {
-      if (coordinates) {
-        const distanceUnlockedCrumbs = await unlockNearbyCrumbsByDistance(coordinates.latitude, coordinates.longitude, coordinates.accuracy ?? 0)
-        if (distanceUnlockedCrumbs.length > 0) {
-        }
-      }
 
-      if (nearbyPlaces) {
-        const placeIdUnlockedCrumbs = await unlockNearbyCrumbsByPlace(nearbyPlaces)
-        if (placeIdUnlockedCrumbs.length > 0) {
-        }
-      }
-    }
-
-    unlock()
-  }, [coordinates, nearbyPlaces, nearbyPlacesError, version])
+  }, [])
 
   return null
 }

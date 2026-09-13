@@ -86,14 +86,13 @@ export default function ProfileSettingsScreen() {
   const [emailOptText, setEmailOptText] = useState("Email")
   const { emailVerificationStatus } = useEmailVerificationStatus()
 
-  async function getEmailOptText() {
-    const { verified } = await emailVerificationStatus()
-    if (!verified) {
-      setEmailOptText("Email (UNCONFIRMED)")
-    }
-  }
-
   useEffect(() => {
+    async function getEmailOptText() {
+      const { verified } = await emailVerificationStatus()
+      if (!verified) {
+        setEmailOptText("Email (UNCONFIRMED)")
+      }
+    }
     getEmailOptText()
   }, [])
 

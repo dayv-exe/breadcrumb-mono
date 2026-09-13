@@ -1,3 +1,4 @@
+import { UserInitialDetails } from "@/api/userApi";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
@@ -145,8 +146,17 @@ export default function MapScreen() {
             bottomSheetRef.current?.collapse()
             handlePlaceSelected(id)
           }}
-          OnPersonSelect={id => {
+          OnPersonSelect={(id, displayName) => {
+            const user: UserInitialDetails = {
+              userid: id,
+              displayName: displayName
+            }
+            nav.push({
+              pathname: "/(protected)/user-profile",
+              params: user
+            })
 
+            closeSheet()
           }}
           sessionToken={sessionToken}
         />
@@ -187,9 +197,6 @@ export default function MapScreen() {
 
   const getPageName = (): string => {
     switch (mailbox) {
-      case "saved":
-        return "❤️ Saved"
-
       case "sent":
         return "Sent"
 

@@ -4,7 +4,7 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react-native";
-import { useState } from "react";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SharedValue, useAnimatedReaction } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
@@ -103,8 +103,14 @@ export default function CrumbFeed({ sheetPosition, screenHeight, bottomSheetRef,
         >
           {(feed?.size ?? 0) > 0 && <View>
             {feed &&
-              Array.from(feed).map(([friend_id, item]) => (
-                <CrumbFeedFriend key={friend_id} friendId={friend_id} feedItem={item} />
+              Array.from(feed).map(([friend_id, item], index) => (
+                <React.Fragment key={friend_id}>
+                  <CrumbFeedFriend friendId={friend_id} feedItem={item} />
+                  {
+                    index + 1 < feed.size &&
+                    <Spacer size="small" />
+                  }
+                </React.Fragment>
               ))
             }
           </View>}

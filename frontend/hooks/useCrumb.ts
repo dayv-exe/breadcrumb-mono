@@ -80,7 +80,7 @@ export const useCrumb = (): UseCrumbType => {
           const latest = await getLatestCrumbs(userid, lastCrumb);
 
           if (hasLatestCrumbs(latest)) {
-            await upsertCrumbs(userid, latest.crumbs);
+            await upsertCrumbs(latest.crumbs);
           }
         } catch (err) {
           console.error(err);

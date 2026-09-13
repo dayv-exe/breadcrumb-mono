@@ -1,5 +1,5 @@
 import { FeedItem } from "@/api/db/crumbsDb";
-import { UserSharedPageDetails } from "@/api/models/userDetails";
+import { getDisplayName, UserInitialDetails } from "@/api/userApi";
 import { Colors } from "@/constants/Colors";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -26,20 +26,14 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
 
   const router = useRouter()
 
-  const getName = () => {
-    if (!friend) return "<Unknown user>"
-    else if (friend.name) return friend.name
-    else return friend.nickname || "<Unknown user>"
-  }
-
   const [hasCrumb, setHasCrumb] = useState(feedItem.crumbs.length > 0)
   const textCol = useThemeColor({}, "text")
 
   const handleShowShared = () => {
     if (!friend) return
     setHasCrumb(false)
-    const userSharedDetails: UserSharedPageDetails = {
-      displayName: getName(),
+    const userSharedDetails: UserInitialDetails = {
+      displayName: getDisplayName(friend, false),
       userid: friend.userId,
     }
     router.push(
@@ -92,7 +86,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
             flexShrink: 1,
           }}
         >
-          <CustomLabel allowTruncate adaptToTheme bold={hasCrumb} fontSize={18} labelText={getName()} />
+          <CustomLabel allowTruncate adaptToTheme bold={hasCrumb} fontSize={16} labelText={getDisplayName(friend, false)} />
           <View
             style={{
               marginTop: 2,
@@ -104,18 +98,18 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
             <View style={{
               width: 12,
               height: 12,
-              backgroundColor: hasCrumb ? "red" : "transparent",
+              backgroundColor: hasCrumb ? Colors.light.vibrantButton : "transparent",
               borderRadius: 3,
               marginRight: 4,
               borderWidth: 2,
-              borderColor: hasCrumb ? "red" : Colors.light.vibrantButton,
+              borderColor: Colors.light.vibrantButton,
             }} />
             <CustomLabel allowTruncate adaptToTheme bold={hasCrumb} fontSize={13} labelText={
               hasCrumb ? `Tap to view` : feedItem.action
             }
               fade={!hasCrumb}
               customStyle={{
-                color: hasCrumb ? "red" : textCol
+                color: hasCrumb ? Colors.light.vibrantButton : textCol
               }}
             />
           </View>

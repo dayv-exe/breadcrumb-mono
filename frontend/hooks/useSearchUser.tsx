@@ -16,7 +16,7 @@ interface SearchUserState {
 }
 
 interface props {
-  onSelect: (userid: string) => void
+  onSelect: (userid: string, displayName: string) => void
 }
 
 export function useSearchUser({ onSelect }: props): SearchUserState {

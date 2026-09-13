@@ -33,7 +33,7 @@ export const getLatestCrumbs = async (userid: string, lastCrumb: Crumb | null): 
   const otherUser = lastCrumb ? userid === lastCrumb?.sender ? lastCrumb?.receiver : lastCrumb?.sender : undefined
   let url = `/crumbs${lastCrumb?.id ? `?id=${lastCrumb.id}` : ""}${otherUser ? `&otherUser=${otherUser}` : ""}${lastCrumb?.time ? `&time=${lastCrumb.time}` : ""}`
   const { data } = await axiosInstance.get<CrumbsResponse>(url)
-  upsertCrumbs(userid, data.message)
+  upsertCrumbs(data.message)
   return { crumbs: data.message, next: data.next }
 }
 

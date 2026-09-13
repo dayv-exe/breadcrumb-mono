@@ -1,5 +1,6 @@
 import { Suggestion } from "@/api/models/placeSearch"
 import { UserDetails } from "@/api/models/userDetails"
+import { getDisplayName } from "@/api/userApi"
 import { useThemeColor } from "@/hooks/use-theme-color"
 import { convertToPreferredDistance } from "@/utils/helpers"
 import { BedIcon, BeerIcon, BuildingIcon, BusFrontIcon, CameraIcon, CarTaxiFrontIcon, ClapperboardIcon, CoffeeIcon, CroissantIcon, GemIcon, HeartPulseIcon, InfoIcon, LandmarkIcon, MapPinIcon, ParkingCircleIcon, PlaneTakeoffIcon, SchoolIcon, ShoppingCartIcon, SportShoeIcon, TentIcon, TreesIcon, UtensilsCrossedIcon } from "lucide-react-native"
@@ -19,7 +20,7 @@ type placeSearchResult = {
 
 interface props {
   data: userSearchResult | placeSearchResult
-  onSelect: (id: string) => void
+  onSelect: (id: string, displayName: string) => void
 }
 
 const SearchResult = ({ data, onSelect }: props) => {
@@ -27,9 +28,7 @@ const SearchResult = ({ data, onSelect }: props) => {
   const strokeWidth = 2.5
   const makiOpacity = .6
   const fillCol = "transparent"
-  const getName = (): string => {
-    return data.type === "user" ? (data.user.name ? data.user.name : data.user.nickname ?? "<Unknown user>") : data.place.name
-  }
+
   return (
     <TouchableOpacity style={{
       flexDirection: "row",
@@ -41,7 +40,7 @@ const SearchResult = ({ data, onSelect }: props) => {
     }
     }
       onPress={() => {
-        onSelect(data.type === "user" ? data.user.userId : data.place.mapbox_id)
+        onSelect((data.type === "user" ? data.user.userId : data.place.mapbox_id), (data.type === "user" ? getDisplayName(data.user, true) : data.place.name))
       }}
     >
       {data.type === "place" && <View style={
@@ -110,7 +109,7 @@ const SearchResult = ({ data, onSelect }: props) => {
         marginRight: 5,
       }} />}
       < View style={{ flexGrow: 1, flexShrink: 1, marginLeft: 5, }}>
-        <CustomLabel labelText={getName()} adaptToTheme fontSize={15} bold customStyle={{
+        <CustomLabel labelText={data.type === "user" ? getDisplayName(data.user) : data.place.name} adaptToTheme fontSize={15} bold customStyle={{
           paddingVertical: 0,
         }} />
         {data.type === "place" && <CustomLabel allowTruncate fade labelText={convertToPreferredDistance(data.place.distance ?? 0) + " • " + (data.place.full_address ?? data.place.place_formatted)} adaptToTheme fontSize={13} customStyle={{

@@ -24,6 +24,7 @@ export type Crumb = {
   saved: boolean
   formattedAddress: string
   placename: string
+  mailbox: CrumbMailbox
 }
 
-export type CrumbMailbox = "sent" | "received" | "saved"
+export type CrumbMailbox = "sent" | "received"

@@ -1,4 +1,5 @@
 import { UserDetails } from "@/api/models/userDetails";
+import { getDisplayName } from "@/api/userApi";
 import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
 import { FRIENDSHIP_STATUS, ShowToast } from "@/constants/appConstants";
@@ -158,22 +159,6 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     return "View friends"
   }
 
-  const getName = (): string => {
-    if (isPending) {
-      return "loading..."
-    }
-    if (userData?.name) return userData?.name
-    else if (userData?.nickname) return userData.nickname
-    else return "<undefined>"
-  }
-
-  const getNickname = (): string => {
-    if (isPending) {
-      return "loading..."
-    }
-    return userData?.nickname ?? "<undefined>"
-  }
-
   async function handleRefresh() {
     refetch()
   }
@@ -270,7 +255,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   function handleFriendsClick() {
     router.push({
       pathname: "/view-friends",
-      params: { accountId: userId, nickname: getNickname() }
+      params: { accountId: userId, nickname: getDisplayName(userData, false) }
     })
   }
 
@@ -327,7 +312,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
               <View style={styles.nameContainer}>
                 {showBackButton && <CustomImageButton size={27} flat src={getIconImage("back", mode === "light")} handleClick={handleBackClick} />}
                 {/* NICKNAME LABEL */}
-                {!isPending && <CustomLabel fitContent adaptToTheme bold labelText={getNickname()} fontSize={19} allowTruncate />}
+                {!isPending && <CustomLabel fitContent adaptToTheme bold labelText={getDisplayName(userData, true)} fontSize={19} allowTruncate />}
                 {isPending && !tempNickname && <Skeleton height={20} borderRadius={10} />}
                 {isPending && tempNickname && <CustomLabel fitContent adaptToTheme bold labelText={tempNickname} />}
               </View>
@@ -369,10 +354,11 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
             <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
               <Spacer size="small" />
               <View style={styles.profileHeader}>
-                <CustomProfilePictureCircle size={90} nickname={userData?.nickname} userId={userData?.userId} />
+                {!isPending && <CustomProfilePictureCircle size={90} nickname={userData?.nickname} userId={userData?.userId} />}
+                {isPending && <Skeleton height={90} width={90} borderRadius="100%" />}
                 <Spacer />
                 <View style={styles.profileAside}>
-                  {!isPending && <CustomLabel fontSize={16} labelText={getName()} textAlign="left" adaptToTheme />}
+                  {!isPending && <CustomLabel fontSize={16} labelText={getDisplayName(userData, false)} textAlign="left" adaptToTheme />}
                   {isPending && <Skeleton height={20} width={100} borderRadius={10} />}
                   <Spacer size="tiny" />
                   {!isPending && <CustomButton labelText={getFriendsText()} handleClick={handleFriendsClick} squashed type="theme-faded" />}
@@ -388,7 +374,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
                 <>
                   <Spacer size="big" />
                   <Spacer size="big" />
-                  <AddFriendBody imgSrc={getIconImage("bigAddFriend", mode === "light")} name={getName() ?? getNickname()} requestStatus={friendshipStatus} handleFriendBtnClick={handleFriendshipAction} handleAcceptReq={handleAcceptFriendRequest} handleRejectReq={handleRejectFriendRequest}
+                  <AddFriendBody imgSrc={getIconImage("bigAddFriend", mode === "light")} name={getDisplayName(userData, false)} requestStatus={friendshipStatus} handleFriendBtnClick={handleFriendshipAction} handleAcceptReq={handleAcceptFriendRequest} handleRejectReq={handleRejectFriendRequest}
                     acceptPending={acceptReqPending}
                     rejectPending={rejectReqPending}
                     handleFriendshipPending={sendReqPending || unsendReqPending}
