@@ -351,7 +351,7 @@ export default function ProfileSettingsScreen() {
       const file = await upload({
         id: "",
         localUri: (await original).uri,
-        thumbnailUri: (await thumbnail).uri,
+        thumbnail: (await thumbnail).uri,
         type: "profilePhoto",
         resizeMode: "contain",
         uploadState: defaultMediaDataUploadState(),

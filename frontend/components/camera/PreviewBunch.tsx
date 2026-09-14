@@ -1,5 +1,4 @@
 import { useMediaStore } from "@/utils/mediaStore";
-import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Reanimated from "react-native-reanimated";
 import { useShallow } from "zustand/shallow";
@@ -36,7 +35,7 @@ export default function PreviewBunch({ style, size }: props) {
                   key={index}
                   media={media}
                   index={index}
-                  src={media.type === "video" && media.thumbnailUri ? media.thumbnailUri : media.localUri}
+                  src={media.type === "video" && media.thumbnail ? media.thumbnail : media.localUri}
                   size={SIZE}
                   animateIn={index === mediaPreview.length - 1}
                 />

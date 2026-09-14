@@ -4,6 +4,10 @@ allow user manually select location if accuracy poor
 improved background media processing
 pre-emptive media uploads
 
+completely rewrite profile settings
+completely rewrite user account management
+completely rewrite choosing profile picture from gallery
+
 crumb lock/unlocked and opened\unopened state management
 remove url signing for profile picture thumbnails
 add custom user location puck
@@ -14,6 +18,8 @@ chat list view
 cluster view
 chat ui view
 add user search to search tab in map page
+
+fix all app permissions
 
 
 friend request accept from list

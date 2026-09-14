@@ -142,7 +142,7 @@ export function useCamera(): useCameraReturnType {
               id: uuidv4(),
               type: "video",
               localUri: path,
-              thumbnailUri: thumbnail,
+              thumbnail: thumbnail,
               resizeMode: "cover",
               uploadState: defaultMediaDataUploadState(),
             }

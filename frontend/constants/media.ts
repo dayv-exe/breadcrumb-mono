@@ -19,7 +19,7 @@ export function defaultMediaDataUploadState(): UploadState {
 export type MediaData = {
   id: string
   localUri: string
-  thumbnailUri?: string
+  thumbnail?: string
   uploadState: UploadState
   type: MediaType;
   duration?: number;

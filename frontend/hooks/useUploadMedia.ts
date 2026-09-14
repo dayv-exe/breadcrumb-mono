@@ -6,7 +6,7 @@ import { File } from "expo-file-system";
 
 export function deleteUploadedFilesLocally(processedMedia: MediaData[]) {
   for (const med of processedMedia) {
-    for (const path of [med.localUri, med.thumbnailUri]) {
+    for (const path of [med.localUri, med.thumbnail]) {
       if (!path) continue;
       try {
         const f = new File(path);
@@ -107,7 +107,7 @@ export function useUploadMedia({
 
       const validFile = validFiles[0];
 
-      const hasThumbnail = validFile.thumbnail && media.thumbnailUri
+      const hasThumbnail = validFile.thumbnail && media.thumbnail
       const thumbnailStorageKey = validFile.thumbnail?.mediaKey ?? ""
 
       try {
@@ -117,9 +117,9 @@ export function useUploadMedia({
         }
 
         if (hasThumbnail) {
-          if (!uploadedParts.has(media.thumbnailUri!)) {
+          if (!uploadedParts.has(media.thumbnail!)) {
             await uploadFile(validFile.thumbnail!);
-            uploadedParts.add(media.thumbnailUri!);
+            uploadedParts.add(media.thumbnail!);
           }
         }
 

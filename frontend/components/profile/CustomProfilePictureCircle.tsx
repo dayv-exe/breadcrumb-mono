@@ -30,7 +30,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const bgCol = useThemeColor({}, "fadedBackgroundElevated");
   const userCol = userId ? colorForUserId(userId) : null
 
-  const url = (profilePicture && !profilePictureError) ? profilePicture?.thumbnailUri : null;
+  const url = (profilePicture && !profilePictureError) ? profilePicture?.thumbnail : null;
 
   nickname = nickname ?? ((userDetails && !profilePictureError) ? userDetails.nickname ?? "" : "")
   const parts = nickname.split(/[._]/);
