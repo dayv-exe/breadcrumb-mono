@@ -6,7 +6,7 @@ import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
 import CustomScrollView from "@/components/views/CustomScrollView";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useAuthStore } from "@/utils/authStore";
+import { useUserManagement } from "@/hooks/useUserManagement";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -29,7 +29,7 @@ export default function LoginScreen() {
 
   const [isPending, setIsPending] = useState(false)
 
-  const { login } = useAuthStore()
+  const { login } = useUserManagement()
 
   const handleClosePopup = () => {
     setPopupDetails({

@@ -1,4 +1,4 @@
-import { DeleteLocalDatabase, logAllTable } from "@/api/db/InitDb";
+import { DeleteLocalDatabase, logAllTables } from "@/api/db/InitDb";
 import { extractBackendMsg } from "@/api/models/apiResponse";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
@@ -22,7 +22,7 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useImagePicker } from "@/hooks/useImagePicker";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useUploadMedia } from "@/hooks/useUploadMedia";
-import { useAuthStore } from "@/utils/authStore";
+import { useUserManagement } from "@/hooks/useUserManagement";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -70,7 +70,7 @@ function getIconImage(name: keyof typeof icons, darkMode: boolean) {
 }
 
 export default function ProfileSettingsScreen() {
-  const { logout } = useAuthStore()
+  const { logout } = useUserManagement()
   const {
     userid,
   } = useLocalSearchParams<{ userid: string }>()
@@ -263,7 +263,7 @@ export default function ProfileSettingsScreen() {
               text1: "Logging local db...",
               type: "info",
             })
-            logAllTable("crumbs")
+            logAllTables()
           }
         },
         {
@@ -272,7 +272,7 @@ export default function ProfileSettingsScreen() {
               text1: "Logging local db...",
               type: "info",
             })
-            logAllTable("places")
+            logAllTables()
           }
         },
         {

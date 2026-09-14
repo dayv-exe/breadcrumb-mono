@@ -8,7 +8,7 @@ import CustomScrollView from "@/components/views/CustomScrollView";
 import { inputMode } from "@/constants/customInputModeTypes";
 import { emailRegex } from "@/constants/regexes";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useAuthStore } from "@/utils/authStore";
+import { useUserManagement } from "@/hooks/useUserManagement";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import Toast from "react-native-toast-message";
@@ -37,7 +37,7 @@ export default function ResetPasswordHomeScreen() {
 
   const [step, setStep] = useState(1)
 
-  const { resetPasswordVerifyEmail, resetPassword } = useAuthStore()
+  const { resetPasswordVerifyEmail, resetUserPassword } = useUserManagement()
 
   const getProceedBtnText = () => {
     return step === 1 ? "Send verification code" :
@@ -64,7 +64,7 @@ export default function ResetPasswordHomeScreen() {
         setStep(3)
       } else { showToast("Invalid code!") }
     } else if (step === 3) {
-      const response = await resetPassword(email, code, newPassword)
+      const response = await resetUserPassword(email, code, newPassword)
       if (!response.isSuccess) {
         setModalDetails({
           isVisible: true,

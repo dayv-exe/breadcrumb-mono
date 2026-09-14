@@ -12,7 +12,7 @@ export function unsubscribeFromCurrentDbFile() {
 }
 
 function getDbName() {
-  const userid = useAuthStore.getState().userId
+  const userid = useAuthStore.getState().userid
   return `${userid}.db`
 }
 

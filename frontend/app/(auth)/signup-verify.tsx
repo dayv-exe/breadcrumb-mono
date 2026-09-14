@@ -9,22 +9,29 @@ import CustomScrollView from "@/components/views/CustomScrollView";
 import { useAbortSignup } from "@/hooks/queries/useSignupApi";
 import { useCreateUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useUserManagement } from "@/hooks/useUserManagement";
 import { useAuthStore } from "@/utils/authStore";
 import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
+import { useShallow } from "zustand/shallow";
 
 export default function SignupVerifyScreen() {
   const bgCol = useThemeColor({}, "background")
   const [code, setCode] = useState("")
-  const { verifyEmail, resendSignUp, userEmail, userFullname, userNickname } = useAuthStore()
+  const { verifyEmail, resendSignUp, cancelSignup } = useUserManagement()
+  const { email, fullname, nickname, userid } = useAuthStore(useShallow(s => ({
+    email: s.email,
+    fullname: s.fullname,
+    nickname: s.nickname,
+    userid: s.userid,
+  })))
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: `Are you sure you want to cancel the signup process?` })
-  const { cancelSignup, userId } = useAuthStore()
   const [activityIndicators, setActivityIndicators] = useState<{ verifyBtn: boolean, resendBtn: boolean }>({
     verifyBtn: false,
     resendBtn: false
   })
-  const resetCodeCount = useRef(0)
+  const resetCodeCountRef = useRef(0)
 
   const { mutate: abort, isError: abortIsError, error: abortError, isPending: abortIsPending } = useAbortSignup()
   const { mutate: createUser, isError: createUserIsError, error: createUserError, isPending: createUserIsPending } = useCreateUser()
@@ -81,14 +88,14 @@ export default function SignupVerifyScreen() {
     } else if (!res.sub) {
       handleErrorGracefully("no sub returned")
     } else if (res.isSuccess) {
-      if (!userNickname) {
+      if (!nickname) {
         handleErrorGracefully("No nickname chosen!")
         return
       }
       createUser({
-        name: userFullname ?? "",
-        nickname: userNickname,
-        sub: res.sub
+        displayName: fullname ?? "",
+        displayNickname: nickname,
+        userid: res.sub
       }, {
         onSuccess: user => {
           res.loginFn()
@@ -101,7 +108,7 @@ export default function SignupVerifyScreen() {
   }
 
   const handleResendCode = async () => {
-    if (resetCodeCount.current >= 3) return
+    if (resetCodeCountRef.current >= 3) return
 
     setActivityIndicators({
       ...activityIndicators, resendBtn: true
@@ -137,8 +144,16 @@ export default function SignupVerifyScreen() {
   }
 
   const handleLeave = () => {
-    abort(userId) // delete from cognito
+    abort(userid) // delete from cognito
     cancelSignup()
+  }
+
+  const isResendDisabled = () => {
+    if (resetCodeCountRef.current < 3) {
+      return false
+    }
+
+    return true
   }
 
   return (
@@ -147,13 +162,13 @@ export default function SignupVerifyScreen() {
       <CustomLabel textAlign="center" labelText="Step 4 of 4" adaptToTheme fade />
       <CustomScrollView>
         <Spacer />
-        <CustomInput adaptToTheme value={code} setValue={setCode} labelText="Verification code:" infoText={`enter the code we sent to ${userEmail}`} showInfoTextAlways />
+        <CustomInput adaptToTheme value={code} setValue={setCode} labelText="Verification code:" infoText={`enter the code we sent to ${email}`} showInfoTextAlways />
         <Spacer />
 
         <View style={styles.buttonView}>
           <CustomButton type="prominent" labelText="Verify" handleClick={handleVerify} isPending={activityIndicators.verifyBtn} />
           <Spacer />
-          <CustomButton type="theme-faded" labelText="Resend verification code" handleClick={handleResendCode} isPending={activityIndicators.resendBtn} disabled={resetCodeCount.current >= 3} />
+          <CustomButton type="theme-faded" labelText="Resend verification code" handleClick={handleResendCode} isPending={activityIndicators.resendBtn} />
           <Spacer size="big" />
           <CustomButton labelText="Cancel" adaptToTheme type="text" handleClick={handleCancelRegistration} />
         </View>

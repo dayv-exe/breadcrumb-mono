@@ -9,7 +9,7 @@ import CustomScrollView from "@/components/views/CustomScrollView";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useCheckEmail } from "@/hooks/useCheckEmail";
 import { useCheckPassword } from "@/hooks/useCheckPassword";
-import { useAuthStore } from "@/utils/authStore";
+import { useUserManagement } from "@/hooks/useUserManagement";
 import { useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -31,13 +31,16 @@ export default function SignupDetailsScreen() {
   const { email: emailStr, setEmail, emailInfoText, emailInputMode, emailValid } = useCheckEmail()
   const { password: passwordStr, passwordInfoText, passwordInputMode, passwordValid, setPassword } = useCheckPassword()
 
-  const { signUp } = useAuthStore()
+  const { signup } = useUserManagement()
 
   const handleSendVerification = async () => {
     setShowActivityIndicator(true)
-    userDetails.email = emailStr
-    userDetails.password = passwordStr
-    const response = await signUp(userDetails)
+    setUserDetails({
+      ...userDetails,
+      password: passwordStr,
+      email: emailStr
+    })
+    const response = await signup(userDetails)
 
     if (!response.isSuccess) {
       let message = "🤔 Something went wrong, try again."
@@ -68,7 +71,7 @@ export default function SignupDetailsScreen() {
 
   return (
     <CustomKeyboardAvoidingView backgroundColor={bgCol}>
-      <CustomModal show={popupDetails.isVisible} closeBtnText="Edit email" secondaryBtnText="Send verification code" message={popupDetails.message} handleClose={() => setPopupDetails({ ...popupDetails, isVisible: false })} handleSecondaryAction={handleSendVerification} />
+      <CustomModal show={popupDetails.isVisible} primaryBtnText="Edit email" secondaryBtnText="Send verification code" message={popupDetails.message} handleClose={() => setPopupDetails({ ...popupDetails, isVisible: false })} handleSecondaryAction={handleSendVerification} />
       <CustomLabel adaptToTheme fade textAlign="center" labelText="Step 3 of 4" />
       <CustomScrollView>
         <CustomInput adaptToTheme keyboardType="email-address" value={emailStr} setValue={setEmail} labelText="Email:" infoText={emailInfoText} showInfoTextAlways inputMode={emailInputMode} forceLowercase />

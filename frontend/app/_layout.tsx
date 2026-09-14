@@ -2,6 +2,7 @@ import { BottomSheetProvider } from '@/components/bottomsheet/BottomSheetContext
 import { BigActivityIndicatorProvider } from '@/components/modals/BigActivityIndicatorContext';
 import { ModalProvider } from '@/components/modals/ModalContext';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
+import { useUserManagement } from '@/hooks/useUserManagement';
 import { useAuthStore } from '@/utils/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Amplify } from "aws-amplify";
@@ -127,7 +128,8 @@ const darkToastConfig = {
 }
 
 export default function RootLayout() {
-  const { isLoggedIn, checkAuthStatus } = useAuthStore()
+  const { checkAuthStatus } = useUserManagement()
+  const isLoggedIn = useAuthStore(s => s.isLoggedIn)
   const mode = useColorScheme()
 
   useEffect(() => {

@@ -1,15 +1,15 @@
 import { searchUser } from "@/api/searchApi";
 import { createUser, deleteUser, editUser, getProfilePicture, getUser, updateProfilePicture } from "@/api/userApi";
 import { TIME } from "@/constants/appConstants";
-import { useAuthStore } from "@/utils/authStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useUserManagement } from "../useUserManagement";
 
 export const useCreateUser = () => useMutation({
   mutationFn: createUser
 })
 
 export const useDeleteUser = () => {
-  const logout = useAuthStore(s => s.logout)
+  const { logout } = useUserManagement()
   return useMutation({
     mutationFn: () => deleteUser(),
     onSuccess: () => {

@@ -45,7 +45,7 @@ function newCrumbFeature(
 
 export const useCrumb = (): UseCrumbType => {
   const [mailbox, setMailbox] = useState<CrumbMailbox>("received")
-  const userid = useAuthStore(s => s.userId)
+  const userid = useAuthStore(s => s.userid)
 
   const { data: crumbs = [] } = useGetAllCrumbs(mailbox)
 
