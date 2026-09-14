@@ -193,7 +193,7 @@ export default function MapScreen() {
     // focus map on place or drop pin or something
   }
 
-  const headerOpacity = useRef(new Animated.Value(1)).current;
+  const [headerOpacity] = useState(() => new Animated.Value(1));
 
   const getPageName = (): string => {
     switch (mailbox) {
@@ -266,7 +266,7 @@ export default function MapScreen() {
               paddingHorizontal: 0,
             }}
           >
-            <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={25} customStyle={{ color: getHeaderColors().fgColor }} />
+            <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={27} customStyle={{ color: getHeaderColors().fgColor }} />
             <Spacer size="tiny" />
             <ChevronDownIcon stroke={getHeaderColors().fgColor} strokeWidth={2.5} size={21} />
           </CustomButton>

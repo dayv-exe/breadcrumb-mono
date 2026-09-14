@@ -8,7 +8,6 @@ let txChain: Promise<unknown> = Promise.resolve();
 
 export function unsubscribeFromCurrentDbFile() {
   dbPromise = null
-  console.log("new db name: ", getDbName())
 }
 
 function getDbName() {

@@ -2,7 +2,6 @@ import { unsubscribeFromCurrentDbFile } from "@/api/db/InitDb"
 import { signupDetails } from "@/api/models/userDetails"
 import { useAuthStore } from "@/utils/authStore"
 import { confirmResetPassword, confirmSignUp, deleteUser, fetchAuthSession, getCurrentUser, resendSignUpCode, resetPassword, signIn, SignInOutput, signOut, signUp } from "@aws-amplify/auth"
-import { useQueryClient } from "@tanstack/react-query"
 
 interface iResponse { isSuccess: boolean, info?: any }
 interface iCreateUserResponse { isSuccess: boolean, sub?: string, info?: any, loginFn: () => Promise<void> }
@@ -22,7 +21,6 @@ interface state {
 }
 
 export function useUserManagement(): state {
-  const qc = useQueryClient()
 
   function clearUserAuthState() {
     useAuthStore.setState({
@@ -38,7 +36,9 @@ export function useUserManagement(): state {
 
   function resetLocalCaches() {
     unsubscribeFromCurrentDbFile()
-    qc.invalidateQueries()
+    // qc.invalidateQueries()
+
+    console.log(useAuthStore.getState().userid)
   }
 
   async function login(email: string, password: string, userDetails: SignInOutput | null): Promise<iResponse> {
@@ -76,7 +76,6 @@ export function useUserManagement(): state {
 
   async function checkAuthStatus() {
     try {
-      resetLocalCaches()
       const session = await fetchAuthSession()
       useAuthStore.setState({
         isLoggedIn: !!session.userSub,
@@ -187,6 +186,7 @@ export function useUserManagement(): state {
   async function logout(): Promise<iResponse> {
     try {
       await signOut()
+      clearUserAuthState()
       resetLocalCaches()
       return { isSuccess: true }
     } catch (error) {
