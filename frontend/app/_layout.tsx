@@ -1,7 +1,6 @@
 import { BottomSheetProvider } from '@/components/bottomsheet/BottomSheetContext';
 import { BigActivityIndicatorProvider } from '@/components/modals/BigActivityIndicatorContext';
 import { ModalProvider } from '@/components/modals/ModalContext';
-import { useDbInvalidation } from '@/hooks/queries/useCrumbDbQueries';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
 import { useAuthStore } from '@/utils/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -13,11 +12,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { BaseToast, ToastProps } from 'react-native-toast-message';
 
 const queryClient = new QueryClient()
-function DbListener() {
-  useDbInvalidation();
-  return null;
-}
-
 const toastConfig = {
   info: (props: ToastProps) => {
     return (
@@ -152,7 +146,6 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-        <DbListener />
         <BigActivityIndicatorProvider>
           <ModalProvider>
             <BottomSheetProvider>

@@ -5,7 +5,7 @@ import { useAuthStore } from "@/utils/authStore";
 import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
 import { useCallback, useMemo, useState } from "react";
-import { useGetAllCrumbs } from "./queries/useCrumbDbQueries"; // adjust path
+import { useGetAllCrumbs } from "./queries/useLocalDatabase"; // adjust path
 
 type UseCrumbType = {
   crumbFeatures: FeatureCollection

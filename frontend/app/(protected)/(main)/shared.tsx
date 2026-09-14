@@ -5,7 +5,7 @@ import CrumbSharedItem from "@/components/crumbs/CrumbSharedItem";
 import CustomLabel from "@/components/CustomLabel";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import Spacer from "@/components/Spacer";
-import { useCrumbsWith } from "@/hooks/queries/useCrumbDbQueries";
+import { useCrumbsWith } from "@/hooks/queries/useLocalDatabase";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocationStore } from "@/utils/useLocationStore";
 import { colorForUserId } from "@/utils/userColor";

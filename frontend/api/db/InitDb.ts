@@ -1,12 +1,23 @@
-import { LOCAL_DATABASE_NAME, RADIUS_OF_EARTH_M } from "@/constants/appConstants";
+import { RADIUS_OF_EARTH_M } from "@/constants/appConstants";
+import { useAuthStore } from "@/utils/authStore";
 import * as SQLite from "expo-sqlite";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 let txChain: Promise<unknown> = Promise.resolve();
 
+export function unsubscribeFromCurrentDbFile() {
+  dbPromise = null
+  console.log("new db name: ", getDbName())
+}
+
+function getDbName() {
+  const userid = useAuthStore.getState().userId
+  return `${userid}.db`
+}
+
 async function openAndInit() {
-  const db = await SQLite.openDatabaseAsync(LOCAL_DATABASE_NAME, {
+  const db = await SQLite.openDatabaseAsync(getDbName(), {
     enableChangeListener: true,
   });
   await db.execAsync(`
@@ -81,11 +92,22 @@ export function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: n
   return RADIUS_OF_EARTH_M * 2 * Math.asin(Math.sqrt(h));
 }
 
-export async function logAllTable(table: string) {
+export async function logAllTables() {
   const db = await getDb();
-  const rows = await db.getAllAsync(`SELECT * FROM ${table}`);
-  console.log(`${table} (${rows.length} rows):`);
-  console.log(JSON.stringify(rows, null, 2));
+  const tables = await db.getAllAsync<{ name: string }>(
+    `SELECT name FROM sqlite_master
+     WHERE type = 'table'
+       AND name NOT LIKE 'sqlite_%'
+     ORDER BY name;`
+  );
+
+  console.log(`Found ${tables.length} table(s):`);
+  for (const { name } of tables) {
+    const countRow = await db.getFirstAsync<{ c: number }>(
+      `SELECT COUNT(*) AS c FROM "${name}";`
+    );
+    console.log(`  ${name} — ${countRow?.c ?? 0} rows`);
+  }
 }
 
 export async function DeleteLocalDatabase(onSuccess?: () => void, onFailure?: (e: unknown) => void) {
@@ -101,6 +123,6 @@ export async function DeleteLocalDatabase(onSuccess?: () => void, onFailure?: (e
     }
   }
 
-  await SQLite.deleteDatabaseAsync(LOCAL_DATABASE_NAME);
+  await SQLite.deleteDatabaseAsync(getDbName());
   onSuccess?.();
 }

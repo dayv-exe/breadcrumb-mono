@@ -1,17 +1,27 @@
 import { getAllCrumbs, getCrumbFeed, getCrumbFromLocal, getCrumbsWith } from "@/api/db/crumbsDb";
+import { unsubscribeFromCurrentDbFile } from "@/api/db/InitDb";
 import { CrumbMailbox } from "@/api/models/crumb";
 import { Coordinates } from "@/utils/useLocationStore";
 import {
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
-import React from "react";
+import { useEffect } from "react";
 import { useWatchDbChanges } from "../useWatchDbChanges";
 
 const WATCHED_TABLES = new Set(["crumbs", "chats", "places"]);
 
-export function useDbInvalidation() {
+export function useDatabaseListener() {
   const qc = useQueryClient();
+  useEffect(() => {
+    qc.invalidateQueries()
+    unsubscribeFromCurrentDbFile()
+
+    return () => {
+      qc.invalidateQueries()
+      unsubscribeFromCurrentDbFile()
+    }
+  }, [])
 
   const mbReceived: CrumbMailbox = "received"
   const mbSent: CrumbMailbox = "sent"
@@ -24,11 +34,6 @@ export function useDbInvalidation() {
       qc.invalidateQueries({ queryKey: ["crumbs", mbSent] })
     }
   })
-}
-
-export function DbBridge({ children }: { children: React.ReactNode }) {
-  useDbInvalidation();
-  return <>{children}</>;
 }
 
 export function useCrumbFeed() {

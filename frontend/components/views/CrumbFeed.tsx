@@ -1,4 +1,4 @@
-import { useCrumbFeed } from "@/hooks/queries/useCrumbDbQueries";
+import { useCrumbFeed } from "@/hooks/queries/useLocalDatabase";
 import { useCenterOfBottomSheet } from "@/hooks/useCenterOfBottomSheet";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";

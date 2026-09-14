@@ -1,16 +1,11 @@
-import { DeleteLocalDatabase } from "@/api/db/InitDb"
 import { signupDetails } from "@/api/models/userDetails"
-import { AuthError, confirmResetPassword, confirmSignUp, getCurrentUser, resendSignUpCode, resetPassword, signIn, SignInOutput, signOut, signUp } from "aws-amplify/auth"
+import { confirmResetPassword, confirmSignUp, deleteUser, getCurrentUser, resendSignUpCode, resetPassword, signIn, SignInOutput, signOut, signUp } from "aws-amplify/auth"
 import { deleteItemAsync, getItem, setItem } from "expo-secure-store"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
 interface iResponse { isSuccess: boolean, info?: any }
 interface iCreateUserResponse { isSuccess: boolean, sub?: string, info?: any, loginFn: () => Promise<void> }
-
-function isAuthError(error: unknown): error is AuthError {
-  return typeof error === "object" && error !== null && 'name' in error
-}
 
 type UserState = {
   isLoggedIn: boolean
@@ -24,6 +19,7 @@ type UserState = {
   login: (email: string, password: string, userDetails: SignInOutput | null) => Promise<iResponse>
   logout: () => Promise<iResponse>
   signUp: (userDetails: signupDetails) => Promise<iResponse>
+  deleteUser: () => Promise<iResponse>
   resetPasswordVerifyEmail: (email: string) => Promise<iResponse>
   resetPassword: (email: string, code: string, newPassword: string) => Promise<iResponse>
   checkAuthStatus: () => Promise<void>
@@ -35,7 +31,7 @@ type UserState = {
 }
 
 export const useAuthStore = create(
-  persist<UserState>((set) => ({
+  persist<UserState>((set, get) => ({
     isLoggedIn: false,
     showEmailVerificationPage: false,
     userEmail: "",
@@ -47,15 +43,17 @@ export const useAuthStore = create(
     clearUserDetails: async () => {
       set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userNickname: "", userFullname: "" })
     },
-    login: async (email: string, password: string, userDetails: SignInOutput | null) => {
+    login: async (email: string, password: string, userDetails: SignInOutput | null): Promise<iResponse> => {
       try {
         const user = userDetails ? userDetails : await signIn({
           username: email,
           password: password
         })
 
+        const { userId } = await getCurrentUser()
+
         if (user.isSignedIn) {
-          set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userNickname: "", userFullname: "" })
+          set({ isLoggedIn: true, showEmailVerificationPage: false, userEmail: "", userPassword: "", userNickname: "", userFullname: "", userId: userId })
         }
 
         return { isSuccess: user.isSignedIn }
@@ -67,12 +65,9 @@ export const useAuthStore = create(
     },
     logout: async () => {
       try {
-        await DeleteLocalDatabase(async () => {
-          const user = await signOut()
-          set({ isLoggedIn: false })
-          return { isSuccess: true }
-        })
-        return { isSuccess: false }
+        await signOut()
+        set({ isLoggedIn: false, userId: "" })
+        return { isSuccess: true }
       } catch (error) {
         console.log("error signing out: ", error)
         return { isSuccess: false, info: error }
@@ -97,9 +92,8 @@ export const useAuthStore = create(
           set({ showEmailVerificationPage: true, userEmail: userDetails.email.toLowerCase(), userPassword: userDetails.password, userId: user.userId, userFullname: userDetails.fullname, userNickname: userDetails.username })
           return { isSuccess: true }
         } else {
-          const { login } = useAuthStore.getState()
-          login(userDetails.email, userDetails.password, null)
-          return { isSuccess: true }
+          const response = await get().login(userDetails.email, userDetails.password, null)
+          return response
         }
 
       } catch (error) {
@@ -111,20 +105,28 @@ export const useAuthStore = create(
       await signOut()
       set({ showEmailVerificationPage: false, userEmail: "", userPassword: "", userFullname: "", userNickname: "" })
     },
+    deleteUser: async () => {
+      try {
+        await deleteUser()
+        return { isSuccess: true, }
+      } catch (error) {
+        return { isSuccess: false, info: error }
+      }
+    },
     checkAuthStatus: async () => {
       try {
         const user = await getCurrentUser()
         if (user.username.length > 0) {
-          set({ isLoggedIn: true })
+          set({ isLoggedIn: true, userId: user.userId })
         } else {
-          set({ isLoggedIn: false })
+          set({ isLoggedIn: false, userId: "" })
         }
       } catch {
-        set({ isLoggedIn: false })
+        set({ isLoggedIn: false, userId: "" })
       }
     },
     verifyEmail: async (code: string) => {
-      const { userEmail, userPassword } = useAuthStore.getState()
+      const { userEmail, userPassword } = get()
       try {
         const user = await confirmSignUp({
           username: userEmail,
@@ -145,7 +147,7 @@ export const useAuthStore = create(
           isSuccess: user.isSignUpComplete,
           sub: userId,
           loginFn: async () => {
-            await useAuthStore.getState().login(userEmail, userPassword, userSignin ?? null)
+            await get().login(userEmail, userPassword, userSignin ?? null)
           },
         }
       } catch (error) {
@@ -160,7 +162,7 @@ export const useAuthStore = create(
       }
     },
     resendSignUp: async () => {
-      const { userEmail } = useAuthStore.getState()
+      const { userEmail } = get()
       try {
         await resendSignUpCode({
           username: userEmail
