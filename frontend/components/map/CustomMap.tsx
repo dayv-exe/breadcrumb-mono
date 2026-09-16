@@ -369,7 +369,7 @@ export default function CustomMap({
           )}
 
           <Mapbox.UserLocation
-            visible={false}
+            visible
             minDisplacement={5}
             requestsAlwaysUse
             showsUserHeadingIndicator

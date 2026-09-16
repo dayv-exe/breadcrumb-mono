@@ -11,8 +11,9 @@ export function unsubscribeFromCurrentDbFile() {
 }
 
 function getDbName() {
-  const userid = useAuthStore.getState().userid
-  return `${userid}.db`
+  const userid = useAuthStore.getState().userid;
+  if (!userid) throw new Error("Cannot open DB: no authenticated user");
+  return `${userid}.db`;
 }
 
 async function openAndInit() {
@@ -32,7 +33,8 @@ async function openAndInit() {
       sender TEXT NOT NULL,
       receiver TEXT NOT NULL,
       mailbox TEXT NOT NULL CHECK(mailbox IN ('sent', 'received')),
-      unlocked INTEGER NOT NULL DEFAULT 0 CHECK(unlocked IN (0, 1)),
+      place_unlocked INTEGER NOT NULL DEFAULT 0 CHECK(place_unlocked IN (0, 1)),
+      distance_unlocked INTEGER NOT NULL DEFAULT 0 CHECK(distance_unlocked IN (0, 1)),
       opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
       time INTEGER NOT NULL,
       locationSelectionManner TEXT NOT NULL CHECK(locationSelectionManner IN ('gps', 'label', 'dropped-pin', 'none')),
@@ -57,7 +59,7 @@ async function openAndInit() {
 
     CREATE INDEX IF NOT EXISTS idx_crumbs_lockable
       ON crumbs(latitude)
-      WHERE unlocked = 0;
+      WHERE place_unlocked = 0 AND distance_unlocked;
 
     CREATE INDEX IF NOT EXISTS idx_crumbs_mailbox_time
       ON crumbs(mailbox, time);
@@ -70,7 +72,10 @@ async function openAndInit() {
 
 export function getDb() {
   if (!dbPromise) {
-    dbPromise = openAndInit();
+    dbPromise = openAndInit().catch((e) => {
+      dbPromise = null;
+      throw e;
+    });
   }
   return dbPromise;
 }
@@ -91,37 +96,28 @@ export function distanceMeters(aLat: number, aLon: number, bLat: number, bLon: n
   return RADIUS_OF_EARTH_M * 2 * Math.asin(Math.sqrt(h));
 }
 
-export async function logAllTables() {
+export async function logAllTable(table: string) {
   const db = await getDb();
-  const tables = await db.getAllAsync<{ name: string }>(
-    `SELECT name FROM sqlite_master
-     WHERE type = 'table'
-       AND name NOT LIKE 'sqlite_%'
-     ORDER BY name;`
-  );
-
-  console.log(`Found ${tables.length} table(s):`);
-  for (const { name } of tables) {
-    const countRow = await db.getFirstAsync<{ c: number }>(
-      `SELECT COUNT(*) AS c FROM "${name}";`
-    );
-    console.log(`  ${name} — ${countRow?.c ?? 0} rows`);
-  }
+  const rows = await db.getAllAsync(`SELECT * FROM ${table}`);
+  console.log(`${table} (${rows.length} rows):`);
+  console.log(JSON.stringify(rows, null, 2));
 }
 
 export async function DeleteLocalDatabase(onSuccess?: () => void, onFailure?: (e: unknown) => void) {
-  if (dbPromise) {
-    try {
-      const db = await dbPromise;
-      await db.closeAsync();
-    } catch (e) {
-      console.warn("error closing db before delete:", e);
-      onFailure?.(e);
-    } finally {
-      dbPromise = null;
+  withDbLock(async () => {
+    if (dbPromise) {
+      try {
+        const db = await dbPromise;
+        await db.closeAsync();
+      } catch (e) {
+        console.warn("error closing db before delete:", e);
+        onFailure?.(e);
+      } finally {
+        dbPromise = null;
+      }
     }
-  }
 
-  await SQLite.deleteDatabaseAsync(getDbName());
-  onSuccess?.();
+    await SQLite.deleteDatabaseAsync(getDbName());
+    onSuccess?.();
+  })
 }

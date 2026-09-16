@@ -54,9 +54,12 @@ export default function Shared() {
         <Spacer size="small" />
         {
           crumbs &&
-          crumbs.map(crumb => (
-            <CrumbSharedItem key={crumb.id} crumb={crumb} />
-          ))
+          crumbs.map(crumb => {
+            console.log("crumb: ", crumb)
+            return (
+              <CrumbSharedItem key={crumb.id} crumb={crumb} />
+            )
+          })
         }
         <PreviewBunch />
       </ScrollView>

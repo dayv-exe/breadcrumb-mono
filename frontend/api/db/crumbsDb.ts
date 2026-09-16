@@ -1,3 +1,6 @@
+// TODO VERY IMPORTANTÈ: separate this functions into different files.
+
+import { Coordinates } from "@/utils/useLocationStore";
 import { Crumb, CrumbMailbox } from "../models/crumb";
 import { distanceMeters, getDb, withDbLock } from "./InitDb";
 
@@ -13,6 +16,10 @@ type UpsertTable<T> = {
   columnMerge?: Record<string, MergeOptions>
   toRows: (item: T) => SqlValue[][]
 };
+type iCandidate = Crumb & {
+  place_unlocked: 0 | 1
+  distance_unlocked: 0 | 1
+}
 
 function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
   const rowPlaceholder = `(${config.columns.map(() => "?").join(", ")})`
@@ -61,9 +68,9 @@ async function bulkUpsert<T>(
   if (items.length === 0) return;
   const maxParams = options.maxParams ?? DEFAULT_MAX_PARAMS
 
-  const db = await getDb();
-  await withDbLock(() =>
-    db.withTransactionAsync(async () => {
+  await withDbLock(async () => {
+    const db = await getDb();
+    await db.withTransactionAsync(async () => {
       for (const table of tables) {
         const colCount = table.columns.length;
         const maxRowsPerBatch = Math.floor(maxParams / colCount);
@@ -82,7 +89,7 @@ async function bulkUpsert<T>(
         }
       }
     })
-  )
+  })
 }
 
 export function resolveCrumbOtherUser(crumb: Crumb): string {
@@ -96,7 +103,7 @@ export async function upsertCrumbs(crumbs: Crumb[]) {
         table: "crumbs",
         columns: [
           "id", "nonCompositeId", "latitude", "longitude", "sender",
-          "receiver", "mailbox", "unlocked", "opened", "time",
+          "receiver", "mailbox", "place_unlocked", "distance_unlocked", "opened", "time",
           "radius", "locationSelectionManner", "formattedAddress", "placename", "otherUser",
         ],
         conflictColumns: ["id"],
@@ -108,6 +115,7 @@ export async function upsertCrumbs(crumbs: Crumb[]) {
           crumb.sender,
           crumb.receiver,
           crumb.mailbox,
+          crumb.unlocked ? 1 : 0,
           crumb.unlocked ? 1 : 0,
           crumb.opened ? 1 : 0,
           crumb.time,
@@ -202,19 +210,114 @@ export async function getCrumbsWith(
   userLon: number
 ): Promise<Crumb[]> {
   const db = await getDb()
-  const rows = await db.getAllAsync<Crumb>(
+  const rows = await db.getAllAsync<iCandidate>(
     `SELECT * FROM crumbs
      WHERE otherUser = ?`,
     [otherUserid]
   )
 
   return rows
-    .map((crumb) => ({
-      crumb,
-      dist: distanceMeters(userLat, userLon, crumb.latitude, crumb.longitude),
-    }))
+    .map((candidate) => {
+      const crumb: Crumb = { ...candidate, unlocked: candidate.place_unlocked === 1 || candidate.distance_unlocked === 1 }
+      return {
+        crumb,
+        dist: distanceMeters(userLat, userLon, crumb.latitude, crumb.longitude),
+      }
+    })
     .sort((a, b) => a.dist - b.dist)
     .map((x) => x.crumb)
+
+}
+
+export type LockChange = { unlocked: Crumb[]; locked: Crumb[] }
+
+async function applyFlag(
+  db: Awaited<ReturnType<typeof getDb>>,
+  column: "distance_unlocked" | "place_unlocked",
+  changes: { id: string; val: 0 | 1 }[],
+) {
+  for (const val of [0, 1] as const) {
+    const ids = changes.filter((c) => c.val === val).map((c) => c.id)
+    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+      const batch = ids.slice(i, i + CHUNK_SIZE)
+      const ph = batch.map(() => "?").join(",")
+      await db.runAsync(`UPDATE crumbs SET ${column} = ${val} WHERE id IN (${ph})`, batch)
+    }
+  }
+}
+
+export async function reconcileCrumbLocks(
+  coords: Coordinates,
+  nearbyPlaceIds?: string[],
+): Promise<LockChange> {
+  const { latitude, longitude, accuracy } = coords
+  const unlocked: Crumb[] = []
+  const locked: Crumb[] = []
+
+  try {
+    await withDbLock(async () => {
+      const db = await getDb()
+      await db.withTransactionAsync(async () => {
+        const candidates = await db.getAllAsync<iCandidate>(`SELECT * FROM crumbs WHERE mailbox = 'received'`)
+        if (candidates.length === 0) return
+
+        // crumbs nearby by
+        const nearbyCrumbIds = new Set<string>()
+        if (nearbyPlaceIds && nearbyPlaceIds.length > 0) {
+          for (let i = 0; i < nearbyPlaceIds.length; i += CHUNK_SIZE) {
+            const batch = nearbyPlaceIds.slice(i, i + CHUNK_SIZE)
+            const ph = batch.map(() => "?").join(",")
+            const rows = await db.getAllAsync<{ crumb_id: string }>(
+              `SELECT DISTINCT crumb_id FROM places WHERE place_id IN (${ph})`,
+              batch,
+            )
+            rows.forEach((r) => nearbyCrumbIds.add(r.crumb_id))
+          }
+        }
+
+        const setDistance: { id: string; val: 0 | 1 }[] = []
+        const setPlace: { id: string; val: 0 | 1 }[] = []
+
+        for (const candidate of candidates) {
+          const dist = distanceMeters(latitude, longitude, candidate.latitude, candidate.longitude)
+          const wantDistance: 0 | 1 =
+            dist < (accuracy ?? 0) + (candidate.radius ?? 0) ? 1 : 0
+          // keep old place flag if no place provided
+          const wantPlace: 0 | 1 =
+            nearbyPlaceIds === undefined
+              ? (candidate.place_unlocked as 0 | 1)
+              : nearbyCrumbIds.has(candidate.id) ? 1 : 0
+
+          const wasUnlocked = candidate.distance_unlocked === 1 || candidate.place_unlocked === 1
+          const willUnlock = wantDistance === 1 || wantPlace === 1
+
+
+          if (wantDistance !== candidate.distance_unlocked) {
+            setDistance.push({ id: candidate.id, val: wantDistance })
+            console.log(`a crumb will be ${wantDistance === 1 ? "unlocked" : "locked"} by distance`)
+          }
+          if (wantPlace !== candidate.place_unlocked) {
+            setPlace.push({ id: candidate.id, val: wantPlace })
+            console.log(`a crumb will be ${wantDistance === 1 ? "unlocked" : "locked"} by place`)
+          }
+
+          if (!wasUnlocked && willUnlock) {
+            unlocked.push(candidate)
+          }
+          if (wasUnlocked && !willUnlock) {
+            // locked.push(candidate)
+          }
+        }
+
+        await applyFlag(db, "distance_unlocked", setDistance)
+        await applyFlag(db, "place_unlocked", setPlace)
+      })
+    })
+  } catch (error) {
+    console.error("Failed to reconcile crumb locks, reason: ", error)
+  }
+
+  return { unlocked, locked }
 }
 
 export type FeedItem = {
@@ -223,7 +326,7 @@ export type FeedItem = {
 }
 export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
   const db = await getDb()
-  const rows = await db.getAllAsync<Crumb & { friend_id: string, action: string }>(
+  const rows = await db.getAllAsync<Crumb & { friend_id: string, action: string, place_unlocked: 0 | 1, distance_unlocked: 0 | 1, }>(
     `
     SELECT
       chats.friend_id,
@@ -233,7 +336,8 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
       crumbs.receiver,
       crumbs.latitude,
       crumbs.longitude,
-      crumbs.unlocked,
+      crumbs.place_unlocked,
+      crumbs.distance_unlocked,
       crumbs.opened,
       crumbs.formattedAddress,
       crumbs.placename,
@@ -251,15 +355,14 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
       action: row.action,
       crumbs: []
     })
-    if (row.id === null || !row.unlocked) continue
-
-    feed.get(row.friend_id)!.crumbs.push({
+    if (row.id === null || (row.distance_unlocked === 0 && row.place_unlocked === 0)) continue
+    const crumb: Crumb = {
       id: row.id,
       sender: row.sender,
       receiver: row.receiver,
       latitude: row.latitude,
       longitude: row.longitude,
-      unlocked: Boolean(row.unlocked),
+      unlocked: row.place_unlocked === 1 || row.distance_unlocked === 1,
       opened: Boolean(row.opened),
       formattedAddress: row.formattedAddress,
       placename: row.placename,
@@ -272,6 +375,11 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
       placeId: "",
       radius: 0,
       mailbox: row.mailbox,
+    }
+
+    feed.get(row.friend_id)!.crumbs.push(crumb)
+    feed.forEach((item, key) => {
+      console.log("item: ", item)
     })
   }
 
