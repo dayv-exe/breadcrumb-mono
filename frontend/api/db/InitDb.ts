@@ -129,6 +129,17 @@ async function openAndInit() {
       otherUser TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS friendships (
+      friendId TEXT PRIMARY KEY NOT NULL,
+      pictureUrl TEXT,
+      name TEXT,
+      nickname TEXT NOT NULL,
+      displayName TEXT,
+      createdAt INTEGER NOT NULL,
+      timestamp INTEGER NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('active', 'ended'))
+    );
+
     CREATE TABLE IF NOT EXISTS places (
       place_id TEXT NOT NULL,
       crumb_id TEXT NOT NULL,

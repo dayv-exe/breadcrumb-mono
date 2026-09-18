@@ -36,3 +36,15 @@ export interface UserDetails {
   friends: FRIENDSHIP_STATUS | null;
   currentUser: boolean | null
 }
+
+export type Friendship = {
+  id: string
+  friendId: string
+  pictureUrl?: string
+  name?: string
+  nickname: string
+  displayName?: string
+  createdAt: number
+  timestamp: number
+  status: "active" | "ended"
+}
