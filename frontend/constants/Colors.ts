@@ -13,7 +13,7 @@ export const Colors = {
     vibrantBackground: tintColorLight,
     darkenVibrant: darkTintColorLight,
     vibrantButton: "#7070FF",
-    fadedBackground: "#e5e5e5",
+    fadedBackground: "#dddddd",
     fadedBackgroundElevated: "#e5e5e5",
     backgroundOverlay: 'rgba(0,0,0,0.7)',
     fadedVibrant: "rgba(112, 112, 238, .1)",

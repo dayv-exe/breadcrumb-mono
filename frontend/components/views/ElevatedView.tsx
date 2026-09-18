@@ -15,8 +15,6 @@ export default function ElevatedView({ flat, style, children }: PropsWithChildre
     <View style={[
       styles.container, {
         backgroundColor: bgCol,
-        shadowOpacity: flat ? 0 : mode === "light" ? 0.175 : 0.35,
-        elevation: flat ? 0 : 5
       },
       style
     ]}>
@@ -28,11 +26,7 @@ export default function ElevatedView({ flat, style, children }: PropsWithChildre
 const styles = StyleSheet.create({
   container: {
     padding: 3,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 10,
-    elevation: 7,
+    borderRadius: 20,
     zIndex: 1,
   }
 })

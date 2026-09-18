@@ -87,7 +87,7 @@ function ErrorComponent({ showBackButton, handleBackClick, mode, isPending, hand
         }]}>
           <View style={styles.nameContainer}>
             {showBackButton && <CustomImageButton size={27} flat src={getIconImage("back", mode === "light")} handleClick={handleBackClick} />}
-            <CustomLabel fitContent adaptToTheme bold fade italic labelText={"<user not found>"} />
+            <CustomLabel fitContent adaptToTheme bold fade italic labelText={"<unknown user>"} />
           </View>
           <View style={{ flexDirection: "row" }}>
 
@@ -99,12 +99,12 @@ function ErrorComponent({ showBackButton, handleBackClick, mode, isPending, hand
         <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
           <Spacer size="small" />
           <View style={styles.profileHeader}>
-            <CustomProfilePictureCircle nickname={"00"} size={100} />
+            <CustomProfilePictureCircle userId={"failed"} nickname={""} size={100} />
             <Spacer />
             <View style={styles.profileAside}>
-              <CustomLabel fontSize={18.5} fade italic bold labelText={"who?"} textAlign="left" adaptToTheme />
+              <CustomLabel fontSize={18.5} fade italic bold labelText={"<unknown user>"} textAlign="left" adaptToTheme />
               <Spacer size="small" />
-              <CustomButton labelText={"Nothing to see here"} squashed type="theme-faded" />
+              <CustomButton labelText={"         "} squashed type="theme-faded" />
             </View>
           </View>
           <Spacer />

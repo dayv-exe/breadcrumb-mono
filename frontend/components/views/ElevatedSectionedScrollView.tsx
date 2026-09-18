@@ -144,7 +144,7 @@ export function ElevatedSectionedScrollView({
                 {section.renderItem(item, i)}
                 {i + 1 < section.data.length && (
                   <View
-                    style={{ borderBottomWidth: 1, borderBottomColor: fadedBg }}
+                    style={{ borderBottomWidth: 1, borderBottomColor: fadedBg, opacity: .75 }}
                   />
                 )}
               </React.Fragment>
