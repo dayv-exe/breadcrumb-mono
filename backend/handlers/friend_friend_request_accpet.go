@@ -22,19 +22,19 @@ func handleAcceptFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPR
 	}
 
 	currentUserId := utils.GetAuthenticatedUserid()
-	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+	friendshipHelper := helpers.NewFriendHelper(ctx)
 
 	if reqBody.SenderId == currentUserId {
 		friendshipHelper.RejectFriendRequest(reqBody.SenderId, currentUserId)
 		return models.InvalidRequestErrorResponse("You cannot be friends with yourself!"), nil
 	}
 
-	friendshipStatus, err := friendshipHelper.GetFriendshipStatus(currentUserId, reqBody.SenderId)
+	friendshipStatus, err := friendshipHelper.GetFriendStatus(currentUserId, reqBody.SenderId)
 	if err != nil {
 		return models.ServerSideErrorResponse("Something went wrong while trying to determine friendship status!", err), nil
 	}
 
-	if friendshipStatus != constants.FRIENDSHIP_STATUS_RECEIVED {
+	if friendshipStatus != constants.FRIEND_STATUS_RECEIVED {
 		return models.InvalidRequestErrorResponse("Cannot accept a friend request that you haven't received!"), nil
 	}
 

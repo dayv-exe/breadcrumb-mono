@@ -14,14 +14,14 @@ func handleUnsendFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPR
 	recipientId := req.PathParameters["id"]
 	currentUserId := utils.GetAuthenticatedUserid()
 
-	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+	friendshipHelper := helpers.NewFriendHelper(ctx)
 
-	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendshipStatus(currentUserId, recipientId)
+	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendStatus(currentUserId, recipientId)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine friendship status!", friendshipStatusErr), nil
 	}
 
-	if friendshipStatus != constants.FRIENDSHIP_STATUS_REQUESTED {
+	if friendshipStatus != constants.FRIEND_STATUS_REQUESTED {
 		return models.InvalidRequestErrorResponse("you cannot unsend a friend request that you never sent to begin with!"), nil
 	}
 

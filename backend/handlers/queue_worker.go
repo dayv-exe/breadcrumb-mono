@@ -56,7 +56,7 @@ func updateFriendDisplayInfo(ctx context.Context, userid string) error {
 		return err
 	}
 
-	friendHelper := helpers.NewFriendshipHelper(ctx)
+	friendHelper := helpers.NewFriendHelper(ctx)
 	err = friendHelper.UpdateFriendDisplayInfo(userInfo)
 
 	if err != nil {

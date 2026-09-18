@@ -23,14 +23,14 @@ func handleSendFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPReq
 
 	currentUserId := utils.GetAuthenticatedUserid()
 
-	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+	friendshipHelper := helpers.NewFriendHelper(ctx)
 
-	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendshipStatus(currentUserId, reqBody.RecipientId)
+	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendStatus(currentUserId, reqBody.RecipientId)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine friendship status.", friendshipStatusErr), nil
 	}
 
-	if friendshipStatus != constants.FRIENDSHIP_STATUS_NOT_FRIENDS {
+	if friendshipStatus != constants.FRIEND_STATUS_NOT_FRIENDS {
 		return models.InvalidRequestErrorResponse("You can only send friend requests to people you are currently not friends with!"), nil
 	}
 

@@ -29,11 +29,11 @@ type UserDisplayInfoNoId struct {
 }
 
 type UserAccountInfo struct {
-	Bio              string `dynamodbav:"bio" json:"bio"`
-	FriendshipStatus string `dynamodbav:"friends" json:"friends"`
-	IsSuspended      bool   `dynamodbav:"is_suspended" json:"isSuspended"`
-	IsDeactivated    bool   `dynamodbav:"is_deactivated" json:"isDeactivated"`
-	DateJoined       int64  `dynamodbav:"date" json:"date"`
+	Bio           string `dynamodbav:"bio" json:"bio"`
+	FriendStatus  string `dynamodbav:"friends" json:"friends"`
+	IsSuspended   bool   `dynamodbav:"is_suspended" json:"isSuspended"`
+	IsDeactivated bool   `dynamodbav:"is_deactivated" json:"isDeactivated"`
+	DateJoined    int64  `dynamodbav:"date" json:"date"`
 }
 
 type UserPersonalInfo struct {

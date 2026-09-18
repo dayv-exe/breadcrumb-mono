@@ -23,12 +23,12 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		userId = utils.GetAuthenticatedUserid()
 	}
 
-	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriends(userId, includeUserProfile, lastEvalKey, nil)
+	result, err := helpers.NewFriendHelper(ctx).GetAllFriends(userId, includeUserProfile, lastEvalKey, nil)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friends, try again.", err), nil
 	}
 
-	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+	friendshipHelper := helpers.NewFriendHelper(ctx)
 
 	users := make([]models.User, 0)
 
@@ -38,17 +38,17 @@ func handleGetFriends(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 		currentUser := utils.GetAuthenticatedUserid()
 		if currentUser == userId {
 			// if current user requests list of all their friends
-			friendshipStatus = constants.FRIENDSHIP_STATUS_FRIENDS
+			friendshipStatus = constants.FRIEND_STATUS_FRIENDS
 		} else {
 			// if user requests to view list of other users friends
-			s, _ := friendshipHelper.GetFriendshipStatus(currentUser, friend.Userid)
+			s, _ := friendshipHelper.GetFriendStatus(currentUser, friend.Userid)
 			friendshipStatus = s
 		}
 
 		users = append(users, models.User{
 			UserDisplayInfo: friend,
 			UserAccountInfo: models.UserAccountInfo{
-				FriendshipStatus: friendshipStatus,
+				FriendStatus: friendshipStatus,
 			},
 		})
 	}

@@ -82,12 +82,12 @@ func handleGetUser(ctx context.Context, req events.APIGatewayV2HTTPRequest) (eve
 	}
 
 	// if user is requesting details of another user, return only display info and friendship status
-	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(utils.GetAuthenticatedUserid(), user.Userid)
+	friendshipStatus, friendshipStatusErr := helpers.NewFriendHelper(ctx).GetFriendStatus(utils.GetAuthenticatedUserid(), user.Userid)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine users friendship status.", friendshipStatusErr), nil
 	}
 
-	user.FriendshipStatus = friendshipStatus
+	user.FriendStatus = friendshipStatus
 	return models.SuccessfulGetRequestResponse(models.User{
 		UserDisplayInfo: user.UserDisplayInfo,
 		UserAccountInfo: user.UserAccountInfo,

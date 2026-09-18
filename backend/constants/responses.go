@@ -1,8 +1,10 @@
 package constants
 
 const (
-	FRIENDSHIP_STATUS_FRIENDS     = "true"
-	FRIENDSHIP_STATUS_REQUESTED   = "requested"
-	FRIENDSHIP_STATUS_NOT_FRIENDS = "false"
-	FRIENDSHIP_STATUS_RECEIVED    = "received"
+	FRIEND_STATUS_FRIENDS     = "true"
+	FRIEND_STATUS_REQUESTED   = "requested"
+	FRIEND_STATUS_NOT_FRIENDS = "false"
+	FRIEND_STATUS_RECEIVED    = "received"
+	FRIENDSHIP_STATUS_ACTIVE  = "active"
+	FRIENDSHIP_STATUS_ENDED   = "ended"
 )

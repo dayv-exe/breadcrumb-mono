@@ -15,7 +15,7 @@ type friendshipHelper struct {
 	Ctx context.Context
 }
 
-func NewFriendshipHelper(ctx context.Context) *friendshipHelper {
+func NewFriendHelper(ctx context.Context) *friendshipHelper {
 	return &friendshipHelper{
 		Ctx: ctx,
 	}
@@ -31,7 +31,7 @@ func (this *friendshipHelper) CancelFriendRequest(senderId, recipientId string) 
 	return DeleteItem(newHelper(this.Ctx, nil), &friendReqKey)
 }
 
-func (this *friendshipHelper) EndFriendship(user1id, user2id string) error {
+func (this *friendshipHelper) EndFriend(user1id, user2id string) error {
 	// deletes the 2 friendship items belonging to each user that were formally friends
 	key1 := models.FriendKey(user1id, user2id)
 	key2 := models.FriendKey(user2id, user1id)
@@ -67,31 +67,31 @@ func (this *friendshipHelper) usersAreFriends(senderId string, recipientId strin
 	return ItemExists(newHelper(this.Ctx, nil), friendshipKey)
 }
 
-func (this *friendshipHelper) userHasRequestedFriendship(senderId string, recipientId string) (bool, error) {
+func (this *friendshipHelper) userHasRequestedFriend(senderId string, recipientId string) (bool, error) {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
 	return ItemExists(newHelper(this.Ctx, nil), friendReqKey)
 }
 
-func (this *friendshipHelper) GetFriendshipStatus(currentUserId string, otherUserId string) (string, error) {
+func (this *friendshipHelper) GetFriendStatus(currentUserId string, otherUserId string) (string, error) {
 	// checks if this user has sent a friend request to other user
-	requested, reqErr := this.userHasRequestedFriendship(currentUserId, otherUserId)
+	requested, reqErr := this.userHasRequestedFriend(currentUserId, otherUserId)
 	if reqErr != nil {
 		return "", reqErr
 	}
 
 	if requested {
-		return constants.FRIENDSHIP_STATUS_REQUESTED, nil
+		return constants.FRIEND_STATUS_REQUESTED, nil
 	}
 
 	// checks if other user has sent a friend request to this user
-	received, recErr := this.userHasRequestedFriendship(otherUserId, currentUserId)
+	received, recErr := this.userHasRequestedFriend(otherUserId, currentUserId)
 	if recErr != nil {
 		log.Print("error while checking if user has RECEIVED a friend request")
 		return "", recErr
 	}
 
 	if received {
-		return constants.FRIENDSHIP_STATUS_RECEIVED, nil
+		return constants.FRIEND_STATUS_RECEIVED, nil
 	}
 
 	friends, fErr := this.usersAreFriends(currentUserId, otherUserId)
@@ -100,10 +100,10 @@ func (this *friendshipHelper) GetFriendshipStatus(currentUserId string, otherUse
 	}
 
 	if friends {
-		return constants.FRIENDSHIP_STATUS_FRIENDS, nil
+		return constants.FRIEND_STATUS_FRIENDS, nil
 	}
 
-	return constants.FRIENDSHIP_STATUS_NOT_FRIENDS, nil
+	return constants.FRIEND_STATUS_NOT_FRIENDS, nil
 }
 
 func (this *friendshipHelper) GetAllFriends(userId string, includeUserProfile bool, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
@@ -260,7 +260,7 @@ type getNewFriendItem func(models.Friend) types.WriteRequest
 type getListOfFriends func() (*listResponse[models.UserDisplayInfo], error)
 
 // TODO: FIX LATER
-func (f *friendshipHelper) updateFriendshipDisplayInfo(currentUser *models.User) error {
+func (f *friendshipHelper) updateFriendDisplayInfo(currentUser *models.User) error {
 	helper := newHelper(f.Ctx, nil)
 	var lastEvalKey map[string]types.AttributeValue
 

@@ -22,18 +22,18 @@ func handleRemoveFriend(ctx context.Context, req events.APIGatewayV2HTTPRequest)
 		return models.UnauthorizedErrorResponse("You need to be logged in to do this!!! :("), nil
 	}
 
-	friendshipHelper := helpers.NewFriendshipHelper(ctx)
+	friendshipHelper := helpers.NewFriendHelper(ctx)
 
-	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendshipStatus(currentUserId, otherUserId)
+	friendshipStatus, friendshipStatusErr := friendshipHelper.GetFriendStatus(currentUserId, otherUserId)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine friendship status!", friendshipStatusErr), nil
 	}
 
-	if friendshipStatus != constants.FRIENDSHIP_STATUS_FRIENDS {
+	if friendshipStatus != constants.FRIEND_STATUS_FRIENDS {
 		return models.InvalidRequestErrorResponse("You can only end friendships with people that you are friends with!"), nil
 	}
 
-	endErr := friendshipHelper.EndFriendship(currentUserId, otherUserId)
+	endErr := friendshipHelper.EndFriend(currentUserId, otherUserId)
 	if endErr != nil {
 		return models.ServerSideErrorResponse("Failed to end friendship, you guys must stay friends, jk jk, just try again", endErr), nil
 	}

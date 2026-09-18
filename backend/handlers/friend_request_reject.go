@@ -14,16 +14,16 @@ func handleRejectFriendRequest(ctx context.Context, req events.APIGatewayV2HTTPR
 	currentUserId := utils.GetAuthenticatedUserid()
 	senderId := req.PathParameters["id"]
 
-	friendshipStatus, friendshipStatusErr := helpers.NewFriendshipHelper(ctx).GetFriendshipStatus(currentUserId, senderId)
+	friendshipStatus, friendshipStatusErr := helpers.NewFriendHelper(ctx).GetFriendStatus(currentUserId, senderId)
 	if friendshipStatusErr != nil {
 		return models.ServerSideErrorResponse("Failed to determine friendship status!", friendshipStatusErr), nil
 	}
 
-	if friendshipStatus != constants.FRIENDSHIP_STATUS_RECEIVED {
+	if friendshipStatus != constants.FRIEND_STATUS_RECEIVED {
 		return models.InvalidRequestErrorResponse("No pending friend requests to reject!"), nil
 	}
 
-	err := helpers.NewFriendshipHelper(ctx).RejectFriendRequest(senderId, currentUserId)
+	err := helpers.NewFriendHelper(ctx).RejectFriendRequest(senderId, currentUserId)
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to reject friend request, try again.", err), nil
 	}

@@ -19,7 +19,7 @@ func handleGetFriendRequests(ctx context.Context, req events.APIGatewayV2HTTPReq
 		return models.ServerSideErrorResponse("Failed to decode last eval key!", err), nil
 	}
 
-	result, err := helpers.NewFriendshipHelper(ctx).GetAllFriendRequests(currentUserId, lastEvalKey, aws.Int32(25))
+	result, err := helpers.NewFriendHelper(ctx).GetAllFriendRequests(currentUserId, lastEvalKey, aws.Int32(25))
 	if err != nil {
 		return models.ServerSideErrorResponse("Failed to get friend requests!", err), nil
 	}
@@ -30,7 +30,7 @@ func handleGetFriendRequests(ctx context.Context, req events.APIGatewayV2HTTPReq
 		users = append(users, models.User{
 			UserDisplayInfo: user,
 			UserAccountInfo: models.UserAccountInfo{
-				FriendshipStatus: constants.FRIENDSHIP_STATUS_RECEIVED,
+				FriendStatus: constants.FRIEND_STATUS_RECEIVED,
 			},
 		})
 	}
