@@ -19,7 +19,7 @@ type Friend struct {
 	Date                int64  `dynamodbav:"date"`
 }
 
-func NewFriendship(thisUserId string, otherUser *User) *Friend {
+func NewFriend(thisUserId string, otherUser *User) *Friend {
 	// Returns 2 friendship items
 	return &Friend{
 		ThisUserId:          thisUserId,

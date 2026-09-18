@@ -46,8 +46,8 @@ func (this *friendshipHelper) EndFriendship(user1id, user2id string) error {
 func (this *friendshipHelper) AcceptFriendRequest(thisUser, otherUser *models.User) error {
 	// delete friend req and add 2 new friendship items bidirectional one for each user
 	friendReqKey := models.FriendRequestKey(thisUser.Userid, otherUser.Userid)
-	friendshipItem1 := models.NewFriendship(thisUser.Userid, otherUser)
-	friendshipItem2 := models.NewFriendship(otherUser.Userid, thisUser)
+	friendshipItem1 := models.NewFriend(thisUser.Userid, otherUser)
+	friendshipItem2 := models.NewFriend(otherUser.Userid, thisUser)
 
 	return TransactWrite(
 		newHelper(this.Ctx, nil),
@@ -276,7 +276,7 @@ func (f *friendshipHelper) updateFriendshipDisplayInfo(currentUser *models.User)
 		for _, friend := range result.Items {
 			// gets the friendship key where pk is current user and sk is other user
 			// flips it around to overwrite
-			updatedItem := models.NewFriendship(friend.Userid, currentUser)
+			updatedItem := models.NewFriend(friend.Userid, currentUser)
 			updates = append(updates, UsePutBatchItem(helper, updatedItem))
 		}
 
@@ -312,7 +312,7 @@ func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) err
 		for _, friend := range result.Items {
 			// gets the friendship key where pk is current user and sk is other user
 			// flips it around to overwrite
-			updatedItem := models.NewFriendship(friend.Userid, currentUser)
+			updatedItem := models.NewFriend(friend.Userid, currentUser)
 			updates = append(updates, UsePutBatchItem(helper, updatedItem))
 		}
 

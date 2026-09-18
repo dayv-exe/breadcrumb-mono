@@ -23,7 +23,7 @@ func TestFriendDatabaseFormat(t *testing.T) {
 
 	otherUser := NewUser("321", "sndr", "sender", false)
 
-	result := utils.ToDatabaseFormat(NewFriendship("123", otherUser))
+	result := utils.ToDatabaseFormat(NewFriend("123", otherUser))
 
 	if len(*result) != len(expected) {
 		t.Fatalf("Expected %d keys, got %d", len(expected), len(*result))
