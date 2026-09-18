@@ -6,6 +6,91 @@ let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 let txChain: Promise<unknown> = Promise.resolve();
 
+export const CHUNK_SIZE = 120
+
+type SqlValue = string | number | null
+type MergeOptions = "overwrite" | "keepIfEmpty" | "fillIfNull"
+type UpsertTable<T> = {
+  table: string
+  columns: string[]
+  conflictColumns: string[]
+  onConflict?: "update" | "nothing"
+  columnMerge?: Record<string, MergeOptions>
+  toRows: (item: T) => SqlValue[][]
+};
+
+function buildUpsertQuery<T>(config: UpsertTable<T>, rows: SqlValue[][]) {
+  const rowPlaceholder = `(${config.columns.map(() => "?").join(", ")})`
+  const placeholders = rows.map(() => rowPlaceholder).join(", ")
+  const conflictKeys = config.conflictColumns.join(", ")
+
+  let conflictClause: string;
+  if (config.onConflict === "nothing") {
+    conflictClause = `ON CONFLICT(${conflictKeys}) DO NOTHING`
+  } else {
+    const updates = config.columns
+      .filter((c) => !config.conflictColumns.includes(c))
+      .map((c) => {
+        const incoming = `excluded.${c}`;
+        const existing = `${config.table}.${c}`; // unqualified name = existing row
+        switch (config.columnMerge?.[c] ?? "overwrite") {
+          case "keepIfEmpty":
+            return `${c} = COALESCE(NULLIF(${incoming}, ''), ${existing})`;
+          case "fillIfNull":
+            return `${c} = COALESCE(${existing}, ${incoming})`;
+          default:
+            return `${c} = ${incoming}`;
+        }
+      })
+      .join(", ");
+    conflictClause = updates
+      ? `ON CONFLICT(${conflictKeys}) DO UPDATE SET ${updates}`
+      : `ON CONFLICT(${conflictKeys}) DO NOTHING`;
+  }
+
+  const sql = `
+    INSERT INTO ${config.table} (${config.columns.join(", ")})
+    VALUES ${placeholders}
+    ${conflictClause};
+  `;
+  return { sql, values: rows.flat() }
+}
+
+const DEFAULT_MAX_PARAMS = 999
+
+export async function bulkUpsert<T>(
+  items: T[],
+  tables: UpsertTable<T>[],
+  options: { maxParams?: number } = {},
+) {
+  if (items.length === 0) return;
+  const maxParams = options.maxParams ?? DEFAULT_MAX_PARAMS
+
+  await withDbLock(async () => {
+    const db = await getDb();
+    await db.withTransactionAsync(async () => {
+      for (const table of tables) {
+        const colCount = table.columns.length;
+        const maxRowsPerBatch = Math.floor(maxParams / colCount);
+        if (maxRowsPerBatch < 1) {
+          throw new Error(
+            `Table "${table.table}" has ${colCount} columns, exceeding the ` +
+            `${maxParams}-parameter limit for a single row.`,
+          );
+        }
+
+        const rows = items.flatMap(table.toRows);
+        for (let i = 0; i < rows.length; i += maxRowsPerBatch) {
+          const batch = rows.slice(i, i + maxRowsPerBatch);
+          const { sql, values } = buildUpsertQuery(table, batch);
+          await db.runAsync(sql, values);
+        }
+      }
+    })
+  })
+}
+
+
 export function unsubscribeFromCurrentDbFile() {
   dbPromise = null
 }
