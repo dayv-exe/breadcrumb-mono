@@ -303,6 +303,7 @@ Resources:
           MAPBOX_SECRET_ARN: !Ref MapboxSecret
           CLOUDFRONT_DISTRIBUTION_ID: !Ref CloudFrontDistribution
           CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
+          EVENTS_PUBLISH_URL: !Sub "https://${LiveEventApi.Dns.Http}/event"
       Events:
         # for friends endpoints
         GetLatestUserFriends:
@@ -531,6 +532,12 @@ Resources:
               - cognito-idp:AdminGetUser
               - cognito-idp:AdminUserGlobalSignOut
             Resource: "*"
+        - Statement:
+            Effect: Allow
+            Action: appsync:EventPublish
+            Resource:
+              - !GetAtt LiveEventApi.ApiArn
+              - !Sub "${LiveEventApi.ApiArn}/*"
 
   ProcessMediaUploads:
     Type: AWS::Serverless::Function
@@ -707,6 +714,31 @@ Resources:
               - s3:DeleteObject
             Resource: !Sub "${MediaBucket.Arn}/*"
 
+  # app sync stuff
+  LiveEventApi:
+    Type: AWS::AppSync::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-${EnvironmentName}-live-events"
+      EventConfig:
+        AuthProviders:
+          - AuthType: AMAZON_COGNITO_USER_POOLS
+            CognitoConfig:
+              UserPoolId: !Ref CognitoUserPool
+              AwsRegion: !Ref AWS::Region
+          - AuthType: AWS_IAM
+        ConnectionAuthModes:
+          - AuthType: AMAZON_COGNITO_USER_POOLS
+        DefaultSubscribeAuthModes:
+          - AuthType: AMAZON_COGNITO_USER_POOLS
+        DefaultPublishAuthModes:
+          - AuthType: AWS_IAM
+
+  LiveChannelNamespace:
+    Type: AWS::AppSync::ChannelNamespace
+    Properties:
+      ApiId: !GetAtt LiveEventApi.ApiId
+      Name: crumbs
+
   BreadQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -731,3 +763,12 @@ Outputs:
   CognitoUserPoolClientId:
     Description: "Cognito App Client ID"
     Value: !Ref CognitoUserPoolClient
+  LiveEventApiHttp:
+    Description: "AppSync Events HTTP Publishing endpoint"
+    Value: !Sub "https://${LiveEventApi.Dns.Http}/event"
+  LiveEventApiRealtime:
+    Description: "AppSync Events realtime WebSocket endpoint"
+    Value: !GetAtt LiveEventApi.Dns.Realtime
+  LiveEventApiId:
+    Description: "AppSync Events API ID"
+    Value: !GetAtt LiveEventApi.ApiId
