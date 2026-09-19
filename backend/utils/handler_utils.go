@@ -3,11 +3,14 @@ package utils
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -25,22 +28,27 @@ const (
 	QUEUE                  = "QUEUE_URL"
 	SECRET_ARN             = "CF_PRIVATE_KEY_SECRET_ARN"
 	MAPBOX_SECRET_ARN      = "MAPBOX_SECRET_ARN"
+	LIVE_EVENT_PUBLISH_URL = "EVENTS_PUBLISH_URL"
 )
 
 type handlerDependenciesType struct {
+	AwsConfig            aws.Config
 	DbClient             *dynamodb.Client
 	CognitoClient        *cognitoidentityprovider.Client
 	S3Client             *s3.Client
 	SqsClient            *sqs.Client
+	Signer               *v4.Signer
+	HttpClient           *http.Client
+	SecretsManager       *secretsmanager.Client
 	BucketName           string
 	MainTableName        string
 	SearchTableName      string
 	UserPoolId           string
 	CloudFrontDomainName string
 	QueueUrl             string
-	SecretsManager       *secretsmanager.Client
 	SecretArn            string
 	MapboxSecretArn      string
+	LiveEventPublishUrl  string
 }
 
 var handlerDependencies handlerDependenciesType //
@@ -121,11 +129,20 @@ func WithSecrets() option {
 	}
 }
 
+func WithLiveEvents() option {
+	return func(hd *handlerDependenciesType, c aws.Config) {
+		hd.LiveEventPublishUrl = getEnvironmentVariable(LIVE_EVENT_PUBLISH_URL)
+		hd.HttpClient = &http.Client{Timeout: 5 * time.Second}
+		hd.Signer = v4.NewSigner()
+	}
+}
+
 func InitHandlerDependencies(opts ...option) {
 	cfg := getConfig()
 
-	// init cloudfront always
+	// init cloudfront and aws config always
 	handlerDependencies.CloudFrontDomainName = getEnvironmentVariable(CLOUDFRONT_DOMAIN_NAME)
+	handlerDependencies.AwsConfig = cfg
 
 	for _, opt := range opts {
 		opt(&handlerDependencies, cfg)
