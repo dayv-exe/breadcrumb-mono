@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -82,7 +83,32 @@ func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 	}
 
 	helper := newHelper(h.Ctx, nil)
-	return TransactWrite(helper, transactions...)
+	err = TransactWrite(helper, transactions...)
+	if err != nil {
+		return err
+	}
+
+	liveEventHelper := NewLiveEventHelper(h.Ctx)
+	var wg sync.WaitGroup
+	for _, crumb := range crumbs {
+		wg.Go(func() {
+			err := liveEventHelper.PublishEvents(
+				constants.LIVE_EVENT_CHANNEL_CRUMB+crumb.Owner,
+				LiveEvent{
+					EventType: "crumb",
+					Payload:   crumb,
+				},
+			)
+
+			if err != nil {
+				log.Printf("Crumb shared but failed to send live event! ERROR: %w", err)
+			}
+		})
+	}
+
+	wg.Wait()
+
+	return nil
 }
 
 func (h *crumbHelper) GetCrumb(otherUser, crumbId string) (*models.Crumb, error) {

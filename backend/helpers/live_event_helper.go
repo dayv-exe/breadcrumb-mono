@@ -1,6 +1,7 @@
-package helpers // wherever ShareCrumb lives
+package helpers
 
 import (
+	"backend/utils"
 	"bytes"
 	"context"
 	"crypto/sha256"
@@ -9,78 +10,61 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 )
 
-var (
-	awsCfg     aws.Config
-	signer     = v4.NewSigner()
-	httpClient = &http.Client{Timeout: 5 * time.Second}
-	publishURL = os.Getenv("EVENTS_PUBLISH_URL")
-)
+type LiveEvent struct {
+	EventType string `json:"eventType"`
+	Payload   any    `json:"payload"`
+}
 
-func init() {
-	// If you already load an aws.Config in a shared package, reuse that instead.
-	cfg, err := awsconfig.LoadDefaultConfig(context.Background())
-	if err != nil {
-		panic(fmt.Sprintf("load aws config: %v", err))
+type liveEventHelper struct {
+	Ctx context.Context
+}
+
+func NewLiveEventHelper(ctx context.Context) *liveEventHelper {
+	return &liveEventHelper{
+		Ctx: ctx,
 	}
-	awsCfg = cfg
 }
 
-// The payload the recipient's client receives. Metadata only — media stays in S3.
-type crumbEvent struct {
-	ID         string `json:"id"`
-	FromUserID string `json:"fromUserId"`
-	S3Key      string `json:"s3Key"`
-	Caption    string `json:"caption,omitempty"`
-	CreatedAt  string `json:"createdAt"`
-}
+// PublishEvents sends one or more events to an AppSync Events channel using the
+// the shape the Events HTTP endpoint expects. Max 5 events per call.
+func (l *liveEventHelper) PublishEvents(channel string, events ...LiveEvent) error {
+	deps := utils.GetDependencies()
 
-type publishBody struct {
-	Channel string   `json:"channel"`
-	Events  []string `json:"events"` // each element is a JSON *string*, not an object
-}
-
-func publishCrumb(ctx context.Context, toUserID string, ev crumbEvent) error {
-	evJSON, err := json.Marshal(ev)
-	if err != nil {
-		return fmt.Errorf("marshal event: %w", err)
+	str := make([]string, 0, len(events))
+	for _, e := range events {
+		b, err := json.Marshal(e)
+		if err != nil {
+			return fmt.Errorf("marshal event: %w", err)
+		}
+		str = append(str, string(b))
 	}
 
-	body, err := json.Marshal(publishBody{
-		Channel: "/crumbs/" + toUserID,
-		Events:  []string{string(evJSON)},
-	})
+	body, err := json.Marshal(map[string]any{"channel": channel, "events": str})
 	if err != nil {
 		return fmt.Errorf("marshal body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, publishURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(l.Ctx, http.MethodPost, deps.LiveEventPublishUrl, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("new request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	creds, err := awsCfg.Credentials.Retrieve(ctx)
+	creds, err := deps.AwsConfig.Credentials.Retrieve(l.Ctx)
 	if err != nil {
 		return fmt.Errorf("retrieve creds: %w", err)
 	}
 
 	sum := sha256.Sum256(body)
-	payloadHash := hex.EncodeToString(sum[:])
-
-	// Service name for AppSync SigV4 is "appsync".
-	if err := signer.SignHTTP(ctx, creds, req, payloadHash, "appsync", awsCfg.Region, time.Now()); err != nil {
+	if err := deps.Signer.SignHTTP(l.Ctx, creds, req, hex.EncodeToString(sum[:]),
+		"appsync", deps.AwsConfig.Region, time.Now()); err != nil {
 		return fmt.Errorf("sign: %w", err)
 	}
 
-	resp, err := httpClient.Do(req)
+	resp, err := deps.HttpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("publish request: %w", err)
 	}
@@ -91,7 +75,7 @@ func publishCrumb(ctx context.Context, toUserID string, ev crumbEvent) error {
 		return fmt.Errorf("publish status %d: %s", resp.StatusCode, respBytes)
 	}
 
-	// A 200 can still carry per-event failures in a "failed" array.
+	// 200 can still carry per-event failures.
 	var result struct {
 		Failed []json.RawMessage `json:"failed"`
 	}

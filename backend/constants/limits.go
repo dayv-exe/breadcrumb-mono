@@ -44,6 +44,7 @@ const (
 	MAILBOX_RECEIVED                    = "received"
 	MIN_ALLOWED_DISTANCE_OFFSET         = 50    // meters // the min allowed difference between cur user location and last known location before we have to check for location spoofing
 	MAX_USER_TRAVEL_SPEED_METERS_SECOND = 22.35 // how fast a user can realistically travel between to points greater than min allowed distance offset
+	LIVE_EVENT_CHANNEL_CRUMB            = "/crumbs/"
 )
 
 var ALLOWED_LABELS = []string{
