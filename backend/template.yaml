@@ -738,6 +738,21 @@ Resources:
     Properties:
       ApiId: !GetAtt LiveEventApi.ApiId
       Name: crumbs
+      CodeHandlers: |
+        import { util } from '@aws-appsync/utils'
+
+        // Runs AFTER AppSync has verified the Cognito JWT.
+        // ctx.identity.sub is the authenticated caller.
+        export function onSubscribe(ctx) {
+          const allowed = '/crumbs/' + ctx.identity.sub
+          if (ctx.info.channel.path !== allowed) {
+            util.unauthorized()
+          }
+        }
+
+        export function onPublish(ctx) {
+          return ctx.events
+        }
 
   BreadQueue:
     Type: AWS::SQS::Queue
