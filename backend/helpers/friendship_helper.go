@@ -6,6 +6,7 @@ import (
 	"backend/utils"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -186,6 +187,62 @@ func (f *friendshipHelper) UsersAreFriends(otherUserid string) (bool, error) {
 	}
 
 	return len(response.Items) > 0 && response.Items[0].Status == constants.FRIENDSHIP_STATUS_ACTIVE, nil
+}
+
+type LatestFriendshipResponse struct {
+	Friendships      []models.Friendship
+	LastEvaluatedKey map[string]types.AttributeValue
+}
+
+func (f *friendshipHelper) GetLatestFriendships(friendId string, timestamp int64) (*LatestFriendshipResponse, error) {
+	userid := utils.GetAuthenticatedUserid()
+
+	pkVal := models.FriendshipPkPrefix + userid
+	skVal := models.FriendshipTimestampPrefix + fmt.Sprint(timestamp) + models.FriendshipFriendIdPrefix + friendId
+
+	var lastEvalKey *map[string]types.AttributeValue = nil
+
+	if strings.TrimSpace(friendId) != "" && timestamp != 0 {
+		lastEvalKey = &map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: pkVal},
+			"sk": &types.AttributeValueMemberS{Value: skVal},
+		}
+	}
+
+	keyCondition := expression.KeyEqual(
+		expression.Key("pk"),
+		expression.Value(pkVal),
+	).And(
+		expression.KeyBeginsWith(
+			expression.Key("sk"),
+			skVal,
+		),
+	)
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := QueryItems(
+		newHelper(f.Ctx, nil),
+		lastEvalKey,
+		nil,
+		expr,
+		aws.Bool(false),
+		nil,
+		func(items []map[string]types.AttributeValue) []models.Friendship {
+			return *models.ConvertDbItemsToFriendshipStructs(items)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LatestFriendshipResponse{
+		Friendships:      result.Items,
+		LastEvaluatedKey: result.LastEvaluatedKey,
+	}, nil
 }
 
 func (f *friendshipHelper) EndFriendship(currentUser, otherUser models.User) error {
