@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"strings"
 
@@ -14,7 +15,7 @@ func HandleUserActions(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 		return handleCreateUser(ctx, req)
 
 	case "get":
-		resource := strings.ToLower(getResourceName(req, 1))
+		resource := strings.ToLower(utils.GetResourceName(req, 1))
 		switch resource {
 		case "places":
 			// to get places nearby user

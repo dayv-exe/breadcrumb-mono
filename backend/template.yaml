@@ -305,6 +305,14 @@ Resources:
           CLOUDFRONT_DOMAIN: !GetAtt CloudFrontDistribution.DomainName
       Events:
         # for friends endpoints
+        GetLatestUserFriends:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/friendships
+            Method: GET
+            ApiId: !Ref BreadApi
+            Auth:
+              Authorizer: CognitoAuthorizer
         GetFriends:
           Type: HttpApi
           Properties:

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"fmt"
 	"strings"
@@ -9,25 +10,14 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func getResourceName(request events.APIGatewayV2HTTPRequest, offset int) string {
-	path := request.RequestContext.HTTP.Path
-
-	path = strings.TrimPrefix(path, "/")
-
-	parts := strings.Split(path, "/")
-	if len(parts) > 3+offset {
-		return parts[3+offset] // since [0] will be "/prod", then [1] /api then [2] /version number
-	}
-
-	return ""
-}
-
 func HandleHandlers(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	resource := strings.ToLower(getResourceName(req, 0))
+	resource := strings.ToLower(utils.GetResourceName(req, 0))
 
 	switch resource {
 	case "friends":
 		return HandleFriendsActions(ctx, req)
+	case "friendships":
+		return HandleFriendshipActions(ctx, req)
 	case "friend-requests":
 		return HandleFriendRequestActions(ctx, req)
 	case "users":

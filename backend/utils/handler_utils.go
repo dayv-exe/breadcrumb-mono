@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -143,4 +144,17 @@ func ResolveAuthenticatedUserForTesting(userid string) {
 
 func GetAuthenticatedUserid() string {
 	return *authenticatedUserid
+}
+
+func GetResourceName(request events.APIGatewayV2HTTPRequest, offset int) string {
+	path := request.RequestContext.HTTP.Path
+
+	path = strings.TrimPrefix(path, "/")
+
+	parts := strings.Split(path, "/")
+	if len(parts) > 3+offset {
+		return parts[3+offset] // since [0] will be "/prod", then [1] /api then [2] /version number
+	}
+
+	return ""
 }
