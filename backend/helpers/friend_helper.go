@@ -11,27 +11,27 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type friendshipHelper struct {
+type friendHelper struct {
 	Ctx context.Context
 }
 
-func NewFriendHelper(ctx context.Context) *friendshipHelper {
-	return &friendshipHelper{
+func NewFriendHelper(ctx context.Context) *friendHelper {
+	return &friendHelper{
 		Ctx: ctx,
 	}
 }
 
-func (this *friendshipHelper) SendFriendReq(sender *models.User, recipientId string) error {
+func (this *friendHelper) SendFriendReq(sender *models.User, recipientId string) error {
 	friendReq := models.NewFriendRequest(recipientId, sender)
 	return PutItem(newHelper(this.Ctx, nil), &friendReq)
 }
 
-func (this *friendshipHelper) CancelFriendRequest(senderId, recipientId string) error {
+func (this *friendHelper) CancelFriendRequest(senderId, recipientId string) error {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
 	return DeleteItem(newHelper(this.Ctx, nil), &friendReqKey)
 }
 
-func (this *friendshipHelper) EndFriend(user1id, user2id string) error {
+func (this *friendHelper) EndFriend(user1id, user2id string) error {
 	// deletes the 2 friendship items belonging to each user that were formally friends
 	key1 := models.FriendKey(user1id, user2id)
 	key2 := models.FriendKey(user2id, user1id)
@@ -43,7 +43,7 @@ func (this *friendshipHelper) EndFriend(user1id, user2id string) error {
 	)
 }
 
-func (this *friendshipHelper) AcceptFriendRequest(thisUser, otherUser *models.User) error {
+func (this *friendHelper) AcceptFriendRequest(thisUser, otherUser *models.User) error {
 	// delete friend req and add 2 new friendship items bidirectional one for each user
 	friendReqKey := models.FriendRequestKey(thisUser.Userid, otherUser.Userid)
 	friendshipItem1 := models.NewFriend(thisUser.Userid, otherUser)
@@ -57,22 +57,22 @@ func (this *friendshipHelper) AcceptFriendRequest(thisUser, otherUser *models.Us
 	)
 }
 
-func (this *friendshipHelper) RejectFriendRequest(senderId, recipientId string) error {
+func (this *friendHelper) RejectFriendRequest(senderId, recipientId string) error {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
 	return DeleteItem(newHelper(this.Ctx, nil), &friendReqKey)
 }
 
-func (this *friendshipHelper) usersAreFriends(senderId string, recipientId string) (bool, error) {
+func (this *friendHelper) usersAreFriends(senderId string, recipientId string) (bool, error) {
 	friendshipKey := models.FriendKey(senderId, recipientId)
 	return ItemExists(newHelper(this.Ctx, nil), friendshipKey)
 }
 
-func (this *friendshipHelper) userHasRequestedFriend(senderId string, recipientId string) (bool, error) {
+func (this *friendHelper) userHasRequestedFriend(senderId string, recipientId string) (bool, error) {
 	friendReqKey := models.FriendRequestKey(recipientId, senderId)
 	return ItemExists(newHelper(this.Ctx, nil), friendReqKey)
 }
 
-func (this *friendshipHelper) GetFriendStatus(currentUserId string, otherUserId string) (string, error) {
+func (this *friendHelper) GetFriendStatus(currentUserId string, otherUserId string) (string, error) {
 	// checks if this user has sent a friend request to other user
 	requested, reqErr := this.userHasRequestedFriend(currentUserId, otherUserId)
 	if reqErr != nil {
@@ -106,7 +106,7 @@ func (this *friendshipHelper) GetFriendStatus(currentUserId string, otherUserId 
 	return constants.FRIEND_STATUS_NOT_FRIENDS, nil
 }
 
-func (this *friendshipHelper) GetAllFriends(userId string, includeUserProfile bool, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
+func (this *friendHelper) GetAllFriends(userId string, includeUserProfile bool, lastEvalKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
 	friends := make([]models.UserDisplayInfo, 0)
 
 	if includeUserProfile && lastEvalKey == nil {
@@ -152,7 +152,7 @@ func (this *friendshipHelper) GetAllFriends(userId string, includeUserProfile bo
 	}, nil
 }
 
-func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
+func (this *friendHelper) GetAllFriendRequests(userId string, lastEvaluatedKey *map[string]types.AttributeValue, limit *int32) (*listResponse[models.UserDisplayInfo], error) {
 	condition := expression.KeyEqual(
 		expression.Key("pk"),
 		expression.Value(utils.AddPrefix(models.FriendRequestPkPrefix, userId)),
@@ -187,7 +187,7 @@ func (this *friendshipHelper) GetAllFriendRequests(userId string, lastEvaluatedK
 	}, nil
 }
 
-func (f *friendshipHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]models.CrumbMarkerDetails, error) {
+func (f *friendHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]models.CrumbMarkerDetails, error) {
 	keys := make([]models.CrumbMarkerDetails, 0)
 	// get all your friends sk
 	condition := expression.KeyEqual(expression.Key("pk"), expression.Value(utils.AddPrefix(models.FriendItemPk, userid))).And(
@@ -260,7 +260,7 @@ type getNewFriendItem func(models.Friend) types.WriteRequest
 type getListOfFriends func() (*listResponse[models.UserDisplayInfo], error)
 
 // TODO: FIX LATER
-func (f *friendshipHelper) updateFriendDisplayInfo(currentUser *models.User) error {
+func (f *friendHelper) updateFriendDisplayInfo(currentUser *models.User) error {
 	helper := newHelper(f.Ctx, nil)
 	var lastEvalKey map[string]types.AttributeValue
 
@@ -292,7 +292,7 @@ func (f *friendshipHelper) updateFriendDisplayInfo(currentUser *models.User) err
 	return nil
 }
 
-func (f *friendshipHelper) UpdateFriendDisplayInfo(currentUser *models.User) error {
+func (f *friendHelper) UpdateFriendDisplayInfo(currentUser *models.User) error {
 	// get user info
 	// get all friendship items
 	// update the display info
