@@ -135,7 +135,6 @@ async function openAndInit() {
       name TEXT,
       nickname TEXT NOT NULL,
       displayName TEXT,
-      createdAt INTEGER NOT NULL,
       timestamp INTEGER NOT NULL,
       status TEXT NOT NULL CHECK(status IN ('active', 'ended'))
     );

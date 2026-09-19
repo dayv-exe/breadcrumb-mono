@@ -7,7 +7,7 @@ export async function upsertFriendship(friendships: Friendship[]) {
       {
         table: "friendships",
         columns: [
-          "friendId", "pictureUrl", "name", "nickname", "displayName", "createdAt", "timestamp", "status",
+          "friendId", "pictureUrl", "name", "nickname", "displayName", "timestamp", "status",
         ],
         conflictColumns: ["id", "friendId"],
         toRows: (friendship) => [[
