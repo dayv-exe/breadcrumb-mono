@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	utils.InitHandlerDependencies(utils.WithDatabase(), utils.WithBucket(), utils.WithCognito(), utils.WithSecrets())
+	utils.InitHandlerDependencies(utils.WithDatabase(), utils.WithBucket(), utils.WithCognito(), utils.WithSecrets(), utils.WithLiveEvents())
 }
 
 func main() {
