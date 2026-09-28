@@ -737,14 +737,14 @@ Resources:
     Type: AWS::AppSync::ChannelNamespace
     Properties:
       ApiId: !GetAtt LiveEventApi.ApiId
-      Name: crumbs
+      Name: live
       CodeHandlers: |
         import { util } from '@aws-appsync/utils'
 
         // Runs AFTER AppSync has verified the Cognito JWT.
         // ctx.identity.sub is the authenticated caller.
         export function onSubscribe(ctx) {
-          const allowed = '/message/' + ctx.identity.sub
+          const allowed = '/live/' + ctx.identity.sub
           if (ctx.info.channel.path !== allowed) {
             util.unauthorized()
           }
