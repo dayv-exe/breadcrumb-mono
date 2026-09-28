@@ -42,7 +42,7 @@ export function LiveEventsProvider({ userid, onBeforeConnect, children }: PropsW
       if (cancelled) return
 
       try {
-        channel = await events.connect(`/crumbs/${userid}`)
+        channel = await events.connect(`/live/${userid}`)
       } catch (err) {
         console.warn('live connect error', err);
         return
