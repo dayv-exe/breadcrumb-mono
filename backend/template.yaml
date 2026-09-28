@@ -744,7 +744,7 @@ Resources:
         // Runs AFTER AppSync has verified the Cognito JWT.
         // ctx.identity.sub is the authenticated caller.
         export function onSubscribe(ctx) {
-          const allowed = '/' + ctx.identity.sub
+          const allowed = '/message/' + ctx.identity.sub
           if (ctx.info.channel.path !== allowed) {
             util.unauthorized()
           }
