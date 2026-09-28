@@ -93,7 +93,7 @@ func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 	for _, crumb := range crumbs {
 		wg.Go(func() {
 			err := liveEventHelper.PublishEvents(
-				constants.LIVE_EVENT_CHANNEL_CRUMB+crumb.Owner,
+				constants.LIVE_EVENT_CHANNEL+crumb.Owner,
 				LiveEvent{
 					EventType: "crumb",
 					Payload:   crumb,
@@ -101,7 +101,7 @@ func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 			)
 
 			if err != nil {
-				log.Printf("Crumb shared but failed to send live event! ERROR: %w", err)
+				log.Printf("Crumb shared but failed to send live event! ERROR: %v", err)
 			}
 		})
 	}
