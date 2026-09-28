@@ -1,26 +1,9 @@
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { CircleXIcon, SearchIcon, XIcon } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import CustomFloatingSquare from "../buttons/CustomFloatingSquare";
 import { searchInputProps } from "./searchInputProps";
-
-const icons = {
-  search: {
-    light: require("../../assets/images/icons/search_unsel_light.png"),
-    dark: require("../../assets/images/icons/search_unsel_dark.png")
-  },
-  clear: {
-    light: require("../../assets/images/icons/fillclose_sel_light.png"),
-    dark: require("../../assets/images/icons/fillclose_sel_dark.png")
-  }
-}
-
-export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
 
 export default function CustomSearchInput({ value, handleChange, placeholder, borderRadius, imageSize = 18, ref, useRedBorders = false, handleOnFocus, handleOnBlur, customStyle, customInputStyle, solidAppearance }: searchInputProps) {
   const mode = useColorScheme()

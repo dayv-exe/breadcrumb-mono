@@ -27,6 +27,14 @@ export default {
     },
     plugins: [
       [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
+      [
         "react-native-compressor"
       ],
       [
@@ -125,7 +133,9 @@ export default {
       baseUrl: process.env.secretBaseUrl,
       darkMapUrl: process.env.secretMapDarkStyleUrl,
       lightMapUrl: process.env.secretMapLightStyleUrl,
-      satelliteUrl: process.env.secretMapSatelliteUrl
+      satelliteUrl: process.env.secretMapSatelliteUrl,
+      appsyncEndpoint: process.env.secretAppsyncEndpoint,
+      region: process.env.secretRegion,
     },
   },
 };

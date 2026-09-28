@@ -211,11 +211,9 @@ export async function reconcileCrumbLocks(
 
           if (wantDistance !== candidate.distance_unlocked) {
             setDistance.push({ id: candidate.id, val: wantDistance })
-            console.log(`a crumb will be ${wantDistance === 1 ? "unlocked" : "locked"} by distance`)
           }
           if (wantPlace !== candidate.place_unlocked) {
             setPlace.push({ id: candidate.id, val: wantPlace })
-            console.log(`a crumb will be ${wantDistance === 1 ? "unlocked" : "locked"} by place`)
           }
 
           if (!wasUnlocked && willUnlock) {
@@ -295,9 +293,6 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
     }
 
     feed.get(row.friend_id)!.crumbs.push(crumb)
-    feed.forEach((item, key) => {
-      console.log("item: ", item)
-    })
   }
 
   return feed

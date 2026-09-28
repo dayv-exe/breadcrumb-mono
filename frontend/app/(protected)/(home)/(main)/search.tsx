@@ -17,23 +17,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, ListRenderItem, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-
-const icons = {
-  search: {
-    light: require("../../../assets/images/icons/search_unsel_light.png"),
-    dark: require("../../../assets/images/icons/search_unsel_dark.png")
-  },
-  addFriends: {
-    light: require("../../../assets/images/icons/findfriends_sel_light.png"),
-    dark: require("../../../assets/images/icons/findfriends_sel_dark.png")
-  }
-}
-
-export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
-
 function SearchErrorView() {
   return (
     <View style={{

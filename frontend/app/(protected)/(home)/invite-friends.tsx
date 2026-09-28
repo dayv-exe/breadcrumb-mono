@@ -9,19 +9,7 @@ import { showSettingsAlert } from "@/utils/helpers";
 import * as Contacts from "expo-contacts";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, Linking, ListRenderItem, Platform, StyleSheet, TextInput, View } from "react-native";
-
-const icons = {
-  search: {
-    light: require("../../assets/images/icons/search_unsel_light.png"),
-    dark: require("../../assets/images/icons/search_unsel_dark.png")
-  },
-}
-
-export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
+import { FlatList, Linking, ListRenderItem, Platform, StyleSheet, TextInput, View } from "react-native";
 
 const renderContact: ListRenderItem<Contacts.Contact> = ({ item }) => {
   return <View style={{
@@ -84,7 +72,7 @@ export default function InviteFriends() {
       <CustomHeader title="Invite contacts" handleBack={() => router.dismiss()}/>
       <Spacer size="small" />
       <View style={[styles.searchInputContainer, { backgroundColor: theme({}, "fadedBackground") }]}>
-        <Image style={styles.searchInputImg} source={getIconImage("search", mode === "light")} />
+        
         <TextInput autoCorrect={false} autoCapitalize="none" autoComplete="off" style={[styles.searchInput, { padding: 0, color: theme({}, "text") }]} onChangeText={e => setSearchStr(e)}>
           {searchStr}
         </TextInput>

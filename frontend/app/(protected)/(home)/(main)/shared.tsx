@@ -55,7 +55,6 @@ export default function Shared() {
         {
           crumbs &&
           crumbs.map(crumb => {
-            console.log("crumb: ", crumb)
             return (
               <CrumbSharedItem key={crumb.id} crumb={crumb} />
             )

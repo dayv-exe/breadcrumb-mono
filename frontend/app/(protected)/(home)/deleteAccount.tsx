@@ -12,7 +12,7 @@ export default function DeleteAccountScreen() {
     <CustomView backgroundColor={Colors.light.vibrantBackground}>
       <SafeAreaView>
         <View style={{ flex: 1, }}>
-          <Image style={{ width: 80, height: 80 }} source={require("../../assets/images/bread-no-bg.png")} />
+          <Image style={{ width: 80, height: 80 }} source={require("../../../assets/images/bread-no-bg.png")} />
           <CustomLabel bold fontSize={23} width="auto" labelText="Thank you for trying Breadcrumb" />
           <CustomLabel width="auto" fontSize={20} labelText="Your account and all associated information stored on our servers will be permanently deleted, including (but not limited to) all your photos, videos and texts." />
         </View>

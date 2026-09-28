@@ -53,22 +53,6 @@ const OptionItem = ({ name, value, handleClick }: SettingOption) => {
   )
 }
 
-const icons = {
-  next: {
-    light: require("../../assets/images/icons/next_sel_light.png"),
-    dark: require("../../assets/images/icons/next_sel_dark.png")
-  },
-  back: {
-    light: require("../../assets/images/icons/back_sel_light.png"),
-    dark: require("../../assets/images/icons/back_sel_dark.png")
-  },
-}
-
-function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
-
 export default function ProfileSettingsScreen() {
   const { logout } = useUserManagement()
   const {

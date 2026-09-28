@@ -36,54 +36,6 @@ if (!token) {
   Mapbox.setAccessToken(token);
 }
 
-const icons = {
-  addFriend: {
-    light: require("../../../assets/images/icons/searchfriends_sel_light.png"),
-    dark: require("../../../assets/images/icons/searchfriends_sel_dark.png")
-  },
-  frameMap: {
-    light: require("../../../assets/images/icons/frame_unsel_light.png"),
-    dark: require("../../../assets/images/icons/frame_unsel_dark.png")
-  },
-  focusUserLoc: {
-    light: require("../../../assets/images/icons/userlocation_sel_light.png"),
-    dark: require("../../../assets/images/icons/userlocation_sel_dark.png")
-  },
-  mapToggle: {
-    light: require("../../../assets/images/icons/maptoggle_sel_light.png"),
-    dark: require("../../../assets/images/icons/maptoggle_sel_dark.png")
-  },
-  satellite: {
-    light: require("../../../assets/images/icons/satellite_sel_light.png"),
-    dark: require("../../../assets/images/icons/satellite_sel_dark.png")
-  },
-  search: {
-    light: require("../../../assets/images/icons/search_unsel_light.png"),
-    dark: require("../../../assets/images/icons/search_unsel_dark.png")
-  },
-  addCrumb: {
-    light: require("../../../assets/images/icons/add_sel_light.png"),
-    dark: require("../../../assets/images/icons/add_sel_dark.png")
-  },
-  wall: {
-    light: require("../../../assets/images/icons/walls_sel_light.png"),
-    dark: require("../../../assets/images/icons/walls_sel_dark.png")
-  },
-  close: {
-    light: require("../../../assets/images/icons/close_unsel_light.png"),
-    dark: require("../../../assets/images/icons/close_unsel_dark.png")
-  },
-  favorite: {
-    light: require("../../../assets/images/icons/favorite_unsel_light.png"),
-    dark: require("../../../assets/images/icons/favorite_unsel_dark.png")
-  }
-}
-
-export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
-
 export default function MapScreen() {
   const [sessionToken, setSessionToken] = useState(() => GenerateUUID())
   const mapRef = useRef<Mapbox.MapView>(null);
@@ -288,7 +240,7 @@ export default function MapScreen() {
               <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
             </CustomButton>
             <CustomProfilePictureCircle size={40} handleClick={() => {
-              nav.push("/(protected)/(main)/profile")
+              nav.push("/(protected)/(home)/(main)/profile")
             }} />
           </View>
         </GradientView>

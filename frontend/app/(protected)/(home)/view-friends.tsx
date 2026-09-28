@@ -1,5 +1,5 @@
 import { UserDetails } from "@/api/models/userDetails";
-import CustomImageButton from "@/components/buttons/CustomImageButton";
+import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import ProfileItem from "@/components/profile/ProfileItem";
 import ProfileItemSkeleton from "@/components/profile/ProfileItemSkeleton";
@@ -11,28 +11,9 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useIsMyProfile } from "@/hooks/useIsMyProfile";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { ChevronLeftIcon } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const icons = {
-  options: {
-    light: require("../../assets/images/icons/options_sel_light.png"),
-    dark: require("../../assets/images/icons/options_sel_dark.png")
-  },
-  removeFriend: {
-    light: require("../../assets/images/icons/removefriend_sel_light.png"),
-    dark: require("../../assets/images/icons/removefriend_sel_dark.png"),
-  },
-  back: {
-    light: require("../../assets/images/icons/back_sel_light.png"),
-    dark: require("../../assets/images/icons/back_sel_dark.png")
-  },
-}
-
-export function getIconImage(name: keyof typeof icons, darkMode: boolean) {
-  const theme = darkMode ? "dark" : "light"
-  return icons[name][theme]
-}
 
 function NoFriendsComponent() {
   return (
@@ -76,6 +57,7 @@ export default function ViewFriendsScreen() {
   const mode = useColorScheme()
   const insets = useSafeAreaInsets()
   const darkBgCol = useThemeColor({}, "darkBackground")
+  const textCol = useThemeColor({}, "text")
 
   const friendRequests = requests?.pages.flatMap(pages => pages.friendReqs.map(p => (p)))
 
@@ -132,11 +114,15 @@ export default function ViewFriendsScreen() {
       paddingTop: insets.top,
       backgroundColor: darkBgCol
     }}>
-      <CustomImageButton customStyle={{
-        backgroundColor: darkBgCol,
-        position: "absolute",
-        top: insets.top - 7,
-      }} src={getIconImage("back", mode === "light")} flat handleClick={() => router.dismiss()} />
+      <CustomButton
+        freed
+        customStyle={{
+          backgroundColor: darkBgCol,
+          position: "absolute",
+          top: insets.top - 7,
+        }} handleClick={() => router.dismiss()}>
+        <ChevronLeftIcon stroke={textCol} strokeWidth={2.5} />
+      </CustomButton>
       <CustomLabel labelText={nickname} adaptToTheme textAlign="center" bold />
       {
         friends && friends.length < 1 && friendRequests && (friendRequests.length < 1 || !isMyProfile) &&

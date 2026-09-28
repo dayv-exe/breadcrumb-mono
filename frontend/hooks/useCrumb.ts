@@ -1,16 +1,15 @@
 import { CrumbsPage, getLatestCrumbs } from "@/api/crumbsApi";
 import { getLastCrumbDetails, upsertCrumbs } from "@/api/db/crumbsDb";
 import { Crumb, CrumbMailbox } from "@/api/models/crumb";
-import { useAuthStore } from "@/utils/authStore";
-import { useFocusEffect } from "expo-router";
 import type { Feature, FeatureCollection, GeoJsonProperties, Point } from "geojson";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetAllCrumbs } from "./queries/useLocalDatabase"; // adjust path
 
 type UseCrumbType = {
   crumbFeatures: FeatureCollection
   mailbox: CrumbMailbox
   getCrumbs: (ids: string[]) => Promise<Crumb[]>
+  fetchLatestCrumb: (userid: string) => void
   setMailbox: (m: CrumbMailbox) => void
 }
 
@@ -45,7 +44,6 @@ function newCrumbFeature(
 
 export const useCrumb = (): UseCrumbType => {
   const [mailbox, setMailbox] = useState<CrumbMailbox>("received")
-  const userid = useAuthStore(s => s.userid)
 
   const { data: crumbs = [] } = useGetAllCrumbs(mailbox)
 
@@ -72,29 +70,22 @@ export const useCrumb = (): UseCrumbType => {
     return latest.crumbs?.length
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      const updateCrumbs = async () => {
-        try {
-          const lastCrumb = await getLastCrumbDetails();
-          const latest = await getLatestCrumbs(userid, lastCrumb);
+  const fetchLatestCrumb = async (userid: string) => {
+    try {
+      const lastCrumb = await getLastCrumbDetails();
+      const latest = await getLatestCrumbs(userid, lastCrumb);
 
-          if (hasLatestCrumbs(latest)) {
-            await upsertCrumbs(latest.crumbs);
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      };
+      if (hasLatestCrumbs(latest)) {
+        await upsertCrumbs(latest.crumbs);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-      updateCrumbs();
-      const interval = setInterval(updateCrumbs, 5000);
-
-      return () => clearInterval(interval);
-    }, [userid])
-  );
   return {
     crumbFeatures,
+    fetchLatestCrumb,
     mailbox,
     setMailbox,
     getCrumbs,

@@ -76,7 +76,9 @@ export function useUserManagement(): state {
 
   async function checkAuthStatus() {
     try {
-      const session = await fetchAuthSession()
+      const session = await fetchAuthSession({
+        forceRefresh: true
+      })
       useAuthStore.setState({
         isLoggedIn: !!session.userSub,
         userid: session.userSub,
