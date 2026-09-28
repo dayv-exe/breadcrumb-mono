@@ -131,7 +131,7 @@ export default function CrumbFeed({ sheetPosition, screenHeight, bottomSheetRef,
         </View>
       </>}
       {!isOpened &&
-        <CrumbFeedHorizontal onSearchPress={onSearchPress} feed={feed} feedError={error} feedIsPending={isPending} />
+        <CrumbFeedHorizontal openSheet={handleToggleSheet} onSearchPress={onSearchPress} feed={feed} feedError={error} feedIsPending={isPending} />
       }
     </BottomSheetView>
   )

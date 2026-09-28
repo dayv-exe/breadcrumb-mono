@@ -104,7 +104,7 @@ export default function MapScreen() {
               displayName: displayName
             }
             nav.push({
-              pathname: "/(protected)/user-profile",
+              pathname: "/(protected)/(home)/(main)/profile",
               params: user
             })
 

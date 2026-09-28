@@ -1,5 +1,4 @@
 import { FeedItem } from "@/api/db/crumbsDb";
-import { useCenterOfBottomSheet } from "@/hooks/useCenterOfBottomSheet";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ChevronUpIcon, SearchIcon, UserPlus2Icon } from "lucide-react-native";
 import React from "react";
@@ -14,11 +13,11 @@ interface props {
   feedIsPending: boolean
   feedError: Error | null
   onSearchPress: () => void
+  openSheet: () => void
 }
 
-export default function CrumbFeedHorizontal({ feed, feedError, feedIsPending, onSearchPress }: props) {
+export default function CrumbFeedHorizontal({ feed, feedError, feedIsPending, onSearchPress, openSheet }: props) {
   const textCol = useThemeColor({}, "text")
-  const { onLayout, top } = useCenterOfBottomSheet()
   return (
     <View
       style={styles.container}
@@ -31,7 +30,7 @@ export default function CrumbFeedHorizontal({ feed, feedError, feedIsPending, on
           height: 52,
         }}
         handleClick={() => {
-
+          openSheet()
         }}
       >
         <ChevronUpIcon stroke={textCol} strokeWidth={3.5} size={22} />

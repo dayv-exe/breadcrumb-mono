@@ -32,9 +32,13 @@ export function LiveEventsProvider({ userid, onBeforeConnect, children }: PropsW
     let channel: Awaited<ReturnType<typeof events.connect>> | undefined
     let cancelled = false;
 
+    const beforeConnFn = () => {
+      onBeforeConnectRef.current?.(userid)
+    }
+
     (async () => {
       try {
-        onBeforeConnectRef.current?.(userid)
+        beforeConnFn()
       } catch (error) {
         console.warn("On before connect function failed. ERROR: ", error)
       }
