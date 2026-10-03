@@ -78,8 +78,8 @@ export default function ViewFriendsScreen() {
         return (
           <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
             router.push({
-              pathname: "/user-profile",
-              params: { userId: item.userId, tempNickname: item.nickname }
+              pathname: "/(protected)/(home)/user-profile",
+              params: { userid: item.userId, tempNickname: item.nickname }
             })
           }} />
         )
@@ -100,7 +100,7 @@ export default function ViewFriendsScreen() {
           <ProfileItem showAddFriendOpt={true} userDetails={item} handleClick={() => {
             router.push({
               pathname: "/user-profile",
-              params: { userId: item.userId, tempNickname: item.nickname }
+              params: { userid: item.userId, tempNickname: item.nickname }
             })
           }} />
         )
