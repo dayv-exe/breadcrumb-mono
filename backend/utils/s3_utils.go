@@ -70,15 +70,21 @@ func GetExtensionFromMimeType(contentType string) string {
 	return ""
 }
 
-var DefaultDir = "uploads/unprocessed"
-var ProcessedDir = "uploads/processed"
+const DefaultDir = "uploads/unprocessed"
+const ProcessedDir = "uploads/processed"
+const PublicDir = "public"
 
 func GetMediaDirectory(userId, nonCompositeCrumbId, objectName string) string {
 	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
 	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, nonCompositeCrumbId, objectName)
 }
 
-func GetProfilePictureDirectory(userId, objectName string) string {
+func GetProfilePictureDirectory(userId, objectName string, isThumbnail bool) string {
+	if isThumbnail {
+		// 'public/{file_name}'
+		return fmt.Sprintf("%s/%s", PublicDir, objectName)
+	}
+
 	// 'uploads/processed/{userid}/{file_name}'
 	return fmt.Sprintf("%s/%s/%s", ProcessedDir, userId, objectName)
 }
@@ -190,7 +196,7 @@ func generateKey(userid, nonCompositeCrumbId, filename string, isProfilePicture,
 	var key string
 	if isProfilePicture {
 		objectName = getProfilePictureObjectName(userid, isThumbnail)
-		key = GetProfilePictureDirectory(userid, objectName)
+		key = GetProfilePictureDirectory(userid, objectName, isThumbnail)
 	} else {
 		objectName = getMediaObjectName(isThumbnail, ext)
 		key = GetMediaDirectory(userid, nonCompositeCrumbId, objectName)
