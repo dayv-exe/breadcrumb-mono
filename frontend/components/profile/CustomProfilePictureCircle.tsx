@@ -2,7 +2,8 @@ import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { colorForUserId } from "@/utils/userColor";
-import { AnimatableNumericValue, ColorSchemeName, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { Image } from "expo-image";
+import { AnimatableNumericValue, ColorSchemeName, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 
 type props = {
@@ -60,7 +61,8 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
         <Image
           source={{ uri: url }}
           style={{ width: size, height: size, borderRadius: borderRadius ?? size / 2 }}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy={"disk"}
         />
       ) : (
         <>

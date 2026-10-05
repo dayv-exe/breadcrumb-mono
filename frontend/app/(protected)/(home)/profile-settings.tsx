@@ -330,7 +330,7 @@ export default function ProfileSettingsScreen() {
       .crop({ originX, originY, width: size, height: size })
 
     const original = (await context.renderAsync()).saveAsync({ compress: .8 })
-    const thumbnail = (await context.resize({ width: 200, height: 200 }).renderAsync()).saveAsync({ compress: .8 })
+    const thumbnail = (await context.resize({ width: 150, height: 150 }).renderAsync()).saveAsync({ compress: .8 })
     try {
       const file = await upload({
         id: "",
