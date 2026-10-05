@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"backend/constants"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -70,23 +71,19 @@ func GetExtensionFromMimeType(contentType string) string {
 	return ""
 }
 
-const DefaultDir = "uploads/unprocessed"
-const ProcessedDir = "uploads/processed"
-const PublicDir = "public"
-
 func GetMediaDirectory(userId, nonCompositeCrumbId, objectName string) string {
 	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
-	return fmt.Sprintf("%s/%s/%s/%s", DefaultDir, userId, nonCompositeCrumbId, objectName)
+	return fmt.Sprintf("%s/%s/%s/%s", constants.DEFAULT_MEDIA_DIR, userId, nonCompositeCrumbId, objectName)
 }
 
 func GetProfilePictureDirectory(userId, objectName string, isThumbnail bool) string {
 	if isThumbnail {
 		// 'public/{file_name}'
-		return fmt.Sprintf("%s/%s", PublicDir, objectName)
+		return fmt.Sprintf("%s/%s", constants.PUBLIC_MEDIA_DIR, objectName)
 	}
 
 	// 'uploads/processed/{userid}/{file_name}'
-	return fmt.Sprintf("%s/%s/%s", ProcessedDir, userId, objectName)
+	return fmt.Sprintf("%s/%s/%s", constants.PROCESSED_MEDIA_DIR, userId, objectName)
 }
 
 func GetUseridFromKey(key string) string {

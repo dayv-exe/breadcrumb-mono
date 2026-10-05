@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"backend/constants"
 	"backend/helpers"
 	"backend/models"
 	"backend/utils"
@@ -83,11 +84,13 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 		folderName := parts[len(parts)-2]
 		fileName := parts[len(parts)-1]
 
+		expectedThumbnailPrefix := constants.PUBLIC_MEDIA_DIR + "/" + userId
+
 		if folderName != userId {
 			return models.ForbiddenErrorResponse("Invalid profile picture key"), nil
 		} else if !strings.HasPrefix(fileName, userId) {
 			return models.ForbiddenErrorResponse("Invalid profile picture dir"), nil
-		} else if !strings.HasPrefix(thumbnailKey, strings.Split(imageKey, ".")[0]) {
+		} else if !strings.HasPrefix(thumbnailKey, expectedThumbnailPrefix) {
 			return models.ForbiddenErrorResponse("Invalid profile picture thumbnail"), nil
 		}
 
