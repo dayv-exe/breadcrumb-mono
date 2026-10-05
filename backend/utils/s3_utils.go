@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"mime"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -72,31 +73,40 @@ func GetExtensionFromMimeType(contentType string) string {
 }
 
 func GetMediaDirectory(userId, nonCompositeCrumbId, objectName string) string {
-	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
-	return fmt.Sprintf("%s/%s/%s/%s", constants.DEFAULT_MEDIA_DIR, userId, nonCompositeCrumbId, objectName)
+	// 'uploads/unprocessed/u/{userid}/c/{crumb_id}/{file_name}'
+	return fmt.Sprintf("%s/u/%s/c/%s/%s", constants.DEFAULT_MEDIA_DIR, userId, nonCompositeCrumbId, objectName)
 }
 
 func GetProfilePictureDirectory(userId, objectName string, isThumbnail bool) string {
 	if isThumbnail {
-		// 'public/{file_name}'
-		return fmt.Sprintf("%s/%s", constants.PUBLIC_MEDIA_DIR, objectName)
+		// 'public/u/{userid}/{file_name}'
+		return fmt.Sprintf("%s/u/%s/%s", constants.PUBLIC_MEDIA_DIR, userId, objectName)
 	}
 
-	// 'uploads/processed/{userid}/{file_name}'
-	return fmt.Sprintf("%s/%s/%s", constants.PROCESSED_MEDIA_DIR, userId, objectName)
+	// 'uploads/processed/u/{userid}/{file_name}'
+	return fmt.Sprintf("%s/u/%s/%s", constants.PROCESSED_MEDIA_DIR, userId, objectName)
 }
 
 func GetUseridFromKey(key string) string {
-	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
-	return strings.Split(key, "/")[2]
+	_, rest, ok := strings.Cut(key, "/u/")
+	if !ok {
+		return ""
+	}
+	id, _, _ := strings.Cut(rest, "/")
+	return id
 }
+
 func GetCrumbNonCompositeIdFromKey(key string) string {
-	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
-	return strings.Split(key, "/")[3]
+	_, rest, ok := strings.Cut(key, "/c/")
+	if !ok {
+		return ""
+	}
+	id, _, _ := strings.Cut(rest, "/")
+	return id
 }
+
 func GetCrumbMediaFileNameFromKey(key string) string {
-	// 'uploads/unprocessed/{userid}/{crumb_id}/{file_name}'
-	return strings.Split(key, "/")[4]
+	return path.Base(key)
 }
 
 func UnmarshalS3ObjectCreatedDetails(event events.EventBridgeEvent) (*S3ObjectCreatedDetail, error) {

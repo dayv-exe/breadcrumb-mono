@@ -19,6 +19,10 @@ func HandleProcessUpload(ctx context.Context, event events.EventBridgeEvent) err
 	userid := utils.GetUseridFromKey(details.Object.Key)
 	crumbNonCompositeId := utils.GetCrumbNonCompositeIdFromKey(details.Object.Key)
 
+	if crumbNonCompositeId == "" {
+		return nil
+	}
+
 	// check if crumb has been shared, if so media should not be flagged as draft
 	crumbExists, err := helpers.NewCrumbHelper(ctx).CrumbExists(userid, crumbNonCompositeId)
 	if err != nil {
