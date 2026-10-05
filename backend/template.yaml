@@ -171,6 +171,22 @@ Resources:
               OriginAccessIdentity: ""
             OriginAccessControlId: !Ref CloudFrontOriginAccessControl
         Enabled: true
+        CacheBehaviors:
+          - PathPattern: "public/*"
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
@@ -242,7 +258,6 @@ Resources:
         SecretStringTemplate: '{"api_key":""}'
         GenerateStringKey: "placeholder"
     
-
   PreSignUp:
     Type: AWS::Serverless::Function
     Properties:
