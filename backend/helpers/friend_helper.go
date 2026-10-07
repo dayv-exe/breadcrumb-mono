@@ -195,8 +195,12 @@ func (f *friendHelper) GetUsersMarkerDetails(ids []string) ([]models.CrumbMarker
 
 	var keys []map[string]types.AttributeValue
 
-	for i := 0; i < 100; i++ {
-		keys = append(keys, *models.UserKey(ids[i]))
+	for index, id := range ids {
+		if index >= 100 {
+			break
+		}
+
+		keys = append(keys, *models.UserKey(id))
 	}
 
 	return BatchGetItems(
