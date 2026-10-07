@@ -189,6 +189,9 @@ func (this *friendHelper) GetAllFriendRequests(userId string, lastEvaluatedKey *
 
 // Max ids count is 100
 func (f *friendHelper) GetUsersMarkerDetails(ids []string) ([]models.CrumbMarkerDetails, error) {
+	if len(ids) == 0 {
+		return []models.CrumbMarkerDetails{}, nil
+	}
 
 	var keys []map[string]types.AttributeValue
 
