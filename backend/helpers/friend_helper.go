@@ -194,12 +194,14 @@ func (f *friendHelper) GetUsersMarkerDetails(ids []string) ([]models.CrumbMarker
 	}
 
 	var keys []map[string]types.AttributeValue
+	log.Printf("ids received: %v", ids)
 
 	for index, id := range ids {
 		if index >= 100 {
 			break
 		}
 
+		log.Printf("Current id: %v", id)
 		keys = append(keys, *models.UserKey(id))
 	}
 
