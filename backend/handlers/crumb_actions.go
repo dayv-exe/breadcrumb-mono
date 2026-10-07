@@ -23,6 +23,10 @@ func HandleCrumbActions(ctx context.Context, req events.APIGatewayV2HTTPRequest)
 		return HandleGetCrumb(ctx, req)
 
 	case "post":
+		action := utils.GetResourceName(req, 1)
+		if strings.ToLower(action) == "markers" {
+			return handleGetCrumbMarkers(ctx, req)
+		}
 		return handleShareCrumb(ctx, req)
 
 	default:

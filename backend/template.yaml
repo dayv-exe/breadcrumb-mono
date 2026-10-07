@@ -464,7 +464,7 @@ Resources:
           Type: HttpApi
           Properties:
             Path: /api/v1/crumbs/markers
-            Method: GET
+            Method: POST
             ApiId: !Ref BreadApi
             Auth:
               Authorizer: CognitoAuthorizer

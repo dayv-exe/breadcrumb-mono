@@ -48,8 +48,7 @@ type CrumbBody struct {
 type CrumbMarkerDetails struct {
 	UserId                  string `json:"userid"`
 	Nickname                string `json:"nickname"`
-	ProfilePicture          string `json:"profilePicture"`
-	ProfilePictureThumbnail string `json:"profilePictureThumbnail"`
+	ProfilePictureThumbnail string `json:"thumbnail"`
 }
 
 type Crumb struct {
@@ -182,6 +181,10 @@ func ConvertToCrumbs(items []map[string]types.AttributeValue, onCrumbConverted f
 		onCrumbConverted(c)
 		c.RemovePrefixes()
 	})
+}
+
+func ConvertToCrumbMarkers(items []map[string]types.AttributeValue) *[]CrumbMarkerDetails {
+	return utils.DatabaseItemsToStructs[CrumbMarkerDetails](items, nil)
 }
 
 func CrumbKey(userId, crumbId string) *map[string]types.AttributeValue {

@@ -187,73 +187,22 @@ func (this *friendHelper) GetAllFriendRequests(userId string, lastEvaluatedKey *
 	}, nil
 }
 
-func (f *friendHelper) GetAllFriendsCrumbMarkerDetails(userid string) ([]models.CrumbMarkerDetails, error) {
-	keys := make([]models.CrumbMarkerDetails, 0)
-	// get all your friends sk
-	condition := expression.KeyEqual(expression.Key("pk"), expression.Value(utils.AddPrefix(models.FriendItemPk, userid))).And(
-		expression.KeyBeginsWith(expression.Key("sk"), models.FriendItemSk),
-	)
+// Max ids count is 100
+func (f *friendHelper) GetUsersMarkerDetails(ids []string) ([]models.CrumbMarkerDetails, error) {
 
-	proj := expression.NamesList(
-		expression.Name("sk"),
-	)
+	var keys []map[string]types.AttributeValue
 
-	expr, err := expression.NewBuilder().WithKeyCondition(condition).WithProjection(proj).Build()
-	if err != nil {
-		return keys, err
+	for i := 0; i < 100; i++ {
+		keys = append(keys, *models.UserKey(ids[i]))
 	}
 
-	helper := newHelper(f.Ctx, nil)
-
-	// get all friend ids
-	friends := make([]map[string]types.AttributeValue, 0)
-	err = QueryAllItemsAndProcess(
-		helper,
-		nil,
-		expr,
-		func(friendRows []map[string]types.AttributeValue) {
-			for _, friendItem := range friendRows {
-				friend := models.DbItemToFriendStruct(friendItem)
-				friends = append(friends, *models.UserKey(friend.OtherUserID))
-			}
+	return BatchGetItems(
+		newHelper(f.Ctx, nil),
+		func(items []map[string]types.AttributeValue) []models.CrumbMarkerDetails {
+			return *models.ConvertToCrumbMarkers(items)
 		},
+		keys...,
 	)
-	if err != nil {
-		return keys, err
-	}
-
-	// get all friend profilePics and sign
-	err = BatchGetAndProcessItems(
-		helper,
-		func(users []map[string]types.AttributeValue) {
-			for _, u := range users {
-				user := models.ConvertToUser(u)
-				thumbnailKey, _, err := NewCloudfrontHelper(f.Ctx).GetSignedUrl(user.ProfilePicture.ThumbnailKey, constants.PROFILE_PICTURE_URL_TTL)
-				if err != nil {
-					return
-				}
-
-				pictureKey, _, err := NewCloudfrontHelper(f.Ctx).GetSignedUrl(user.ProfilePicture.MediaKey, constants.PROFILE_PICTURE_URL_TTL)
-				if err != nil {
-					return
-				}
-
-				keys = append(keys, models.CrumbMarkerDetails{
-					UserId:                  user.Userid,
-					ProfilePicture:          pictureKey,
-					ProfilePictureThumbnail: thumbnailKey,
-					Nickname:                user.Nickname,
-				})
-			}
-		},
-		friends...,
-	)
-
-	if err != nil {
-		return keys, err
-	}
-
-	return keys, nil
 }
 
 type getNewFriendItem func(models.Friend) types.WriteRequest
