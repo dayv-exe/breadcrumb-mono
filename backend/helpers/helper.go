@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/rand/v2"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -29,17 +29,13 @@ type sliceConversionFunc[T any] func([]map[string]types.AttributeValue) []T
 type conversionFunc[T any] func(map[string]types.AttributeValue) T
 type sliceProcessFunc func([]map[string]types.AttributeValue)
 
-// PageResult is the shape returned by a paginated query.
 type PageResult[S any] struct {
 	Items       []S
 	LastEvalKey map[string]types.AttributeValue
 }
 
-// PageFetcher fetches one page of items of type S, starting from startKey.
 type PageFetcher[S any] func(startKey *map[string]types.AttributeValue) (*PageResult[S], error)
 
-// WriteBuilder converts a single source item into a DynamoDB WriteRequest
-// (Put, Delete, etc).
 type WriteBuilder[S any] func(item S) types.WriteRequest
 
 func newHelper(ctx context.Context, tableName *string) *helper {
@@ -52,8 +48,6 @@ func newHelper(ctx context.Context, tableName *string) *helper {
 	}
 }
 
-// PaginateAndBatchWrite walks every page produced by fetchPage, builds a write
-// request per item via buildWrite, and flushes them with BatchWriteItems.
 func PaginateAndBatchWrite[S any](
 	helper *helper,
 	fetchPage PageFetcher[S],
@@ -325,221 +319,137 @@ func QueryItems[T any](deps *helper, lastEvaluatedKey *map[string]types.Attribut
 	}, nil
 }
 
+const (
+	batchGetChunkSize   = 100
+	batchWriteChunkSize = 25
+
+	batchMaxAttempts  = 10
+	batchBaseBackoff  = 50 * time.Millisecond
+	batchMaxBackoff   = 1 * time.Second
+	batchMaxJitter    = 50 * time.Millisecond
+	batchChunkTimeout = 10 * time.Second
+)
+
+func backoffSleep(ctx context.Context, attempt int) error {
+	backoff := min(batchBaseBackoff*time.Duration(1<<attempt), batchMaxBackoff)
+	sleep := backoff + rand.N(batchMaxJitter)
+
+	timer := time.NewTimer(sleep)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 func BatchGetItems[T any](deps *helper, convertToStructs sliceConversionFunc[T], keys ...map[string]types.AttributeValue) ([]T, error) {
-	context, cancel := context.WithTimeout(deps.Ctx, 10*time.Second)
-	defer cancel()
-
-	const chunkSize = 100
-
-	const maxAttempts = 10
-	const baseBackOff = 50 * time.Millisecond
-	const maxJitter = 50 * time.Millisecond
-
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	results := make([]T, 0, len(keys))
 
-	for i := 0; i < len(keys); i += chunkSize {
-		end := i + chunkSize
-		if end > len(keys) {
-			end = len(keys)
-		}
-
-		unprocessed := map[string]types.KeysAndAttributes{
-			deps.TableName: {Keys: keys[i:end]},
-		}
-
-		for attempt := 0; attempt < maxAttempts && len(unprocessed) > 0; attempt++ {
-			if err := context.Err(); err != nil {
-				return nil, fmt.Errorf("batch get aborted (context): %w", err)
-			}
-
-			input := &dynamodb.BatchGetItemInput{
-				RequestItems: unprocessed,
-			}
-
-			out, err := utils.GetDependencies().DbClient.BatchGetItem(context, input)
-			if err != nil {
-				return nil, fmt.Errorf("batch get from %s failed (chunk %d-%d, attempt %d/%d): %w",
-					deps.TableName, i, end-1, attempt+1, maxAttempts, err)
-			}
-
-			if items, ok := out.Responses[deps.TableName]; ok && len(items) > 0 {
-				batch := convertToStructs(items)
-				results = append(results, batch...)
-			}
-
-			unprocessed = out.UnprocessedKeys
-			if len(unprocessed) == 0 {
-				break
-			}
-
-			backoff := baseBackOff * time.Duration(1<<attempt)
-			jitter := time.Duration(rng.Int63n(int64(maxJitter)))
-			sleep := backoff + jitter
-
-			timer := time.NewTimer(sleep)
-			select {
-			case <-context.Done():
-				timer.Stop()
-				return nil, fmt.Errorf("batch get aborted during backoff: %w", context.Err())
-			case <-timer.C:
-			}
-		}
-
-		if len(unprocessed) > 0 {
-			remaining := 0
-			if v, ok := unprocessed[deps.TableName]; ok {
-				remaining = len(v.Keys)
-			}
-			return nil, fmt.Errorf("batch get incomplete for %s (chunk %d-%d): %d unprocessed after %d attempts",
-				deps.TableName, i, end-1, remaining, maxAttempts)
-		}
+	err := BatchGetAndProcessItems(deps, func(items []map[string]types.AttributeValue) {
+		results = append(results, convertToStructs(items)...)
+	}, keys...)
+	if err != nil {
+		return nil, err
 	}
 
 	return results, nil
 }
 
 func BatchGetAndProcessItems(deps *helper, processFn sliceProcessFunc, keys ...map[string]types.AttributeValue) error {
-	context, cancel := context.WithTimeout(deps.Ctx, 10*time.Second)
-	defer cancel()
+	for i := 0; i < len(keys); i += batchGetChunkSize {
+		end := min(i+batchGetChunkSize, len(keys))
 
-	const chunkSize = 100
-
-	const maxAttempts = 10
-	const baseBackOff = 50 * time.Millisecond
-	const maxJitter = 50 * time.Millisecond
-
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	for i := 0; i < len(keys); i += chunkSize {
-		end := i + chunkSize
-		if end > len(keys) {
-			end = len(keys)
-		}
-
-		unprocessed := map[string]types.KeysAndAttributes{
-			deps.TableName: {Keys: keys[i:end]},
-		}
-
-		for attempt := 0; attempt < maxAttempts && len(unprocessed) > 0; attempt++ {
-			if err := context.Err(); err != nil {
-				return fmt.Errorf("batch get aborted (context): %w", err)
-			}
-
-			input := &dynamodb.BatchGetItemInput{
-				RequestItems: unprocessed,
-			}
-
-			out, err := utils.GetDependencies().DbClient.BatchGetItem(context, input)
-			if err != nil {
-				return fmt.Errorf("batch get from %s failed (chunk %d-%d, attempt %d/%d): %w",
-					deps.TableName, i, end-1, attempt+1, maxAttempts, err)
-			}
-
-			if items, ok := out.Responses[deps.TableName]; ok && len(items) > 0 {
-				processFn(items)
-			}
-
-			unprocessed = out.UnprocessedKeys
-			if len(unprocessed) == 0 {
-				break
-			}
-
-			backoff := baseBackOff * time.Duration(1<<attempt)
-			jitter := time.Duration(rng.Int63n(int64(maxJitter)))
-			sleep := backoff + jitter
-
-			timer := time.NewTimer(sleep)
-			select {
-			case <-context.Done():
-				timer.Stop()
-				return fmt.Errorf("batch get aborted during backoff: %w", context.Err())
-			case <-timer.C:
-			}
-		}
-
-		if len(unprocessed) > 0 {
-			remaining := 0
-			if v, ok := unprocessed[deps.TableName]; ok {
-				remaining = len(v.Keys)
-			}
-			return fmt.Errorf("batch get incomplete for %s (chunk %d-%d): %d unprocessed after %d attempts",
-				deps.TableName, i, end-1, remaining, maxAttempts)
+		if err := batchGetChunk(deps, processFn, keys[i:end]); err != nil {
+			return fmt.Errorf("batch get from %s (chunk %d-%d): %w", deps.TableName, i, end-1, err)
 		}
 	}
 
 	return nil
 }
 
-func BatchWriteItems(deps *helper, requests ...types.WriteRequest) error {
-	context, cancel := context.WithTimeout(deps.Ctx, 10*time.Second)
+func batchGetChunk(deps *helper, processFn sliceProcessFunc, keys []map[string]types.AttributeValue) error {
+	ctx, cancel := context.WithTimeout(deps.Ctx, batchChunkTimeout)
 	defer cancel()
 
-	const chunkSize = 25
+	client := utils.GetDependencies().DbClient
+	unprocessed := map[string]types.KeysAndAttributes{
+		deps.TableName: {Keys: keys},
+	}
 
-	const maxAttempts = 10
-	const baseBackOff = 50 * time.Millisecond
-	const maxJitter = 50 * time.Millisecond
-
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	for i := 0; i < len(requests); i += chunkSize {
-		end := i + chunkSize
-		if end > len(requests) {
-			end = len(requests)
+	for attempt := 0; ; attempt++ {
+		out, err := client.BatchGetItem(ctx, &dynamodb.BatchGetItemInput{
+			RequestItems: unprocessed,
+		})
+		if err != nil {
+			return fmt.Errorf("attempt %d/%d: %w", attempt+1, batchMaxAttempts, err)
 		}
 
-		unprocessed := map[string][]types.WriteRequest{
-			deps.TableName: requests[i:end],
+		if items := out.Responses[deps.TableName]; len(items) > 0 {
+			processFn(items)
 		}
 
-		for attempt := 0; attempt < maxAttempts && len(unprocessed) > 0; attempt++ {
-			if err := context.Err(); err != nil {
-				return fmt.Errorf("batch write aborted (context): %w", err)
-			}
-
-			input := &dynamodb.BatchWriteItemInput{
-				RequestItems: unprocessed,
-			}
-
-			out, err := utils.GetDependencies().DbClient.BatchWriteItem(context, input)
-			if err != nil {
-				return fmt.Errorf("batch write to %s failed (chunk %d-%d, attempt %d/%d): %w",
-					deps.TableName, i, end-1, attempt+1, maxAttempts, err)
-			}
-
-			unprocessed = out.UnprocessedItems
-			if len(unprocessed) == 0 {
-				break
-			}
-
-			backoff := baseBackOff * time.Duration(1<<attempt)
-			jitter := time.Duration(rng.Int63n(int64(maxJitter)))
-			sleep := backoff + jitter
-
-			timer := time.NewTimer(sleep)
-			select {
-			case <-context.Done():
-				timer.Stop()
-				return fmt.Errorf("batch write aborted during backoff: %w", context.Err())
-			case <-timer.C:
-			}
+		unprocessed = out.UnprocessedKeys
+		if len(unprocessed) == 0 {
+			return nil
 		}
 
-		if len(unprocessed) > 0 {
-			// At this point we tried maxAttempts and still have unprocessed writes.
-			remaining := 0
-			if v, ok := unprocessed[deps.TableName]; ok {
-				remaining = len(v)
-			}
-			return fmt.Errorf("batch write incomplete for %s (chunk %d-%d): %d unprocessed after %d attempts",
-				deps.TableName, i, end-1, remaining, maxAttempts)
+		if attempt == batchMaxAttempts-1 {
+			return fmt.Errorf("%d keys unprocessed after %d attempts",
+				len(unprocessed[deps.TableName].Keys), batchMaxAttempts)
+		}
+
+		if err := backoffSleep(ctx, attempt); err != nil {
+			return fmt.Errorf("aborted during backoff: %w", err)
+		}
+	}
+}
+
+func BatchWriteItems(deps *helper, requests ...types.WriteRequest) error {
+	for i := 0; i < len(requests); i += batchWriteChunkSize {
+		end := min(i+batchWriteChunkSize, len(requests))
+
+		if err := batchWriteChunk(deps, requests[i:end]); err != nil {
+			return fmt.Errorf("batch write to %s (chunk %d-%d): %w", deps.TableName, i, end-1, err)
 		}
 	}
 
 	return nil
+}
 
+func batchWriteChunk(deps *helper, requests []types.WriteRequest) error {
+	ctx, cancel := context.WithTimeout(deps.Ctx, batchChunkTimeout)
+	defer cancel()
+
+	client := utils.GetDependencies().DbClient
+	unprocessed := map[string][]types.WriteRequest{
+		deps.TableName: requests,
+	}
+
+	for attempt := 0; ; attempt++ {
+		out, err := client.BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
+			RequestItems: unprocessed,
+		})
+		if err != nil {
+			return fmt.Errorf("attempt %d/%d: %w", attempt+1, batchMaxAttempts, err)
+		}
+
+		unprocessed = out.UnprocessedItems
+		if len(unprocessed) == 0 {
+			return nil
+		}
+
+		if attempt == batchMaxAttempts-1 {
+			return fmt.Errorf("%d writes unprocessed after %d attempts",
+				len(unprocessed[deps.TableName]), batchMaxAttempts)
+		}
+
+		if err := backoffSleep(ctx, attempt); err != nil {
+			return fmt.Errorf("aborted during backoff: %w", err)
+		}
+	}
 }
 
 func UsePutBatchItem[T utils.DatabaseFormattable](deps *helper, item T) types.WriteRequest {
