@@ -184,7 +184,9 @@ func ConvertToCrumbs(items []map[string]types.AttributeValue, onCrumbConverted f
 }
 
 func ConvertToCrumbMarkers(items []map[string]types.AttributeValue) *[]CrumbMarkerDetails {
-	return utils.DatabaseItemsToStructs[CrumbMarkerDetails](items, nil)
+	return utils.DatabaseItemsToStructs(items, func(cmd *CrumbMarkerDetails) {
+
+	})
 }
 
 func CrumbKey(userId, crumbId string) *map[string]types.AttributeValue {
