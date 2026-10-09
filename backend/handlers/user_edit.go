@@ -84,7 +84,7 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 		folderName := parts[len(parts)-2]
 		fileName := parts[len(parts)-1]
 
-		expectedThumbnailPrefix := constants.PUBLIC_MEDIA_DIR + "/" + userId
+		expectedThumbnailPrefix := constants.PUBLIC_MEDIA_DIR + "/u/" + userId
 
 		if folderName != userId {
 			return models.ForbiddenErrorResponse("Invalid profile picture key"), nil
