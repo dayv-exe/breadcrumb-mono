@@ -46,9 +46,10 @@ type CrumbBody struct {
 }
 
 type CrumbMarkerDetails struct {
-	UserId                  string `json:"userid"`
-	Nickname                string `json:"nickname"`
-	ProfilePictureThumbnail string `json:"thumbnail"`
+	UserId         string     `json:"userid" dynamodbav:"pk"`
+	Nickname       string     `json:"nickname" dynamodbav:"gsi"`
+	ProfilePicture CrumbMedia `json:"-" dynamodbav:"profilePicture"`
+	Thumbnail      string     `json:"thumbnail"`
 }
 
 type Crumb struct {
@@ -185,7 +186,8 @@ func ConvertToCrumbs(items []map[string]types.AttributeValue, onCrumbConverted f
 
 func ConvertToCrumbMarkers(items []map[string]types.AttributeValue) *[]CrumbMarkerDetails {
 	return utils.DatabaseItemsToStructs(items, func(cmd *CrumbMarkerDetails) {
-
+		cmd.UserId = strings.TrimPrefix(cmd.UserId, UserPkPrefix)
+		cmd.Thumbnail = utils.GetUnsignedUrlForKey(cmd.ProfilePicture.ThumbnailKey)
 	})
 }
 
