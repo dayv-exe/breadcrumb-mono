@@ -205,13 +205,19 @@ func (f *friendHelper) GetUsersMarkerDetails(ids []string) ([]models.CrumbMarker
 		keys = append(keys, *models.UserKey(id))
 	}
 
-	return BatchGetItems(
+	log.Printf("keys: %v", keys)
+
+	res, err := BatchGetItems(
 		newHelper(f.Ctx, nil),
 		func(items []map[string]types.AttributeValue) []models.CrumbMarkerDetails {
 			return *models.ConvertToCrumbMarkers(items)
 		},
 		keys...,
 	)
+
+	log.Printf("batch get response: %#v", res)
+
+	return res, err
 }
 
 type getNewFriendItem func(models.Friend) types.WriteRequest
