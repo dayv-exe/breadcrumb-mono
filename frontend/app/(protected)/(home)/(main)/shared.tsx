@@ -7,8 +7,8 @@ import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictur
 import Spacer from "@/components/Spacer";
 import { useCrumbsWith } from "@/hooks/queries/useLocalDatabase";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useUserColor } from "@/hooks/useUserColor";
 import { useLocationStore } from "@/utils/useLocationStore";
-import { colorForUserId } from "@/utils/userColor";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeftIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react-native";
 import { useState } from "react";
@@ -21,7 +21,7 @@ export default function Shared() {
   const crumbBorderCol = useThemeColor({}, "fadedBackground")
   const insets = useSafeAreaInsets()
   const { userid, displayName } = useLocalSearchParams<UserInitialDetails>()
-  const userCol = colorForUserId(userid)
+  const userCol = useUserColor(userid)
   const topPadding = insets.top
   const { data: crumbs, error: crumbsError, isPending: crumbsPending } = useCrumbsWith(userid, useLocationStore.getState().coordinates!)
 

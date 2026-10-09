@@ -105,7 +105,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
         }]}
         handleClick={() => {
           // onFocusPress()
-          nav.push("/(protected)/(main)/camera")
+          nav.push("/(protected)/(home)/(main)/camera")
         }}
       >
         <PlusIcon size={27} stroke={"#fff"} strokeWidth={2.5} />

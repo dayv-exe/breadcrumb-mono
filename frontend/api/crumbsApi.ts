@@ -37,8 +37,8 @@ export const getLatestCrumbs = async (userid: string, lastCrumb: Crumb | null): 
   return { crumbs: data.message, next: data.next }
 }
 
-export const getCrumbMarkers = async (): Promise<CrumbMarkerDetails[]> => {
-  const { data } = await axiosInstance.get<{ message: CrumbMarkerDetails[] }>("/crumbs/markers")
+export const getCrumbMarkers = async (ids: string[]): Promise<CrumbMarkerDetails[]> => {
+  const { data } = await axiosInstance.post<{ message: CrumbMarkerDetails[] }>("/crumbs/markers", { ids: ids })
   return data.message
 }
 

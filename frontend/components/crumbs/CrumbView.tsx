@@ -16,7 +16,8 @@ interface props {
 
 export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus }: props) {
   const [caption, setCaption] = useState(mediaData.caption)
-  const borderThickness = size / 25
+  const borderThickness = size / 20
+  const borderRadius = borderThickness / 4.5
 
   const {
     removeCrumb,
@@ -41,8 +42,11 @@ export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus
           width: size,
           height: size,
           borderWidth: borderThickness,
-          borderBottomWidth: 0,
-          borderColor: "#FFFFFF",
+          // borderTopWidth: borderThickness * 2,
+          borderBottomWidth: borderThickness / 1.5,
+          borderColor: "#FFF",
+          borderTopEndRadius: borderRadius,
+          borderTopStartRadius: borderRadius,
         }}
       >
         <Image
@@ -50,10 +54,20 @@ export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus
           style={{
             width: "100%",
             height: "100%",
-            borderWidth: .5,
-            borderColor: "grey"
+
           }}
           resizeMode="cover"
+        />
+        {/* Inner shadow overlay */}
+        <View
+          pointerEvents="none"
+          style={{
+            ...StyleSheet.absoluteFill,
+            boxShadow: [
+
+              { inset: true, offsetX: 0, offsetY: 0, blurRadius: borderThickness, color: "rgba(0,0,0, .25)" },
+            ],
+          }}
         />
         <CustomButton
           customStyle={{
@@ -72,10 +86,12 @@ export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus
       <View
         style={{
           width: size,
-          backgroundColor: "white",
+          backgroundColor: "#F6F6F6",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "flex-start",
+          borderBottomEndRadius: borderRadius,
+          borderBottomStartRadius: borderRadius,
         }}
       >
         <TextInput

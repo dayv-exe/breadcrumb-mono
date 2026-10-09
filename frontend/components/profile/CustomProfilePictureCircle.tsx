@@ -1,9 +1,9 @@
 import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { colorForUserId } from "@/utils/userColor";
-import { Image } from "expo-image";
-import { AnimatableNumericValue, ColorSchemeName, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { useAuthStore } from "@/utils/authStore";
+import { getInitials } from "@/utils/getInitials";
+import { AnimatableNumericValue, ColorSchemeName, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 
 type props = {
@@ -21,21 +21,21 @@ type props = {
 }
 
 export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, backgroundColor, useUserColor, forceMode, flat }: props) {
-  const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? "");
-  const { data: userDetails } = useGetUser(userId ?? "")
+  const currentUserid = useAuthStore(s => s.userid)
+  const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? currentUserid);
+  const { data: userDetails } = useGetUser(userId ?? currentUserid)
   const deviceMode = useColorScheme();
   const mode = forceMode ?? deviceMode
 
   const fgColLight = "#555";
   const fgColDark = "#fff";
   const bgCol = useThemeColor({}, "fadedBackgroundElevated");
-  const userCol = userId ? colorForUserId(userId) : null
+  const userCol = null
 
   const url = (profilePicture && !profilePictureError) ? profilePicture?.thumbnail : null;
 
   nickname = nickname ?? ((userDetails && !profilePictureError) ? userDetails.nickname ?? "" : "")
-  const parts = nickname.split(/[._]/);
-  const initials = parts[0].substring(0, 1) + (parts.length > 1 ? parts[1].substring(0, 1) : "");
+  const initials = getInitials(nickname)
 
   const gradientColors: [string, string] = (backgroundColor) ? [backgroundColor, backgroundColor] : mode === "light"
     ? ["#fbfbfe", "#b9b9d4"]
@@ -61,8 +61,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
         <Image
           source={{ uri: url }}
           style={{ width: size, height: size, borderRadius: borderRadius ?? size / 2 }}
-          contentFit="cover"
-          cachePolicy={"disk"}
+          resizeMode="cover"
         />
       ) : (
         <>

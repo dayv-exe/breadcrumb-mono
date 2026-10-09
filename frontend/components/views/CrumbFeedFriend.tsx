@@ -38,7 +38,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
     }
     router.push(
       {
-        pathname: "/(protected)/(main)/shared",
+        pathname: "/(protected)/(home)/(main)/shared",
         params: userSharedDetails,
       }
     )
@@ -57,6 +57,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
           size={52}
           flat={!simplified}
           userId={friendId}
+          userColor
           customStyle={{
             outlineWidth: 0,
             borderWidth: 1,

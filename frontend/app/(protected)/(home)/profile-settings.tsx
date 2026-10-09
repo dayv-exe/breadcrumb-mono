@@ -340,6 +340,7 @@ export default function ProfileSettingsScreen() {
         resizeMode: "contain",
         uploadState: defaultMediaDataUploadState(),
       })
+      console.log("thumbnail: ", file.thumbnail)
       await updateProfilePictureKey({
         imageKey: file.media.mediaKey,
         thumbnailKey: file.thumbnail?.mediaKey ?? ""

@@ -2,7 +2,7 @@ import { Crumb } from "@/api/models/crumb";
 import { UserDetails } from "@/api/models/userDetails";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { colorForUserId } from "@/utils/userColor";
+import { useUserColor } from "@/hooks/useUserColor";
 import { StyleSheet, View } from "react-native";
 import CustomLabel from "../CustomLabel";
 import CustomProfilePictureCircle from "../profile/CustomProfilePictureCircle";
@@ -25,7 +25,7 @@ function ClusterSkeleton() {
 
 export default function CrumbCluster({ userid, crumbs }: props) {
   const { data: user, isPending: userIsPending, error: userError } = useGetUser(userid)
-  const userCol = colorForUserId(userid)
+  const userCol = useUserColor(userid)
   const bgcol = useThemeColor({}, "background")
   const textCol = useThemeColor({}, "text")
   const darkBgCol = useThemeColor({}, "darkBackground")

@@ -10,7 +10,7 @@ import circle from "@turf/circle";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import darkStyle from "../../assets/styles/dark-style.json";
@@ -172,7 +172,7 @@ export default function CustomMap({
 
   const offsets = {
     "cluster": [-35, -35],
-    "single": [-22, -22]
+    "single": [0, 0]
   }
 
   const promptTextCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
@@ -181,6 +181,32 @@ export default function CustomMap({
   const textCol = mode === "dark" || useSatellite ? Colors.dark.text : Colors.light.text
   const textHalo = mode === "dark" || useSatellite ? Colors.dark.background : Colors.light.background
   const textColors = useSatellite ? styleColors.satellite : styleColors[mode === "light" ? "light" : "dark"]
+
+  const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
+
+  const shapes = useMemo(() => {
+    const pin = selectedLocation?.type === "pin" ? selectedLocation : null;
+    const poi =
+      selectedLocation?.type === "poi" && selectedLocation.poi.geometry.type === "Point"
+        ? selectedLocation.poi
+        : null;
+    const search = searchResult?.features[0];
+
+    const pinCoords = pin ? convertCoordinatesToNumberTuple(pin.coordinates) : null;
+
+    return {
+      pinRadius: pin && pinCoords
+        ? circle(pinCoords, pin.radius, { steps: 64, units: "meters" })
+        : EMPTY,
+      pinPoint: pinCoords
+        ? { type: "Feature", geometry: { type: "Point", coordinates: pinCoords }, properties: {} } as Feature
+        : EMPTY,
+      search: search
+        ? { type: "Feature", geometry: { type: "Point", coordinates: search.geometry.coordinates }, properties: search.properties } as Feature
+        : EMPTY,
+      poi: poi ?? EMPTY,
+    };
+  }, [selectedLocation, searchResult]);
 
   return (
     <View onTouchStart={Keyboard.dismiss} style={styles.container}>
@@ -243,130 +269,117 @@ export default function CustomMap({
               dropped_pin: require("../../assets/map_pin.png"),
               frame: require("../../assets/crumb.png"),
               clusterFrame: require("../../assets/newcluster.png"),
-              clusterFg: require("../../assets/cluster_fg.png"),
+              dropShadow: require("../../assets/frame_shadow.png"),
+              countPill: {
+                image: require("../../assets/textBg.png"),
+                scale: 1,
+                stretchX: [[3, 47]],
+                stretchY: [[3, 17]],
+                sdf: true,
+              },
               ...(featureCollectionImages || {}),
             }}
           />
 
-          {selectedLocation && selectedLocation.type === "pin" && (
-            <>
-              <Mapbox.ShapeSource
-                id="pin-radius-source"
-                shape={circle(convertCoordinatesToNumberTuple(selectedLocation.coordinates), selectedLocation.radius, {
-                  steps: 64,
-                  units: "meters",
-                })}
-              >
-                <Mapbox.FillLayer
-                  id="pin-radius-fill"
-                  style={{
-                    fillColor: mode === "dark" || useSatellite ? "red" : Colors.light.tint,
-                    fillOpacity: mode === "dark" ? .6 : 0.15,
-                  }}
-                />
-                <Mapbox.LineLayer
-                  id="pin-radius-outline"
-                  style={{
-                    lineColor: mode === "dark" || useSatellite ? "red" : Colors.light.tint,
-                    lineWidth: 2,
-                    lineOpacity: mode === "dark" ? .6 : 0.6,
-                  }}
-                />
-              </Mapbox.ShapeSource>
-
-              <Mapbox.ShapeSource
-                id="dropped-pin-source"
-                shape={{
-                  type: "Feature",
-                  geometry: { type: "Point", coordinates: convertCoordinatesToNumberTuple(selectedLocation.coordinates) },
-                  properties: {},
-                }}
-              >
-                <Mapbox.SymbolLayer
-                  id="dropped-pin-layer"
-                  style={{
-                    iconImage: "dropped_pin",
-                    iconSize: 0.175,
-                    iconAnchor: "bottom",
-                    iconAllowOverlap: true,
-                  }}
-                />
-              </Mapbox.ShapeSource>
-            </>
-          )}
-
-          {
-            searchResult?.features[0] &&
-            <Mapbox.ShapeSource
-              id="search-pin-source"
-              shape={{
-                type: "Feature",
-                geometry: { type: "Point", coordinates: searchResult?.features[0].geometry.coordinates },
-                properties: searchResult.features[0].properties,
+          <Mapbox.ShapeSource
+            id="pin-radius-source"
+            shape={shapes.pinRadius}
+          >
+            <Mapbox.FillLayer
+              id="pin-radius-fill"
+              style={{
+                fillColor: mode === "dark" || useSatellite ? "red" : Colors.light.tint,
+                fillOpacity: mode === "dark" ? .6 : 0.15,
               }}
-            >
-              <Mapbox.SymbolLayer
-                id="search-pin-layer"
-                style={{
-                  iconImage: "dropped_pin",
-                  iconSize: 0.15,
-                  iconAnchor: "bottom",
-                  iconAllowOverlap: true,
-                  iconIgnorePlacement: true
-                }}
-              />
+            />
+            <Mapbox.LineLayer
+              id="pin-radius-outline"
+              style={{
+                lineColor: mode === "dark" || useSatellite ? "red" : Colors.light.tint,
+                lineWidth: 2,
+                lineOpacity: mode === "dark" ? .6 : 0.6,
+              }}
+            />
+          </Mapbox.ShapeSource>
 
-              <Mapbox.SymbolLayer
-                id="search-text-layer"
-                style={{
-                  textAllowOverlap: true,
-                  textIgnorePlacement: true,
-                  textAnchor: "left",
-                  textField: ["get", "name"],
-                  textHaloColor: textHalo,
-                  textColor: textCol,
-                  textHaloWidth: 1,
-                  textMaxWidth: 7,
-                  textSize: 12,
-                  textOffset: [1.75, -2],
-                  textJustify: "left"
-                }}
-              />
-            </Mapbox.ShapeSource>
-          }
+          <Mapbox.ShapeSource
+            id="dropped-pin-source"
+            shape={shapes.pinPoint}
+          >
+            <Mapbox.SymbolLayer
+              id="dropped-pin-layer"
+              style={{
+                iconImage: "dropped_pin",
+                iconSize: 0.175,
+                iconAnchor: "bottom",
+                iconAllowOverlap: true,
+              }}
+            />
+          </Mapbox.ShapeSource>
 
-          {selectedLocation && selectedLocation.type === "poi" && selectedLocation.poi.geometry.type === "Point" && (
-            <Mapbox.ShapeSource id="active-poi-source" shape={selectedLocation.poi}>
-              <Mapbox.SymbolLayer
-                id="active-poi-icon"
-                style={{
-                  iconImage: ["coalesce", ["get", "maki"], ["get", "icon"], ["get", "class"], ["literal", "marker"]],
-                  iconSize: 2.5,
-                  iconColor: "#ffffff",
-                  iconAllowOverlap: true,
-                  iconIgnorePlacement: false,
-                  textAllowOverlap: true,
-                  textIgnorePlacement: false,
-                  iconOffset: [0, -5],
-                }}
-              />
-              <Mapbox.SymbolLayer
-                id="active-poi-label"
-                style={{
-                  textField: ["coalesce", ["get", "name_en"], ["get", "name"], ["get", "house_num"]],
-                  textSize: 13,
-                  textMaxWidth: 7,
-                  textOffset: [0, .75],
-                  textAnchor: "top",
-                  textHaloColor: textColors.poiHaloColor,
-                  textHaloWidth: 1,
-                  textColor: textColors.poiTextColor,
-                  textAllowOverlap: false,
-                  textIgnorePlacement: false,
-                }}
-              />
-            </Mapbox.ShapeSource>
-          )}
+          <Mapbox.ShapeSource
+            id="search-pin-source"
+            shape={shapes.search}
+          >
+            <Mapbox.SymbolLayer
+              id="search-pin-layer"
+              style={{
+                iconImage: "dropped_pin",
+                iconSize: 0.15,
+                iconAnchor: "bottom",
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true
+              }}
+            />
+
+            <Mapbox.SymbolLayer
+              id="search-text-layer"
+              style={{
+                textAllowOverlap: true,
+                textIgnorePlacement: true,
+                textAnchor: "left",
+                textField: ["get", "name"],
+                textHaloColor: textHalo,
+                textColor: textCol,
+                textHaloWidth: 1,
+                textMaxWidth: 7,
+                textSize: 12,
+                textOffset: [1.75, -2],
+                textJustify: "left"
+              }}
+            />
+          </Mapbox.ShapeSource>
+
+          <Mapbox.ShapeSource id="active-poi-source" shape={shapes.poi}>
+            <Mapbox.SymbolLayer
+              id="active-poi-icon"
+              style={{
+                iconImage: ["coalesce", ["get", "maki"], ["get", "icon"], ["get", "class"], ["literal", "marker"]],
+                iconSize: 2.5,
+                iconColor: "#ffffff",
+                iconAllowOverlap: true,
+                iconIgnorePlacement: false,
+                textAllowOverlap: true,
+                textIgnorePlacement: false,
+                iconOffset: [0, -5],
+              }}
+            />
+            <Mapbox.SymbolLayer
+              id="active-poi-label"
+              style={{
+                textField: ["coalesce", ["get", "name_en"], ["get", "name"], ["get", "house_num"]],
+                textSize: 13,
+                textMaxWidth: 7,
+                textOffset: [0, .75],
+                textAnchor: "top",
+                textHaloColor: textColors.poiHaloColor,
+                textHaloWidth: 1,
+                textColor: textColors.poiTextColor,
+                textAllowOverlap: false,
+                textIgnorePlacement: false,
+              }}
+            />
+          </Mapbox.ShapeSource>
 
           <Mapbox.UserLocation
             visible
@@ -374,35 +387,92 @@ export default function CustomMap({
             requestsAlwaysUse
             showsUserHeadingIndicator
             onPress={onLocationPuckPress}
-          />
+          >
+            <Mapbox.CircleLayer
+              id="userPuckHalo"
+              belowLayerID="shadowLayer"
+              style={{
+                circleRadius: 11,
+                circleColor: "#ffffff",
+                circlePitchAlignment: "map",
+              }}
+            />
+            <Mapbox.CircleLayer
+              id="userPuckDot"
+              aboveLayerID="userPuckHalo"
+              style={{
+                circleRadius: 7,
+                circleColor: "#4264fb",
+                circlePitchAlignment: "map",
+              }}
+            />
+          </Mapbox.UserLocation>
 
-          {<ShapeSource ref={markersRef} id="markers" shape={featureCollection} cluster clusterRadius={50} clusterMaxZoomLevel={22} onPress={async e => {
-            const feature = e.features[0];
-            if (!feature) return;
-            const coords = convertNumberTupleToCoordinates((feature.geometry as any).coordinates as [number, number])
+          {<ShapeSource
+            ref={markersRef}
+            id="markers"
+            shape={featureCollection}
+            cluster
+            clusterRadius={50}
+            clusterMaxZoomLevel={22}
+            onPress={async e => {
+              const feature = e.features[0];
+              if (!feature) return;
+              const coords = convertNumberTupleToCoordinates((feature.geometry as any).coordinates as [number, number])
 
-            // cluster
-            if (feature.properties?.cluster) {
-              const leaves: FeatureCollection = await markersRef.current?.getClusterLeaves(
-                feature,
-                feature.properties.point_count,
-                0,
-              );
+              if (feature.properties?.cluster) {
+                const leaves: FeatureCollection = await markersRef.current?.getClusterLeaves(
+                  feature,
+                  feature.properties.point_count,
+                  0,
+                );
 
 
-              const crumbs = leaves?.features ?? [];
+                const crumbs = leaves?.features ?? [];
 
-              const ids = crumbs
-                .map((c) => c.id?.toString())
-                .filter((id): id is string => !!id);
-              onCrumbsSelect?.(ids, coords)
-            } else {
-              // single unclustered point
-              const id = feature.id?.toString();
-              if (!id) return;
-              onCrumbsSelect?.([id], coords);
-            }
-          }}>
+                const ids = crumbs
+                  .map((c) => c.id?.toString())
+                  .filter((id): id is string => !!id);
+                onCrumbsSelect?.(ids, coords)
+              } else {
+                const id = feature.id?.toString();
+                if (!id) return;
+                onCrumbsSelect?.([id], coords);
+              }
+            }}
+            clusterProperties={{
+              latestPicture: [
+                ["case",
+                  ["<", ["accumulated"], ["get", "latestPicture"]],
+                  ["accumulated"],
+                  ["get", "latestPicture"],
+                ],
+                ["get", "latestPicture"],
+              ],
+              latestInitials: [
+                ["case",
+                  ["<", ["accumulated"], ["get", "latestInitials"]],
+                  ["accumulated"],
+                  ["get", "latestInitials"],
+                ],
+                ["get", "latestInitials"],
+              ]
+            }}
+          >
+            <SymbolLayer
+              id="shadowLayer"
+              filter={["!", ["has", "point_count"]]}
+              style={{
+                iconImage: "dropShadow",
+                iconSize: .335,
+                iconOpacity: .5,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconIgnorePlacement: true,
+                iconOffset: [0, 0],
+              }}
+            />
+
             <SymbolLayer
               id="frameLayer"
               filter={["!", ["has", "point_count"]]}
@@ -420,11 +490,26 @@ export default function CustomMap({
               filter={["!", ["has", "point_count"]]}
               style={{
                 textField: ["get", "nickname"],
-                textSize: 17,
                 textColor: Colors.light.text,
                 textIgnorePlacement: true,
                 textAllowOverlap: true,
                 textOffset: [0, -.3],
+                textHaloColor: "black",
+                textHaloWidth: .275,
+                textSize: 15,
+              }}
+            />
+
+            <SymbolLayer
+              id="pinLayer"
+              filter={["!", ["has", "point_count"]]}
+              style={{
+                iconImage: ["get", "profilePicture"],
+                iconSize: .290,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconOffset: [0, -13],
+                iconIgnorePlacement: true,
               }}
             />
 
@@ -449,15 +534,16 @@ export default function CustomMap({
             />
 
             <SymbolLayer
-              id="pinLayer"
-              filter={["!", ["has", "point_count"]]}
+              id="clusterShadowLayer"
+              filter={["has", "point_count"]}
               style={{
-                iconImage: ["get", "profilePicture"],
-                iconSize: .225,
+                iconImage: "dropShadow",
+                iconOpacity: .5,
+                iconSize: .325,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
-                iconOffset: offsets.single,
-                iconIgnorePlacement: true
+                iconIgnorePlacement: true,
+                iconOffset: [18, 18]
               }}
             />
 
@@ -473,17 +559,53 @@ export default function CustomMap({
             />
 
             <SymbolLayer
-              id="clusterCount"
+              id="clusterTextLayer"
               filter={["has", "point_count"]}
               style={{
-                textHaloColor: "black",
-                textHaloWidth: .25,
-                textField: ["concat", "+", ["get", "point_count_abbreviated"]],
-                textSize: 15,
+                textField: ["slice", ["get", "latestInitials"], 6],
                 textColor: Colors.light.text,
                 textIgnorePlacement: true,
                 textAllowOverlap: true,
-                textOffset: [-.565, -.7],
+                textOffset: [-.15, -.5],
+                textHaloColor: "black",
+                textHaloWidth: .5,
+                textSize: 17,
+              }}
+            />
+
+            <SymbolLayer
+              id="clusterImageLayer"
+              filter={["has", "point_count"]}
+              style={{
+                iconImage: ["slice", ["get", "latestPicture"], 6],
+                iconSize: .285,
+                iconAllowOverlap: true,
+                iconAnchor: 'center',
+                iconOffset: [-12, -25],
+                iconIgnorePlacement: true,
+              }}
+            />
+
+            <SymbolLayer
+              id="clusterCount"
+              filter={["has", "point_count"]}
+              style={{
+                iconImage: "countPill",
+                iconColor: "#ffffff",
+                iconTextFit: "both",
+                iconTextFitPadding: [0, 3, 0, 3],
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true,
+
+                textField: ["concat", "+", ["to-string", ["-", ["get", "point_count"], 1]]],
+                textHaloWidth: .25,
+                textHaloColor: "rgba(0, 0, 0, .35)",
+                textSize: 15,
+                textColor: "rgba(0, 0, 0, .35)",
+                textAnchor: "top-right",
+                textOffset: [1.225, .23],
+                textAllowOverlap: true,
+                textIgnorePlacement: true,
               }}
             />
           </ShapeSource>}
