@@ -30,6 +30,10 @@ func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 		return fmt.Errorf("Crumb id cannot be empty")
 	}
 
+	if len(crumb.MediaKeys) > constants.MAX_CRUMB_MEDIA_LEN {
+		return fmt.Errorf("Only a maximum of %v crumbs can be shared at once!", constants.MAX_CRUMB_MEDIA_LEN)
+	}
+
 	if crumb.LocationSelectionManner != constants.LOCATION_TYPE_MINE && crumb.LocationSelectionManner != constants.LOCATION_TYPE_NONE && crumb.LocationSelectionManner != constants.LOCATION_TYPE_LABEL && crumb.LocationSelectionManner != constants.LOCATION_TYPE_DROPPED_PIN {
 		return fmt.Errorf("Invalid crumb location type")
 	}
