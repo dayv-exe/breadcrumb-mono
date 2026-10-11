@@ -1,6 +1,5 @@
 import { UserInitialDetails } from "@/api/userApi";
 import CustomButton from "@/components/buttons/CustomButton";
-import PreviewBunch from "@/components/camera/PreviewBunch";
 import CrumbSharedItem from "@/components/crumbs/CrumbSharedItem";
 import CustomLabel from "@/components/CustomLabel";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
@@ -9,9 +8,10 @@ import { useCrumbsWith } from "@/hooks/queries/useLocalDatabase";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useUserColor } from "@/hooks/useUserColor";
 import { useLocationStore } from "@/utils/useLocationStore";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeftIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,6 +32,8 @@ export default function Shared() {
   }
 
   const [headerHeight, setHeaderHeight] = useState(0)
+  const scrollViewRef = useRef<ScrollView>(null)
+  const hasBottomed = useRef(false)
 
   return (
     <View
@@ -39,29 +41,27 @@ export default function Shared() {
         backgroundColor: bgCol
       }]}
     >
-      <ScrollView
-        style={{
-          flex: 1,
-        }}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: headerHeight + 15,
-        }}
-      >
-        <CustomLabel labelText="nearby" bold adaptToTheme fontSize={12} textAlign="center" customStyle={{
-          opacity: .35,
-        }} />
-        <Spacer size="small" />
-        {
-          crumbs &&
-          crumbs.map(crumb => {
-            return (
-              <CrumbSharedItem key={crumb.id} crumb={crumb} />
-            )
-          })
-        }
-        <PreviewBunch />
-      </ScrollView>
+      {crumbs && crumbs.length > 0 && (
+        <FlashList
+          data={crumbs}
+          keyExtractor={crumb => crumb.id}
+          renderItem={({ item }) => <CrumbSharedItem crumb={item} />}
+          initialScrollIndex={crumbs.length - 1}
+          maintainVisibleContentPosition={{
+            autoscrollToBottomThreshold: 0.2,
+          }}
+          ListHeaderComponent={
+            <>
+              <CustomLabel labelText="nearby" bold adaptToTheme fontSize={12} textAlign="center" customStyle={{ opacity: .35 }} />
+              <Spacer size="small" />
+            </>
+          }
+          contentContainerStyle={{
+            paddingTop: headerHeight + 15,
+            paddingBottom: headerHeight + 15,
+          }}
+        />
+      )}
       <View
         style={[styles.header, {
           top: 0,

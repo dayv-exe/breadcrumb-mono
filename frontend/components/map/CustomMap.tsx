@@ -464,12 +464,12 @@ export default function CustomMap({
               filter={["!", ["has", "point_count"]]}
               style={{
                 iconImage: "dropShadow",
-                iconSize: .335,
+                iconSize: .325,
                 iconOpacity: .5,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
                 iconIgnorePlacement: true,
-                iconOffset: [0, 0],
+                iconOffset: [2, 2],
               }}
             />
 
@@ -538,7 +538,7 @@ export default function CustomMap({
               filter={["has", "point_count"]}
               style={{
                 iconImage: "dropShadow",
-                iconOpacity: .5,
+                iconOpacity: .7,
                 iconSize: .325,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
@@ -590,20 +590,13 @@ export default function CustomMap({
               id="clusterCount"
               filter={["has", "point_count"]}
               style={{
-                iconImage: "countPill",
-                iconColor: "#ffffff",
-                iconTextFit: "both",
-                iconTextFitPadding: [0, 3, 0, 3],
-                iconAllowOverlap: true,
-                iconIgnorePlacement: true,
-
-                textField: ["concat", "+", ["to-string", ["-", ["get", "point_count"], 1]]],
-                textHaloWidth: .25,
-                textHaloColor: "rgba(0, 0, 0, .35)",
-                textSize: 15,
-                textColor: "rgba(0, 0, 0, .35)",
+                textField: ["concat", ["to-string", ["get", "point_count"]]],
+                textHaloWidth: 5,
+                textHaloColor: "rgba(0, 0, 0, .5)",
+                textSize: 14,
+                textColor: "white",
                 textAnchor: "top-right",
-                textOffset: [1.225, .23],
+                textOffset: [1.125, -2.125],
                 textAllowOverlap: true,
                 textIgnorePlacement: true,
               }}
