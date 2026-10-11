@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"backend/constants"
 	"backend/helpers"
 	"backend/models"
 	"backend/utils"
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -28,6 +30,10 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 
 	if len(body.Receivers) < 1 {
 		return models.InvalidRequestErrorResponse("Crumb body must contain recipients!"), nil
+	}
+
+	if len(body.MediaKeys) > constants.MAX_CRUMB_MEDIA_LEN {
+		return models.InvalidRequestErrorResponse(fmt.Sprintf("Only a maximum of %v crumbs can be shared at once!", constants.MAX_CRUMB_MEDIA_LEN)), nil
 	}
 
 	if body.LocationSelectionManner == "" {
