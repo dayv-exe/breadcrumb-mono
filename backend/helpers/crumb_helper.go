@@ -195,6 +195,7 @@ var defaultCrumbProjection = expression.NamesList(
 	expression.Name("mailbox"),
 	expression.Name("unlocked"),
 	expression.Name("opened"),
+	expression.Name("mediaCount"),
 	expression.Name("time"),
 	expression.Name("radius"),
 	expression.Name("locationSelectionManner"),
@@ -274,6 +275,7 @@ func (h *crumbHelper) GetCrumbContent(crumbId string) (*resItem, error) {
 	)
 
 	proj := expression.NamesList(
+		expression.Name("mediaCount"),
 		expression.Name("caption"),
 		expression.Name("media"),
 		expression.Name("latitude"),
