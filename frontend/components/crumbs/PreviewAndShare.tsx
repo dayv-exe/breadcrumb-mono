@@ -1,8 +1,8 @@
 import { extractBackendMsg } from "@/api/models/apiResponse";
-import { ShowToast } from "@/constants/appConstants";
+import { MAX_PREVIEW_MEDIA, ShowToast } from "@/constants/appConstants";
 import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useMediaStore } from "@/utils/mediaStore";
-import { ChevronDownIcon, MapPinIcon, Trash2Icon } from "lucide-react-native";
+import { ChevronDownIcon, MapPinIcon, PlusIcon, Trash2Icon } from "lucide-react-native";
 import { useCallback, useEffect, useRef } from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -129,6 +129,9 @@ export default function PreviewAndShare({ closeSheet }: props) {
           style={{
             paddingHorizontal: 15,
           }}
+          contentContainerStyle={{
+            alignItems: "center",
+          }}
         >
           {
             mediaPreview.map(media => {
@@ -145,6 +148,23 @@ export default function PreviewAndShare({ closeSheet }: props) {
               )
             })
           }
+          <Spacer />
+          {mediaPreview.length < MAX_PREVIEW_MEDIA && <>
+            <CustomButton
+              freed
+              type="dark-faded"
+              customStyle={{
+                width: 100,
+                height: 100,
+                borderRadius: "100%",
+              }}
+              handleClick={closeSheet}
+            >
+              <PlusIcon stroke={"white"} strokeWidth={3} size={50} />
+            </CustomButton>
+
+            <Spacer />
+          </>}
         </ScrollView>
 
         <Spacer size="big" />

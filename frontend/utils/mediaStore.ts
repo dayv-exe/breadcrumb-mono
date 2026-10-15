@@ -1,3 +1,4 @@
+import { MAX_PREVIEW_MEDIA } from "@/constants/appConstants";
 import {
   MediaData,
   UploadState
@@ -39,6 +40,8 @@ export const useMediaStore = create<MediaState>((set, get) => {
     setIsRecording: (isRecording) => set({ isRecording }),
 
     add: (item) => {
+      if (get().media.length >= MAX_PREVIEW_MEDIA) return
+
       let newId = get().noncompositeCrumbId
       if (get().media.length === 0 || newId === "") {
         newId = uuidv4()

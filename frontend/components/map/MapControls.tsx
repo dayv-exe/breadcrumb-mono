@@ -71,7 +71,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
             height: 45
           }}
         >
-          <SatelliteIcon stroke={useSatellite ? Colors.light.vibrantBackground : textCol} strokeWidth={2.25} size={SIZE} />
+          <SatelliteIcon stroke={useSatellite ? Colors.light.vibrantBackground : textCol} strokeWidth={2.5} opacity={.975} size={SIZE} />
         </CustomButton>
         <View style={{
           width: SIZE,
@@ -89,7 +89,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
             height: 45,
           }}
         >
-          <LocateIcon stroke={textCol} strokeWidth={2.25} size={SIZE} />
+          <LocateIcon stroke={textCol} strokeWidth={2.5} opacity={.975} size={SIZE} />
         </CustomButton>
       </View>
 
@@ -108,7 +108,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           nav.push("/(protected)/(home)/(main)/camera")
         }}
       >
-        <PlusIcon size={27} stroke={"#fff"} strokeWidth={2.5} />
+        <PlusIcon size={27} stroke={"#fff"} strokeWidth={2.75} />
         {mediaPreviews.length > 0 && <View
           style={{
             position: "absolute",

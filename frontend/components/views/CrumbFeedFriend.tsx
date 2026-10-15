@@ -4,7 +4,7 @@ import { Colors } from "@/constants/Colors";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
-import { CameraIcon } from "lucide-react-native";
+import { CameraIcon, ExternalLinkIcon } from "lucide-react-native";
 import { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
@@ -29,9 +29,12 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
   const [hasCrumb, setHasCrumb] = useState(feedItem.crumbs.length > 0)
   const textCol = useThemeColor({}, "text")
 
+  const handleNewCrumb = () => {
+    router.push("/(protected)/(home)/(main)/camera")
+  }
+
   const handleShowShared = () => {
     if (!friend) return
-    setHasCrumb(false)
     const userSharedDetails: UserInitialDetails = {
       displayName: getDisplayName(friend, false),
       userid: friend.userId,
@@ -57,7 +60,6 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
           size={52}
           flat={!simplified}
           userId={friendId}
-          userColor
           customStyle={{
             outlineWidth: 0,
             borderWidth: 1,
@@ -119,8 +121,10 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
         <CustomButton
           freed
           type="text"
+          handleClick={hasCrumb ? handleShowShared : handleNewCrumb}
         >
-          <CameraIcon stroke={textCol} strokeWidth={2.5} size={23} />
+          {!hasCrumb && <CameraIcon stroke={textCol} strokeWidth={2.5} size={23} />}
+          {hasCrumb && <ExternalLinkIcon stroke={textCol} strokeWidth={2.5} size={23} />}
         </CustomButton>
       </>}
     </TouchableOpacity>
