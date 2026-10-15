@@ -25,6 +25,7 @@ export type Crumb = {
   formattedAddress: string
   placename: string
   mailbox: CrumbMailbox
+  mediaCount: number
 }
 
 export type CrumbMailbox = "sent" | "received"

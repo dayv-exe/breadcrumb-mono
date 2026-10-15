@@ -121,6 +121,7 @@ async function openAndInit() {
       place_unlocked INTEGER NOT NULL DEFAULT 0 CHECK(place_unlocked IN (0, 1)),
       distance_unlocked INTEGER NOT NULL DEFAULT 0 CHECK(distance_unlocked IN (0, 1)),
       opened INTEGER NOT NULL DEFAULT 0 CHECK(opened IN (0, 1)),
+      mediaCount INTEGER NOT NULL DEFAULT 1 CHECK(mediaCount > 0),
       time INTEGER NOT NULL,
       locationSelectionManner TEXT NOT NULL CHECK(locationSelectionManner IN ('gps', 'label', 'dropped-pin', 'none')),
       radius REAL,
