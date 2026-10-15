@@ -9,13 +9,15 @@ import CustomButton from "../buttons/CustomButton";
 
 interface props {
   mediaData: MediaData
-  size?: number
+  size: number
+  maxSize: number
   style?: StyleProp<ViewStyle>
   onCaptionFocus?: () => void
 }
 
-export default function CrumbView({ mediaData, size = 320, style, onCaptionFocus }: props) {
+export default function CrumbView({ mediaData, size = 320, style, maxSize, onCaptionFocus }: props) {
   const [caption, setCaption] = useState(mediaData.caption)
+  size = Math.min(size, maxSize)
   const borderThickness = size / 20
   const borderRadius = borderThickness / 4.5
 

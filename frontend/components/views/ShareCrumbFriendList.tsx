@@ -75,7 +75,14 @@ export default function ShareCrumbFriendList({ recipients, setRecipients }: prop
             />
           )
         })}
+
       </View>
+
+      {recipients.length === 0 && friends.length < 2 &&
+        <CustomLabel customStyle={{
+          paddingHorizontal: 15,
+        }} fontSize={13} fade labelText="Add friends to share with more people" />
+      }
 
       <View
       >

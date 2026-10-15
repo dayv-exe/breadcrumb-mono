@@ -139,6 +139,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
                 <CrumbView
                   key={media.id}
                   size={300}
+                  maxSize={screenWidth * .85}
                   mediaData={media}
                   style={{
                     marginRight: 10,
@@ -173,25 +174,33 @@ export default function PreviewAndShare({ closeSheet }: props) {
           recipients={recipients}
           setRecipients={setRecipients}
         />
+
       </ScrollView>
+
       {recipients.length > 0 && <View
         style={{
+          width: "100%",
         }}
       >
-        <View
-          style={{
+        <CustomButton
+          freed
+          customStyle={{
             alignItems: "center",
             justifyContent: "flex-start",
             flexDirection: "row",
             marginHorizontal: insets.bottom + 10,
             marginTop: 7,
+            paddingVertical: 5,
+            paddingHorizontal: 10,
+            borderRadius: 1000,
           }}
+          type="dark-faded"
         >
           <MapPinIcon stroke="white" strokeWidth={2.5} size={14} />
           <Spacer size="tiny" />
-          <CustomLabel fontSize={13} labelText={address?.split(",")[0] ?? "Current location"} customStyle={{
+          <CustomLabel fontSize={13} labelText={address?.split(",")[0] ?? "Current location"} allowTruncate customStyle={{
           }} />
-        </View>
+        </CustomButton>
         <Spacer />
         <ShareCrumbButton
           disabled={isPending}
