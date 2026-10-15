@@ -36,19 +36,21 @@ export default function CrumbSharedItem({ crumb }: props) {
           borderColor: crumb.unlocked ? "transparent" : Colors.light.vibrantButton,
           borderWidth: 2,
           borderRadius: 3,
+          alignItems: "center",
+          justifyContent: "center",
         }}
       />
+
       <Spacer size="small" />
       <View>
-        <CustomLabel fontSize={15} adaptToTheme width="auto" bold={crumb.unlocked} labelText={crumb.mailbox === "sent" ? "" : crumb.unlocked ? "Tap to view" : "2 miles away • "}
+        <CustomLabel fontSize={15} adaptToTheme width="auto" bold={crumb.unlocked} labelText={crumb.mailbox === "sent" ? "" : crumb.unlocked ? `Tap to view ${crumb.mediaCount > 1 ? " • " : ""}` : "2 miles away • "}
         />
       </View>
 
-      {!crumb.unlocked &&
-        <>
-          <CustomLabel allowTruncate fade adaptToTheme fontSize={13} labelText={crumb.formattedAddress} />
-        </>
+      {(crumb.mediaCount > 1 || !crumb.unlocked) && <>
+        <CustomLabel allowTruncate fade adaptToTheme fontSize={13} labelText={crumb.unlocked ? crumb.mediaCount + " crumbs" : crumb.formattedAddress} />
+      </>
       }
-    </CustomButton>
+    </CustomButton >
   )
 }

@@ -5,7 +5,7 @@ import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
 import { CameraIcon, ExternalLinkIcon } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -28,6 +28,15 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
 
   const [hasCrumb, setHasCrumb] = useState(feedItem.crumbs.length > 0)
   const textCol = useThemeColor({}, "text")
+
+  const crumbCount: number = useMemo(() => {
+    let count = 0
+    feedItem.crumbs.map(c => {
+      if (c.unlocked) count += c.mediaCount
+    })
+
+    return count
+  }, [feedItem.crumbs])
 
   const handleNewCrumb = () => {
     router.push("/(protected)/(home)/(main)/camera")
@@ -108,7 +117,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
               borderColor: Colors.light.vibrantButton,
             }} />
             <CustomLabel allowTruncate adaptToTheme bold={hasCrumb} fontSize={13} labelText={
-              hasCrumb ? `${feedItem.crumbs.length} nearby crumb${feedItem.crumbs.length > 1 ? "s" : ""}` : feedItem.action
+              hasCrumb ? `${crumbCount} nearby crumb${crumbCount > 1 ? "s" : ""}` : feedItem.action
             }
               fade={!hasCrumb}
               customStyle={{

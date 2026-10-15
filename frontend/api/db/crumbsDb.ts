@@ -255,6 +255,7 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
       crumbs.place_unlocked,
       crumbs.distance_unlocked,
       crumbs.opened,
+      crumbs.mediaCount,
       crumbs.formattedAddress,
       crumbs.placename,
       crumbs.time
