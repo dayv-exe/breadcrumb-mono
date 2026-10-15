@@ -29,7 +29,6 @@ type cloudFrontSecret struct {
 func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	mime.AddExtensionType(".mp4", "video/mp4")
 	action := req.QueryStringParameters["action"]
-	method := req.RequestContext.HTTP.Method
 	switch strings.ToLower(action) {
 	case "sign":
 		return models.InvalidRequestErrorResponse("Not yet implemented"), nil
@@ -41,10 +40,9 @@ func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 		}
 		return HandlePresignCrumbMediaUrl(ctx, req)
 
+	case "delete":
+		return HandleDeleteDraftMedia(ctx, req)
 	default:
-		if strings.ToLower(method) == "delete" {
-			return HandleDeleteDraftMedia(ctx, req)
-		}
 		return models.InvalidRequestErrorResponse("Invalid action!"), nil
 	}
 }
