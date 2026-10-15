@@ -108,7 +108,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
               borderColor: Colors.light.vibrantButton,
             }} />
             <CustomLabel allowTruncate adaptToTheme bold={hasCrumb} fontSize={13} labelText={
-              hasCrumb ? `Tap to view` : feedItem.action
+              hasCrumb ? `${feedItem.crumbs.length} nearby crumb${feedItem.crumbs.length > 1 ? "s" : ""}` : feedItem.action
             }
               fade={!hasCrumb}
               customStyle={{

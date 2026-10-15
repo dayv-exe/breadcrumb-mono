@@ -7,13 +7,18 @@ import Spacer from "@/components/Spacer";
 import { useCrumbsWith } from "@/hooks/queries/useLocalDatabase";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useUserColor } from "@/hooks/useUserColor";
-import { useLocationStore } from "@/utils/useLocationStore";
+import { useWatchDbChanges } from "@/hooks/useWatchDbChanges";
+import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import { FlashList } from "@shopify/flash-list";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeftIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const defaultCoords: Coordinates = { accuracy: 0, latitude: 0, longitude: 0, }
+const WATCH_TABLE = new Set(["crumbs"])
 
 export default function Shared() {
   const textCol = useThemeColor({}, "text")
@@ -23,7 +28,16 @@ export default function Shared() {
   const { userid, displayName } = useLocalSearchParams<UserInitialDetails>()
   const userCol = useUserColor(userid)
   const topPadding = insets.top
-  const { data: crumbs, error: crumbsError, isPending: crumbsPending } = useCrumbsWith(userid, useLocationStore.getState().coordinates!)
+  const userCoords = useLocationStore(s => s.coordinates)
+  const { data: crumbs, error: crumbsError, isPending: crumbsPending } = useCrumbsWith(userid, userCoords ?? defaultCoords)
+  const qc = useQueryClient()
+
+  useWatchDbChanges({
+    watchedTables: WATCH_TABLE,
+    onChange: () => {
+      qc.invalidateQueries({ queryKey: ["crumbsWith", userid] })
+    }
+  })
 
   const router = useRouter()
 
