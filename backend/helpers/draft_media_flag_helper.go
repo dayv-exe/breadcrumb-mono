@@ -4,6 +4,7 @@ import (
 	"backend/models"
 	"backend/utils"
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -41,4 +42,22 @@ func (m *DraftMediaFlagHelper) RemoveDraftMediaFlags(userid string, mediaKeys []
 		helper,
 		transactions...,
 	)
+}
+
+// removes draft flag and media from bucket
+func (m *DraftMediaFlagHelper) DeleteDraftMedia(userid string, storageKeys []string) error {
+	helper := newHelper(m.Ctx, nil)
+	errs := make([]error, 0)
+	for _, sKey := range storageKeys {
+		key := models.GetMediaDraftFlagKey(userid, sKey)
+		if err := DeleteItem(helper, &key); err != nil {
+			errs = append(errs, err)
+		}
+
+		if err := NewS3Helper(m.Ctx).DeleteObj(sKey); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
 }
