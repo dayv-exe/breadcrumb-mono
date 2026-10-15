@@ -491,7 +491,7 @@ Resources:
         PresignedUrl:
           Type: HttpApi
           Properties:
-            Path: /api/v1/media-access
+            Path: /api/v1/media
             Method: POST
             ApiId: !Ref BreadApi
             Auth:
