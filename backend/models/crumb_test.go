@@ -23,6 +23,7 @@ var TestCrumbDbItem = map[string]dbTypes.AttributeValue{
 	"locationSelectionManner": &dbTypes.AttributeValueMemberS{Value: "gps"},
 	"placeId":                 &dbTypes.AttributeValueMemberS{Value: "p1"},
 	"time":                    &dbTypes.AttributeValueMemberS{Value: "100"},
+	"mediaCount":              &dbTypes.AttributeValueMemberN{Value: "1"},
 	"media": &dbTypes.AttributeValueMemberL{Value: []dbTypes.AttributeValue{
 		&dbTypes.AttributeValueMemberM{Value: map[string]dbTypes.AttributeValue{
 			"index":     &dbTypes.AttributeValueMemberN{Value: "0"},
