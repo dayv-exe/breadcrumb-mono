@@ -1,3 +1,4 @@
+import { deleteDraftMedia } from "@/api/deleteDraftMedia";
 import { extractBackendMsg } from "@/api/models/apiResponse";
 import { MAX_PREVIEW_MEDIA, ShowToast } from "@/constants/appConstants";
 import { useShareCrumb } from "@/hooks/useShareCrumb";
@@ -50,6 +51,14 @@ export default function PreviewAndShare({ closeSheet }: props) {
     }
   })
   function handleDiscardAllMedia() {
+    let keys: string[] = []
+
+    mediaPreview.map(m => {
+      if (m.uploadState.storageKey) keys.push(m.uploadState.storageKey)
+      if (m.uploadState.thumbnailStorageKey) keys.push(m.uploadState.thumbnailStorageKey)
+    })
+
+    deleteDraftMedia(keys)
     discardAllMedia()
   }
 

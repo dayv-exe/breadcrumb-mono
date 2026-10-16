@@ -1,3 +1,4 @@
+import { deleteDraftMedia } from "@/api/deleteDraftMedia";
 import { MediaData } from "@/constants/media";
 import { Colors } from "@/constants/theme";
 import { useMediaStore } from "@/utils/mediaStore";
@@ -28,6 +29,15 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
     updateCaption: s.updateMediaCaption,
     removeCrumb: s.remove,
   })))
+
+  const handleRemoveCrumb = () => {
+    let keys = []
+    if (mediaData.uploadState.storageKey) keys.push(mediaData.uploadState.storageKey)
+    if (mediaData.uploadState.thumbnailStorageKey) keys.push(mediaData.uploadState.thumbnailStorageKey)
+
+    deleteDraftMedia(keys)
+    removeCrumb(mediaData.id)
+  }
 
   return (
     <View
@@ -80,7 +90,7 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
             backgroundColor: "rgba(0, 0, 0, .175)"
           }}
           freed
-          handleClick={() => removeCrumb(mediaData.id)}
+          handleClick={handleRemoveCrumb}
         >
           <Trash2Icon stroke="white" strokeWidth={2.5} size={20} />
         </CustomButton>

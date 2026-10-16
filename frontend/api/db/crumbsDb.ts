@@ -258,7 +258,8 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
       crumbs.mediaCount,
       crumbs.formattedAddress,
       crumbs.placename,
-      crumbs.time
+      crumbs.time,
+      crumbs.mailbox
     FROM chats
     LEFT JOIN crumbs ON chats.friend_id IN (crumbs.sender, crumbs.receiver)
     ORDER BY chats.timestamp DESC

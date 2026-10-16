@@ -10,7 +10,7 @@ export const getCrumbMedia = async (crumbId: string, sentCrumb?: boolean): Promi
   if (!crumbId) {
     return null
   }
-  const { data } = await axiosInstance.get<{ message: Map<number, MediaData> }>(`/media-access?action=sign&id=${crumbId}&sent=${sentCrumb}`)
+  const { data } = await axiosInstance.get<{ message: Map<number, MediaData> }>(`/media?action=sign&id=${crumbId}&sent=${sentCrumb}`)
 
   return data.message
 }

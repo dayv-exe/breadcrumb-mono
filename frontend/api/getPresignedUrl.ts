@@ -39,7 +39,7 @@ export type presignedUrlResponse = {
 export const getPresignedUrls = async (
   presignRequest: PresignRequest
 ): Promise<presignedUrlResponse> => {
-  const endpoint = presignRequest.files[0].type === "profilePhoto" ? "/media-access?action=presign&profilePicture=true" : "/media-access?action=presign"
+  const endpoint = presignRequest.files[0].type === "profilePhoto" ? "/media?action=presign&profilePicture=true" : "/media?action=presign"
   const { data } = await axiosInstance.post<{ message: presignedUrlResponse }>(
     endpoint,
     presignRequest

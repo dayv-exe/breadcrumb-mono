@@ -1,6 +1,8 @@
 import { getCrumbMarkers } from "@/api/crumbsApi"
 import { CrumbMarkerDetails } from "@/api/models/CrumbMarkerDetails"
+import { useAuthStore } from "@/utils/authStore"
 import { useEffect, useMemo, useState } from "react"
+import { useGetProfilePicture } from "./queries/useUserApi"
 
 type UseMarkersType = {
   markers: Map<string, CrumbMarkerDetails>
@@ -15,7 +17,9 @@ type FetchResult = {
 }
 
 export const useCrumbMarkers = (senderIds: string[]): UseMarkersType => {
-  const key = [...senderIds].sort().join(",")
+  const userid = useAuthStore(s => s.userid)
+  const { data: profilePicUrl } = useGetProfilePicture(userid)
+  const key = [...senderIds, profilePicUrl?.thumbnail].sort().join(",")
   const [result, setResult] = useState<FetchResult | null>(null)
 
   useEffect(() => {

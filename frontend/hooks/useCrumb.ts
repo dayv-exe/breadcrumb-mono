@@ -91,6 +91,7 @@ export const useCrumb = (): UseCrumbType => {
 
       feature.properties!.latestPicture = String(index).padStart(6, "0") + otherUserid
       feature.properties!.latestInitials = String(index).padStart(6, "0") + getInitials(marker?.nickname ?? "").toUpperCase()
+      feature.properties!.mediaCount = Number(crumb.mediaCount) || 1
       return feature
     }),
   }), [crumbs, mailbox, markers])

@@ -3,7 +3,7 @@ import { useCenterOfBottomSheet } from "@/hooks/useCenterOfBottomSheet";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { ChevronDownIcon, ChevronUpIcon, SearchIcon, UserPlus2Icon } from "lucide-react-native";
+import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SharedValue, useAnimatedReaction } from "react-native-reanimated";
@@ -85,18 +85,6 @@ export default function CrumbFeed({ sheetPosition, screenHeight, bottomSheetRef,
             {!isOpened && <ChevronUpIcon stroke={textCol} strokeWidth={3.5} size={21} />}
           </CustomButton>
           <CustomLabel adaptToTheme bold fontSize={23} labelText={"Crumbs"} />
-          <CustomButton
-            handleClick={onSearchPress}
-            freed
-            type="less-prominent"
-            customStyle={{
-              position: "absolute",
-              right: 70,
-              padding: 10
-            }}
-          >
-            <UserPlus2Icon stroke={"white"} strokeWidth={3} size={18} />
-          </CustomButton>
           <CustomButton
             handleClick={onSearchPress}
             freed

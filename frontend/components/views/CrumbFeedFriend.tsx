@@ -4,7 +4,7 @@ import { Colors } from "@/constants/Colors";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
-import { CameraIcon, ExternalLinkIcon } from "lucide-react-native";
+import { CameraIcon } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
@@ -32,6 +32,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
   const crumbCount: number = useMemo(() => {
     let count = 0
     feedItem.crumbs.map(c => {
+      console.log(c.mediaCount)
       if (c.unlocked) count += c.mediaCount
     })
 
@@ -40,6 +41,13 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
 
   const handleNewCrumb = () => {
     router.push("/(protected)/(home)/(main)/camera")
+  }
+
+  const GoToProfile = () => {
+    router.push({
+      pathname: "/(protected)/(home)/user-profile",
+      params: { userid: friendId, displayNickname: getDisplayName(friend, true) }
+    })
   }
 
   const handleShowShared = () => {
@@ -67,13 +75,14 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
       <View>
         <CustomProfilePictureCircle
           size={52}
-          flat={!simplified}
+          flat
           userId={friendId}
           customStyle={{
             outlineWidth: 0,
             borderWidth: 1,
             borderColor: "rgba(0, 0, 0, .1)"
           }}
+          handleClick={!simplified ? GoToProfile : undefined}
         />
 
         {simplified && hasCrumb &&
@@ -133,7 +142,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
           handleClick={hasCrumb ? handleShowShared : handleNewCrumb}
         >
           {!hasCrumb && <CameraIcon stroke={textCol} strokeWidth={2.5} size={23} />}
-          {hasCrumb && <ExternalLinkIcon stroke={textCol} strokeWidth={2.5} size={23} />}
+          {hasCrumb && <CameraIcon stroke={textCol} strokeWidth={2.5} size={23} />}
         </CustomButton>
       </>}
     </TouchableOpacity>

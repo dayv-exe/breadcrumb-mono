@@ -456,7 +456,11 @@ export default function CustomMap({
                   ["get", "latestInitials"],
                 ],
                 ["get", "latestInitials"],
-              ]
+              ],
+              totalMedia: [
+                ["+", ["accumulated"], ["get", "totalMedia"]],
+                ["coalesce", ["get", "mediaCount"], 0],
+              ],
             }}
           >
             <SymbolLayer
@@ -510,6 +514,26 @@ export default function CustomMap({
                 iconAnchor: 'center',
                 iconOffset: [0, -13],
                 iconIgnorePlacement: true,
+              }}
+            />
+
+            <SymbolLayer
+              id="crumbMediaCount"
+              filter={[
+                "all",
+                ["!", ["has", "point_count"]],
+                [">", ["get", "mediaCount"], 1],
+              ]}
+              style={{
+                textField: ["to-string", ["get", "mediaCount"]],
+                textHaloWidth: 5,
+                textHaloColor: "rgba(0, 0, 0, .5)",
+                textSize: 14,
+                textColor: "white",
+                textAnchor: "top-right",
+                textOffset: [1.425, -1.9],
+                textAllowOverlap: true,
+                textIgnorePlacement: true,
               }}
             />
 
@@ -590,7 +614,7 @@ export default function CustomMap({
               id="clusterCount"
               filter={["has", "point_count"]}
               style={{
-                textField: ["concat", ["to-string", ["get", "point_count"]]],
+                textField: ["concat", ["to-string", ["get", "totalMedia"]]],
                 textHaloWidth: 5,
                 textHaloColor: "rgba(0, 0, 0, .5)",
                 textSize: 14,

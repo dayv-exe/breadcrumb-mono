@@ -47,7 +47,7 @@ export default function CrumbSharedItem({ crumb }: props) {
         />
       </View>
 
-      {(crumb.mediaCount > 1 || !crumb.unlocked) && <>
+      {(crumb.mediaCount > 1 || !crumb.unlocked )&& <>
         <CustomLabel allowTruncate fade adaptToTheme fontSize={13} labelText={crumb.unlocked ? crumb.mediaCount + " crumbs" : crumb.formattedAddress} />
       </>
       }

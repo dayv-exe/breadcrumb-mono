@@ -12,9 +12,9 @@ import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeftIcon, MoreHorizontalIcon, PlusIcon } from "lucide-react-native";
+import { ChevronLeftIcon, PlusIcon } from "lucide-react-native";
 import { useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const defaultCoords: Coordinates = { accuracy: 0, latitude: 0, longitude: 0, }
@@ -43,6 +43,13 @@ export default function Shared() {
 
   const handleGoBack = () => {
     router.dismiss()
+  }
+
+  const GoToProfile = () => {
+    router.push({
+      pathname: "/(protected)/(home)/user-profile",
+      params: { userid: userid, displayNickname: displayName }
+    })
   }
 
   const [headerHeight, setHeaderHeight] = useState(0)
@@ -85,7 +92,7 @@ export default function Shared() {
           elevation: 5,
           shadowOffset: { height: 0, width: 0 },
           shadowOpacity: .1,
-          shadowRadius: 5,
+          shadowRadius: 10,
         }]}
         onLayout={e => {
           setHeaderHeight(e.nativeEvent.layout.height)
@@ -102,28 +109,19 @@ export default function Shared() {
         >
           <ChevronLeftIcon stroke={textCol} strokeWidth={3.5} size={23} />
         </CustomButton>
-        <View
+        <TouchableOpacity
           style={[styles.userDetails, {
 
           }]}
+          onPress={GoToProfile}
         >
-          <CustomProfilePictureCircle userId={userid} size={40} />
+          <CustomProfilePictureCircle userId={userid} size={40} flat />
           <Spacer size="small" />
           <CustomLabel allowTruncate bold fontSize={18} adaptToTheme labelText={displayName} customStyle={{
             color: textCol
           }} />
-        </View>
+        </TouchableOpacity>
 
-        <CustomButton
-          freed
-          type="text"
-          customStyle={{
-            width: 50,
-            height: 50,
-          }}
-        >
-          <MoreHorizontalIcon stroke={textCol} strokeWidth={2} size={27} />
-        </CustomButton>
       </View>
 
       <CustomButton
@@ -165,5 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     flexGrow: 1,
     flexShrink: 1,
+    paddingRight: 15
   }
 })
