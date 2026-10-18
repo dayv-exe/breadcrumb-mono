@@ -130,11 +130,12 @@ export default function ProfileItem({ userDetails, showFriendReqOpts = false, ha
           alignItems: "center",
           justifyContent: "flex-start",
           flexDirection: "row",
-          padding: 5
+          padding: 7
         }}>
-          <CustomProfilePictureCircle nickname={userDetails.nickname} userId={userDetails.userId} size={50} />
+          <CustomProfilePictureCircle nickname={userDetails.nickname} userId={userDetails.userId} size={45} />
           <View style={styles.names}>
             <CustomLabel padding={0} adaptToTheme labelText={userDetails.nickname!} fontSize={15} bold />
+            {userDetails.name && <Spacer size="tiny" />}
             {userDetails.name && <CustomLabel padding={0} adaptToTheme labelText={userDetails.name} fontSize={13} fade />}
           </View>
         </View>
@@ -162,8 +163,8 @@ const styles = StyleSheet.create({
   names: {
     width: "auto",
     flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    justifyContent: "center",
     marginLeft: 10,
     flexShrink: 1,
   },

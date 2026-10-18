@@ -32,7 +32,6 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
   const crumbCount: number = useMemo(() => {
     let count = 0
     feedItem.crumbs.map(c => {
-      console.log(c.mediaCount)
       if (c.unlocked) count += c.mediaCount
     })
 

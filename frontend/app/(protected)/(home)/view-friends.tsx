@@ -114,15 +114,6 @@ export default function ViewFriendsScreen() {
       paddingTop: insets.top,
       backgroundColor: darkBgCol
     }}>
-      <CustomButton
-        freed
-        customStyle={{
-          backgroundColor: darkBgCol,
-          position: "absolute",
-          top: insets.top - 7,
-        }} handleClick={() => router.dismiss()}>
-        <ChevronLeftIcon stroke={textCol} strokeWidth={2.5} />
-      </CustomButton>
       <CustomLabel labelText={nickname} adaptToTheme textAlign="center" bold />
       {
         friends && friends.length < 1 && friendRequests && (friendRequests.length < 1 || !isMyProfile) &&
@@ -136,6 +127,18 @@ export default function ViewFriendsScreen() {
           <CustomLabel fontSize={16} adaptToTheme textAlign="center" labelText={`nothing to see here`} />
         </View>
       }
+      <CustomButton
+        freed
+        customStyle={{
+          position: "absolute",
+          top: insets.top,
+          paddingHorizontal: 15,
+          paddingBottom: 15,
+        }}
+        handleClick={() => router.dismiss()}
+      >
+        <ChevronLeftIcon stroke={textCol} strokeWidth={2.5} />
+      </CustomButton>
       <Spacer />
       <ElevatedSectionedScrollView
         sections={sections}
