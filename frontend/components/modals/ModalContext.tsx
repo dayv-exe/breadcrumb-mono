@@ -1,8 +1,9 @@
 import CustomModal from '@/components/modals/CustomModal';
-import React, { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 import CustomPopup from './CustomPopup';
 
 type ModalOptions = {
+  title?: string
   message?: string;
   primaryBtnText?: string;
   secondaryBtnText?: string;
@@ -50,6 +51,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     <ModalContext.Provider value={{ showModal, hideModal }}>
       {children}
       {modalOptions && !modalOptions.content && <CustomModal
+        title={modalOptions.title}
         show={modalVisible}
         message={modalOptions.message}
         primaryBtnText={modalOptions.primaryBtnText}

@@ -28,6 +28,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
   const insets = useSafeAreaInsets()
 
   const { hideModal, showModal } = useModal()
+  const isPlural = mediaPreview.length > 1
 
   const {
     isPending,
@@ -76,6 +77,15 @@ export default function PreviewAndShare({ closeSheet }: props) {
     const x = layout.x + layout.width / 2 - screenWidth / 2
     scrollRef.current?.scrollTo({ x: Math.max(0, x), animated: true })
   }, [screenWidth])
+
+  const handleLocationPress = () => {
+    showModal({
+      title: "Breadcrumbing",
+      message: `${isPlural ? "These" : "This"} crumb${isPlural ? "s" : ""} stay${isPlural ? "" : "s"} at ${address?.toLowerCase()}\nFriends you share with can open ${isPlural ? "them" : "it"} only when they're here, view it once and never again.`,
+      primaryBtnText: "Okay",
+      onPrimary: hideModal,
+    })
+  }
 
   return (
     <View
@@ -151,7 +161,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
                   maxSize={screenWidth * .85}
                   mediaData={media}
                   style={{
-                    marginRight: 10,
+                    marginRight: 15,
                   }}
                   onCaptionFocus={() => centerOnCrumb(media.id)}
                 />
@@ -194,15 +204,18 @@ export default function PreviewAndShare({ closeSheet }: props) {
         <CustomButton
           freed
           customStyle={{
+            alignSelf: "flex-start",
             alignItems: "center",
             justifyContent: "flex-start",
             flexDirection: "row",
             marginHorizontal: insets.bottom + 10,
             marginTop: 7,
-            paddingVertical: 5,
-            paddingHorizontal: 10,
+            paddingVertical: 7,
+            paddingLeft: 10,
+            paddingRight: 15,
             borderRadius: 1000,
           }}
+          handleClick={handleLocationPress}
           type="dark-faded"
         >
           <MapPinIcon stroke="white" strokeWidth={2.5} size={14} />

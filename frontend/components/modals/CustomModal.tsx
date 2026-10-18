@@ -1,10 +1,10 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
-import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../buttons/CustomButton';
 import Spacer from '../Spacer';
 
 type mTypes = {
+  title?: string
   message?: string
   show: boolean
   primaryBtnText?: string
@@ -16,7 +16,7 @@ type mTypes = {
   handleClose?: () => void
 }
 
-export default function CustomModal({ message = "Hello world!", show, primaryBtnText, secondaryBtnText, handlePrimaryAction, handleSecondaryAction, handleClose, showCancelBtn = false }: mTypes) {
+export default function CustomModal({ title = "message", message = "Hello world!", show, primaryBtnText, secondaryBtnText, handlePrimaryAction, handleSecondaryAction, handleClose, showCancelBtn = false }: mTypes) {
   const bgCol = useThemeColor({}, "background")
   const bgOverlay = useThemeColor({}, "backgroundOverlay")
   const textCol = useThemeColor({}, "text")
@@ -39,30 +39,52 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
           }
         ]}>
           <View style={styles.textContainer}>
+            <Text numberOfLines={1} ellipsizeMode='tail' style={[
+              {
+                color: textCol,
+                opacity: 1,
+                fontWeight: "600",
+                fontSize: 20,
+                alignSelf: "flex-start",
+                textAlign: "left",
+              }
+            ]}>{title}</Text>
+            <Spacer size='small' />
             <Text style={[
               styles.modalText,
               {
-                color: textCol
+                fontSize: 16,
+                color: textCol,
+                opacity: 1,
+                fontWeight: 400,
               }
             ]}>{message}</Text>
           </View>
-          <Spacer />
+          <Spacer size='small' />
           <View style={styles.buttonContainer}>
-            {primaryBtnText && <CustomButton useMinWidth slim labelText={primaryBtnText} handleClick={() => {
+            {primaryBtnText && <CustomButton labelText={primaryBtnText} handleClick={() => {
               handlePrimaryAction?.()
-            }} type="less-prominent" />}
+            }} type="less-prominent" customStyle={{
+              flexGrow: 1,
+              flexShrink: 1,
+            }} />}
             {secondaryBtnText && <Spacer size='small' />}
-            {secondaryBtnText && <CustomButton useMinWidth slim labelText={secondaryBtnText} handleClick={() => {
+            {secondaryBtnText && <CustomButton labelText={secondaryBtnText} handleClick={() => {
               handleSecondaryAction?.()
-            }} type='theme-faded' />}
+            }} type='theme-faded' customStyle={{
+              flexGrow: 1,
+              flexShrink: 1,
+            }} />}
             {showCancelBtn &&
               <>
                 <Spacer size='small' />
-                <CustomButton useMinWidth customTextStyle={{ color: "red" }} type='text' slim labelText='cancel' adaptToTheme handleClick={handleClose} />
+                <CustomButton customTextStyle={{ color: "red" }} type='text' labelText='cancel' adaptToTheme handleClick={handleClose} customStyle={{
+                  flexGrow: 1,
+                  flexShrink: 1,
+                }} />
               </>
             }
           </View>
-          <Spacer  />
         </View>
       </View>
     </Modal>
@@ -71,8 +93,9 @@ export default function CustomModal({ message = "Hello world!", show, primaryBtn
 
 const styles = StyleSheet.create({
   buttonContainer: {
+    width: "100%",
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "flex-end",
     justifyContent: "center"
   },
   container: {
@@ -87,8 +110,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContainer: {
-    width: 300,
-    borderRadius: 25,
+    width: "90%",
+    borderRadius: 30,
     padding: 20,
     elevation: 10,
     shadowColor: "#000",
@@ -98,13 +121,14 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: 17,
-    textAlign: 'center',
+    textAlign: 'left',
     opacity: 1,
     lineHeight: 25
   },
   textContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     opacity: 1,
-    fontWeight: "bold"
+    fontWeight: "bold",
+    alignItems: "flex-start",
   }
 });

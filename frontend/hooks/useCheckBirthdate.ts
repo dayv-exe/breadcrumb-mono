@@ -22,31 +22,36 @@ export function useCheckBirthdate() {
     return age
   }
 
-  function validateBirthdate(): { isValid: boolean, reason: string } {
+  function validateBirthdate(): { isValid: boolean, title: string, reason: string } {
     let age = getAge()
     if (age < 0) {
       return {
         isValid: false,
+        title: "umm...",
         reason: `Unfortunately, you haven't been born yet 😬`
       }
     } else if (age > MAX_RIDICULOUS_AGE) {
       return {
         isValid: false,
+        title: "ha!",
         reason: "😂 lol"
       }
     } else if (age > MAX_AGE) {
       return {
         isValid: false,
+        title: "umm...",
         reason: `💀💀💀 Unfortunately, you need to be alive to use this app `
       }
     } else if (age < MIN_AGE) {
       return {
         isValid: false,
+        title: "umm...",
         reason: "😬 Unfortunately, you're too young to use this app, come back in a few years"
       }
     }
 
     return {
+      title: "",
       isValid: true,
       reason: ""
     }

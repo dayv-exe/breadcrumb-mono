@@ -36,6 +36,7 @@ export default function BirthdateScreen() {
 
     if (!validation.isValid) {
       showModal({
+        title: validation.title,
         message: validation.reason,
         onPrimary: () => {
           router.dismissAll()
