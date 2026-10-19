@@ -50,7 +50,7 @@ func handleShareCrumb(ctx context.Context, req events.APIGatewayV2HTTPRequest) (
 	// remove draft flag from media
 	draftFlagHelper := helpers.NewDraftMediaFlagHelper(ctx)
 	if err := draftFlagHelper.RemoveDraftMediaFlags(userId, body.MediaKeys); err != nil {
-		log.Printf("Failed to delete draft flags. ERROR: %#v", err)
+		log.Printf("Failed to delete draft flags. ERROR: %v", err)
 	}
 
 	return models.SuccessfulRequestResponse("Crumb sent!", true), nil
