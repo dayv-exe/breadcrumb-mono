@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useMediaStore } from "@/utils/mediaStore";
 import { useRouter } from "expo-router";
@@ -27,7 +28,14 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
   const nav = useRouter()
   const mediaPreviews = useMediaStore(s => s.media)
 
+  const mode = useColorScheme()
+
   const SIZE = 25
+  const ICON_SIZE = 52
+  const ICON_HEIGHT = 40
+  const ICON_WIDTH = 2.5
+  const ICON_OPACITY = mode === "light" ? .925 : .975
+
 
   return (
     <Reanimated.View
@@ -67,11 +75,11 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           type="text"
           handleClick={onSatellitePress}
           customStyle={{
-            width: 52,
-            height: 45
+            width: ICON_SIZE,
+            height: ICON_HEIGHT
           }}
         >
-          <SatelliteIcon stroke={useSatellite ? Colors.light.vibrantBackground : textCol} strokeWidth={2.5} opacity={.95} size={SIZE} />
+          <SatelliteIcon stroke={useSatellite ? Colors.light.vibrantBackground : textCol} strokeWidth={ICON_WIDTH} opacity={ICON_OPACITY} size={SIZE} />
         </CustomButton>
         <View style={{
           width: SIZE,
@@ -85,11 +93,11 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           handleClick={onFocusPress}
           handleLongPress={onFocusLongPress}
           customStyle={{
-            width: 52,
-            height: 45,
+            width: ICON_SIZE,
+            height: ICON_HEIGHT,
           }}
         >
-          <LocateIcon stroke={textCol} strokeWidth={2.5} opacity={.95} size={SIZE} />
+          <LocateIcon stroke={textCol} strokeWidth={ICON_WIDTH} opacity={ICON_OPACITY} size={SIZE} />
         </CustomButton>
       </View>
 

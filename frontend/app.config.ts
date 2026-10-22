@@ -10,8 +10,9 @@ export default {
     scheme: "breadcrumb",
     userInterfaceStyle: "automatic",
     ios: {
-      supportsTablet: true,
+      supportsTablet: false,
       bundleIdentifier: "com.dayv-exe.Breadcrumb",
+      icon: "./assets/breadcrumb-ios.icon",
     },
     android: {
       adaptiveIcon: {

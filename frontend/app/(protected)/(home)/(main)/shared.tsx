@@ -5,6 +5,7 @@ import CustomLabel from "@/components/CustomLabel";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import Spacer from "@/components/Spacer";
 import { useCrumbsWith } from "@/hooks/queries/useLocalDatabase";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useUserColor } from "@/hooks/useUserColor";
 import { useWatchDbChanges } from "@/hooks/useWatchDbChanges";
@@ -21,6 +22,7 @@ const defaultCoords: Coordinates = { accuracy: 0, latitude: 0, longitude: 0, }
 const WATCH_TABLE = new Set(["crumbs"])
 
 export default function Shared() {
+  const darkMode = useColorScheme() === "dark"
   const textCol = useThemeColor({}, "text")
   const bgCol = useThemeColor({}, "background")
   const crumbBorderCol = useThemeColor({}, "fadedBackground")
@@ -91,7 +93,7 @@ export default function Shared() {
           backgroundColor: bgCol,
           elevation: 5,
           shadowOffset: { height: 0, width: 0 },
-          shadowOpacity: .1,
+          shadowOpacity: darkMode ? .75 : .1,
           shadowRadius: 10,
         }]}
         onLayout={e => {

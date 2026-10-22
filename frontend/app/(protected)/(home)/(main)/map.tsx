@@ -1,6 +1,7 @@
 import { UserInitialDetails } from "@/api/userApi";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
+import MailboxPicker from "@/components/crumbs/MailboxPicker";
 import CustomLabel from "@/components/CustomLabel";
 import CustomMap from "@/components/map/CustomMap";
 import MapControls from "@/components/map/MapControls";
@@ -16,6 +17,7 @@ import { useCrumb } from "@/hooks/useCrumb";
 import { useMap } from "@/hooks/useMap";
 import { usePlaceSearchRetrieve } from "@/hooks/usePlaceSearchRetrieve";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useAuthStore } from "@/utils/authStore";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
@@ -146,6 +148,16 @@ export default function MapScreen() {
     // focus map on place or drop pin or something
   }
 
+  const handleShowMailbox = () => {
+    openSheet({
+      content: (
+        <MailboxPicker />
+      ),
+      dynamicHeight: true,
+      tapOutsideDismiss: true,
+    })
+  }
+
   const [headerOpacity] = useState(() => new Animated.Value(1));
 
   const getPageName = (): string => {
@@ -218,6 +230,7 @@ export default function MapScreen() {
               padding: 0,
               paddingHorizontal: 0,
             }}
+            handleClick={handleShowMailbox}
           >
             <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={27} customStyle={{ color: getHeaderColors().fgColor }} />
             <Spacer size="tiny" />
@@ -241,7 +254,10 @@ export default function MapScreen() {
               <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
             </CustomButton>
             <CustomProfilePictureCircle size={40} handleClick={() => {
-              nav.push("/(protected)/(home)/(main)/profile")
+              nav.push({
+                pathname: "/(protected)/(home)/user-profile",
+                params: { userid: useAuthStore.getState().userid, displayNickname: "" }
+              })
             }} />
           </View>
         </GradientView>

@@ -54,8 +54,7 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
           width: size,
           height: size,
           borderWidth: borderThickness,
-          // borderTopWidth: borderThickness * 2,
-          borderBottomWidth: borderThickness / 1.5,
+          borderBottomWidth: 0,
           borderColor: "#FFF",
           borderTopEndRadius: borderRadius,
           borderTopStartRadius: borderRadius,
@@ -98,7 +97,7 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
       <View
         style={{
           width: size,
-          backgroundColor: "#F6F6F6",
+          backgroundColor: "#FFF",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "flex-start",
@@ -121,13 +120,14 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
             textAlignVertical: "top",
             textAlign: "left",
             paddingHorizontal: borderThickness,
-            height: size / 5,
+            height: size / 4.75,
             fontSize: size / 20,
             color: Colors.light.text,
             width: "100%",
           }}
           multiline
           submitBehavior="blurAndSubmit"
+          returnKeyType="done"
           scrollEnabled={false}
         />
       </View>

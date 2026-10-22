@@ -129,6 +129,7 @@ export default function ViewFriendsScreen() {
       }
       <CustomButton
         freed
+        type="text"
         customStyle={{
           position: "absolute",
           top: insets.top,

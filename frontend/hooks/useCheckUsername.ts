@@ -1,4 +1,3 @@
-import { NicknameAvailableResponse } from "@/api/searchApi";
 import { inputMode } from "@/constants/customInputModeTypes";
 import { validateUsername } from "@/constants/regexes";
 import { debounce } from "@/utils/debounce";
@@ -31,10 +30,10 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
     debounceInput(value);
   };
 
-  const handleFinalCheck = (onSuccess: (valid: NicknameAvailableResponse) => void) => {
+  const handleFinalCheck = (onSuccess: (valid: boolean) => void) => {
     checkUsernameAvailability(username, {
       onSuccess: (res) => {
-        onSuccess(res);
+        onSuccess(res === "true");
       },
     });
   };
@@ -76,6 +75,6 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
     getInfoText,
     getInputMode,
     handleFinalCheck,
-    isValid: data ?? false,
+    isValid: data === "true" ? true : false,
   };
 }
