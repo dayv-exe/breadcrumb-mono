@@ -7,6 +7,7 @@ type UserState = {
   showEmailVerificationPage: boolean
   userid: string
   email: string
+  birthdate: Date | null
   password: string
   fullname: string | null
   nickname: string | null
@@ -16,6 +17,7 @@ export const useAuthStore = create(
   persist<UserState>((set, get) => ({
     isLoggedIn: false,
     showEmailVerificationPage: false,
+    birthdate: null,
     email: "",
     password: "",
     userid: "",

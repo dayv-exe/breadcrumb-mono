@@ -246,7 +246,7 @@ export default function MapScreen() {
             <CustomButton
               freed
               type="text"
-              customStyle={[styles.shadow, {
+              customStyle={[{
                 padding: 10,
               }]}
               handleClick={handleNotificationPress}

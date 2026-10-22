@@ -1,4 +1,3 @@
-import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomInput from "@/components/inputs/CustomInput";
@@ -8,32 +7,26 @@ import CustomScrollView from "@/components/views/CustomScrollView";
 import { useCheckName } from "@/hooks/useCheckName";
 import { useCheckUsername } from "@/hooks/useCheckUsername";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useAuthStore } from "@/utils/authStore";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function SignupNameScreen() {
-  const [userDetails, setUserDetails] = useState<signupDetails>({
-    username: "",
-    fullname: "",
-    birthdate: new Date().toLocaleDateString(),
-    email: "",
-    password: ""
-  })
   const router = useRouter()
 
   const { username, setUsername, isValid, handleFinalCheck, getInputMode, getInfoText } = useCheckUsername()
-  const {name, setName, getNameLabelText, NameValid, getNameInputMode} = useCheckName()
+  const { name, setName, getNameLabelText, NameValid, getNameInputMode } = useCheckName()
   const bgCol = useThemeColor({}, "background")
 
   const handleProceedToNextPage = () => {
     handleFinalCheck((valid) => {
       if (valid && NameValid()) {
-        userDetails.username = username
-        userDetails.fullname = name
+        useAuthStore.setState({
+          fullname: name,
+          nickname: username,
+        })
         router.push({
           pathname: "/signup-birthdate",
-          params: userDetails,
         });
       }
     });

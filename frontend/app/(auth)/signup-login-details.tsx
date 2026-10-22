@@ -1,4 +1,3 @@
-import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomInput from "@/components/inputs/CustomInput";
@@ -10,21 +9,13 @@ import { useThemeColor } from "@/hooks/use-theme-color";
 import { useCheckEmail } from "@/hooks/useCheckEmail";
 import { useCheckPassword } from "@/hooks/useCheckPassword";
 import { useUserManagement } from "@/hooks/useUserManagement";
-import { useLocalSearchParams } from "expo-router";
+import { useAuthStore } from "@/utils/authStore";
 import { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function SignupDetailsScreen() {
   const bgCol = useThemeColor({}, "background")
-  const { username, fullname, birthdate, email, password } = useLocalSearchParams<signupDetails>()
-  const [userDetails, setUserDetails] = useState<signupDetails>({
-    username: username,
-    fullname: fullname,
-    birthdate: birthdate,
-    email: email,
-    password: password
-  })
   const [popupDetails, setPopupDetails] = useState<{ isVisible: boolean, message: string }>({ isVisible: false, message: "" })
   const promptedUserToConfirmEmail = useRef(false)
   const [showActivityIndicator, setShowActivityIndicator] = useState(false)
@@ -33,14 +24,22 @@ export default function SignupDetailsScreen() {
 
   const { signup } = useUserManagement()
 
+  const { birthdate, email, fullname, nickname, password } = useAuthStore()
+
   const handleSendVerification = async () => {
     setShowActivityIndicator(true)
-    setUserDetails({
-      ...userDetails,
-      password: passwordStr,
-      email: emailStr
+
+    useAuthStore.setState({
+      email: emailStr,
+      password: passwordStr
     })
-    const response = await signup(userDetails)
+    const response = await signup({
+      fullname: fullname!,
+      birthdate: birthdate!.toDateString(),
+      email: email,
+      password: password,
+      username: nickname!
+    })
 
     if (!response.isSuccess) {
       let message = "🤔 Something went wrong, try again."

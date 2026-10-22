@@ -33,7 +33,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
   const SIZE = 25
   const ICON_SIZE = 52
   const ICON_HEIGHT = 40
-  const ICON_WIDTH = 2.5
+  const ICON_WIDTH = 2.25
   const ICON_OPACITY = mode === "light" ? .925 : .975
 
 
@@ -86,6 +86,7 @@ export default function MapControls({ containerStyle, backgroundStyle, onFocusPr
           height: 1.5,
           borderRadius: 1000,
           backgroundColor: fadedBgCol,
+          marginVertical: 1,
         }} />
         <CustomButton
           freed

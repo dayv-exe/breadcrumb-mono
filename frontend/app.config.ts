@@ -39,6 +39,9 @@ export default {
         "react-native-compressor"
       ],
       [
+        "expo-asset"
+      ],
+      [
         "expo-image"
       ],
       [

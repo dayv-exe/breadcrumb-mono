@@ -164,11 +164,11 @@ export default function RootLayout() {
               <Stack screenOptions={{
                 headerShown: false,
               }}>
-                <Stack.Protected guard={!isLoggedIn}>
+                <Stack.Protected guard={!isLoggedIn} redirectTo={"/(protected)/(home)/(main)/map"} >
                   <Stack.Screen name="(auth)" />
                 </Stack.Protected>
 
-                <Stack.Protected guard={isLoggedIn}>
+                <Stack.Protected guard={isLoggedIn} redirectTo={"/(auth)"}>
                   <Stack.Screen name="(protected)" />
                 </Stack.Protected>
 

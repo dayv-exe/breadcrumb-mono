@@ -1,4 +1,3 @@
-import { signupDetails } from "@/api/models/userDetails";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomDatePicker from "@/components/inputs/CustomDatePicker";
@@ -7,20 +6,13 @@ import Spacer from "@/components/Spacer";
 import CustomView from "@/components/views/CustomView";
 import { useCheckBirthdate } from "@/hooks/useCheckBirthdate";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useAuthStore } from "@/utils/authStore";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function BirthdateScreen() {
   const bgCol = useThemeColor({}, "background")
-  const { username, fullname, birthdate, email, password } = useLocalSearchParams<signupDetails>()
-  const [userDetails, setUserDetails] = useState<signupDetails>({
-    username: username,
-    fullname: fullname,
-    birthdate: birthdate,
-    email: email,
-    password: password
-  })
   const router = useRouter()
   const [pickerMoving, setPickerMoving] = useState(true)
   const { rawBirthdate, setBirthdate, validateBirthdate, birthdateToString } = useCheckBirthdate()
@@ -28,7 +20,9 @@ export default function BirthdateScreen() {
 
   function handleChange(date: Date) {
     setBirthdate(date)
-    setUserDetails({ ...userDetails, birthdate: birthdateToString(date) })
+    useAuthStore.setState({
+      birthdate: date,
+    })
   }
 
   const handleValidateBirthdate = () => {
@@ -47,7 +41,6 @@ export default function BirthdateScreen() {
     } else {
       router.push({
         pathname: "/signup-login-details",
-        params: userDetails
       })
     }
   }
