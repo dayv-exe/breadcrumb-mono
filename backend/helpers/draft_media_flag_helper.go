@@ -28,7 +28,7 @@ func (m *DraftMediaFlagHelper) PutNewDraftMediaFlag(userid, mediaKey string) err
 func (m *DraftMediaFlagHelper) RemoveDraftMediaFlags(userid string, mediaKeys []models.CrumbMedia) error {
 	tableName := utils.GetDependencies().MainTableName
 	transactions := make([]types.TransactWriteItem, 0)
-	var seen map[string]struct{}
+	seen := make(map[string]struct{}, 0)
 
 	add := func(key string) {
 		if strings.TrimSpace(key) == "" {
