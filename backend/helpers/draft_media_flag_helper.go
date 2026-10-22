@@ -5,6 +5,7 @@ import (
 	"backend/utils"
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -25,23 +26,29 @@ func (m *DraftMediaFlagHelper) PutNewDraftMediaFlag(userid, mediaKey string) err
 }
 
 func (m *DraftMediaFlagHelper) RemoveDraftMediaFlags(userid string, mediaKeys []models.CrumbMedia) error {
-	transactions := make([]types.TransactWriteItem, 0)
 	tableName := utils.GetDependencies().MainTableName
+	transactions := make([]types.TransactWriteItem, 0)
+	var seen map[string]struct{}
 
-	for _, mediaKey := range mediaKeys {
-		key := models.GetMediaDraftFlagKey(userid, mediaKey.MediaKey)
-		thumbnailKey := models.GetMediaDraftFlagKey(userid, mediaKey.ThumbnailKey)
-		transactions = append(transactions,
-			UseDelete(key, tableName),
-			UseDelete(thumbnailKey, tableName),
-		)
+	add := func(key string) {
+		if strings.TrimSpace(key) == "" {
+			return
+		}
+		if _, exists := seen[key]; exists {
+			return
+		}
+
+		t := UseDelete(models.GetMediaDraftFlagKey(userid, key), tableName)
+		transactions = append(transactions, t)
+		seen[key] = struct{}{}
 	}
 
-	helper := newHelper(m.Ctx, nil)
-	return TransactWrite(
-		helper,
-		transactions...,
-	)
+	for _, key := range mediaKeys {
+		add(key.MediaKey)
+		add(key.ThumbnailKey)
+	}
+
+	return TransactWrite(newHelper(m.Ctx, nil), transactions...)
 }
 
 // removes draft flag and media from bucket
