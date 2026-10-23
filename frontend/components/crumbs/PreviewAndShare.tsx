@@ -4,7 +4,7 @@ import { MAX_PREVIEW_MEDIA, ShowToast } from "@/constants/appConstants";
 import { useShareCrumb } from "@/hooks/useShareCrumb";
 import { useMediaStore } from "@/utils/mediaStore";
 import { ChevronDownIcon, MapPinIcon, PlusIcon, Trash2Icon } from "lucide-react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShallow } from "zustand/shallow";
@@ -71,13 +71,6 @@ export default function PreviewAndShare({ closeSheet }: props) {
   const layouts = useRef<Record<string, { x: number; width: number }>>({})
   const { width: screenWidth } = useWindowDimensions()
 
-  const centerOnCrumb = useCallback((id: string) => {
-    const layout = layouts.current[id]
-    if (!layout) return
-    const x = layout.x + layout.width / 2 - screenWidth / 2
-    scrollRef.current?.scrollTo({ x: Math.max(0, x), animated: true })
-  }, [screenWidth])
-
   const handleLocationPress = () => {
     showModal({
       title: "Breadcrumbing",
@@ -141,7 +134,6 @@ export default function PreviewAndShare({ closeSheet }: props) {
       >
         <Spacer />
         <ScrollView
-          ref={scrollRef}
           keyboardShouldPersistTaps="never"
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -163,7 +155,6 @@ export default function PreviewAndShare({ closeSheet }: props) {
                   style={{
                     marginRight: 15,
                   }}
-                  onCaptionFocus={() => centerOnCrumb(media.id)}
                 />
               )
             })

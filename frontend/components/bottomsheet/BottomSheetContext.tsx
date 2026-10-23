@@ -117,8 +117,6 @@ const Sheet = ({ options, sheetRef, animatedPosition, onClose }: SheetProps) => 
   } else if (isScrollableContent) {
     body = <BottomSheetScrollView>{content}</BottomSheetScrollView>
   } else {
-    // No flex: 1 with dynamic sizing: the view must size to its content,
-    // otherwise it stretches to the sheet and the measured height feeds back on itself.
     body = (
       <BottomSheetView style={[absoluteFill && StyleSheet.absoluteFill, !dynamicHeight && { flex: 1 }]}>
         {content}
