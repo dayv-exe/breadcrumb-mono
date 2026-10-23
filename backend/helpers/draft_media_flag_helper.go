@@ -48,6 +48,10 @@ func (m *DraftMediaFlagHelper) RemoveDraftMediaFlags(userid string, mediaKeys []
 		add(key.ThumbnailKey)
 	}
 
+	if len(transactions) == 0 {
+		return nil
+	}
+
 	return TransactWrite(newHelper(m.Ctx, nil), transactions...)
 }
 
