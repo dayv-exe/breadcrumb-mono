@@ -5,7 +5,7 @@ import CustomView from "@/components/views/CustomView";
 import { FRIENDSHIP_STATUS, ShowToast } from "@/constants/appConstants";
 import { useAcceptFriendRequests, useRejectFriendRequest, useSendFriendRequest, useUnsendFriendRequest } from "@/hooks/queries/useFriendRequestsApi";
 import { useRemoveFriend } from "@/hooks/queries/useFriendsApi";
-import { useGetUser } from "@/hooks/queries/useUserApi";
+import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useIsMyProfile } from "@/hooks/useIsMyProfile";
 import { useRouter } from "expo-router";
@@ -17,6 +17,7 @@ import { useBottomSheet } from "../bottomsheet/BottomSheetContext";
 import CustomButton from "../buttons/CustomButton";
 import CustomImageButton from "../buttons/CustomImageButton";
 import CustomLabel from "../CustomLabel";
+import ChangeProfilePicture from "../inputs/ChangeProfilePicture";
 import Skeleton from "../skeletons/Skeleton";
 import CustomRefreshableScrollView from "../views/CustomRefreshableScrollView";
 import AddFriendBody from "./AddFriendBody";
@@ -122,13 +123,14 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
   const router = useRouter()
   const [friendshipStatus, setFriendshipStatus] = useState<FRIENDSHIP_STATUS>(FRIENDSHIP_STATUS.NOT_FRIENDS)
   const { data: userData, error, isPending, refetch } = useGetUser(userId)
+  const { data: profilePicture, isPending: profilePicturePending, refetch: refetchProfileProfilePic } = useGetProfilePicture(userId)
   const isMyProfile = useIsMyProfile(userId)
   const { mutate: sendFriendReq, isPending: sendReqPending } = useSendFriendRequest()
   const { mutate: unsendFriendRequest, isPending: unsendReqPending } = useUnsendFriendRequest()
   const { mutate: acceptFriendReq, isPending: acceptReqPending } = useAcceptFriendRequests()
   const { mutate: rejectFriendReq, isPending: rejectReqPending } = useRejectFriendRequest()
   const { mutate: endFriendship, isPending: endFriendshipPending } = useRemoveFriend()
-  const { openSheet } = useBottomSheet()
+  const { openSheet, closeSheet } = useBottomSheet()
 
   const user = useRef<UserDetails>(null)
 
@@ -151,6 +153,16 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
     }
   }
 
+  const handleProfilePictureClick = () => {
+    if (!isMyProfile) return
+    openSheet({
+      content: (
+        <ChangeProfilePicture cleanupFn={closeSheet} />
+      ),
+      dynamicHeight: true,
+    })
+  }
+
   const handleBackClick = () => {
     router.dismiss()
   }
@@ -161,6 +173,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
 
   async function handleRefresh() {
     refetch()
+    refetchProfileProfilePic()
   }
 
   async function handleFriendshipAction() {
@@ -354,7 +367,7 @@ export default function BaseProfile({ userId, tempNickname, showBackButton = fal
             <CustomRefreshableScrollView isRefreshing={isPending} onRefresh={handleRefresh}>
               <Spacer size="small" />
               <View style={styles.profileHeader}>
-                {!isPending && <CustomProfilePictureCircle size={90} nickname={userData?.nickname} userId={userData?.userId} />}
+                {!isPending && <CustomProfilePictureCircle size={90} nickname={userData?.nickname} imageUrl={profilePicture?.thumbnail} handleClick={isMyProfile ? handleProfilePictureClick : undefined} />}
                 {isPending && <Skeleton height={90} width={90} borderRadius="100%" />}
                 <Spacer />
                 <View style={styles.profileAside}>

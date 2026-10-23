@@ -1,9 +1,8 @@
 import { DeleteLocalDatabase, logAllTable } from "@/api/db/InitDb";
-import { extractBackendMsg } from "@/api/models/apiResponse";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
-import { useModal } from "@/components/modals/ModalContext";
+import ChangeProfilePicture from "@/components/inputs/ChangeProfilePicture";
 import CustomProfilePictureCircle from "@/components/profile/CustomProfilePictureCircle";
 import EditBio from "@/components/profile/EditBio";
 import EditBirthdate from "@/components/profile/EditBirthdate";
@@ -15,15 +14,11 @@ import Spacer from "@/components/Spacer";
 import CustomHeader from "@/components/views/CustomHeader";
 import CustomView from "@/components/views/CustomView";
 import { ElevatedSectionedScrollView, Section } from "@/components/views/ElevatedSectionedScrollView";
-import { defaultMediaDataUploadState, MediaData } from "@/constants/media";
-import { useDeleteUser, useGetUser, useUpdateProfilePicture } from "@/hooks/queries/useUserApi";
+import { useDeleteUser, useGetUser } from "@/hooks/queries/useUserApi";
 import { useEmailVerificationStatus } from "@/hooks/useCognitoEmail";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { useImagePicker } from "@/hooks/useImagePicker";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useUploadMedia } from "@/hooks/useUploadMedia";
 import { useUserManagement } from "@/hooks/useUserManagement";
-import * as ImageManipulator from "expo-image-manipulator";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -293,86 +288,13 @@ export default function ProfileSettingsScreen() {
     },
   ]
 
-  const { showModal, hideModal } = useModal()
-  const { pickFromGallery, takePhoto, isLoading } = useImagePicker()
-  const { mutateAsync: updateProfilePictureKey } = useUpdateProfilePicture()
-  const { upload } = useUploadMedia({})
-
   const handlePressChangePic = () => {
     openSheet({
       content: (
-        <View style={{ paddingBottom: insets.bottom }}>
-          <CustomButton type="text" labelText="Choose from photos" adaptToTheme handleClick={() => {
-            pickFromGallery({ mediaTypes: ["images"], onPictureChosen: image => handleChangePic(image) }, false)
-          }} />
-          <CustomButton type="text" labelText="Take photo" adaptToTheme handleClick={() => {
-            takePhoto({
-              aspect: [1, 1], onPictureChosen: image => {
-                handleChangePic(image)
-              }
-            })
-          }} />
-          <CustomButton type="text" labelText="Remove" customTextStyle={{ color: "red" }} adaptToTheme handleClick={handleDeletePic} />
-        </View>
+        <ChangeProfilePicture cleanupFn={closeSheet} />
       ),
       dynamicHeight: true,
     })
-  }
-
-  const handleChangePic = async (image: MediaData) => {
-    // crop to a centered square first
-    const size = Math.min(image.width!, image.height!)
-    const originX = (image.width! - size) / 2
-    const originY = (image.height! - size) / 2
-
-    const context = ImageManipulator.ImageManipulator
-      .manipulate(image.localUri)
-      .crop({ originX, originY, width: size, height: size })
-
-    const original = (await context.renderAsync()).saveAsync({ compress: .8 })
-    const thumbnail = (await context.resize({ width: 150, height: 150 }).renderAsync()).saveAsync({ compress: .8 })
-    try {
-      const file = await upload({
-        id: "",
-        localUri: (await original).uri,
-        thumbnail: (await thumbnail).uri,
-        type: "profilePhoto",
-        resizeMode: "contain",
-        uploadState: defaultMediaDataUploadState(),
-      })
-      console.log("thumbnail: ", file.thumbnail)
-      await updateProfilePictureKey({
-        imageKey: file.media.mediaKey,
-        thumbnailKey: file.thumbnail?.mediaKey ?? ""
-      })
-    } catch (error) {
-      showModal({
-        message: extractBackendMsg(error),
-        onPrimary: hideModal,
-        primaryBtnText: "Ok"
-      })
-    }
-    closeSheet()
-  }
-
-  const handleDeletePic = () => {
-    updateProfilePictureKey({
-      imageKey: "",
-      thumbnailKey: "",
-    }, {
-      onSuccess() {
-
-      },
-      onError() {
-        showModal({
-          message: "Failed to update profile picture, try again.",
-          primaryBtnText: "Close",
-          onPrimary: hideModal
-        })
-      }
-    })
-
-    closeSheet()
   }
 
   return (

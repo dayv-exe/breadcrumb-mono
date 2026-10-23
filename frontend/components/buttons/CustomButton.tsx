@@ -88,7 +88,7 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
     }} style={[
       styles.button,
       {
-        backgroundColor: disabled ? Colors.light.fadedBackground : backgroundColor,
+        backgroundColor: disabled ? fadedBg : backgroundColor,
         height: freed ? undefined : slim ? 43 : "auto",
         width: freed ? undefined : width,
         padding: freed ? undefined : squashed ? 6 : slim ? 10 : 15,

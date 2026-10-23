@@ -33,7 +33,8 @@ export const useEditUser = () => {
 export const useGetUser = (idOrNickname: string) => useQuery({
   queryFn: () => getUser(idOrNickname),
   queryKey: ["user-details", idOrNickname],
-  staleTime: 10 * TIME.MINUTE
+  staleTime: 10 * TIME.MINUTE,
+  enabled: !!idOrNickname
 })
 
 export const useSearchUserApi = (str: string) => useQuery({
@@ -58,5 +59,5 @@ export const useGetProfilePicture = (userid: string) => useQuery({
   queryKey: ["profile-picture", userid],
   queryFn: () => getProfilePicture(userid),
   staleTime: 14 * TIME.MINUTE,
-  enabled: userid !== "disabled"
+  enabled: !!userid
 })

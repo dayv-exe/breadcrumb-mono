@@ -1,18 +1,18 @@
 import { useGetProfilePicture, useGetUser } from "@/hooks/queries/useUserApi";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { useAuthStore } from "@/utils/authStore";
 import { getInitials } from "@/utils/getInitials";
-import { AnimatableNumericValue, ColorSchemeName, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { ColorSchemeName, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 
 type props = {
+  imageUrl?: string
   size?: number
   nickname?: string | null | undefined
   userId?: string | null | undefined
   customStyle?: StyleProp<ViewStyle>
   customTextStyle?: StyleProp<TextStyle>
-  borderRadius?: string | AnimatableNumericValue | undefined
+  borderRadius?: string | number | undefined
   handleClick?: (src: string,) => void
   backgroundColor?: string
   useUserColor?: boolean
@@ -20,10 +20,9 @@ type props = {
   forceMode?: ColorSchemeName
 }
 
-export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, backgroundColor, useUserColor, forceMode, flat }: props) {
-  const currentUserid = useAuthStore(s => s.userid)
-  const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? currentUserid);
-  const { data: userDetails } = useGetUser(userId ?? currentUserid)
+export default function CustomProfilePictureCircle({ size = 100, handleClick, nickname, userId, customStyle, customTextStyle, borderRadius, backgroundColor, useUserColor, forceMode, flat, imageUrl, }: props) {
+  const { data: profilePicture, error: profilePictureError } = useGetProfilePicture(userId ?? "");
+  const { data: userDetails } = useGetUser(userId ?? "")
   const deviceMode = useColorScheme();
   const mode = forceMode ?? deviceMode
 
@@ -32,7 +31,7 @@ export default function CustomProfilePictureCircle({ size = 100, handleClick, ni
   const bgCol = useThemeColor({}, "fadedBackgroundElevated");
   const userCol = null
 
-  const url = (profilePicture && !profilePictureError) ? profilePicture?.thumbnail : null;
+  const url = imageUrl ? imageUrl : (profilePicture && !profilePictureError) ? profilePicture?.thumbnail : null
 
   nickname = nickname ?? ((userDetails && !profilePictureError) ? userDetails.nickname ?? "" : "")
   const initials = getInitials(nickname)

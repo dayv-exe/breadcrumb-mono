@@ -153,18 +153,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    width: "100%",
     position: "absolute",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
   },
   userDetails: {
-    width: "100%",
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "flex-start",
-    flexGrow: 1,
-    flexShrink: 1,
-    paddingRight: 15
+    alignItems: "center",
   }
 })

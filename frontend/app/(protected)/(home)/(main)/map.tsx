@@ -207,6 +207,7 @@ export default function MapScreen() {
   }
 
   const nav = useRouter()
+  const userid = useAuthStore(s => s.userid)
   return (
     <View style={[styles.page, { backgroundColor: bgCol }]}>
 
@@ -253,10 +254,10 @@ export default function MapScreen() {
             >
               <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
             </CustomButton>
-            <CustomProfilePictureCircle size={40} handleClick={() => {
+            <CustomProfilePictureCircle userId={userid} size={40} handleClick={() => {
               nav.push({
                 pathname: "/(protected)/(home)/user-profile",
-                params: { userid: useAuthStore.getState().userid, displayNickname: "" }
+                params: { userid: userid, displayNickname: "" }
               })
             }} />
           </View>
