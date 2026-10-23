@@ -23,7 +23,7 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { BellIcon, ChevronDownIcon } from "lucide-react-native";
+import { BellIcon, ChevronDownIcon, XIcon } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
 import { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
@@ -151,7 +151,10 @@ export default function MapScreen() {
   const handleShowMailbox = () => {
     openSheet({
       content: (
-        <MailboxPicker />
+        <MailboxPicker mailbox={mailbox} onChange={m => {
+          setMailbox(m)
+          closeSheet()
+        }} />
       ),
       dynamicHeight: true,
       tapOutsideDismiss: true,
@@ -237,7 +240,7 @@ export default function MapScreen() {
             <Spacer size="tiny" />
             <ChevronDownIcon stroke={getHeaderColors().fgColor} strokeWidth={2.5} size={21} />
           </CustomButton>
-          <View
+          {mailbox === "received" && <View
             style={{
               flexDirection: "row",
               alignItems: "center",
@@ -260,7 +263,23 @@ export default function MapScreen() {
                 params: { userid: userid, displayNickname: "" }
               })
             }} />
-          </View>
+          </View>}
+          {mailbox !== "received" &&
+            <CustomButton
+              type="themed"
+              slim
+              customStyle={{
+                shadowColor: "black",
+                shadowOffset: { height: 1, width: 1 },
+                shadowOpacity: .25,
+                shadowRadius: 5,
+                elevation: 5,
+              }}
+              handleClick={() => setMailbox("received")}
+            >
+              <XIcon stroke={txtCol} strokeWidth={3} />
+            </CustomButton>
+          }
         </GradientView>
       </Animated.View>
 

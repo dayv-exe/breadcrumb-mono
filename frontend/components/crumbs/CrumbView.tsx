@@ -20,7 +20,7 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
   const [caption, setCaption] = useState(mediaData.caption)
   size = Math.min(size, maxSize)
   const borderThickness = size / 20
-  const borderRadius = borderThickness / 4.5
+  const borderRadius = borderThickness / 15
 
   const {
     removeCrumb,
