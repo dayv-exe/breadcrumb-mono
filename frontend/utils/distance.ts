@@ -52,7 +52,7 @@ export function getDistanceBetween(
 
 const distanceFormatter = new Intl.NumberFormat("en-GB", {
   minimumFractionDigits: 0,
-  maximumFractionDigits: 1,
+  maximumFractionDigits: 0,
 })
 
 export const formatDistance = (distance: number) => distanceFormatter.format(distance)

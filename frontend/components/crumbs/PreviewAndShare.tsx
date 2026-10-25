@@ -148,9 +148,9 @@ export default function PreviewAndShare({ closeSheet }: props) {
             mediaPreview.map(media => {
               return (
                 <CrumbView
+                  type="preview"
                   key={media.id}
                   size={300}
-                  maxSize={screenWidth * .85}
                   mediaData={media}
                   style={{
                     marginRight: 15,

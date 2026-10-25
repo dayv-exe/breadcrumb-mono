@@ -1,7 +1,6 @@
 import CustomButton from "@/components/buttons/CustomButton";
 import CustomLabel from "@/components/CustomLabel";
 import CustomInput from "@/components/inputs/CustomInput";
-import CustomModal from "@/components/modals/CustomModal";
 import { useModal } from "@/components/modals/ModalContext";
 import Spacer from "@/components/Spacer";
 import CustomKeyboardAvoidingView from "@/components/views/CustomKeyboardAvoidingView";
@@ -38,7 +37,6 @@ export default function SignupVerifyScreen() {
   const { showModal, hideModal } = useModal()
 
   function handleErrorGracefully(err: string) {
-    console.log(err)
     if (String(err).includes("CodeMismatchException") || String(err).includes("InvalidParameterException")) {
       Toast.show({
         text1: "Invalid verification code!",
@@ -93,9 +91,9 @@ export default function SignupVerifyScreen() {
         return
       }
       createUser({
-        displayName: fullname ?? "",
-        displayNickname: nickname,
-        userid: res.sub
+        name: fullname ?? "",
+        nickname: nickname,
+        sub: res.sub
       }, {
         onSuccess: user => {
           res.loginFn()
@@ -132,20 +130,23 @@ export default function SignupVerifyScreen() {
   }
 
   const handleCancelRegistration = () => {
-    setPopupDetails({
-      ...popupDetails, isVisible: true
-    })
-  }
-
-  const handleStay = () => {
-    setPopupDetails({
-      ...popupDetails, isVisible: false
+    showModal({
+      message: "Are you sure you want to cancel the signup process?",
+      onPrimary: () => {
+        hideModal()
+      },
+      primaryBtnText: "No, stay and continue",
+      secondaryBtnText: "Yes, leave",
+      onSecondary: () => {
+        handleLeave()
+      }
     })
   }
 
   const handleLeave = () => {
     abort(userid) // delete from cognito
     cancelSignup()
+    hideModal()
   }
 
   const isResendDisabled = () => {
@@ -158,7 +159,6 @@ export default function SignupVerifyScreen() {
 
   return (
     <CustomKeyboardAvoidingView backgroundColor={bgCol}>
-      <CustomModal show={popupDetails.isVisible} message={popupDetails.message} primaryBtnText="No, stay and continue" secondaryBtnText="Yes, leave" handleSecondaryAction={handleLeave} handleClose={handleStay} />
       <CustomLabel textAlign="center" labelText="Step 4 of 4" adaptToTheme fade />
       <CustomScrollView>
         <Spacer />

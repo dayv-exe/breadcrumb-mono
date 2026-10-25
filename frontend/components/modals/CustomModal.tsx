@@ -94,7 +94,7 @@ export default function CustomModal({ title = "message", message = "Hello world!
 const styles = StyleSheet.create({
   buttonContainer: {
     width: "100%",
-    flexDirection: "column",
+    flexDirection: "row-reverse",
     alignItems: "flex-end",
     justifyContent: "center"
   },

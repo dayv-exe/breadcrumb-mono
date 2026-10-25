@@ -200,11 +200,8 @@ export async function reconcileCrumbLocks(
           const dist = distanceMeters(latitude, longitude, candidate.latitude, candidate.longitude)
           const wantDistance: 0 | 1 =
             dist < (accuracy ?? 0) + (candidate.radius ?? 0) ? 1 : 0
-          // keep old place flag if no place provided
-          const wantPlace: 0 | 1 =
-            nearbyPlaceIds === undefined
-              ? (candidate.place_unlocked as 0 | 1)
-              : nearbyCrumbIds.has(candidate.id) ? 1 : 0
+            
+          const wantPlace: 0 | 1 = nearbyCrumbIds.has(candidate.id) && nearbyPlaceIds !== undefined ? 1 : 0
 
           const wasUnlocked = candidate.distance_unlocked === 1 || candidate.place_unlocked === 1
           const willUnlock = wantDistance === 1 || wantPlace === 1

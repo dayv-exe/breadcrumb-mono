@@ -1,4 +1,4 @@
-import { unsubscribeFromCurrentDbFile } from "@/api/db/InitDb"
+import { DeleteLocalDatabase, unsubscribeFromCurrentDbFile } from "@/api/db/InitDb"
 import { signupDetails } from "@/api/models/userDetails"
 import { useAuthStore } from "@/utils/authStore"
 import { confirmResetPassword, confirmSignUp, deleteUser, fetchAuthSession, getCurrentUser, resendSignUpCode, resetPassword, signIn, SignInOutput, signOut, signUp } from "@aws-amplify/auth"
@@ -187,6 +187,7 @@ export function useUserManagement(): state {
 
   async function logout(): Promise<iResponse> {
     try {
+      await DeleteLocalDatabase()
       await signOut()
       clearUserAuthState()
       resetLocalCaches()

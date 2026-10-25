@@ -1,24 +1,39 @@
 import { deleteDraftMedia } from "@/api/deleteDraftMedia";
+import { crumbMedia } from "@/api/models/crumbMedia";
 import { MediaData } from "@/constants/media";
 import { Colors } from "@/constants/theme";
 import { useMediaStore } from "@/utils/mediaStore";
 import { Trash2Icon } from "lucide-react-native";
 import { useState } from "react";
-import { Image, StyleProp, StyleSheet, TextInput, View, ViewStyle } from "react-native";
+import { Image, StyleProp, StyleSheet, TextInput, useWindowDimensions, View, ViewStyle } from "react-native";
 import { useShallow } from "zustand/shallow";
 import CustomButton from "../buttons/CustomButton";
 
-interface props {
-  mediaData: MediaData
+interface baseProps {
   size: number
-  maxSize: number
+  maxSize?: number
   style?: StyleProp<ViewStyle>
+}
+
+type PreviewType = baseProps & {
+  type: "preview"
+  mediaData: MediaData
   onCaptionFocus?: () => void
 }
 
-export default function CrumbView({ mediaData, size = 320, style, maxSize, onCaptionFocus }: props) {
-  const [caption, setCaption] = useState(mediaData.caption)
-  size = Math.min(size, maxSize)
+type ReadonlyType = baseProps & {
+  type: "readonly"
+  media: crumbMedia
+}
+
+type props = PreviewType | ReadonlyType
+
+export default function CrumbView(props: props) {
+  const screenWidth = useWindowDimensions().width
+
+  const c = props.type === "preview" ? props.mediaData.caption : props.media.caption
+  const [caption, setCaption] = useState(c)
+  const size = Math.min(props.size, props.maxSize ?? screenWidth * .85)
   const borderThickness = size / 20
   const borderRadius = borderThickness / 15
 
@@ -31,6 +46,8 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
   })))
 
   const handleRemoveCrumb = () => {
+    if (props.type === "readonly") return
+    const mediaData = props.mediaData
     let keys = []
     if (mediaData.uploadState.storageKey) keys.push(mediaData.uploadState.storageKey)
     if (mediaData.uploadState.thumbnailStorageKey) keys.push(mediaData.uploadState.thumbnailStorageKey)
@@ -39,9 +56,19 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
     removeCrumb(mediaData.id)
   }
 
+  const getImageUri = () => {
+    if (props.type === "preview") {
+      const mediaData = props.mediaData
+      return mediaData.type === "video" ? mediaData.thumbnail : mediaData.localUri
+    }
+
+    const media = props.media
+    return media.type === "video" ? media.thumbnail : media.media
+  }
+
   return (
     <View
-      style={[style, {
+      style={[props.style, {
         shadowColor: "rgba(0, 0, 0, 1)",
         shadowOffset: { width: 1, height: 1 },
         shadowOpacity: 1,
@@ -61,7 +88,7 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
         }}
       >
         <Image
-          source={{ uri: mediaData.type === "video" ? mediaData.thumbnail : mediaData.localUri }}
+          source={{ uri: getImageUri() }}
           style={{
             width: "100%",
             height: "100%",
@@ -107,10 +134,13 @@ export default function CrumbView({ mediaData, size = 320, style, maxSize, onCap
       >
         <TextInput
           maxLength={50}
+          readOnly={props.type === "readonly"}
           value={caption}
-          onFocus={onCaptionFocus}
+          onFocus={props.type === "preview" ? props.onCaptionFocus : undefined}
           onChangeText={e => setCaption(e)}
           onEndEditing={() => {
+            if (props.type === "readonly") return
+            const mediaData = props.mediaData
             updateCaption(mediaData.id, caption ?? "")
           }}
           placeholder="Add caption..."

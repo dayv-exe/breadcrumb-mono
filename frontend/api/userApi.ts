@@ -9,13 +9,19 @@ export type UserInitialDetails = {
   displayNickname?: string
 }
 
+type userSignUpDetails = {
+  sub: string
+  nickname: string
+  name: string
+}
+
 export const getDisplayName = (user: UserDetails | undefined | null, defaultToNickname: boolean = false) => {
   if (!user) return "<unknown user>"
   else if (!defaultToNickname && user.name) return user.name
   else return user.nickname || "<unknown user>"
 }
 
-export const createUser = async (userDetails: UserInitialDetails): Promise<string> => {
+export const createUser = async (userDetails: userSignUpDetails): Promise<string> => {
   const { data } = await axiosInstance.post<{ message: string }>("/users", userDetails)
   return data.message
 }

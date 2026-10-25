@@ -7,7 +7,7 @@ type UserState = {
   showEmailVerificationPage: boolean
   userid: string
   email: string
-  birthdate: Date | null
+  birthdate: string | null
   password: string
   fullname: string | null
   nickname: string | null

@@ -21,8 +21,9 @@ export default function BirthdateScreen() {
   function handleChange(date: Date) {
     setBirthdate(date)
     useAuthStore.setState({
-      birthdate: date,
+      birthdate: birthdateToString(date),
     })
+    console.log(birthdateToString(date))
   }
 
   const handleValidateBirthdate = () => {

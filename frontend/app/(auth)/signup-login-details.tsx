@@ -24,7 +24,7 @@ export default function SignupDetailsScreen() {
 
   const { signup } = useUserManagement()
 
-  const { birthdate, email, fullname, nickname, password } = useAuthStore()
+  const { birthdate, fullname, nickname } = useAuthStore()
 
   const handleSendVerification = async () => {
     setShowActivityIndicator(true)
@@ -35,9 +35,9 @@ export default function SignupDetailsScreen() {
     })
     const response = await signup({
       fullname: fullname!,
-      birthdate: birthdate!.toDateString(),
-      email: email,
-      password: password,
+      birthdate: birthdate!,
+      email: emailStr,
+      password: passwordStr,
       username: nickname!
     })
 

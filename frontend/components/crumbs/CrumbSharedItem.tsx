@@ -29,6 +29,10 @@ export default function CrumbSharedItem({ crumb }: props) {
     else return `${formatDistance(distanceMiles)} mi away`
   }, [distanceMiles, distanceYards])
 
+  const handleShowCrumbs = () => {
+
+  }
+
   return (
     <CustomButton
       freed
