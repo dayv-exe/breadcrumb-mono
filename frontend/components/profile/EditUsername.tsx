@@ -1,6 +1,7 @@
 import { ShowToast, USERNAME_CHANGE_DELAY } from "@/constants/appConstants";
 import { useEditUser } from "@/hooks/queries/useUserApi";
 import { useCheckUsername } from "@/hooks/useCheckUsername";
+import { useQueryClient } from "@tanstack/react-query";
 import { View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -17,16 +18,19 @@ export default function EditUsername({ oldUsername, onUpdate, allowNicknameChang
   const { username, setUsername, isValid, handleFinalCheck, getInputMode, getInfoText } = useCheckUsername(oldUsername, "")
   const { mutate: editUsername, isPending } = useEditUser()
 
+  const qc = useQueryClient()
+
   function usernameUnchanged(): boolean {
-    return oldUsername === username || !allowNicknameChange
+    return oldUsername === username.trim() || !allowNicknameChange
   }
 
   function handleUpdate() {
     handleFinalCheck(isAvailable => {
       if (isAvailable) {
-        editUsername({ target: "nickname", payload: username }, {
+        editUsername({ target: "nickname", payload: username.trim() }, {
           onSuccess: () => {
             onUpdate()
+            qc.invalidateQueries({ queryKey: ["check-nickname"] })
           },
           onError: err => {
             ShowToast("Failed to update username")

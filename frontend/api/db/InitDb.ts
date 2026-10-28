@@ -199,6 +199,13 @@ export async function logAllTable(table: string) {
   console.log(JSON.stringify(rows, null, 2));
 }
 
+export async function getTableRows(table: string, query?: string): Promise<string> {
+  query = query ?? `SELECT * FROM ${table}`
+  const db = await getDb();
+  const rows = await db.getAllAsync(query);
+  return JSON.stringify(rows, null, 2)
+}
+
 export async function DeleteLocalDatabase(onSuccess?: () => void, onFailure?: (e: unknown) => void) {
   withDbLock(async () => {
     if (dbPromise) {

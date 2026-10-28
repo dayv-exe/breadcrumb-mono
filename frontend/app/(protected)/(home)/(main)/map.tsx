@@ -1,3 +1,5 @@
+import { getTableRows } from "@/api/db/InitDb";
+import { getNearbyPlaces } from "@/api/getNearbyPlacesApi";
 import { UserInitialDetails } from "@/api/userApi";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
@@ -203,6 +205,9 @@ export default function MapScreen() {
     }
   );
 
+  const liveDbCrumbs = useRef("")
+  const livePlaces = useRef("")
+
   const gradCol = mode === "dark" || forceDark ? "#000000" : "#ffffff"
   const getHeaderColors = (): { fgColor: string, bgColor: string, gradientCol: string } => {
     if (forceDark || useSatellite) return { fgColor: Colors.dark.text, bgColor: Colors.dark.background, gradientCol: "#000000" }
@@ -280,6 +285,40 @@ export default function MapScreen() {
               <XIcon stroke={txtCol} strokeWidth={3} />
             </CustomButton>
           }
+
+          {false && <CustomButton labelText="Live db" type="less-prominent" handleClick={async () => {
+            liveDbCrumbs.current = await getTableRows("crumbs", `select * from crumbs where mailbox != "sent"`)
+            livePlaces.current = await getTableRows("places")
+            let nearbyPlaces = await getNearbyPlaces(coordinates?.latitude ?? 0, coordinates?.longitude ?? 0, coordinates?.accuracy ?? 0)
+            openSheet({
+              isScrollableContent: true,
+              content: (
+                <View
+                  style={{
+                    padding: 25,
+                  }}
+                >
+                  <CustomLabel adaptToTheme labelText={`gps accuracy: ${coordinates?.accuracy}`} />
+                  <CustomLabel adaptToTheme bold labelText="nearby places:" />
+                  {nearbyPlaces?.map(p => (
+                    <CustomLabel key={p} adaptToTheme labelText={p} />
+                  ))}
+
+                  <Spacer />
+                  <Spacer />
+                  <CustomLabel fontSize={27} adaptToTheme bold labelText="crumbs:" />
+                  <CustomLabel adaptToTheme labelText={liveDbCrumbs.current} />
+
+                  <Spacer />
+                  <Spacer />
+
+                  <CustomLabel fontSize={27} adaptToTheme bold labelText="places:" />
+                  <CustomLabel adaptToTheme labelText={livePlaces.current} />
+                </View>
+              ),
+              snapPoints: ["100%"],
+            })
+          }} />}
         </GradientView>
       </Animated.View>
 

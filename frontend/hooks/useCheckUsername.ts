@@ -48,9 +48,9 @@ export function useCheckUsername(initUsername?: string, emptyUsernameLabelText?:
       return "🔎 checking...";
     } else if (data) {
       if (data === "true") {
-        return `✅ ${username} is available`;
+        return `✅ ${username.trim()} is available`;
       } else if (data === "false") {
-        return `🚫 ${username} is already in use`
+        return `🚫 ${username.trim()} is already in use`
       } else {
         return `📖 That username is not allowed`
       }

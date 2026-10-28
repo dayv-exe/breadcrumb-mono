@@ -12,7 +12,7 @@ export type NicknameAvailableResponse = "true" | "false" | "invalid"
 
 export const nicknameAvailable = async (username: string): Promise<NicknameAvailableResponse> => {
   try {
-    const { data } = await axiosInstance.post<{ message: string }>(`/search/${username}`)
+    const { data } = await axiosInstance.post<{ message: string }>(`/search/${username.trim()}`)
     return data.message.toLowerCase() === "true" ? "true" : "false"
   } catch (error) {
     console.log((error as AxiosError).status)

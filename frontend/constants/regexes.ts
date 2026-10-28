@@ -9,6 +9,8 @@ export function validateUsername(username: string): {
   reason: string;
 } {
 
+  username = username.trimEnd()
+
   if (!/^[a-zA-Z0-9]/.test(username)) {
     return { isValid: false, reason: "must start with a letter or number." };
   }

@@ -22,6 +22,7 @@ export const getDisplayName = (user: UserDetails | undefined | null, defaultToNi
 }
 
 export const createUser = async (userDetails: userSignUpDetails): Promise<string> => {
+  userDetails = { ...userDetails, nickname: userDetails.nickname.trim() }
   const { data } = await axiosInstance.post<{ message: string }>("/users", userDetails)
   return data.message
 }
@@ -39,7 +40,7 @@ export const editUser = async (edit: editUserDetailsData): Promise<string> => {
 }
 
 export const getUser = async (idOrNickname: string): Promise<UserDetails | null> => {
-  const { data } = await axiosInstance.get<{ message: UserDetails }>(`/users/${idOrNickname}`)
+  const { data } = await axiosInstance.get<{ message: UserDetails }>(`/users/${idOrNickname.trim()}`)
 
   return data.message
 }
