@@ -124,9 +124,11 @@ export async function getAllCrumbs(mailbox: CrumbMailbox): Promise<Crumb[]> {
 
 export async function getCrumbsWith(
   otherUserid: string,
-  userLat: number,
-  userLon: number
+  userLat?: number,
+  userLon?: number
 ): Promise<Crumb[]> {
+  if (!userLat || !userLon) return []
+
   const db = await getDb()
   const rows = await db.getAllAsync<iCandidate>(
     `SELECT * FROM crumbs

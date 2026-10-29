@@ -43,10 +43,10 @@ export function useCrumbFeed() {
   });
 }
 
-export function useCrumbsWith(userid: string, coordinate: Coordinates) {
+export function useCrumbsWith(userid: string, coordinate?: Coordinates) {
   return useQuery({
     queryKey: ["crumbsWith", userid],
-    queryFn: () => getCrumbsWith(userid, coordinate.latitude, coordinate.longitude),
+    queryFn: () => getCrumbsWith(userid, coordinate?.latitude, coordinate?.longitude),
   });
 }
 

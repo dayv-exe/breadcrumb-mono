@@ -14,6 +14,7 @@ export interface Coordinates {
 
 interface LocationState {
   coordinates: Coordinates | null;
+  cachedCoordinate: Coordinates | null
   isLoading: boolean;
   error: string | null;
   isTracking: boolean;
@@ -109,6 +110,7 @@ export const useLocationStore = create<LocationState & LocationActions>()(
     (set, get) => ({
       // -- state --
       coordinates: null,
+      cachedCoordinate: null,
       isLoading: false,
       error: null,
       isTracking: false,
@@ -135,7 +137,7 @@ export const useLocationStore = create<LocationState & LocationActions>()(
             accuracy: LOCATION_CONFIG.ACCURACY,
           });
           if (!isCurrent()) return; // stopped while we were starting
-          set({ coordinates: toCoordinates(initial), lastUpdated: Date.now() });
+          set({ coordinates: toCoordinates(initial), lastUpdated: Date.now(), });
 
           const sub = await Location.watchPositionAsync(
             {
@@ -144,7 +146,7 @@ export const useLocationStore = create<LocationState & LocationActions>()(
             },
             (location) => {
               if (!isCurrent()) return;
-              set({ coordinates: toCoordinates(location), lastUpdated: Date.now() });
+              set({ coordinates: toCoordinates(location), lastUpdated: Date.now(), });
             },
           );
 
@@ -170,7 +172,7 @@ export const useLocationStore = create<LocationState & LocationActions>()(
                 accuracy: LOCATION_CONFIG.ACCURACY,
               });
               if (!isCurrent()) return;
-              set({ coordinates: toCoordinates(location), lastUpdated: Date.now() });
+              set({ coordinates: toCoordinates(location), lastUpdated: Date.now(), });
             } catch {
               // Transient failure – the next tick will retry.
             }
@@ -199,7 +201,7 @@ export const useLocationStore = create<LocationState & LocationActions>()(
       name: 'location-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        coordinates: state.coordinates,
+        cachedCoordinate: state.coordinates ?? state.cachedCoordinate,
         lastUpdated: state.lastUpdated,
       }),
     },

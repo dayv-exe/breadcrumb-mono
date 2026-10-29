@@ -31,7 +31,7 @@ export default function Shared() {
   const userCol = useUserColor(userid)
   const topPadding = insets.top
   const userCoords = useLocationStore(s => s.coordinates)
-  const { data: crumbs, error: crumbsError, isPending: crumbsPending } = useCrumbsWith(userid, userCoords ?? defaultCoords)
+  const { data: crumbs, error: crumbsError, isPending: crumbsPending } = useCrumbsWith(userid, userCoords ?? undefined)
   const qc = useQueryClient()
 
   useWatchDbChanges({

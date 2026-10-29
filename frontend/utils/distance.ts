@@ -49,10 +49,18 @@ export function getDistanceBetween(
   return getDistance(from.latitude, from.longitude, to.latitude, to.longitude, unit);
 }
 
-
 const distanceFormatter = new Intl.NumberFormat("en-GB", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 })
 
-export const formatDistance = (distance: number) => distanceFormatter.format(distance)
+export const initDistanceFormatter = (minDp: number | undefined, maxDp: number | undefined) => {
+  return new Intl.NumberFormat("en-GB", {
+    minimumFractionDigits: minDp,
+    maximumFractionDigits: maxDp
+  })
+}
+
+export const formatDistance = (distance: number, distanceFmt: Intl.NumberFormat = distanceFormatter) => {
+  return distanceFmt.format(distance)
+}

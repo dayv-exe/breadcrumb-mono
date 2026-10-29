@@ -221,9 +221,10 @@ export default function CustomMap({
           maxPitch={45}
           compassPosition={{ top: (.1 * height) + (Platform.OS === "android" ? insetTop : 0), right: 15 }}
           onDidFinishLoadingMap={async () => {
-            const coords = useLocationStore.getState().coordinates
+            const cachedCoordinates = useLocationStore.getState().cachedCoordinate
+            const coordinates = useLocationStore.getState().coordinates
             onMapReady?.()
-            setMapCenter?.(coords ?? { accuracy: 0, latitude: 0, longitude: 0 })
+            setMapCenter?.(cachedCoordinates ? cachedCoordinates : coordinates ?? { accuracy: 0, latitude: 0, longitude: 0 })
           }}
           onPress={handleMapPress}
           onLongPress={handleMapLongPress}

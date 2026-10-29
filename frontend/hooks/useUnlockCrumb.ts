@@ -37,9 +37,9 @@ export function useUnlockCrumb() {
 
   // Reconcile immediately, and again when nearby places arrive or the DB changes
   useEffect(() => {
-    if (coordinates) {
-      reconcileCrumbLocks(coordinates, nearbyPlaces);
-    }
+    if (!coordinates) return
+
+    reconcileCrumbLocks(coordinates, nearbyPlaces);
   }, [coordinates, version, nearbyPlaces]);
 
   return null;

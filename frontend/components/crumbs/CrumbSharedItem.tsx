@@ -1,9 +1,9 @@
 import { Crumb } from "@/api/models/crumb";
 import { Colors } from "@/constants/Colors";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { formatDistance, getDistance } from "@/utils/distance";
+import { formatDistance, getDistance, initDistanceFormatter } from "@/utils/distance";
 import { useLocationStore } from "@/utils/useLocationStore";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
 import CustomLabel from "../CustomLabel";
@@ -16,6 +16,8 @@ interface props {
 export default function CrumbSharedItem({ crumb }: props) {
   const fadedBg = useThemeColor({}, "fadedBackground")
 
+  const [singleMileFmt] = useState(() => initDistanceFormatter(1, 1))
+
   const userCoords = useLocationStore(s => s.coordinates)
   const distanceYards = useMemo(() => {
     return getDistance(crumb.latitude, crumb.longitude, userCoords?.latitude ?? 0, userCoords?.longitude ?? 0, "yards")
@@ -25,13 +27,10 @@ export default function CrumbSharedItem({ crumb }: props) {
   }, [crumb.latitude, crumb.longitude, userCoords?.latitude, userCoords?.longitude])
 
   const distanceStr = useMemo(() => {
-    if (distanceMiles < 1) return `${formatDistance(distanceYards)} yd away`
+    if (distanceYards <= 350) return `${formatDistance(distanceYards)} yd away`
+    else if (distanceMiles < 1) return `${formatDistance(distanceMiles, singleMileFmt)} mi away`
     else return `${formatDistance(distanceMiles)} mi away`
-  }, [distanceMiles, distanceYards])
-
-  const handleShowCrumbs = () => {
-
-  }
+  }, [distanceMiles, distanceYards, singleMileFmt])
 
   return (
     <CustomButton
