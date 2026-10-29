@@ -18,7 +18,9 @@ export const Colors = {
     backgroundOverlay: 'rgba(0,0,0,0.7)',
     fadedVibrant: "rgba(112, 112, 238, .1)",
     lightBackground: "#FFFFFF",
-    darkBackground: "#F4F5F7"
+    darkBackground: "#F4F5F7",
+    sharedCrumbMe: "#7070FF",
+    sharedCrumbOther: "#FFD700"
   },
   dark: {
     text: '#fff',
@@ -35,6 +37,8 @@ export const Colors = {
     backgroundOverlay: 'rgba(0,0,0,0.7)',
     fadedVibrant: "rgba(112, 112, 238, .1)",
     lightBackground: "#242424",
-    darkBackground: "#181818"
+    darkBackground: "#181818",
+    sharedCrumbMe: "#7070FF",
+    sharedCrumbOther: "#FFD700"
   },
 };

@@ -144,7 +144,7 @@ export async function getCrumbsWith(
         dist: distanceMeters(userLat, userLon, crumb.latitude, crumb.longitude),
       }
     })
-    .sort((a, b) => a.dist - b.dist)
+    .sort((a, b) => b.dist - a.dist)
     .map((x) => x.crumb)
 
 }

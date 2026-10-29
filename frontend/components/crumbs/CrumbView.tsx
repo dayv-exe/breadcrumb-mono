@@ -107,7 +107,7 @@ export default function CrumbView(props: props) {
             ],
           }}
         />
-        <CustomButton
+        {props.type === "preview" && <CustomButton
           customStyle={{
             position: "absolute",
             right: 5,
@@ -119,7 +119,7 @@ export default function CrumbView(props: props) {
           handleClick={handleRemoveCrumb}
         >
           <Trash2Icon stroke="white" strokeWidth={2.5} size={20} />
-        </CustomButton>
+        </CustomButton>}
       </View>
       <View
         style={{
