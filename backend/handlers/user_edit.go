@@ -98,7 +98,7 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 		thumbnailKey = ""
 	}
 
-	if strings.TrimSpace(thumbnailKey) == "" {
+	if strings.TrimSpace(imageKey) != "" && strings.TrimSpace(thumbnailKey) == "" {
 		return models.InvalidRequestErrorResponse("No profile picture thumbnail provided!"), nil
 	}
 
