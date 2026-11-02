@@ -28,6 +28,7 @@ type CrumbCaption struct {
 
 type CrumbMedia struct {
 	Index        int    `json:"index" dynamodbav:"index"`
+	CrumbId      string `json:"crumbId" dynamodbav:"-"`
 	MediaKey     string `json:"media" dynamodbav:"media"`
 	ThumbnailKey string `json:"thumbnail,omitempty" dynamodbav:"thumbnail"`
 	Caption      string `json:"caption" dynamodbav:"caption"`

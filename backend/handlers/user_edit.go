@@ -98,6 +98,10 @@ func handleUpdateProfilePicture(ctx context.Context, req events.APIGatewayV2HTTP
 		thumbnailKey = ""
 	}
 
+	if strings.TrimSpace(thumbnailKey) == "" {
+		return models.InvalidRequestErrorResponse("No profile picture thumbnail provided!"), nil
+	}
+
 	err := helpers.NewUserHelper(ctx).UpdateProfilePic(userId, models.CrumbMedia{
 		Index:        0,
 		MediaKey:     imageKey,
