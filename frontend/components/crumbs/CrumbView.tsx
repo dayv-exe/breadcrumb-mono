@@ -143,7 +143,7 @@ export default function CrumbView(props: props) {
             const mediaData = props.mediaData
             updateCaption(mediaData.id, caption ?? "")
           }}
-          placeholder="Add caption..."
+          placeholder={props.type === "preview" ? "Add caption..." : undefined}
           placeholderTextColor={Colors.light.text + "55"}
           style={{
             marginTop: borderThickness / 2,

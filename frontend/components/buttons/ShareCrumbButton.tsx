@@ -29,7 +29,7 @@ export default function ShareCrumbButton({ recipientNames, onShare, disabled }: 
         padding: 20,
         paddingHorizontal: 25,
         backgroundColor: BG,
-        marginBottom: insets.bottom / 2,
+        marginBottom: insets.bottom,
         borderRadius: 1000,
         overflow: "hidden",
       }}

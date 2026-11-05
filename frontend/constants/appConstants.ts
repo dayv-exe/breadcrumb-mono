@@ -1,3 +1,4 @@
+import { Easing } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 
 export const SUGGESTED_EMAIL_DOMAINS = ["@gmail.com", "@icloud.com",];
@@ -76,3 +77,16 @@ export function ShowToast(message: string) {
     type: "info",
   });
 }
+
+export const VISIBLE_DEPTH = 3;
+
+export const TILTS = [-4, 3, -2.5, 4.5, -3.5, 2.5];
+
+export const SPRING = { damping: 16, stiffness: 160, mass: 0.9 };
+
+export const EXIT_TIMING = { duration: 320, easing: Easing.in(Easing.cubic) };
+export const OPEN_TIMING = { duration: 340, easing: Easing.out(Easing.cubic) };
+export const CLOSE_TIMING = { duration: 280, easing: Easing.inOut(Easing.cubic) };
+
+export const DISMISS_DISTANCE_RATIO = 0.15;
+export const DISMISS_VELOCITY = 800;

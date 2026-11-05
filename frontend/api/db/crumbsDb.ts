@@ -291,7 +291,6 @@ export async function getCrumbFeed(): Promise<Map<string, FeedItem>> {
       time: row.time,
       geohash: "",
       locationSelectionManner: "gps",
-      media: [],
       nonCompositeId: "",
       placeId: "",
       radius: 0,

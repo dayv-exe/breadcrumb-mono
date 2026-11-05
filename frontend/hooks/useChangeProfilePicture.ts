@@ -2,6 +2,7 @@ import { extractBackendMsg } from "@/api/models/apiResponse";
 import { useModal } from "@/components/modals/ModalContext";
 import { MediaData, defaultMediaDataUploadState } from "@/constants/media";
 import * as ImageManipulator from "expo-image-manipulator";
+import { useState } from "react";
 import { useUpdateProfilePicture } from "./queries/useUserApi";
 import { useImagePicker } from "./useImagePicker";
 import { useUploadMedia } from "./useUploadMedia";
@@ -14,6 +15,7 @@ type useChangeProfilePictureState = {
   chooseFromGallery: () => void
   takeNewPhoto: () => void
   removePhoto: () => void
+  isPending: boolean
 }
 
 export default function useChangeProfilePicture({ cleanUpFn }: useChangeProfilePictureType): useChangeProfilePictureState {
@@ -25,8 +27,10 @@ export default function useChangeProfilePicture({ cleanUpFn }: useChangeProfileP
   const { showModal, hideModal } = useModal()
   const { mutateAsync: updateProfilePictureKey } = useUpdateProfilePicture()
   const { upload } = useUploadMedia({})
+  const [isPending, setIsPending] = useState(false)
 
   const handleChangePic = async (image: MediaData) => {
+    setIsPending(true)
     // crop to a centered square first
     const size = Math.min(image.width!, image.height!)
     const originX = (image.width! - size) / 2
@@ -67,6 +71,8 @@ export default function useChangeProfilePicture({ cleanUpFn }: useChangeProfileP
         primaryBtnText: "Ok"
       })
     }
+
+    setIsPending(false)
   }
 
   const { pickFromGallery, takePhoto } = useImagePicker()
@@ -106,5 +112,6 @@ export default function useChangeProfilePicture({ cleanUpFn }: useChangeProfileP
     chooseFromGallery,
     takeNewPhoto,
     removePhoto,
+    isPending
   }
 }

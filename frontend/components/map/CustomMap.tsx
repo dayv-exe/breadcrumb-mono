@@ -27,6 +27,8 @@ function extract(style: any) {
   };
 }
 
+const CRUMB_BELOW = "poi-label";
+
 export const styleColors = {
   light: extract(lightStyle),
   dark: extract(darkStyle),
@@ -409,7 +411,7 @@ export default function CustomMap({
             />
           </Mapbox.UserLocation>
 
-          {<ShapeSource
+          <ShapeSource
             ref={markersRef}
             id="markers"
             shape={featureCollection}
@@ -470,7 +472,7 @@ export default function CustomMap({
               style={{
                 iconImage: "dropShadow",
                 iconSize: .325,
-                iconOpacity: .5,
+                iconOpacity: .6,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
                 iconIgnorePlacement: true,
@@ -563,7 +565,7 @@ export default function CustomMap({
               filter={["has", "point_count"]}
               style={{
                 iconImage: "dropShadow",
-                iconOpacity: .7,
+                iconOpacity: 1,
                 iconSize: .325,
                 iconAllowOverlap: true,
                 iconAnchor: 'center',
@@ -626,7 +628,7 @@ export default function CustomMap({
                 textIgnorePlacement: true,
               }}
             />
-          </ShapeSource>}
+          </ShapeSource>
         </Mapbox.MapView>
       ) : (
         <PermissionScreen handleGrantPermission={handlePermissions} />

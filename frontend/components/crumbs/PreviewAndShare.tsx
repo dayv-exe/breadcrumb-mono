@@ -199,7 +199,8 @@ export default function PreviewAndShare({ closeSheet }: props) {
             alignItems: "center",
             justifyContent: "flex-start",
             flexDirection: "row",
-            marginHorizontal: insets.bottom + 10,
+            marginHorizontal: insets.bottom + 5,
+            marginBottom: insets.bottom / 3,
             marginTop: 7,
             paddingVertical: 7,
             paddingLeft: 10,
@@ -214,7 +215,7 @@ export default function PreviewAndShare({ closeSheet }: props) {
           <CustomLabel fontSize={13} labelText={address?.split(",")[0] ?? "Current location"} allowTruncate customStyle={{
           }} />
         </CustomButton>
-        <Spacer />
+
         <ShareCrumbButton
           disabled={isPending}
           onShare={share}
