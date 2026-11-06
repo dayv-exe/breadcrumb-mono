@@ -4,7 +4,7 @@ import { Colors } from "@/constants/Colors";
 import { useGetUser } from "@/hooks/queries/useUserApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
-import { CameraIcon, TextAlignJustifyIcon } from "lucide-react-native";
+import { CameraIcon } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
@@ -140,8 +140,7 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
           type="text"
           handleClick={hasCrumb ? handleShowShared : handleNewCrumb}
         >
-          {!hasCrumb && <CameraIcon stroke={textCol} strokeWidth={2.5} size={23} />}
-          {hasCrumb && <TextAlignJustifyIcon stroke={textCol} strokeWidth={2.5} size={23} />}
+          <CameraIcon stroke={textCol} strokeWidth={2.5} size={23} />
         </CustomButton>
       </>}
     </TouchableOpacity>

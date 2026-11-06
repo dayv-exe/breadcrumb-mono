@@ -43,6 +43,12 @@ export default function CrumbSharedItem({ crumb }: props) {
     else return `${formatDistance(distanceMiles)} mi away`
   }, [distanceMiles, distanceYards, singleMileFmt])
 
+  const getFormattedAddr = () => {
+    if (!crumb.placename || crumb.formattedAddress.toLowerCase().includes(crumb.placename.toLowerCase())) return crumb.formattedAddress
+
+    return `${crumb.placename}, ${crumb.formattedAddress}`
+  }
+
   return (
     <>
       <CustomButton
@@ -81,7 +87,7 @@ export default function CrumbSharedItem({ crumb }: props) {
         </View>
 
         {(crumb.mediaCount > 1 || !crumb.unlocked) && <>
-          <CustomLabel fade adaptToTheme fontSize={13} labelText={crumb.unlocked ? crumb.mediaCount + " crumbs" : crumb.formattedAddress} />
+          <CustomLabel allowTruncate fade adaptToTheme fontSize={13} labelText={crumb.unlocked ? crumb.mediaCount + " crumbs" : getFormattedAddr()} />
         </>
         }
       </CustomButton>
