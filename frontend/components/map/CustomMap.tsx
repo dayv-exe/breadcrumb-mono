@@ -11,7 +11,7 @@ import Constants from "expo-constants";
 import * as Location from "expo-location";
 import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from "geojson";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Keyboard, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import darkStyle from "../../assets/styles/dark-style.json";
 import lightStyle from "../../assets/styles/light-style.json";
@@ -221,7 +221,7 @@ export default function CustomMap({
           compassEnabled
           compassFadeWhenNorth
           maxPitch={45}
-          compassPosition={{ top: (.1 * height) + (Platform.OS === "android" ? insetTop : 0), right: 15 }}
+          compassPosition={{ top: height / 3, right: 15 }}
           onDidFinishLoadingMap={async () => {
             const cachedCoordinates = useLocationStore.getState().cachedCoordinate
             const coordinates = useLocationStore.getState().coordinates

@@ -1,10 +1,9 @@
-import { getTableRows } from "@/api/db/InitDb";
-import { getNearbyPlaces } from "@/api/getNearbyPlacesApi";
 import { UserInitialDetails } from "@/api/userApi";
 import { useBottomSheet } from "@/components/bottomsheet/BottomSheetContext";
 import CustomButton from "@/components/buttons/CustomButton";
 import MailboxPicker from "@/components/crumbs/MailboxPicker";
 import CustomLabel from "@/components/CustomLabel";
+import MapFilter from "@/components/inputs/MapFilter";
 import CustomMap from "@/components/map/CustomMap";
 import MapControls from "@/components/map/MapControls";
 import Notifications from "@/components/map/Notifications";
@@ -25,7 +24,7 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { BellIcon, ChevronDownIcon, XIcon } from "lucide-react-native";
+import { BellIcon, XIcon } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, useColorScheme, View } from "react-native";
 import { useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
@@ -225,100 +224,82 @@ export default function MapScreen() {
       }]}>
         <GradientView colors={[getHeaderColors().gradientCol + "ff", getHeaderColors().gradientCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
           paddingTop: insets.top,
-          paddingBottom: 20,
           top: 0,
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: 'space-between',
-          paddingHorizontal: 15,
-
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
         }]}>
-          <CustomButton
-            type="text"
-            customStyle={{
-              padding: 0,
-              paddingHorizontal: 0,
-            }}
-            handleClick={handleShowMailbox}
-          >
-            <CustomLabel width="auto" padding={0} bold adaptToTheme labelText={getPageName()} fontSize={27} customStyle={{ color: getHeaderColors().fgColor }} />
-            <Spacer size="tiny" />
-            <ChevronDownIcon stroke={getHeaderColors().fgColor} strokeWidth={2.5} size={21} />
-          </CustomButton>
-          {mailbox === "received" && <View
+          <View
             style={{
+              width: "100%",
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: 'space-between',
+              paddingHorizontal: 15,
             }}
           >
-            <CustomButton
-              freed
-              type="text"
-              customStyle={[{
-                padding: 10,
-              }]}
-              handleClick={handleNotificationPress}
-            >
-              <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
-            </CustomButton>
-            <CustomProfilePictureCircle userId={userid} size={40} handleClick={() => {
+            <CustomProfilePictureCircle userId={userid} size={45} handleClick={() => {
               nav.push({
                 pathname: "/(protected)/(home)/user-profile",
                 params: { userid: userid, displayNickname: "" }
               })
             }} />
-          </View>}
-          {mailbox !== "received" &&
-            <CustomButton
-              type="themed"
-              slim
-              customStyle={{
-                shadowColor: "black",
-                shadowOffset: { height: 1, width: 1 },
-                shadowOpacity: .25,
-                shadowRadius: 5,
-                elevation: 5,
+            {mailbox === "received" && <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-              handleClick={() => setMailbox("received")}
             >
-              <XIcon stroke={txtCol} strokeWidth={3} />
-            </CustomButton>
-          }
+              <CustomButton
+                type="text"
+                customStyle={{
+                  padding: 0,
+                  paddingHorizontal: 0,
+                }}
+                handleClick={handleShowMailbox}
+              >
+                <CustomLabel width="auto" padding={0} adaptToTheme labelText={"Map"} fontSize={23} customStyle={{
+                  color: getHeaderColors().fgColor,
+                  fontWeight: "500",
+                  marginRight: 10,
+                }}
+                />
+              </CustomButton>
 
-          {false && <CustomButton labelText="Live db" type="less-prominent" handleClick={async () => {
-            liveDbCrumbs.current = await getTableRows("crumbs", `select * from crumbs where mailbox != "sent"`)
-            livePlaces.current = await getTableRows("places")
-            let nearbyPlaces = await getNearbyPlaces(coordinates?.latitude ?? 0, coordinates?.longitude ?? 0, coordinates?.accuracy ?? 0)
-            openSheet({
-              isScrollableContent: true,
-              content: (
-                <View
-                  style={{
-                    padding: 25,
-                  }}
-                >
-                  <CustomLabel adaptToTheme labelText={`gps accuracy: ${coordinates?.accuracy}`} />
-                  <CustomLabel adaptToTheme bold labelText="nearby places:" />
-                  {nearbyPlaces?.map(p => (
-                    <CustomLabel key={p} adaptToTheme labelText={p} />
-                  ))}
+              <CustomButton
+                freed
+                type="text"
+                customStyle={[{
+                  // padding: 10,
+                  paddingTop: 4,
+                }]}
+                handleClick={handleNotificationPress}
+              >
+                <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
+              </CustomButton>
+            </View>}
+            {mailbox !== "received" &&
+              <CustomButton
+                type="themed"
+                slim
+                customStyle={{
+                  shadowColor: "black",
+                  shadowOffset: { height: 1, width: 1 },
+                  shadowOpacity: .25,
+                  shadowRadius: 5,
+                  elevation: 5,
+                }}
+                handleClick={() => setMailbox("received")}
+              >
+                <XIcon stroke={txtCol} strokeWidth={3} />
+              </CustomButton>
+            }
+          </View>
 
-                  <Spacer />
-                  <Spacer />
-                  <CustomLabel fontSize={27} adaptToTheme bold labelText="crumbs:" />
-                  <CustomLabel adaptToTheme labelText={liveDbCrumbs.current} />
+          <Spacer />
 
-                  <Spacer />
-                  <Spacer />
-
-                  <CustomLabel fontSize={27} adaptToTheme bold labelText="places:" />
-                  <CustomLabel adaptToTheme labelText={livePlaces.current} />
-                </View>
-              ),
-              snapPoints: ["100%"],
-            })
-          }} />}
+          <MapFilter forceDark={forceDark} />
         </GradientView>
       </Animated.View>
 
@@ -329,7 +310,7 @@ export default function MapScreen() {
         cameraRef={mapCamRef}
         zoomLevel={12.25}
         useSatellite={useSatellite}
-        maxZoomLvlToDark={2.075}
+        maxZoomLvlToDark={1.5}
         setForceDark={setForceDark}
         featureCollection={crumbFeatures}
         featureCollectionImages={crumbImages}
