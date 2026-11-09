@@ -2,10 +2,11 @@ import { Colors } from "@/constants/Colors";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ScrollView, View } from "react-native";
 import CustomButton from "../buttons/CustomButton";
+import CustomLabel from "../CustomLabel";
 
 const OPACITY = 0
 const ELEVATION = 0
-const FONT_WEIGHT = "500"
+const FONT_WEIGHT = "600"
 const FONT_OPACITY = 1
 const FONT_SIZE = 12
 
@@ -50,12 +51,7 @@ export default function MapFilter({ forceDark }: props) {
       >
         {
           FILTERS.map(f => (
-            <CustomButton key={f.labelText} labelText={f.labelText} customTextStyle={{
-              fontWeight: FONT_WEIGHT,
-              opacity: FONT_OPACITY,
-              fontSize: FONT_SIZE,
-              color: textCol,
-            }} squashed type="text" adaptToTheme handleClick={() => {
+            <CustomButton key={f.labelText} freed type="text" adaptToTheme handleClick={() => {
 
             }} customStyle={{
               shadowColor: "#000",
@@ -64,9 +60,21 @@ export default function MapFilter({ forceDark }: props) {
               shadowRadius: 2,
               marginBottom: 5,
               elevation: ELEVATION,
-              marginRight: 5,
+              marginRight: 7,
               backgroundColor: bgCol,
-            }} />
+              padding: 7,
+              paddingHorizontal: 10,
+            }}>
+              <CustomLabel
+                labelText={f.labelText}
+                customStyle={{
+                  fontWeight: FONT_WEIGHT,
+                  opacity: FONT_OPACITY,
+                  fontSize: FONT_SIZE,
+                  color: textCol,
+                }}
+              />
+            </CustomButton>
           ))
         }
       </ScrollView>
