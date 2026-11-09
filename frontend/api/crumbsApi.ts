@@ -2,8 +2,8 @@ import axiosInstance from "@/constants/axios"
 import { upsertCrumbs } from "./db/crumbsDb"
 import { Crumb } from "./models/crumb"
 import { CrumbMarkerDetails } from "./models/CrumbMarkerDetails"
-import { crumbMedia } from "./models/crumbMedia"
 import { LocationSelectionManner } from "./models/locationTypes"
+import { Media } from "./models/media"
 
 
 
@@ -14,7 +14,7 @@ export type crumbBody = {
   longitude: number
   radius: number
   locationSelectionManner: LocationSelectionManner
-  media: crumbMedia[]
+  media: Media[]
   clickedFeatureId?: string
   address?: string
 }
@@ -47,7 +47,7 @@ export const uploadCrumbMetadata = async (crumb: crumbBody): Promise<crumbBody[]
   return data.message
 }
 
-export const openCrumb = async (crumbId: string): Promise<crumbMedia[]> => {
-  const { data } = await axiosInstance.get<{ message: crumbMedia[] }>(`/crumbs/${crumbId}`)
+export const openCrumb = async (crumbId: string): Promise<Media[]> => {
+  const { data } = await axiosInstance.get<{ message: Media[] }>(`/crumbs/${crumbId}`)
   return data.message
 }

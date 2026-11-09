@@ -1,5 +1,5 @@
 import { Crumb } from "@/api/models/crumb";
-import { crumbMedia } from "@/api/models/crumbMedia";
+import { Media } from "@/api/models/media";
 
 export type OriginRect = { x: number; y: number; width: number; height: number };
 
@@ -7,7 +7,7 @@ export type StackItem = {
   key: string;
   index: number;
   crumb: Crumb;
-  media: crumbMedia;
+  media: Media;
 };
 
 export type VisibleCard = {

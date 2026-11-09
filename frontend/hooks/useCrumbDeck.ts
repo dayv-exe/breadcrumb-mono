@@ -1,5 +1,5 @@
 import { Crumb } from "@/api/models/crumb"; // adjust to wherever your Crumb type lives
-import { crumbMedia } from "@/api/models/crumbMedia";
+import { Media } from "@/api/models/media";
 import { VISIBLE_DEPTH } from "@/constants/appConstants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StackItem, VisibleCard } from "./types/crumbStack";
@@ -10,7 +10,7 @@ import { StackItem, VisibleCard } from "./types/crumbStack";
  */
 export function useCrumbDeck(
   crumbs: Crumb[],
-  onReveal?: (crumb: Crumb, media: crumbMedia, index: number) => void
+  onReveal?: (crumb: Crumb, media: Media, index: number) => void
 ) {
   // Every media item of every crumb becomes one card.
   const items = useMemo<StackItem[]>(

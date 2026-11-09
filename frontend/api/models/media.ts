@@ -1,8 +1,8 @@
 import { MediaType } from "@/constants/media"
 
-export type crumbMedia = {
+export type Media = {
   index: number
-  crumbId: string
+  crumbId?: string
   media: string
   type: MediaType
   thumbnail?: string

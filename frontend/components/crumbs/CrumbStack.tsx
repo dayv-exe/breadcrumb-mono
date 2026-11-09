@@ -1,5 +1,5 @@
 import { Crumb } from "@/api/models/crumb"; // adjust to wherever your Crumb type lives
-import { crumbMedia } from "@/api/models/crumbMedia";
+import { Media } from "@/api/models/media";
 import { OriginRect } from "@/hooks/types/crumbStack";
 import { useCrumbDeck } from "@/hooks/useCrumbDeck";
 import { useOriginTransition } from "@/hooks/useOriginTransition";
@@ -16,7 +16,7 @@ interface CrumbStackProps {
   onClose: () => void;
   size?: number;
   blurIntensity?: number;
-  onReveal?: (crumb: Crumb, media: crumbMedia, index: number) => void;
+  onReveal?: (crumb: Crumb, media: Media, index: number) => void;
   onFinished?: () => void;
 }
 

@@ -1,4 +1,3 @@
-import { crumbMedia } from "./crumbMedia"
 import { LocationSelectionManner } from "./locationTypes"
 
 export type CrumbCaption = {
@@ -16,7 +15,6 @@ export type Crumb = {
   radius: number
   locationSelectionManner: LocationSelectionManner
   placeId: string
-  media: crumbMedia[]
   geohash: string
   time: string
   unlocked: boolean

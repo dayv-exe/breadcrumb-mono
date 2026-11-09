@@ -5,7 +5,7 @@ interface props {
 }
 
 export function useCrumbsViewer({ crumbId }: props) {
-  const { data: crumbMedia, error, isPending } = useOpenCrumb(crumbId)
+  const { data: Media, error, isPending } = useOpenCrumb(crumbId)
 
 
 }

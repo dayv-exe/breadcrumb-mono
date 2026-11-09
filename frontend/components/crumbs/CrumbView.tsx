@@ -1,5 +1,5 @@
 import { deleteDraftMedia } from "@/api/deleteDraftMedia";
-import { crumbMedia } from "@/api/models/crumbMedia";
+import { Media } from "@/api/models/media";
 import { MediaData } from "@/constants/media";
 import { Colors } from "@/constants/theme";
 import { useMediaStore } from "@/utils/mediaStore";
@@ -23,7 +23,7 @@ type PreviewType = baseProps & {
 
 type ReadonlyType = baseProps & {
   type: "readonly"
-  media: crumbMedia
+  media: Media
 }
 
 type props = PreviewType | ReadonlyType
