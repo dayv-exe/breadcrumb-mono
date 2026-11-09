@@ -472,7 +472,7 @@ Resources:
         OpenCrumb:
           Type: HttpApi
           Properties:
-            Path: /api/v1/crumbs/{id}
+            Path: /api/v1/crumbs/{id}/open
             Method: GET
             ApiId: !Ref BreadApi
             Auth:

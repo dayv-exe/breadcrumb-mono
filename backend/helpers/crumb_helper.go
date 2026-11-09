@@ -246,16 +246,10 @@ func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*qu
 	)
 }
 
-type content struct {
-	Index     int    `json:"index"`
-	Media     string `json:"media"`
-	Thumbnail string `json:"thumbnail"`
-	Caption   string `json:"caption,omitempty"`
-}
 type resItem struct {
 	Latitude  float64
 	Longitude float64
-	Content   []content
+	Content   []models.Media
 }
 
 func (h *crumbHelper) GetCrumbContent(crumbId string) (*resItem, error) {
@@ -310,18 +304,19 @@ func (h *crumbHelper) GetCrumbContent(crumbId string) (*resItem, error) {
 
 	crumb = result.Items[0]
 
-	res := make([]content, len(crumb.Media))
+	res := make([]models.Media, len(crumb.Media))
 	cloudfrontHelper := NewCloudfrontHelper(h.Ctx)
 
 	for _, media := range crumb.Media {
 		mediaKey, _, _ := cloudfrontHelper.GetSignedUrl(media.MediaKey, constants.CRUMB_MEDIA_URL_TTL)
 		thumbnailKey, _, _ := cloudfrontHelper.GetSignedUrl(media.ThumbnailKey, constants.CRUMB_MEDIA_URL_TTL)
 
-		res[media.Index] = content{
-			Index:     media.Index,
-			Media:     mediaKey,
-			Thumbnail: thumbnailKey,
-			Caption:   media.Caption,
+		res[media.Index] = models.Media{
+			Index:        media.Index,
+			CrumbId:      media.CrumbId,
+			MediaKey:     mediaKey,
+			ThumbnailKey: thumbnailKey,
+			Caption:      media.Caption,
 		}
 	}
 
