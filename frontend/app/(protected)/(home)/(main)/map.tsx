@@ -236,14 +236,15 @@ export default function MapScreen() {
               alignItems: "center",
               justifyContent: 'space-between',
               paddingHorizontal: 15,
+              marginBottom: 10,
             }}
           >
-            <CustomProfilePictureCircle userId={userid} size={45} handleClick={() => {
-              nav.push({
-                pathname: "/(protected)/(home)/user-profile",
-                params: { userid: userid, displayNickname: "" }
-              })
-            }} />
+            <CustomLabel width="auto" padding={0} adaptToTheme labelText={"Map"} fontSize={25} customStyle={{
+              color: getHeaderColors().fgColor,
+              fontWeight: "500",
+              marginRight: 10,
+            }}
+            />
             {mailbox === "received" && <View
               style={{
                 flexDirection: "row",
@@ -251,22 +252,6 @@ export default function MapScreen() {
                 justifyContent: "center",
               }}
             >
-              <CustomButton
-                type="text"
-                customStyle={{
-                  padding: 0,
-                  paddingHorizontal: 0,
-                }}
-                handleClick={handleShowMailbox}
-              >
-                <CustomLabel width="auto" padding={0} adaptToTheme labelText={"Map"} fontSize={23} customStyle={{
-                  color: getHeaderColors().fgColor,
-                  fontWeight: "500",
-                  marginRight: 10,
-                }}
-                />
-              </CustomButton>
-
               <CustomButton
                 freed
                 type="text"
@@ -278,6 +263,15 @@ export default function MapScreen() {
               >
                 <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
               </CustomButton>
+
+              <Spacer size="small" />
+
+              <CustomProfilePictureCircle userId={userid} size={40} handleClick={() => {
+                nav.push({
+                  pathname: "/(protected)/(home)/user-profile",
+                  params: { userid: userid, displayNickname: "" }
+                })
+              }} />
             </View>}
             {mailbox !== "received" &&
               <CustomButton
@@ -296,8 +290,6 @@ export default function MapScreen() {
               </CustomButton>
             }
           </View>
-
-          <Spacer />
 
           <MapFilter forceDark={forceDark} />
         </GradientView>

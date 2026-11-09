@@ -1,4 +1,5 @@
 import { SelectedLocation } from "@/api/models/locationTypes";
+import { ShowToast } from "@/constants/appConstants";
 import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates, getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
@@ -105,8 +106,17 @@ export const useMap = (
   async function focusOnUserLocation() {
     setSelectedLocation(null)
     const curCoord = useLocationStore.getState().coordinates
+    const cachedCoord = useLocationStore.getState().cachedCoordinate
+
+    const coords = curCoord ?? cachedCoord
+
+    if (!coords) {
+      ShowToast("Triangulating your location, please wait")
+      return
+    }
+
     setCameraFn({
-      centerCoordinate: [curCoord?.longitude ?? 0, curCoord?.latitude ?? 0],
+      centerCoordinate: [coords.longitude, coords.latitude],
       zoomLevel: 12.5,
       animationDuration: 1000,
       pitch: 0,
