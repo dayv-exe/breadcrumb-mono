@@ -268,7 +268,7 @@ func (this *userHelper) NicknameAvailable(nickname string) (bool, error) {
 	return !exists, nil // if not exists return false then flip to true so nickname available
 }
 
-func (u *userHelper) UpdateProfilePic(userId string, newProfilePicture models.CrumbMedia) error {
+func (u *userHelper) UpdateProfilePic(userId string, newProfilePicture models.Media) error {
 	key := models.UserKey(userId)
 	oldProfilePic, _ := u.GetProfilePicKeys(userId)
 
@@ -296,7 +296,7 @@ func (u *userHelper) UpdateProfilePic(userId string, newProfilePicture models.Cr
 	return UpdateItem(helper, key, expr)
 }
 
-func (u *userHelper) GetProfilePicKeys(userId string) (models.CrumbMedia, error) {
+func (u *userHelper) GetProfilePicKeys(userId string) (models.Media, error) {
 	keyCond := expression.KeyEqual(
 		expression.Key("pk"),
 		expression.Value(models.UserPkPrefix+userId),
@@ -314,13 +314,13 @@ func (u *userHelper) GetProfilePicKeys(userId string) (models.CrumbMedia, error)
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).WithProjection(proj).Build()
 	if err != nil {
 		log.Printf("Failed to build key condition ERROR: %v", err)
-		return models.CrumbMedia{}, err
+		return models.Media{}, err
 	}
 
 	helper := newHelper(u.Ctx, nil)
-	result, err := QueryItems(helper, nil, nil, expr, nil, aws.Int32(1), func(m []map[string]types.AttributeValue) []models.CrumbMedia {
+	result, err := QueryItems(helper, nil, nil, expr, nil, aws.Int32(1), func(m []map[string]types.AttributeValue) []models.Media {
 		users := models.ConvertToUsers(m)
-		keys := make([]models.CrumbMedia, 0)
+		keys := make([]models.Media, 0)
 		for _, user := range *users {
 			keys = append(keys, user.ProfilePicture)
 		}

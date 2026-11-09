@@ -26,52 +26,52 @@ type CrumbCaption struct {
 	Content string `json:"content" dynamodbav:"content"`
 }
 
-type CrumbMedia struct {
+type Media struct {
 	Index        int    `json:"index" dynamodbav:"index"`
-	CrumbId      string `json:"crumbId" dynamodbav:"-"`
+	CrumbId      string `json:"crumbId" dynamodbav:"crumbId"`
 	MediaKey     string `json:"media" dynamodbav:"media"`
 	ThumbnailKey string `json:"thumbnail,omitempty" dynamodbav:"thumbnail"`
 	Caption      string `json:"caption" dynamodbav:"caption"`
 }
 
 type CrumbBody struct {
-	NonCompositeId          string       `json:"nonCompositeId"`
-	Receivers               []string     `json:"receivers"`
-	Latitude                float64      `json:"latitude"`
-	Longitude               float64      `json:"longitude"`
-	Radius                  float32      `json:"radius"`
-	LocationSelectionManner string       `json:"locationSelectionManner"`
-	MediaKeys               []CrumbMedia `json:"media"`
-	ClickedFeatureId        string       `json:"clickedFeatureId"`
-	Address                 string       `json:"address"`
+	NonCompositeId          string   `json:"nonCompositeId"`
+	Receivers               []string `json:"receivers"`
+	Latitude                float64  `json:"latitude"`
+	Longitude               float64  `json:"longitude"`
+	Radius                  float32  `json:"radius"`
+	LocationSelectionManner string   `json:"locationSelectionManner"`
+	MediaKeys               []Media  `json:"media"`
+	ClickedFeatureId        string   `json:"clickedFeatureId"`
+	Address                 string   `json:"address"`
 }
 
 type CrumbMarkerDetails struct {
-	UserId         string     `json:"userid" dynamodbav:"pk"`
-	Nickname       string     `json:"nickname" dynamodbav:"gsi"`
-	ProfilePicture CrumbMedia `json:"-" dynamodbav:"profilePicture"`
-	Thumbnail      string     `json:"thumbnail"`
+	UserId         string `json:"userid" dynamodbav:"pk"`
+	Nickname       string `json:"nickname" dynamodbav:"gsi"`
+	ProfilePicture Media  `json:"-" dynamodbav:"profilePicture"`
+	Thumbnail      string `json:"thumbnail"`
 }
 
 type Crumb struct {
-	Id                      string       `json:"id" dynamodbav:"id"`
-	NonCompositeId          string       `json:"nonCompositeId" dynamodbav:"nonCompositeId"`
-	Sender                  string       `json:"sender" dynamodbav:"sender"`
-	Receiver                string       `json:"receiver" dynamodbav:"receiver"`
-	Latitude                float64      `json:"latitude" dynamodbav:"latitude"`
-	Longitude               float64      `json:"longitude" dynamodbav:"longitude"`
-	Radius                  float32      `json:"radius" dynamodbav:"radius"`
-	LocationSelectionManner string       `json:"locationSelectionManner" dynamodbav:"locationSelectionManner"`
-	PlaceId                 string       `json:"placeId" dynamodbav:"placeId"`
-	Media                   []CrumbMedia `json:"media" dynamodbav:"media"`
-	Geohash                 string       `json:"geohash" dynamodbav:"geohash"`
-	Saved                   bool         `json:"saved" dynamodbav:"-"`
-	Unlocked                bool         `json:"unlocked" dynamodbav:"unlocked"`
-	Opened                  bool         `json:"opened" dynamobdav:"opened"`
-	MediaCount              int          `json:"mediaCount" dynamodbav:"mediaCount"`
-	Mailbox                 string       `json:"mailbox" dynamodbav:"mailbox"`
-	FormattedAddress        string       `json:"formattedAddress" dynamodbav:"formattedAddress"`
-	PlaceName               string       `json:"placename" dynamodbav:"placename"`
+	Id                      string  `json:"id" dynamodbav:"id"`
+	NonCompositeId          string  `json:"nonCompositeId" dynamodbav:"nonCompositeId"`
+	Sender                  string  `json:"sender" dynamodbav:"sender"`
+	Receiver                string  `json:"receiver" dynamodbav:"receiver"`
+	Latitude                float64 `json:"latitude" dynamodbav:"latitude"`
+	Longitude               float64 `json:"longitude" dynamodbav:"longitude"`
+	Radius                  float32 `json:"radius" dynamodbav:"radius"`
+	LocationSelectionManner string  `json:"locationSelectionManner" dynamodbav:"locationSelectionManner"`
+	PlaceId                 string  `json:"placeId" dynamodbav:"placeId"`
+	Media                   []Media `json:"media" dynamodbav:"media"`
+	Geohash                 string  `json:"geohash" dynamodbav:"geohash"`
+	Saved                   bool    `json:"saved" dynamodbav:"-"`
+	Unlocked                bool    `json:"unlocked" dynamodbav:"unlocked"`
+	Opened                  bool    `json:"opened" dynamobdav:"opened"`
+	MediaCount              int     `json:"mediaCount" dynamodbav:"mediaCount"`
+	Mailbox                 string  `json:"mailbox" dynamodbav:"mailbox"`
+	FormattedAddress        string  `json:"formattedAddress" dynamodbav:"formattedAddress"`
+	PlaceName               string  `json:"placename" dynamodbav:"placename"`
 
 	Time string `json:"time" dynamodbav:"time"`
 
@@ -122,6 +122,7 @@ func IsValidMailbox(mailbox string) bool {
 }
 
 func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver string) Crumb {
+	crumbId := crumbBody.NonCompositeId + owner + otherUser
 	time := utils.GetNormalDateAndTime()
 
 	mailbox := constants.MAILBOX_RECEIVED
@@ -129,8 +130,19 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver string
 		mailbox = constants.MAILBOX_SENT
 	}
 
+	// insert crumb id into media item since media item an crumb are separated when returning to client
+	crumbMedia := make([]Media, 0)
+	for _, media := range crumbBody.MediaKeys {
+		crumbMedia = append(crumbMedia, Media{
+			Index:        media.Index,
+			CrumbId:      crumbId,
+			MediaKey:     media.MediaKey,
+			ThumbnailKey: media.ThumbnailKey,
+		})
+	}
+
 	return Crumb{
-		Id:                      crumbBody.NonCompositeId + owner + otherUser,
+		Id:                      crumbId,
 		NonCompositeId:          crumbBody.NonCompositeId,
 		Sender:                  sender,
 		Receiver:                receiver,
@@ -138,7 +150,7 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver string
 		Longitude:               crumbBody.Longitude,
 		Radius:                  crumbBody.Radius,
 		LocationSelectionManner: crumbBody.LocationSelectionManner,
-		Media:                   crumbBody.MediaKeys,
+		Media:                   crumbMedia,
 		Saved:                   false,
 		Unlocked:                false,
 		Opened:                  false,

@@ -37,17 +37,17 @@ type UserAccountInfo struct {
 }
 
 type UserPersonalInfo struct {
-	ProfilePicture      CrumbMedia `json:"profilePicture" dynamodbav:"profilePicture"`
-	CanChangeBirthdate  bool       `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
-	LastNicknameChange  int64      `dynamodbav:"last_nickname_change" json:"-"`
-	LastEmailChange     int64      `dynamodbav:"last_email_change" json:"-"`
-	LastNameChange      int64      `dynamodbav:"last_name_change" json:"-"`
-	AllowNicknameChange bool       `dynamodbav:"-" json:"allowNicknameChange,omitempty"`
-	AllowEmailChange    bool       `dynamodbav:"-" json:"allowEmailChange,omitempty"`
-	AllowNameChange     bool       `dynamodbav:"-" json:"allowNameChange,omitempty"`
-	LastLogin           int64      `dynamodbav:"last_login" json:"lastLogin,omitempty"`
-	ForceChangeNickname bool       `dynamodbav:"force_change_nickname" json:"forceChangeNickname,omitempty"`
-	SuspensionReason    string     `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
+	ProfilePicture      Media  `json:"profilePicture" dynamodbav:"profilePicture"`
+	CanChangeBirthdate  bool   `dynamodbav:"can_change_birthdate" json:"canChangeBirthdate,omitempty"`
+	LastNicknameChange  int64  `dynamodbav:"last_nickname_change" json:"-"`
+	LastEmailChange     int64  `dynamodbav:"last_email_change" json:"-"`
+	LastNameChange      int64  `dynamodbav:"last_name_change" json:"-"`
+	AllowNicknameChange bool   `dynamodbav:"-" json:"allowNicknameChange,omitempty"`
+	AllowEmailChange    bool   `dynamodbav:"-" json:"allowEmailChange,omitempty"`
+	AllowNameChange     bool   `dynamodbav:"-" json:"allowNameChange,omitempty"`
+	LastLogin           int64  `dynamodbav:"last_login" json:"lastLogin,omitempty"`
+	ForceChangeNickname bool   `dynamodbav:"force_change_nickname" json:"forceChangeNickname,omitempty"`
+	SuspensionReason    string `dynamodbav:"suspension_reason" json:"suspensionReason,omitempty"`
 }
 
 const (

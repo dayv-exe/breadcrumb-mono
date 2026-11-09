@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandlePresignCrumbMediaUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+func HandlePresignMediaUrl(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	userid := utils.GetAuthenticatedUserid()
 
 	var body models.PresignRequest

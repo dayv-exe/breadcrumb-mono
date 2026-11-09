@@ -38,7 +38,7 @@ func HandleMediaAccess(ctx context.Context, req events.APIGatewayV2HTTPRequest) 
 		if isProfilePicture {
 			return HandlePresignProfilePictureUrl(ctx, req)
 		}
-		return HandlePresignCrumbMediaUrl(ctx, req)
+		return HandlePresignMediaUrl(ctx, req)
 
 	case "delete":
 		return HandleDeleteDraftMedia(ctx, req)
@@ -68,7 +68,7 @@ func handleGetProfilePictureUrl(ctx context.Context, req events.APIGatewayV2HTTP
 		return models.ServerSideErrorResponse("Failed to get signed url!", err), nil
 	}
 
-	return models.SuccessfulGetRequestResponse(models.CrumbMedia{
+	return models.SuccessfulGetRequestResponse(models.Media{
 		MediaKey:     signedKeyUrl,
 		ThumbnailKey: signedThumbnailKeyUrl,
 	}, nil), nil

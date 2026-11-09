@@ -27,7 +27,7 @@ func NewCrumbHelper(ctx context.Context) *crumbHelper {
 
 func (h *crumbHelper) ShareCrumb(userId string, crumb models.CrumbBody) error {
 	if crumb.NonCompositeId == "" {
-		return fmt.Errorf("Crumb id cannot be empty")
+		return fmt.Errorf("Crumb non composite id cannot be empty")
 	}
 
 	if len(crumb.MediaKeys) > constants.MAX_CRUMB_MEDIA_LEN {

@@ -61,7 +61,7 @@ func NewTestCrumbBody() CrumbBody {
 		Longitude:               -1,
 		Radius:                  10,
 		LocationSelectionManner: "gps",
-		MediaKeys:               []CrumbMedia{{Index: 0, MediaKey: "img-key-1", Caption: ""}},
+		MediaKeys:               []Media{{Index: 0, MediaKey: "img-key-1", Caption: ""}},
 		Address:                 "1 Test Street",
 	}
 }

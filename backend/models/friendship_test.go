@@ -14,7 +14,7 @@ func TestNewFriendship(t *testing.T) {
 			Nickname: "Al",
 		},
 		UserPersonalInfo: UserPersonalInfo{
-			ProfilePicture: CrumbMedia{ThumbnailKey: "alice.jpg"},
+			ProfilePicture: Media{ThumbnailKey: "alice.jpg"},
 		},
 	}
 	other := User{
@@ -24,7 +24,7 @@ func TestNewFriendship(t *testing.T) {
 			Nickname: "Bobby",
 		},
 		UserPersonalInfo: UserPersonalInfo{
-			ProfilePicture: CrumbMedia{ThumbnailKey: "bob.jpg"},
+			ProfilePicture: Media{ThumbnailKey: "bob.jpg"},
 		},
 	}
 

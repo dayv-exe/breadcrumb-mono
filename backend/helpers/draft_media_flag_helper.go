@@ -25,7 +25,7 @@ func (m *DraftMediaFlagHelper) PutNewDraftMediaFlag(userid, mediaKey string) err
 	return PutItem(newHelper(m.Ctx, nil), &draftFlag)
 }
 
-func (m *DraftMediaFlagHelper) RemoveDraftMediaFlags(userid string, mediaKeys []models.CrumbMedia) error {
+func (m *DraftMediaFlagHelper) RemoveDraftMediaFlags(userid string, mediaKeys []models.Media) error {
 	tableName := utils.GetDependencies().MainTableName
 	transactions := make([]types.TransactWriteItem, 0)
 	seen := make(map[string]struct{}, 0)

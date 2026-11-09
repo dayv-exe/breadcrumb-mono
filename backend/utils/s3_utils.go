@@ -105,7 +105,7 @@ func GetCrumbNonCompositeIdFromKey(key string) string {
 	return id
 }
 
-func GetCrumbMediaFileNameFromKey(key string) string {
+func GetMediaFileNameFromKey(key string) string {
 	return path.Base(key)
 }
 
