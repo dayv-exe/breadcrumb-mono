@@ -25,8 +25,8 @@ func DatabaseItemsToStructs[T any](items []map[string]types.AttributeValue, post
 		panic(err)
 	}
 
-	for _, s := range structs {
-		postProcess(&s)
+	for index := range structs {
+		postProcess(&structs[index])
 	}
 
 	return &structs
