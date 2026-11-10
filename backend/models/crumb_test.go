@@ -89,9 +89,7 @@ func TestConvertToCrumbs(t *testing.T) {
 	expected.OtherUser = ""
 	expected.Mailbox = "received"
 
-	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}, func(c *Crumb) {
-
-	}))[0]
+	results := (*ConvertToCrumbs([]map[string]dbTypes.AttributeValue{TestCrumbDbItem}))[0]
 
 	if !reflect.DeepEqual(expected, results) {
 		t.Errorf("Result and expected MISMATCH:\n%v\n%v", results, expected)
