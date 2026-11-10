@@ -192,9 +192,8 @@ func CreateReceivedCrumb(body *CrumbBody, sender, receiver string) Crumb {
 }
 
 // converts a slice of database items to a slice of crumbs (maybe)
-func ConvertToCrumbs(items []map[string]types.AttributeValue, onCrumbConverted func(*Crumb)) *[]Crumb {
+func ConvertToCrumbs(items []map[string]types.AttributeValue) *[]Crumb {
 	return utils.DatabaseItemsToStructs(items, func(c *Crumb) {
-		onCrumbConverted(c)
 		c.RemovePrefixes()
 	})
 }

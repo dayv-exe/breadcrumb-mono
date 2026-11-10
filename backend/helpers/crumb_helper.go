@@ -141,8 +141,7 @@ func (h *crumbHelper) GetCrumb(otherUser, crumbId string) (*models.Crumb, error)
 		nil,
 		aws.Int32(1),
 		func(c []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-			})
+			return *models.ConvertToCrumbs(c)
 		},
 	)
 
@@ -174,7 +173,7 @@ func (h *crumbHelper) CrumbExists(ownerId, crumbNonCompositeId string) (bool, er
 		nil,
 		aws.Int32(1),
 		func(item []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(item, nil)
+			return *models.ConvertToCrumbs(item)
 		},
 	)
 
@@ -240,8 +239,7 @@ func (h *crumbHelper) GetLatestCrumbs(timestamp, crumbId, otherUser string) (*qu
 		nil,
 		nil,
 		func(c []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(c, func(c *models.Crumb) {
-			})
+			return *models.ConvertToCrumbs(c)
 		},
 	)
 }
@@ -290,7 +288,7 @@ func (h *crumbHelper) GetCrumbContent(crumbId string) (*resItem, error) {
 		nil,
 		aws.Int32(1),
 		func(c []map[string]types.AttributeValue) []models.Crumb {
-			return *models.ConvertToCrumbs(c, nil)
+			return *models.ConvertToCrumbs(c)
 		},
 	)
 
