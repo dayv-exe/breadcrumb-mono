@@ -48,6 +48,6 @@ export const uploadCrumbMetadata = async (crumb: crumbBody): Promise<crumbBody[]
 }
 
 export const openCrumb = async (crumbId: string): Promise<Media[]> => {
-  const { data } = await axiosInstance.get<{ message: Media[] }>(`/crumbs/${crumbId}`)
+  const { data } = await axiosInstance.get<{ message: Media[] }>(`/crumbs/${crumbId}/open`)
   return data.message
 }

@@ -1,4 +1,6 @@
+import { openCrumb } from "@/api/crumbsApi";
 import { FeedItem } from "@/api/db/crumbsDb";
+import { extractBackendMsg } from "@/api/models/apiResponse";
 import { getDisplayName, UserInitialDetails } from "@/api/userApi";
 import { Colors } from "@/constants/Colors";
 import { useGetUser } from "@/hooks/queries/useUserApi";
@@ -63,12 +65,20 @@ export default function CrumbFeedFriend({ feedItem, friendId, simplified }: prop
     )
   }
 
+  const handleShowCrumb = async () => {
+    openCrumb(feedItem.crumbs[0].id).then(media => {
+      console.log(media)
+    }).catch(err => {
+      console.log(extractBackendMsg(err))
+    })
+  }
+
   return (
     <TouchableOpacity
       style={[styles.container, {
         width: simplified ? "auto" : "100%",
       }]}
-      onPress={handleShowShared}
+      onPress={hasCrumb ? handleShowCrumb : handleShowShared}
       onLongPress={() => { }}
     >
       <View>

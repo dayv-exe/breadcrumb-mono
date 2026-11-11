@@ -7,7 +7,7 @@ import CustomLabel from "../CustomLabel";
 const OPACITY = 0
 const ELEVATION = 0
 const FONT_WEIGHT = "600"
-const FONT_OPACITY = 1
+const FONT_OPACITY = .9
 const FONT_SIZE = 12
 
 interface props {

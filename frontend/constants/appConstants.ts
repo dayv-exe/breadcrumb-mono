@@ -90,3 +90,5 @@ export const CLOSE_TIMING = { duration: 280, easing: Easing.inOut(Easing.cubic) 
 
 export const DISMISS_DISTANCE_RATIO = 0.15;
 export const DISMISS_VELOCITY = 800;
+
+export const CRUMB_MEDIA_URL_TTL = 5 * TIME.MINUTE
