@@ -52,6 +52,9 @@ func (l *LocationHelper) UsersCurrentLocationIsValid(coordinate utils.Coordinate
 		aws.Bool(false),
 		aws.Int32(1),
 		func(l []map[string]types.AttributeValue) []models.UserLocation {
+			if len(l) < 1 {
+				return []models.UserLocation{}
+			}
 			return []models.UserLocation{models.ConvertItemToUserLocation(l[0])}
 		},
 	)
