@@ -44,6 +44,7 @@ func (l *LocationHelper) UsersCurrentLocationIsValid(coordinate utils.Coordinate
 		return false, err
 	}
 
+	//
 	response, err := QueryItems(
 		newHelper(l.Ctx, nil),
 		nil,
