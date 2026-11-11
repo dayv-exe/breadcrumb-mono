@@ -38,5 +38,5 @@ func (u *UserLocation) ApplyPrefixes() {
 }
 
 func ConvertItemToUserLocation(item map[string]types.AttributeValue) UserLocation {
-	return *utils.DatabaseItemToStruct[UserLocation](item, nil)
+	return *utils.DatabaseItemToStruct(item, func(ul *UserLocation) {})
 }
