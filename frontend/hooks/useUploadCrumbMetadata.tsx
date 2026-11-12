@@ -38,7 +38,9 @@ export function useUploadCrumbMetadata(): UploadCrumbMetadataState {
       if (recipients.length === 0) {
         throw new Error("Crumbs must have at least one recipient!")
       } else if (!coordinates || !coordinates.accuracy) {
-        throw new Error("Unable to determine your location!")
+        const err = useLocationStore.getState().error
+        if (err) console.log(err)
+        throw new Error("Unable to determine your location")
       }
 
       const crumb: crumbBody = {

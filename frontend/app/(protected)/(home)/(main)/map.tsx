@@ -239,7 +239,7 @@ export default function MapScreen() {
               marginBottom: 10,
             }}
           >
-            <CustomLabel width="auto" padding={0} adaptToTheme labelText={"Map"} fontSize={25} customStyle={{
+            <CustomLabel width="auto" padding={0} adaptToTheme labelText={"Map"} fontSize={27} customStyle={{
               color: getHeaderColors().fgColor,
               fontWeight: "500",
               marginRight: 10,
@@ -261,12 +261,12 @@ export default function MapScreen() {
                 }]}
                 handleClick={handleNotificationPress}
               >
-                <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} />
+                <BellIcon stroke={getHeaderColors().fgColor} strokeWidth={3} size={24} />
               </CustomButton>
 
               <Spacer size="small" />
 
-              <CustomProfilePictureCircle userId={userid} size={40} handleClick={() => {
+              <CustomProfilePictureCircle userId={userid} size={43} handleClick={() => {
                 nav.push({
                   pathname: "/(protected)/(home)/user-profile",
                   params: { userid: userid, displayNickname: "" }
