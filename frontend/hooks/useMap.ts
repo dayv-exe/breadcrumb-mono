@@ -121,8 +121,9 @@ export const useMap = (
     }
 
     let zoomLvl: number | undefined = DEFAULT_ZOOM_LEVEL
+    const distanceBetweenUserCoordAndCameraCoords = getDistanceBetween(curCenterCoords, coords)
 
-    if (getDistanceBetween(curCenterCoords, coords) > 15 && (curZoom ?? 0) <= DEFAULT_ZOOM_LEVEL) {
+    if (distanceBetweenUserCoordAndCameraCoords > 15 && (curZoom ?? 0) > DEFAULT_ZOOM_LEVEL) {
       zoomLvl = undefined
     }
 
@@ -132,7 +133,7 @@ export const useMap = (
       animationDuration: 500,
       pitch: 0,
       heading: 0,
-      animationMode: "easeTo",
+      animationMode: distanceBetweenUserCoordAndCameraCoords > 100000 ? "flyTo" : "easeTo",
     })
   }
 
