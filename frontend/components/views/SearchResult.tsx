@@ -25,7 +25,7 @@ interface props {
 
 const SearchResult = ({ data, onSelect }: props) => {
   const textCol = useThemeColor({}, "text")
-  const strokeWidth = 2.5
+  const strokeWidth = 2
   const makiOpacity = .6
   const fillCol = "transparent"
 
@@ -108,7 +108,7 @@ const SearchResult = ({ data, onSelect }: props) => {
       {data.type === "user" && <CustomProfilePictureCircle size={40} userId={data.user.userId} customStyle={{
         marginRight: 5,
       }} />}
-      < View style={{ flexGrow: 1, flexShrink: 1, marginLeft: 5, }}>
+      < View style={{ flexGrow: 1, flexShrink: 1, marginLeft: 7, }}>
         <CustomLabel labelText={data.type === "user" ? getDisplayName(data.user) : data.place.name} adaptToTheme fontSize={15} bold customStyle={{
           paddingVertical: 0,
         }} />

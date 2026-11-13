@@ -222,7 +222,7 @@ export default function MapScreen() {
         top: 0,
         opacity: headerOpacity,
       }]}>
-        <GradientView colors={[getHeaderColors().gradientCol + "ff", getHeaderColors().gradientCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
+        <GradientView colors={[getHeaderColors().gradientCol + "cc", getHeaderColors().gradientCol + "00",]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.headerWrapper, {
           paddingTop: insets.top,
           top: 0,
           flexDirection: "column",
