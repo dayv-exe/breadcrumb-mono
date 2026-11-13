@@ -24,6 +24,7 @@ export const DEFAULT_CRUMB_RADIUS = 25 // meters
 export const S3_PROCESSED_MEDIA_DIR = "uploads/processed"
 export const LOCAL_DATABASE_NAME = "app.db"
 export const RADIUS_OF_EARTH_M = 6_371_000
+export const DEFAULT_ZOOM_LEVEL = 12.5
 
 export const STATUS_FRIENDS = "true";
 export const STATUS_REQUESTED = "requested";

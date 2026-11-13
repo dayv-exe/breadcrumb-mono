@@ -1,6 +1,7 @@
 import { SelectedLocation } from "@/api/models/locationTypes";
-import { ShowToast } from "@/constants/appConstants";
+import { DEFAULT_ZOOM_LEVEL, ShowToast } from "@/constants/appConstants";
 import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates, getMapCamPosition, MapCamPosition } from "@/constants/mapFunctions";
+import { getDistanceBetween } from "@/utils/distance";
 import { Coordinates, useLocationStore } from "@/utils/useLocationStore";
 import Mapbox from "@rnmapbox/maps";
 import * as Haptics from "expo-haptics";
@@ -105,6 +106,10 @@ export const useMap = (
 
   async function focusOnUserLocation() {
     setSelectedLocation(null)
+    const curCenter = await mapRef.current?.getCenter()
+    const curZoom = await mapRef.current?.getZoom()
+    const curCenterCoords = convertNumberTupleToCoordinates([curCenter?.[0] ?? 0, curCenter?.[1] ?? 0])
+
     const curCoord = useLocationStore.getState().coordinates
     const cachedCoord = useLocationStore.getState().cachedCoordinate
 
@@ -115,18 +120,25 @@ export const useMap = (
       return
     }
 
+    let zoomLvl: number | undefined = DEFAULT_ZOOM_LEVEL
+
+    if (getDistanceBetween(curCenterCoords, coords) > 15 && (curZoom ?? 0) <= DEFAULT_ZOOM_LEVEL) {
+      zoomLvl = undefined
+    }
+
     setCameraFn({
       centerCoordinate: [coords.longitude, coords.latitude],
-      zoomLevel: 12.5,
-      animationDuration: 1000,
+      zoomLevel: zoomLvl,
+      animationDuration: 500,
       pitch: 0,
       heading: 0,
+      animationMode: "easeTo",
     })
   }
 
   async function focusOnCurrentCenterLocation() {
     setCameraFn({
-      zoomLevel: 12.5,
+      zoomLevel: DEFAULT_ZOOM_LEVEL,
       animationDuration: 1000,
       pitch: 0,
       heading: 0,

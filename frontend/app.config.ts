@@ -86,7 +86,6 @@ export default {
         "@rnmapbox/maps",
         {
           RNMAPBOX_MAPS_DOWNLOAD_TOKEN: process.env.SECRET_MAPBOX_KEY,
-          RNMapboxMapsVersion: "11.30.0",
         },
       ],
       [

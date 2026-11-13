@@ -214,6 +214,10 @@ export default function CustomMap({
     <View onTouchStart={Keyboard.dismiss} style={styles.container}>
       {permissionGranted ? (
         <Mapbox.MapView
+          gestureSettings={{
+            simultaneousRotateAndPinchZoomEnabled: false,
+          }}
+          projection="globe"
           ref={mapRef}
           style={styles.map}
           styleURL={useSatellite ? satelliteUrl : mode === "light" ? lightUrl : darkUrl}
