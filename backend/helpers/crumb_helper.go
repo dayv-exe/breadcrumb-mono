@@ -268,7 +268,6 @@ func (h *crumbHelper) GetCrumbContent(crumbId string) (*resItem, error) {
 
 	proj := expression.NamesList(
 		expression.Name("mediaCount"),
-		expression.Name("caption"),
 		expression.Name("media"),
 		expression.Name("latitude"),
 		expression.Name("longitude"),

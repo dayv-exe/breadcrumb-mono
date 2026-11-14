@@ -138,6 +138,7 @@ func createCrumb(crumbBody *CrumbBody, owner, otherUser, sender, receiver string
 			CrumbId:      crumbId,
 			MediaKey:     media.MediaKey,
 			ThumbnailKey: media.ThumbnailKey,
+			Caption:      media.Caption,
 		})
 	}
 
