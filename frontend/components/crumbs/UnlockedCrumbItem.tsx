@@ -22,12 +22,13 @@ export default function UnlockedCrumbShared({ crumb }: props) {
 
   const { data: media, error: mediaError, isPending: mediaIsPending, refetch: mediaRefetch } = useOpenCrumb(crumb.id, crumb.unlocked)
 
-  const openCrumbStack = () => {
+  const openCrumbStack = async () => {
     if (mediaIsPending) return
     else if (mediaError) {
       mediaRefetch()
       return
     }
+
     thumbRef.current?.measureInWindow((x, y, width, height) => {
       setOrigin({ x, y, width, height })
     })

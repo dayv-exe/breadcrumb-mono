@@ -3,11 +3,13 @@ import { Media } from "@/api/models/media";
 import { MediaData } from "@/constants/media";
 import { Colors } from "@/constants/theme";
 import { useMediaStore } from "@/utils/mediaStore";
+// import { Image } from "expo-image";
 import { Trash2Icon } from "lucide-react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Image, StyleProp, StyleSheet, TextInput, useWindowDimensions, View, ViewStyle } from "react-native";
 import { useShallow } from "zustand/shallow";
 import CustomButton from "../buttons/CustomButton";
+import Skeleton from "../skeletons/Skeleton";
 
 interface baseProps {
   size: number
@@ -56,6 +58,7 @@ export default function CrumbView(props: props) {
     removeCrumb(mediaData.id)
   }
 
+  const t0 = useRef(0);
   const getImageUri = () => {
     if (props.type === "preview") {
       const mediaData = props.mediaData
@@ -69,7 +72,7 @@ export default function CrumbView(props: props) {
   return (
     <View
       style={[props.style, {
-        shadowColor: "rgba(0, 0, 0, .5)",
+        shadowColor: "hsl(0, 0%, 50%)",
         shadowOffset: { width: 1, height: 1 },
         shadowOpacity: 1,
         shadowRadius: 10,
@@ -87,6 +90,12 @@ export default function CrumbView(props: props) {
           borderTopStartRadius: borderRadius,
         }}
       >
+        {<Skeleton style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          backgroundColor: "hsl(0, 0%, 15%)"
+        }} glintColor="rgba(255, 255, 255, .075)" />}
         <Image
           source={{ uri: getImageUri() }}
           style={{
@@ -103,7 +112,7 @@ export default function CrumbView(props: props) {
             ...StyleSheet.absoluteFill,
             boxShadow: [
 
-              { inset: true, offsetX: 0, offsetY: 0, blurRadius: borderThickness, color: "rgba(0,0,0, .25)" },
+              { inset: true, offsetX: 0, offsetY: 0, blurRadius: borderThickness, color: "rgba(0,0,0, .5)" },
             ],
           }}
         />
