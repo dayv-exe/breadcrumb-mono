@@ -33,7 +33,7 @@ export default function CrumbView(props: props) {
 
   const c = props.type === "preview" ? props.mediaData.caption : props.media.caption
   const [caption, setCaption] = useState(c)
-  const size = Math.min(props.size, props.maxSize ?? screenWidth * .85)
+  const size = Math.min(props.size, props.maxSize ?? screenWidth * .8)
   const borderThickness = size / 20
   const borderRadius = borderThickness / 15
 
@@ -69,7 +69,7 @@ export default function CrumbView(props: props) {
   return (
     <View
       style={[props.style, {
-        shadowColor: "rgba(0, 0, 0, 1)",
+        shadowColor: "rgba(0, 0, 0, .5)",
         shadowOffset: { width: 1, height: 1 },
         shadowOpacity: 1,
         shadowRadius: 10,

@@ -14,4 +14,5 @@ export type VisibleCard = {
   item: StackItem;
   depth: number;
   exiting: boolean;
+  returning: boolean
 };

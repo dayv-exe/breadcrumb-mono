@@ -81,15 +81,23 @@ export function ShowToast(message: string) {
 
 export const VISIBLE_DEPTH = 3;
 
-export const TILTS = [-4, 3, -2.5, 4.5, -3.5, 2.5];
+export const TILTS = [-8, 6.5, -5.5, 9, -7, 5.5];
 
-export const SPRING = { damping: 16, stiffness: 160, mass: 0.9 };
+export const SPRING = { damping: 20, stiffness: 260, mass: 0.8 };
 
-export const EXIT_TIMING = { duration: 320, easing: Easing.in(Easing.cubic) };
-export const OPEN_TIMING = { duration: 340, easing: Easing.out(Easing.cubic) };
-export const CLOSE_TIMING = { duration: 280, easing: Easing.inOut(Easing.cubic) };
+export const EXIT_TIMING = { duration: 100, easing: Easing.in(Easing.cubic) };
+export const OPEN_TIMING = { duration: 100, easing: Easing.out(Easing.cubic) };
+export const CLOSE_TIMING = { duration: 100, easing: Easing.inOut(Easing.cubic) };
+export const RETURN_TIMING = { duration: 100, easing: Easing.out(Easing.cubic) };
+export const BACK_ZONE_RATIO = 0.35
 
 export const DISMISS_DISTANCE_RATIO = 0.15;
 export const DISMISS_VELOCITY = 800;
 
 export const CRUMB_MEDIA_URL_TTL = 5 * TIME.MINUTE
+
+export function FN_GET_CARD_DIMENSIONS(screenWidth: number, size?: number) {
+  const cardSize = Math.min(size ?? screenWidth * 0.9, screenWidth * 0.95);
+  const cardHeight = cardSize + cardSize / 4.75 + cardSize / 40;
+  return { cardSize, cardHeight };
+}

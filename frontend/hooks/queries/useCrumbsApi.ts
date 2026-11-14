@@ -1,5 +1,6 @@
 import { getCrumbMarkers, getLatestCrumbs, openCrumb, uploadCrumbMetadata } from "@/api/crumbsApi";
 import { Crumb } from "@/api/models/crumb";
+import { CRUMB_MEDIA_URL_TTL } from "@/constants/appConstants";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export const useUploadCrumbMetadataApi = () => useMutation({
@@ -20,7 +21,9 @@ export const useGetCrumbMarkers = (ids: string[]) => useQuery({
   queryKey: ["markers"],
 })
 
-export const useOpenCrumb = (crumbId: string) => useQuery({
+export const useOpenCrumb = (crumbId: string, isUnlocked: boolean) => useQuery({
   queryFn: () => openCrumb(crumbId),
   queryKey: ["opened-crumb", crumbId],
+  staleTime: CRUMB_MEDIA_URL_TTL,
+  enabled: isUnlocked,
 })

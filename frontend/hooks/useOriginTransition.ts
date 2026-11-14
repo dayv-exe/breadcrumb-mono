@@ -1,5 +1,5 @@
 import { CLOSE_TIMING, OPEN_TIMING } from "@/constants/appConstants";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useWindowDimensions } from "react-native";
 import {
   Extrapolation,
@@ -32,7 +32,8 @@ export function useOriginTransition(origin: OriginRect, cardSize: number, onClos
   const originDy = origin.y + origin.height / 2 - screenH / 2;
   const originScale = origin.width / cardSize;
 
-  const animateClose = () => {
+  // Stable reference so the memoized backdrop doesn't re-render on every card tap.
+  const animateClose = useCallback(() => {
     "worklet";
     if (closing.get()) return;
     closing.set(true);
@@ -41,7 +42,7 @@ export function useOriginTransition(origin: OriginRect, cardSize: number, onClos
         if (finished) scheduleOnRN(onClose);
       })
     );
-  };
+  }, [closing, progress, onClose]);
 
   const stackStyle = useAnimatedStyle(() => {
     const p = progress.get();

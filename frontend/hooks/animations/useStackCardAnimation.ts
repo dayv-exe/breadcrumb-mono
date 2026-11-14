@@ -1,4 +1,4 @@
-import { EXIT_TIMING, SPRING, TILTS, VISIBLE_DEPTH } from "@/constants/appConstants";
+import { EXIT_TIMING, RETURN_TIMING, SPRING, TILTS, VISIBLE_DEPTH } from "@/constants/appConstants";
 import { useEffect } from "react";
 import {
   Extrapolation,
@@ -6,20 +6,35 @@ import {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming
+  withTiming,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
-export function useStackCardAnimation(
-  index: number,
-  depth: number,
-  exiting: boolean,
-  size: number,
-  onExited: () => void
-) {
-  // start one step further back so cards settle into place and new back cards fade in
+interface Params {
+  index: number;
+  depth: number;
+  exiting: boolean;
+  returning: boolean;
+  size: number;
+  onExited: () => void;
+  onReturned: () => void;
+}
+
+/**
+ * A card's resting pose for its depth (tilt, scale, offset, fade at the back),
+ * the fling-away when it's dismissed, and the reverse when it's brought back.
+ */
+export function useStackCardAnimation({
+  index,
+  depth,
+  exiting,
+  returning,
+  size,
+  onExited,
+  onReturned,
+}: Params) {
   const progress = useSharedValue(Math.min(depth + 1, VISIBLE_DEPTH));
-  const exit = useSharedValue(0);
+  const exit = useSharedValue(returning ? 1 : 0);
 
   const tilt = TILTS[index % TILTS.length];
   const direction = index % 2 === 0 ? 1 : -1; // alternate fling direction
@@ -36,6 +51,15 @@ export function useStackCardAnimation(
       })
     );
   }, [exiting, exit, onExited]);
+
+  useEffect(() => {
+    if (!returning) return;
+    exit.set(
+      withTiming(0, RETURN_TIMING, finished => {
+        if (finished) scheduleOnRN(onReturned);
+      })
+    );
+  }, [returning, exit, onReturned]);
 
   return useAnimatedStyle(() => {
     const p = progress.get();

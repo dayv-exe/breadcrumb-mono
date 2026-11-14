@@ -1,17 +1,19 @@
 import { Crumb } from "@/api/models/crumb"; // adjust to wherever your Crumb type lives
 import { Media } from "@/api/models/media";
+import { BACK_ZONE_RATIO, FN_GET_CARD_DIMENSIONS } from "@/constants/appConstants";
 import { OriginRect } from "@/hooks/types/crumbStack";
 import { useCrumbDeck } from "@/hooks/useCrumbDeck";
 import { useOriginTransition } from "@/hooks/useOriginTransition";
 import { useStackGestures } from "@/hooks/useStackGestures";
 import { Modal, StyleSheet, useWindowDimensions, View } from "react-native";
-import { GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureDetector } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
 import StackBackdrop from "./StackBackdrop";
 import StackCard from "./StackCard";
 
 interface CrumbStackProps {
   crumbs: Crumb[];
+  media: Media[]
   origin: OriginRect;
   onClose: () => void;
   size?: number;
@@ -20,14 +22,9 @@ interface CrumbStackProps {
   onFinished?: () => void;
 }
 
-export function getCardDimensions(screenWidth: number, size?: number) {
-  const cardSize = Math.min(size ?? screenWidth * 0.8, screenWidth * 0.85);
-  const cardHeight = cardSize + cardSize / 4.75 + cardSize / 40;
-  return { cardSize, cardHeight };
-}
-
 export default function CrumbStack({
   crumbs,
+  media,
   origin,
   onClose,
   size,
@@ -36,17 +33,22 @@ export default function CrumbStack({
   onFinished,
 }: CrumbStackProps) {
   const { width: screenW } = useWindowDimensions();
-  const { cardSize, cardHeight } = getCardDimensions(screenW, size);
+  const { cardSize, cardHeight } = FN_GET_CARD_DIMENSIONS(screenW, size);
 
-  const deck = useCrumbDeck(crumbs, onReveal);
+  const deck = useCrumbDeck(crumbs, media, onReveal);
   const { progress, dragX, dragY, closing, animateClose, stackStyle } = useOriginTransition(
     origin,
     cardSize,
     onClose
   );
 
-  const handleTap = () => {
+  const handleTap = (x: number) => {
     if (deck.isAnimating || closing.get()) return;
+
+    if (x < screenW * BACK_ZONE_RATIO) {
+      deck.goBack();
+      return;
+    }
     if (deck.isLast) {
       onFinished?.();
       animateClose();
@@ -66,28 +68,30 @@ export default function CrumbStack({
       navigationBarTranslucent
       onRequestClose={animateClose}
     >
-      <GestureHandlerRootView style={styles.fill}>
-        <StackBackdrop progress={progress} dragY={dragY} intensity={blurIntensity} onPress={animateClose} />
+      <GestureDetector gesture={gesture}>
+        <View style={styles.fill}>
+          <StackBackdrop progress={progress} dragY={dragY} intensity={blurIntensity} />
 
-        <View style={styles.center} pointerEvents="box-none">
-          <GestureDetector gesture={gesture}>
+          <View style={styles.center} pointerEvents="none">
             <Animated.View style={[{ width: cardSize, height: cardHeight }, stackStyle]}>
               {deck.visible
-                .map(({ item, depth, exiting }) => (
+                .map(({ item, depth, exiting, returning }) => (
                   <StackCard
                     key={item.key}
                     item={item}
                     depth={depth}
                     exiting={exiting}
+                    returning={returning}
                     size={cardSize}
                     onExited={deck.handleExited}
+                    onReturned={deck.handleReturned}
                   />
                 ))
                 .reverse()}
             </Animated.View>
-          </GestureDetector>
+          </View>
         </View>
-      </GestureHandlerRootView>
+      </GestureDetector>
     </Modal>
   );
 }

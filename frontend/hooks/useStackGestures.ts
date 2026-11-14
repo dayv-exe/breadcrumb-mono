@@ -8,18 +8,20 @@ interface Params {
   dragY: SharedValue<number>;
   closing: SharedValue<boolean>;
   animateClose: () => void;
-  onTap: () => void;
+  onTap: (x: number) => void;
 }
 
+/** Tap to advance, swipe down to close. */
 export function useStackGestures({ dragX, dragY, closing, animateClose, onTap }: Params) {
   const { height: screenH } = useWindowDimensions();
 
+  // Callbacks are defined inline so Gesture Handler workletizes them (UI thread).
   const pan = usePanGesture({
     activeOffsetY: [-10, 10],
     onUpdate: e => {
       if (closing.get()) return;
       dragX.set(e.translationX * 0.6);
-      // allow drag downwards, resist upwards
+      // Free drag downwards, heavy resistance upwards.
       dragY.set(e.translationY > 0 ? e.translationY : e.translationY * 0.15);
     },
     onDeactivate: e => {
@@ -38,10 +40,10 @@ export function useStackGestures({ dragX, dragY, closing, animateClose, onTap }:
     maxDistance: 10,
     runOnJS: true,
     onDeactivate: e => {
-      if (!e.canceled) onTap();
+      if (!e.canceled) onTap(e.x);
     },
   });
 
-  // Whichever activates first wins: a drag cancels the tap, a quick tap never becomes a pan.
+  // Whichever activates first wins
   return useCompetingGestures(pan, tap);
 }
