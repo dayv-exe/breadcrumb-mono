@@ -6,10 +6,6 @@ import (
 	"backend/utils"
 	"context"
 	"log"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type LocationHelper struct {
@@ -28,39 +24,15 @@ func (l *LocationHelper) LogUserNewLocation(coordinate utils.Coordinate) error {
 }
 
 func (l *LocationHelper) UsersCurrentLocationIsValid(coordinate utils.Coordinate) (bool, error) {
-	keyCondition := expression.KeyEqual(
-		expression.Key("pk"),
-		expression.Value(models.UserLocationPkPrefix+utils.GetAuthenticatedUserid()),
-	).And(
-		expression.KeyBeginsWith(
-			expression.Key("sk"),
-			models.UserLocationSkPrefix,
-		),
-	)
+	userid := utils.GetAuthenticatedUserid()
 
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCondition).Build()
-
-	if err != nil {
-		return false, err
-	}
-
-	//
-	response, err := QueryItems(
+	response, err := getItem(
 		newHelper(l.Ctx, nil),
+		models.UserLocationKey(userid),
 		nil,
-		nil,
-		expr,
-		aws.Bool(false),
-		aws.Int32(1),
-		func(l []map[string]types.AttributeValue) []models.UserLocation {
-			if len(l) < 1 {
-				return []models.UserLocation{}
-			}
-			return []models.UserLocation{models.ConvertItemToUserLocation(l[0])}
-		},
 	)
 
-	if len(response.Items) == 0 {
+	if len(response.Item) == 0 {
 		// if no known last location
 		err := l.LogUserNewLocation(coordinate)
 		if err != nil {
@@ -69,7 +41,7 @@ func (l *LocationHelper) UsersCurrentLocationIsValid(coordinate utils.Coordinate
 		return true, nil
 	}
 
-	lastKnownLocation := response.Items[0]
+	lastKnownLocation := models.ConvertItemToUserLocation(response.Item)
 
 	usersTravelSpeed, err := utils.RequiredSpeed(
 		lastKnownLocation.Coordinate,

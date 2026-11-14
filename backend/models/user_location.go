@@ -10,7 +10,7 @@ import (
 
 const (
 	UserLocationPkPrefix = "USER#"
-	UserLocationSkPrefix = "USER_LOCATION_TIMESTAMP#"
+	UserLocationSkPrefix = "LOCATION"
 )
 
 type UserLocation struct {
@@ -34,9 +34,16 @@ func NewLocation(coordinate utils.Coordinate) *UserLocation {
 
 func (u *UserLocation) ApplyPrefixes() {
 	u.Pk = UserLocationPkPrefix + u.Userid
-	u.Sk = UserLocationSkPrefix + u.Timestamp
+	u.Sk = UserLocationSkPrefix
 }
 
 func ConvertItemToUserLocation(item map[string]types.AttributeValue) UserLocation {
 	return *utils.DatabaseItemToStruct(item, func(ul *UserLocation) {})
+}
+
+func UserLocationKey(userid string) *map[string]types.AttributeValue {
+	return &map[string]types.AttributeValue{
+		"pk": &types.AttributeValueMemberS{Value: UserLocationPkPrefix + userid},
+		"sk": &types.AttributeValueMemberS{Value: UserLocationSkPrefix},
+	}
 }
