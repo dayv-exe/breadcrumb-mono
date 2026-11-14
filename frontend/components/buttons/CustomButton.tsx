@@ -3,7 +3,7 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { PropsWithChildren, useState } from "react";
-import { ActivityIndicator, AnimatableNumericValue, DimensionValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { ActivityIndicator, DimensionValue, Image, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import Spacer from "../Spacer";
 
 type bProps = {
@@ -18,7 +18,7 @@ type bProps = {
   allowMultipleClicks?: boolean
   isPending?: boolean
   squashed?: boolean
-  borderRadius?: string | AnimatableNumericValue
+  borderRadius?: ViewStyle["borderRadius"]
   useMinWidth?: boolean
   slim?: boolean
   bold?: boolean
@@ -29,9 +29,10 @@ type bProps = {
   debounceTime?: number
   customStyle?: StyleProp<ViewStyle>
   customTextStyle?: StyleProp<TextStyle>
+  pressedOpacity?: number
 }
 
-export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, handleLongPress, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 1000, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children, freed }: PropsWithChildren<bProps>) {
+export default function CustomButton({ labelText = "button", type = "faded", width = "auto", handleClick = () => { }, handleLongPress, adaptToTheme = false, disabled = false, allowMultipleClicks = false, isPending = false, debounceTime = 500, slim = false, squashed = false, bold = true, imgSrc, borderRadius = 1000, imgSize, paddingHorizontal, fontSize = 15, customStyle, customTextStyle, useMinWidth, children, freed, pressedOpacity }: PropsWithChildren<bProps>) {
   const fadedBg = useThemeColor({}, "fadedBackground")
   const darkenVib = useThemeColor({}, "darkenVibrant")
   const bg = useThemeColor({}, "background")
@@ -76,7 +77,7 @@ export default function CustomButton({ labelText = "button", type = "faded", wid
   }
 
   return (
-    <TouchableOpacity disabled={disabled} onLongPress={handleLongPress} delayLongPress={150} onPress={() => {
+    <TouchableOpacity activeOpacity={pressedOpacity} disabled={disabled} onLongPress={handleLongPress} delayLongPress={150} onPress={() => {
       // debounce clicks and disable clicks is button is in loading state
       if (!clicked) {
         if (!allowMultipleClicks) { setClicked(true) }

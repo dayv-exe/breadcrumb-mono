@@ -14,6 +14,8 @@ interface props {
 }
 
 export default function LockedCrumbShared({ crumb }: props) {
+  const [showFullAddress, setShowFullAddress] = useState(false)
+
   const fadedBg = useThemeColor({}, "fadedBackground")
 
   const [singleMileFmt] = useState(() => initDistanceFormatter(1, 1))
@@ -43,37 +45,55 @@ export default function LockedCrumbShared({ crumb }: props) {
       <CustomButton
         freed
         type="text"
-        disabled
+        pressedOpacity={1}
         customStyle={{
           marginHorizontal: 15,
           borderRadius: 10,
           borderWidth: .275,
           borderColor: fadedBg,
-          justifyContent: "flex-start",
-          padding: 20,
+          justifyContent: "space-between",
+          paddingVertical: 20,
+          paddingHorizontal: 15,
           marginBottom: 10,
         }}
+        handleClick={() => setShowFullAddress(s => !s)}
       >
         <View
-          style={{
-            width: 15,
-            height: 15,
-            backgroundColor: "transparent",
-            borderColor: Colors.light.vibrantButton,
-            borderWidth: 2,
-            borderRadius: 3,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        />
-
-        <Spacer size="small" />
-        <View>
-          <CustomLabel fontSize={15} adaptToTheme width="auto" labelText={crumb.mailbox === "sent" ? `` : `${distanceStr} • `}
+        style={{
+          width: "auto",
+          flexDirection: 'row',
+          alignItems: "center",
+          justifyContent: "flex-start",
+        }}
+        >
+          <View
+            style={{
+              width: 15,
+              height: 15,
+              backgroundColor: "transparent",
+              borderColor: Colors.light.vibrantButton,
+              borderWidth: 2,
+              borderRadius: 3,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           />
-        </View>
 
-        <CustomLabel allowTruncate fade adaptToTheme fontSize={13} labelText={getFormattedAddr()} />
+          <Spacer size="small" />
+          <View>
+            <CustomLabel fontSize={15} adaptToTheme width="auto" labelText={crumb.mailbox === "sent" ? `` : `${distanceStr} • `}
+            />
+          </View>
+
+          <CustomLabel allowTruncate={!showFullAddress} fade adaptToTheme fontSize={13} labelText={getFormattedAddr()} />
+        </View>
+        <View
+          style={{
+            width: "auto"
+          }}
+        >
+          <CustomLabel adaptToTheme fontSize={15} labelText="🔒" />
+        </View>
       </CustomButton>
     </>
   )

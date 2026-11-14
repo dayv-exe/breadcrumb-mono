@@ -5,7 +5,7 @@ import { Colors } from "@/constants/theme";
 import { useMediaStore } from "@/utils/mediaStore";
 // import { Image } from "expo-image";
 import { Trash2Icon } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Image, StyleProp, StyleSheet, TextInput, useWindowDimensions, View, ViewStyle } from "react-native";
 import { useShallow } from "zustand/shallow";
 import CustomButton from "../buttons/CustomButton";
@@ -58,7 +58,6 @@ export default function CrumbView(props: props) {
     removeCrumb(mediaData.id)
   }
 
-  const t0 = useRef(0);
   const getImageUri = () => {
     if (props.type === "preview") {
       const mediaData = props.mediaData
@@ -72,7 +71,7 @@ export default function CrumbView(props: props) {
   return (
     <View
       style={[props.style, {
-        shadowColor: "hsl(0, 0%, 50%)",
+        shadowColor: "rgba(0, 0, 0, .3)",
         shadowOffset: { width: 1, height: 1 },
         shadowOpacity: 1,
         shadowRadius: 10,
@@ -112,7 +111,7 @@ export default function CrumbView(props: props) {
             ...StyleSheet.absoluteFill,
             boxShadow: [
 
-              { inset: true, offsetX: 0, offsetY: 0, blurRadius: borderThickness, color: "rgba(0,0,0, .5)" },
+              { inset: true, offsetX: 0, offsetY: 0, blurRadius: borderThickness / 2.5, color: "rgba(0,0,0, .7)" },
             ],
           }}
         />

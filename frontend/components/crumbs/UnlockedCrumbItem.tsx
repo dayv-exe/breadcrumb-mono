@@ -35,7 +35,7 @@ export default function UnlockedCrumbShared({ crumb }: props) {
   }
 
   const promptText = useMemo(() => {
-    if (mediaError) return "Tap to reload"
+    if (mediaError) return "⚠️ Tap to reload"
     else if (mediaIsPending) return "Loading"
     else if (media) return "Tap to view"
     else return "open"
@@ -52,7 +52,8 @@ export default function UnlockedCrumbShared({ crumb }: props) {
           borderWidth: .275,
           borderColor: fadedBg,
           justifyContent: "flex-start",
-          padding: 20,
+          paddingVertical: 20,
+          paddingHorizontal: 15,
           marginBottom: 10,
         }}
         handleClick={openCrumbStack}
@@ -62,8 +63,8 @@ export default function UnlockedCrumbShared({ crumb }: props) {
           style={{
             width: 15,
             height: 15,
-            backgroundColor: Colors.light.vibrantButton,
-            borderColor: "transparent",
+            backgroundColor: mediaError ? "grey" : mediaIsPending ? "transparent" : Colors.light.vibrantButton,
+            borderColor: mediaIsPending ? "grey" : "transparent",
             borderWidth: 2,
             borderRadius: 3,
             alignItems: "center",

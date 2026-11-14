@@ -1,6 +1,7 @@
 import { PresignedMediaItem, validPresignedMediaItemFile } from "@/api/getPresignedUrl";
 import { MediaData } from "@/constants/media";
 import { useGetPresignedUrl } from "@/hooks/queries/useGetPresignedUrl";
+import { compressImage } from "@/utils/imageCompression";
 import { useMediaStore } from "@/utils/mediaStore";
 import { File } from "expo-file-system";
 
@@ -86,15 +87,21 @@ export function useUploadMedia({
     media: MediaData,
     nonCompositeId?: string
   ): Promise<PresignedMediaItem> => {
-
     const uploadedParts = new Set<string>();
     let lastError: unknown;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       updateUploadState(media.id, { status: "uploading", error: null });
 
+      let compressedMedia: MediaData
+      if (media.type === "photo") {
+        compressedMedia = { ...media, localUri: await compressImage(media.localUri) }
+      } else {
+        compressedMedia = media
+      }
+
       const presignedUrlResponse = await getPresignedUrl({
-        files: [media],
+        files: [compressedMedia],
         crumbNonCompositeId: nonCompositeId ?? "",
       });
 
