@@ -121,17 +121,19 @@ export const useMap = (
     }
 
     let zoomLvl: number | undefined = DEFAULT_ZOOM_LEVEL
+    let pitch: number | undefined = 0
     const distanceBetweenUserCoordAndCameraCoords = getDistanceBetween(curCenterCoords, coords)
 
     if (distanceBetweenUserCoordAndCameraCoords > 15 && (curZoom ?? 0) > DEFAULT_ZOOM_LEVEL) {
       zoomLvl = undefined
+      pitch = undefined
     }
 
     setCameraFn({
       centerCoordinate: [coords.longitude, coords.latitude],
       zoomLevel: zoomLvl,
       animationDuration: 500,
-      pitch: 0,
+      pitch: pitch,
       heading: 0,
       animationMode: distanceBetweenUserCoordAndCameraCoords > 100000 ? "flyTo" : "easeTo",
     })

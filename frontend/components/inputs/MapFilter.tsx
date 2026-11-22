@@ -24,7 +24,7 @@ const FILTERS: Filter[] = [
   { labelText: "🎯 Nearby", },
   { labelText: "🛫 Sent", },
   { labelText: "🔒 Private", },
-  { labelText: "💾 Saved", },
+  { labelText: "👋 Friend requests", },
 ]
 
 export default function MapFilter({ forceDark }: props) {

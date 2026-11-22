@@ -1,5 +1,6 @@
 import { SelectedLocation } from "@/api/models/locationTypes";
 import { RetrieveResponse } from "@/api/models/placeSearch";
+import { DEFAULT_ZOOM_LEVEL } from "@/constants/appConstants";
 import { Colors } from "@/constants/Colors";
 import { convertCoordinatesToNumberTuple, convertNumberTupleToCoordinates } from "@/constants/mapFunctions";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
@@ -210,6 +211,28 @@ export default function CustomMap({
     };
   }, [selectedLocation, searchResult]);
 
+  const previousZoomRef = useRef<number | undefined>(undefined)
+  const lockPitchRef = useRef<boolean>(false)
+  const MIN_ZOOM = DEFAULT_ZOOM_LEVEL
+  const MAX_ZOOM = 22
+  const MAX_PITCH = 45
+  const MIN_PITCH = 0
+
+  const pitchForCurrentZoom = (zoom: number) => {
+    const t = Math.min(Math.max((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM), 0), 1)
+    return MIN_PITCH + t * (MAX_PITCH - MIN_PITCH)
+  }
+
+  const updatePitch = async (zoom: number) => {
+    if (previousZoomRef.current === zoom || lockPitchRef.current) return
+    previousZoomRef.current = zoom
+    const newPitch = pitchForCurrentZoom(zoom)
+
+    cameraRef?.current?.setCamera({
+      pitch: newPitch,
+    })
+  }
+
   return (
     <View onTouchStart={Keyboard.dismiss} style={styles.container}>
       {permissionGranted ? (
@@ -237,7 +260,10 @@ export default function CustomMap({
           onMapIdle={e => {
             onMapIdle?.(e)
           }}
+          onTouchMove={async () => {
+          }}
           onCameraChanged={async e => {
+
             onMapMove?.(e)
             if (maxZoomLvlToDark && setForceDark) {
               if (e.properties.zoom <= maxZoomLvlToDark) {
@@ -524,7 +550,7 @@ export default function CustomMap({
               }}
             />
 
-            <SymbolLayer
+            {/* <SymbolLayer
               id="crumbMediaCount"
               filter={[
                 "all",
@@ -542,7 +568,7 @@ export default function CustomMap({
                 textAllowOverlap: true,
                 textIgnorePlacement: true,
               }}
-            />
+            /> */}
 
             <SymbolLayer
               id="promptLayer"

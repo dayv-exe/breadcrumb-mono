@@ -59,12 +59,12 @@ export default function LockedCrumbShared({ crumb }: props) {
         handleClick={() => setShowFullAddress(s => !s)}
       >
         <View
-        style={{
-          width: "auto",
-          flexDirection: 'row',
-          alignItems: "center",
-          justifyContent: "flex-start",
-        }}
+          style={{
+            width: "auto",
+            flexDirection: 'row',
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
         >
           <View
             style={{
@@ -87,13 +87,7 @@ export default function LockedCrumbShared({ crumb }: props) {
 
           <CustomLabel allowTruncate={!showFullAddress} fade adaptToTheme fontSize={13} labelText={getFormattedAddr()} />
         </View>
-        <View
-          style={{
-            width: "auto"
-          }}
-        >
-          <CustomLabel adaptToTheme fontSize={15} labelText="🔒" />
-        </View>
+
       </CustomButton>
     </>
   )

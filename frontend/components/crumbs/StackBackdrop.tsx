@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import { memo } from "react";
-import { Platform, StyleSheet, useWindowDimensions } from "react-native";
+import { Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -31,17 +31,22 @@ export default memo(function StackBackdrop({ progress, dragY, intensity }: Props
 
   return (
     <>
-      <AnimatedBlurView
-        animatedProps={blurProps}
-        tint="dark"
-        blurMethod={Platform.OS === "android" ? "dimezisBlurView" : undefined}
-        style={StyleSheet.absoluteFill}
-      />
-      <Animated.View pointerEvents="none" style={[StyleSheet .absoluteFill, styles.dim, dimStyle]} />
+      {Platform.OS === "ios" && <>
+        <AnimatedBlurView
+          animatedProps={blurProps}
+          tint="dark"
+          style={StyleSheet.absoluteFill}
+        />
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.dim, dimStyle]} />
+      </>}
+
+      {Platform.OS === "android" && 
+        <View></View>
+      }
     </>
   );
 });
 
 const styles = StyleSheet.create({
-  dim: { backgroundColor: "rgba(0, 0, 0, 0.3)" },
+  dim: { backgroundColor: "rgba(0, 0, 0, .5)" },
 });
