@@ -172,7 +172,7 @@ Resources:
             OriginAccessControlId: !Ref CloudFrontOriginAccessControl
         Enabled: true
         CacheBehaviors:
-          - PathPattern: "*"
+          - PathPattern: "public/*"
             TargetOriginId: S3Origin
             ViewerProtocolPolicy: redirect-to-https
             AllowedMethods:
